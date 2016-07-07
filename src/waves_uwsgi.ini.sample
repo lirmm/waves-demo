@@ -1,0 +1,24 @@
+[uwsgi]
+project = waves_services
+stats = 127.0.0.1:9091
+
+# ################ Serve directly with uwsgi #######################
+# http = 127.0.0.1:9090
+# static-map = /static=[ABSOLUTE_PATH_TO_STATIC_DIR]/
+# static-map = /media=[ABSOLUTE_PATH_TO_MEDIA_DIR]/
+# ##################################################################
+
+# ################ Integrated in WebServer (Nginx or Apache) #######
+socket = 127.0.0.1:3031
+
+chdir = [ABSOLUTE_PATH_TO_WEB_DIR]/waves/src
+virtualenv = [ABSOLUTE_PATH_TO_VIRTUAL_ENV]/waves
+
+app = waves_services
+env = DJANGO_SETTINGS_MODULE=waves_services.settings.production
+
+wsgi-file = waves_services/wsgi.py
+processes = 4
+threads = 2
+logto = /var/log/uwsgi.log
+module = waves_services.wsgi:application

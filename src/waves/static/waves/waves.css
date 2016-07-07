@@ -1,0 +1,86 @@
+#img_footer_container {
+    text-align: center;
+}
+
+#img_footer_container > div {
+    width: auto; /* Declare your value. Can be in relative units. */
+    display: inline-block;
+    vertical-align: top;
+    /* IE fix. */
+    *display: inline;
+    zoom: 1;
+}
+
+#img_footer_container:after {
+    content: "";
+    width: 100%;
+    display: inline-block;
+}
+
+.footer .content .branding {
+    padding: 0px !important;
+    width: auto
+}
+
+#footer {
+    position: fixed;
+    left: 0px;
+    bottom: 0px;
+    height: 60px;
+    width: 100%;
+    z-index: 1000;
+}
+
+.inline-group .tabular > fieldset.module {
+    background-color: inherit;
+}
+
+.aligned .vCheckboxLabel {
+    display: block !important;
+}
+
+.nested-inline {
+    margin-left: 10px !important;
+    padding-left: 5px !important;
+    border-left: 2px solid brown !important;
+}
+
+.spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -63px; /* half width of the spinner gif */
+    margin-top: -11px; /* half height of the spinner gif */
+    text-align: center;
+    z-index: 10000;
+    overflow: auto;
+    width: 126px; /* width of the spinner gif */
+    height: 22px; /*hight of the spinner gif +2px to fix IE8 issue */
+}
+
+#form_import .form-actions {
+    text-align: center;
+    padding-left: 0 !important;
+}
+
+#form_import.form-horizontal .controls {
+    margin-left: 0 !important;
+}
+
+#id_tool_list {
+    width: 100%;
+    min-height: 250px;
+}
+
+.ui-widget-header {
+    background: transparent;
+    border: none;
+}
+
+input[type=text] {
+    width: auto;
+    min-width: 178px;
+}
+textarea{
+    width: auto;
+}

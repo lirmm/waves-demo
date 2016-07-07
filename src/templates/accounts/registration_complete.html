@@ -1,0 +1,14 @@
+{% extends "home.html" %}
+
+{% block title %}Registration complete{% endblock %}
+
+{% block messages %}
+    <div class="messages alert alert-success alert-dismissible fade in">  <!-- singular -->
+        <a class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span></a>
+        <p>
+            You are now registered in our system, thanks for your interest in our application.<br/>
+            Please, check your emails to activate your account and gain access to our API.
+        </p>
+    </div>
+{% endblock %}

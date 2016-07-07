@@ -1,0 +1,23 @@
+{% if original.id %}
+<fieldset class="module aligned with-legend">
+    <div class="control-group">
+        <div class="control-label"><label for="form-modal">Automatic Import</label></div>
+        <div class="controls full-width">
+            <button type="button" href="{% url 'service_import_form' original.id %}"
+                    class="btn btn-high btn-info {% if not original.run_on %}has-popover{%  endif %}"
+                    data-toggle="modal"
+                    data-target="#form-modal"
+                    {% if not original.run_on %}
+                    disabled="disabled"
+                    data-content="Setup a runner before import "
+                    data-placement="right"
+                    data-container="body"
+                    data-html = 'false'
+                    {% endif %}
+                    id="launch_import">
+                Import service params from runner
+            </button>
+        </div>
+    </div>
+</fieldset>
+{% endif %}

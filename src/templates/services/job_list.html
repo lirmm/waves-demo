@@ -1,0 +1,39 @@
+{% extends "services/base.html" %}
+
+{% block container %}
+    <div id="sec1" class="text-page">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <h1><strong>Your jobs</strong></h1>
+                </div>
+            </div>
+        </div><!-- /.container -->
+    </div>
+    <div id="sec2" class="container">
+        <div class="row">
+            <div class="col-md-12">
+                {% for job in job_list %}
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title ">
+                                <span class="label label-{{ job.label_class }}">{{ job.get_status_display }}</span>
+                                <a href="{% url 'waves:job_details' job.slug %}">{{ job }}</a>
+                            </h3>
+                        </div>
+                        <div class="panel-body">
+                            <ul>
+                                <li><em>Created :</em> {{ job.created }}</li>
+                                <li><em>Updated :</em> {{ job.updated }}</li>
+                            </ul>
+                        </div>
+                        <div class="panel-footer text-right">
+                            <a class="btn btn-primary" disabled="disabled"
+                               href="{% url 'waves:job_submission' job.service.id %}">Create a copy</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

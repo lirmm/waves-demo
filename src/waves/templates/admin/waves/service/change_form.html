@@ -1,0 +1,32 @@
+{% extends "tabbed_admin/change_form.html" %}
+{% load i18n admin_modify admin_urls tabbed_admin_tags admin_static grp_tags %}
+
+{% block object-tools-items %}
+    {% if change %}
+        {% if not is_popup %}
+            <li>
+                <a type="button" href="{% url 'waves:service_duplicate' original.pk %}"
+                   target="_self"
+                   title="Duplicate service"
+                   class="btn btn-high btn-info"
+                   id="duplicate_service">
+                    Duplicate service
+                </a>
+            </li>
+            {% if original.run_on %}
+                <li>
+                    <a type="button" href="{% url 'waves:service_import_form' original.pk %}"
+                       target="_blank"
+                       title="Import from remote adapter"
+                       class="js-popup-link btn btn-high btn-info"
+                       data-toggle="modal"
+                       data-target="#form-modal"
+                       id="launch_import">
+                        Import service params from runner
+                    </a>
+                </li>
+            {% endif %}
+        {% endif %}
+    {% endif %}
+    {{ block.super }}
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% load staticfiles crispy_forms_tags thumbnail %}
+
+{% block title %}{{ block.super }}Profile{% endblock %}
+
+<!-- Benefits of the Django application -->
+{% block container %}
+    <div class="container profile-head">
+        <h1 class="text-primary">Edit Profile</h1>
+        <hr>
+        <div class="row">
+            <!-- left column -->
+            <div class="col-md-3">
+                <div class="text-center">
+                    <img title="profile picture" class="img-circle img-responsive"
+                         src="{% thumbnail user.profile.picture|default:'default_profile.png' 140x140 crop %}">
+                </div>
+            </div>
+
+            <!-- edit form column -->
+            <div class="col-md-9">
+                <h3>Personal info</h3>
+                <form enctype="multipart/form-data" method="post" id="form_edit_profile">
+                    {% crispy user_form %}
+
+                    {% crispy profile_form %}
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript" src="{% static 'site/js/bootstrap-confirmation.min.js' %}"></script>
+    <script type="text/javascript">
+        $('[data-toggle="confirmation"]').confirmation({singleton: true, trigger: 'hover'});
+    </script>
+{% endblock scripts %}
+
+

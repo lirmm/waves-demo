@@ -1,0 +1,15 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_modify admin_urls tabbed_admin_tags admin_static grp_tags %}
+
+{% block object-tools-items %}
+    <li>
+        <a type="button" onclick="javascript:if (confirm('Are you sure?')) window.location.href='{% url 'waves:job_cancel' original.pk %}'; "
+           target="_self"
+           title="Cancel Job"
+           class="btn btn-high btn-warning grp-button grp-delete-link"
+           id="duplicate_service">
+            Cancel this job
+        </a>
+        <li><a href="#job_history-group">{% trans "History" %}</a></li>
+    </li>
+{% endblock %}

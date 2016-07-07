@@ -1,0 +1,38 @@
+{% extends 'admin/edit_inline/tabular.html' %}
+{{ inline_admin_formset }}
+{% if inline_admin_form.original.id %}
+<fieldset class="module aligned with-legend">
+    <div class="control-group">
+        <div class="control-label"><label for="form-modal">Automatic Import</label></div>
+        <div class="controls full-width">
+            <button type="button" href="{% url 'service_import_form' original.id %}"
+                    class="btn btn-high btn-info {% if not original.run_on %}has-popover{%  endif %}"
+                    data-toggle="modal"
+                    data-target="#form-modal"
+                    {% if not original.run_on %}
+                    disabled="disabled"
+                    data-content="Setup a runner before import "
+                    data-placement="right"
+                    data-container="body"
+                    data-html = 'false'
+                    {% endif %}
+                    id="launch_import">
+                Import service params from runner
+            </button>
+        </div>
+    </div>
+</fieldset>
+{% endif %}
+<div id="form-modal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Import Services params from runner</h4>
+            </div>
+            <div id="form-modal-body" class="modal-body">
+            </div>
+        </div>
+    </div>
+    hello World
+</div>

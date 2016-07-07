@@ -21,7 +21,7 @@ build
 
 # SQLite3 database files:
 *.db
-*.sqlite3
+src/waves.tmp.sqlite3
 *.sqlite
 *.coverage
 
@@ -29,7 +29,7 @@ build
 *.log
 
 # Environment variables
-local.env
+src/waves_services/settings/waves.env
 
 # Django stuff:
 *.mo
@@ -57,6 +57,7 @@ tramp
 
 # Rope
 .ropeproject
+/test_data/out
 
 # Mac
 .DS_Store
@@ -67,6 +68,12 @@ Thumbs.db
 Desktop.ini
 
 # Project settings
-./site/
-./data
-
+/data
+/test_data/jobs/
+/media/profile
+/src/waves.sample.sav.sqlite3
+/src/waves.sqlite3
+/src/waves.tmp
+/src/waves.sav.sqlite3
+/src/waves_uwsgi.ini
+/.venv/

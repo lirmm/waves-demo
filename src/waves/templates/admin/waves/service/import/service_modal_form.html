@@ -1,0 +1,59 @@
+{% load crispy_forms_tags %}
+<div id="spinner-container" class="">
+    <div id="spinner" class="spinner" style="display: none">
+        <img id="img-spinner" src="/static/waves/img/ajax-loader.gif" alt="Loading"/>
+    </div>
+</div>
+<div id="#form-modal">
+    {% if messages %}
+        <div id="form-message" class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if form %}
+        <div id="form_import_content" style="z-index: 5">
+            <form class="form-horizontal" id="form_import" method="post"
+                  action="{% url 'waves:service_import_form' service_id %}">
+
+                {% crispy form %}
+            </form>
+        </div>
+        <script type="text/javascript">
+            django.jQuery('#launch-import').click(function (e) {
+                console.log('form click');
+                console.log('submit form !!!' + django.jQuery("#form_import"));
+                e.defaultPrevented;
+                django.jQuery.ajax({
+                    type: django.jQuery("#form_import").attr('method'),
+                    url: django.jQuery("#form_import").attr('action'),
+                    data: django.jQuery("#form_import").serialize(),
+                    // dataType: 'json',
+                    beforeSend: function () {
+                        django.jQuery('#launch-import').attr('disabled', 'disabled');
+                        django.jQuery('#id_tool_list').attr('disabled', 'disabled');
+                        django.jQuery('#spinner').css('display', 'block');
+                    },
+                }).complete(function () {
+                    django.jQuery('#launch-import').removeAttr('disabled');
+                    django.jQuery('#id_tool_list').removeAttr('disabled');
+                    django.jQuery('#spinner').css('display', 'none');
+                }).done(function (data) {
+                    console.log('Request done ' + JSON.stringify(data));
+                    window.location.replace(data.url_redirect);
+                    django.jQuery('#form-modal').modal('toggle');
+                }).fail(function (xhr, ajaxOptions, thrownError) {
+                    // handle response errors here
+                    console.log('errors ' + JSON.stringify(xhr));
+                    django.jQuery('#form-message').html(xhr.responseText);
+                }).always(function (data) {
+                    console.log('always call ' + JSON.stringify(data));
+                });
+                return false;
+            });
+        </script>
+    {% endif %}
+</div>
