@@ -7,6 +7,7 @@ from django.conf import settings
 from django.db import transaction
 from django.contrib import auth, messages
 from django.contrib.auth import get_user_model
+from smtplib import SMTPException
 from django.core.urlresolvers import reverse_lazy
 from django.views import generic
 from registration.backends.hmac.views import RegistrationView, ActivationView as BaseActivationView
@@ -56,15 +57,20 @@ class SignUpView(bracesviews.AnonymousRequiredMixin,
     def get_success_url(self, user):
         return ('accounts:registration_complete', (), {})
 
+    @transaction.atomic()
     def create_inactive_user(self, form):
-        new_user = super(SignUpView, self).create_inactive_user(form)
-        new_user.profile.country = form.cleaned_data.get('country')
-        new_user.profile.institution = form.cleaned_data.get('institution')
-        new_user.profile.phone = form.cleaned_data.get('phone')
-        new_user.profile.comment = form.cleaned_data.get('comment')
-        new_user.profile.registered_for_api = form.cleaned_data.get('register_for_api')
-        new_user.profile.save()
-        return new_user
+        try:
+            new_user = super(SignUpView, self).create_inactive_user(form)
+            new_user.profile.country = form.cleaned_data.get('country')
+            new_user.profile.institution = form.cleaned_data.get('institution')
+            new_user.profile.phone = form.cleaned_data.get('phone')
+            new_user.profile.comment = form.cleaned_data.get('comment')
+            new_user.profile.registered_for_api = form.cleaned_data.get('register_for_api')
+            new_user.profile.save()
+            return new_user
+        except SMTPException as e:
+            messages.error(self.request, "Something went wrong with your registration, contact team for more info")
+            raise e
 
     def registration_allowed(self):
         return settings.REGISTRATION_ALLOWED

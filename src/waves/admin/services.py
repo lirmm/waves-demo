@@ -91,7 +91,6 @@ class ServiceWhenInline(nested_admin.NestedStackedInline):
     extra = 1
     sortable = 'order'
     fk_name = 'related_to'
-    # sortable_field_name = 'order'
     sortable_excludes = ('order', )
 
     def has_add_permission(self, request):

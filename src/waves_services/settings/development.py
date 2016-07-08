@@ -16,13 +16,14 @@ if "celery" in sys.argv[0]:
 # INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
 
 # Show emails to console in DEBUG mode
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+vars().update(env.email(backend='django.core.mail.backends.smtp.EmailBackend'))
 
 # Show thumbnail generation errors
 THUMBNAIL_DEBUG = True
 
 CRISPY_FAIL_SILENTLY = not DEBUG
-LOGFILE_ROOT = join('var', 'log')
+LOGFILE_ROOT = join(str(root.path()), 'logs')
 LOGGING_CONFIG = None
 LOGGING = {
     'version': 1,
@@ -37,16 +38,6 @@ LOGGING = {
         },
     },
     'handlers': {
-        'django_log': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
-        },
-        'project_log': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
-        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
@@ -55,34 +46,22 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['django_log'],
+            'handlers': ['console'],
             'propagate': True,
             'level': 'INFO',
         },
         'waves': {
-            'handlers': ['project_log'],
+            'handlers': ['console'],
             'level': 'DEBUG',
         },
         'job_queue': {
-            'handlers': ['project_log'],
+            'handlers': ['console'],
             'level': 'DEBUG',
         }
     }
 }
 
-DATABASES = {
-    # Raises ImproperlyConfigured exception if DATABASE_URL not in
-    # os.environ
-    'default': env.db(),
-}
-if DEBUG:
-    # make all loggers use the console.
-    for logger in LOGGING['loggers']:
-        if not 'console' in LOGGING['loggers'][logger]['handlers']:
-            LOGGING['loggers'][logger]['handlers'] += ['console']
-
 logging.config.dictConfig(LOGGING)
-WAVES_DEBUG_STACKTRACE = True
 # ADDED restriction to host
 ALLOWED_HOSTS = [
     '127.0.0.1',

@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import logging
 import bioblend
 import six
+import json
 from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.objects import galaxy_instance as galaxy
 from django.conf import settings
@@ -241,6 +242,8 @@ class GalaxyWorkFlowImporter(GalaxyToolImporter):
     def __init__(self, runner_model, service=None):
         super(GalaxyWorkFlowImporter, self).__init__(runner_model, service)
         self._tool_client = bioblend.galaxy.objects.client.ObjWorkflowClient(self._runner.connect())
+        self.workflow = None
+        self.workflow_full_description = None
 
     def _list_remote_inputs(self, tool_id):
         logger.warn('Not Implemented yet')
@@ -273,7 +276,13 @@ class GalaxyWorkFlowImporter(GalaxyToolImporter):
         return []
 
     def _get_tool_details(self, remote_tool_id):
-        return self._tool_client.get(id_=remote_tool_id)
+        self.workflow = self._tool_client.get(id_=remote_tool_id)
+        self.workflow_full_description = self.workflow.export()
+        print self.workflow.inputs
+        print self.workflow.steps
+
+        print self.workflow_full_description.__class__, self.workflow_full_description
+        return self.workflow
 
     def _update_service(self, details):
         if not self._service.short_description:

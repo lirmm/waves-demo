@@ -22,7 +22,6 @@ settings.WAVES_DRMAA_LIBRARY_PATH = getattr(settings, 'WAVES_DRMAA_LIBRARY_PATH'
                                             getenv('DRMAA_LIBRARY_PATH', '/usr/lib/libdrmaa.so'))
 settings.WAVES_SGE_ROOT = getattr(settings, 'WAVES_SGE_ROOT', getenv('SGE_ROOT', '/var/lib/gridengine'))
 settings.WAVES_SGE_CELL = getattr(settings, 'WAVES_SGE_CELL', getenv('SGE_CELL', 'default'))
-settings.WAVES_DEBUG_STACKTRACE = getattr(settings, 'WAVES_DEBUG_STACKTRACE', False)
 
 settings.WAVES_GROUP_ADMIN = getattr(settings, 'WAVES_GROUP_ADMIN', 'WAVES_ADMIN')
 settings.WAVES_GROUP_API = getattr(settings, 'WAVES_GROUP_API', 'WAVES_API_USER')

@@ -25,10 +25,23 @@ class UserProfileInline(admin.StackedInline):
         return False
 
 
+def resend_activation_email(modeladmin, request, queryset):
+    from django.contrib import messages
+    from waves.views.accounts import SignUpView
+    for usr in queryset.all():
+        try:
+            regview = SignUpView(request=request)
+            regview.send_activation_email(usr)
+            messages.add_message(request, level=messages.SUCCESS, message="Mail(s) successfully sent")
+        except Exception as e:
+            messages.add_message(request, level=messages.ERROR, message="Mail not sent %s" % e.message)
+
+
 class NewUserAdmin(NamedUserAdmin):
     inlines = [UserProfileInline]
     list_display = ('is_active', 'email', 'name', 'apikey', 'is_superuser', 'is_staff', 'group', 'country',
                     'institution')
+    actions = [resend_activation_email,]
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = super(NewUserAdmin, self).get_fieldsets(request, obj)

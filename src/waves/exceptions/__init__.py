@@ -17,7 +17,6 @@ class WavesException(Exception):
 
     def __init__(self, *args, **kwargs):
         super(WavesException, self).__init__(*args, **kwargs)
-        # TODO add stack trace when settings.WAVES_DEBUG_STACKTRACE is On ?
         self._log()
 
 
