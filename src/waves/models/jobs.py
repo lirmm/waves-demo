@@ -112,6 +112,7 @@ class Job(TimeStampable, SlugAble):
     def command(self):
         return self.service.command
 
+    @property
     def command_line(self):
         return self.command.create_command_line(job_inputs=self.job_inputs.all())
 

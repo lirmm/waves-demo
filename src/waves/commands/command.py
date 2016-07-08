@@ -22,10 +22,8 @@ class BaseCommand(object):
         Returns:
             str the command line text
         """
-        command_line = ""
-        for cmd_elem in job_inputs:
-            logger.debug('Current Command elem %s %s', cmd_elem, cmd_elem.command_line)
-            command_line += ' %s' % cmd_elem.command_line_element
-        logger.debug("Command line for srv %s : %s", self.service, command_line)
-        return command_line
+        return ' '.join(self.get_command_line_element_list(job_inputs))
+
+    def get_command_line_element_list(self, job_inputs):
+        return filter(None, [e.command_line_element for e in job_inputs])
 

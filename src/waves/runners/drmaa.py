@@ -7,6 +7,7 @@ import pickle
 import time
 
 from django.conf import settings
+from django.utils import timezone, formats
 import waves.const
 from waves.exceptions import RunnerNotInitialized
 from waves.runners.lib.lib_drmaa import DrmaaSessionFactory
@@ -72,28 +73,19 @@ class DRMAAJobRunner(JobRunner):
 
     def _prepare_job(self, job):
         try:
-            command = self.command
-            # TODO manage multiple entries for same input
-            jt_args = []
-            for job_input in job.job_inputs.all():
-                command_line = job_input.command_line
-                if command_line:
-                    jt_args.append(job.)
-            logger.debug('Full command line %s ' % ' '.join(jt_args))
-
-            # TODO manage input types
             jt = dict(
-                remoteCommand=command,
+                remoteCommand=self.command,
                 jobName=str(job.title),
                 workingDirectory=job.output_dir,
                 outputPath=":%s.out" % job.output_dir,
                 errorPath=":%s.err" % job.output_dir,
-                args=jt_args
+                args=job.command.get_command_line_element_list(job.job_inputs.all())
             )
             filename = "%s/job_template.json" % job.working_dir
             with open(filename, 'w+') as fp:
                 json.dump(jt, fp)
-            job.message = 'Job prepared with %i args' % len(jt_args)
+            job.message = 'Job prepared at ' + formats.date_format(timezone.localtime(timezone.now()),
+                                                                   "SHORT_DATETIME_FORMAT")
         except IOError as e:
             job.message = e.message
             raise
@@ -206,3 +198,6 @@ class DRMAAJobRunner(JobRunner):
                 self._connector.session.drmaaImplementation,
                 str(self._connector.session.version))
         return ""
+
+    def _ready(self):
+        return self._initialized and self.command is not None

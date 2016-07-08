@@ -77,7 +77,7 @@ class TestBaseJobRunner(WavesBaseTestCase):
     def tearDown(self):
         super(TestBaseJobRunner, self).tearDown()
         if self.current_result.wasSuccessful():
-            # self.job.delete_job_dirs()
+            self.job.delete_job_dirs()
             pass
 
     def testConnect(self):
@@ -139,6 +139,8 @@ class TestBaseJobRunner(WavesBaseTestCase):
             else:
                 time.sleep(3)
         self.assertGreaterEqual(self.job.status, waves.const.JOB_COMPLETED)
+        self.runner.job_results(self.job)
+        self.runner.job_run_details(self.job)
         history = self.job.job_history.first()
         logger.debug("History timestamp %s", localtime(history.timestamp))
         logger.debug("Job status timestamp %s", self.job.status_time)
@@ -149,7 +151,8 @@ class TestBaseJobRunner(WavesBaseTestCase):
                 logger.info("Testing file %s ", output_job.file_path)
                 self.assertTrue(os.path.isfile(output_job.file_path))
         else:
-            logger.warn("Job state is %s and results available %s", self.job.get_status_display(), self.job.results_available )
+            logger.warn("Job state is %s and results available %s", self.job.get_status_display(),
+                        self.job.results_available )
         # last history
 
     def testExtraUnexpectedParameter(self):

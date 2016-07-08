@@ -52,8 +52,8 @@ class ServiceInputValidator(object):
     def _validate_input_int(self, the_input, value):
         try:
             int(value)
-            if getattr(self, the_input, 'format', False):
-                # check min max ?
+            if the_input.format:
+                # TODO check min max
                 pass
             return True
         except ValueError:
@@ -62,8 +62,8 @@ class ServiceInputValidator(object):
     def _validate_input_float(self, the_input, value):
         try:
             float(value)
-            if getattr(self, the_input, 'format', False):
-                # check min max ?
+            if the_input.format:
+                # TODO check min max
                 pass
             return True
         except ValueError:

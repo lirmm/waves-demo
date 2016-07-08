@@ -34,7 +34,7 @@ class SGEAdapterTestCase(TestBaseJobRunner):
     def testHelloWorld(self):
         self._prepare_hello_world()
         self.runJobWorkflow()
-        self.assertEqual(self.job.job_history.count(), 5)
+        self.assertEqual(self.job.status, waves.const.JOB_TERMINATED)
 
     def _prepare_hello_world(self):
         self.runner.command = os.path.join(test_util.get_sample_dir(), 'services/hello_world.sh')
