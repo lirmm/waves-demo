@@ -467,30 +467,34 @@ class ServiceInput(DescribeAble, TimeStampable, OrderAble):
                                help_text='Input list display mode (for type list only)')
 
     def save(self, *args, **kwargs):
-        if self.type == waves.const.TYPE_LIST and self.display == waves.const.DISPLAY_MULTIPLE_SELECT:
-            self.multiple = True
+        if self.type == waves.const.TYPE_LIST:
+            if self.display == waves.const.DISPLAY_RADIO:
+                self.multiple = False
+
         super(ServiceInput, self).save(*args, **kwargs)
 
     def get_choices(self):
-        if self.type == waves.const.TYPE_LIST:
-            return ServiceInputFormat.choice_list(self.format)
+        #if self.type in (waves.const.TYPE_LIST, waves.const.TYPE_FILE):
+        return ServiceInputFormat.choice_list(self.format)
+        """
         elif self.type == waves.const.TYPE_BOOLEAN:
             return [(1, 'True'), (0, 'False')]
         else:
             return []
+        """
 
     def get_min(self):
-        if self.type == waves.const.TYPE_INTEGER:
+        if self.type == waves.const.TYPE_INTEGER or self.type == waves.const.TYPE_FLOAT:
             if self.format:
-                return eval(self.format.split(':')[0])
+                return eval(self.format.split('|')[0])
             return None
         else:
             return None
 
     def get_max(self):
-        if self.type == waves.const.TYPE_INTEGER:
+        if self.type == waves.const.TYPE_INTEGER or self.type == waves.const.TYPE_FLOAT:
             if self.format:
-                return eval(self.format.split(':')[0])
+                return eval(self.format.split('|')[1])
             return None
         else:
             return None

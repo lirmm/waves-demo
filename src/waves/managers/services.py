@@ -43,15 +43,9 @@ class ServiceManager(models.Manager):
             logger.debug('Incoming %s ', incoming_input)
             if not service_input.multiple:
                 if service_input.type == waves.const.TYPE_FILE:
-                    # TYPE simple file
-                    temp_file = incoming_input
                     # move temporary file to job input_dir
-                    input_dict['value'] = temp_file.name
-                elif service_input.type == waves.const.TYPE_LIST:
-                    input_dict['value'] = incoming_input
+                    input_dict['value'] = incoming_input.name
                 elif any(e == service_input.type for e, _ in waves.const.IN_TYPE[2:]):
-                    # type boolean / list / integer / float / text
-                    logger.info('Any ????')
                     input_dict['value'] = incoming_input
                 else:
                     raise RuntimeError(
@@ -60,7 +54,10 @@ class ServiceManager(models.Manager):
             else:
                 input_dict = []
                 for input_tmp in incoming_input:
-                    input_dict.extend(ServiceManager.import_submitted_input(input_tmp, service_input))
+                    # TODO actually manage command
+                    print "input_tmp", input_tmp
+                    # input_dict.extend(ServiceManager.import_submitted_input(input_tmp, service_input))
+                raise RuntimeError("Fake error")
                 return input_dict
 
     @staticmethod

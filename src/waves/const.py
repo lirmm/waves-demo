@@ -109,12 +109,10 @@ OPT_TYPE = (
 )
 
 DISPLAY_SELECT = 'select'
-DISPLAY_MULTIPLE_SELECT = 'mselect'
 DISPLAY_RADIO = 'radio'
 DISPLAY_CHECKBOX = 'checkbox'
 LIST_DISPLAY_TYPE = (
     (DISPLAY_SELECT, 'Select List'),
-    (DISPLAY_MULTIPLE_SELECT, 'Multiple select'),
     (DISPLAY_RADIO, 'Radio buttons'),
     (DISPLAY_CHECKBOX, 'Check box')
 )

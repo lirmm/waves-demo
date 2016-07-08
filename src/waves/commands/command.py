@@ -14,11 +14,18 @@ class BaseCommand(object):
         self.service = service
 
     def create_command_line(self, job_inputs):
+        """
+        Parse and create command line text to launch service
+        Args:
+            job_inputs: JobInput objects list
+
+        Returns:
+            str the command line text
+        """
         command_line = ""
-        for cmd_elem in job_inputs.all():
-            assert isinstance(cmd_elem, JobInput)
+        for cmd_elem in job_inputs:
             logger.debug('Current Command elem %s %s', cmd_elem, cmd_elem.command_line)
-            command_line += ' %s' % cmd_elem.command_line
+            command_line += ' %s' % cmd_elem.command_line_element
         logger.debug("Command line for srv %s : %s", self.service, command_line)
         return command_line
 

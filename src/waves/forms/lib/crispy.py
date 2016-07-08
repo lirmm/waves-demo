@@ -11,6 +11,10 @@ __all__ = ['FormHelper', 'FormLayout']
 
 
 class FormHelper(BaseFormHelper, BaseHelper):
+    """
+    Extended FormHelper based on crispy FormHelper,
+    Dynamic form fields according to inputs types and parameters
+    """
     def __init__(self, form=None, **kwargs):
         form_tag = kwargs.pop('form_tag', True)
         form_class = kwargs.pop('form_class', 'form-horizontal')

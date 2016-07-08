@@ -6,6 +6,7 @@ from django.forms.models import inlineformset_factory
 from django.utils.module_loading import import_string
 
 from waves.models import Service, ServiceInput
+from waves.utils.validators import ServiceInputValidator
 
 def popover_html(content):
     return '<a tabindex="0" role="button" data-toggle="popover" data-html="true" \
@@ -60,8 +61,12 @@ class ServiceJobForm(forms.ModelForm):
         # from waves.utils.validators import validate_input
         cleaned_data = super(ServiceJobForm, self).clean()
         # TODO add form field format validation
-        # for field in self.fields:
-        #    validate_input(field, cleaned_data[field])
+        validator = ServiceInputValidator()
+        for field in self.fields:
+            srv_input = next((x for x in self.list_inputs if x.name == field), None)
+            if srv_input:
+                print field, ' input ', srv_input, field.__class__
+                validator.validate_input(srv_input, cleaned_data[field])
         return cleaned_data
 
     def save(self, commit=True):

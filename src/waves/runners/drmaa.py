@@ -78,7 +78,7 @@ class DRMAAJobRunner(JobRunner):
             for job_input in job.job_inputs.all():
                 command_line = job_input.command_line
                 if command_line:
-                    jt_args.append(command_line)
+                    jt_args.append(job.)
             logger.debug('Full command line %s ' % ' '.join(jt_args))
 
             # TODO manage input types

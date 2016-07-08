@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db import models
 
 import waves.const as const
-import waves.utils.validators as validator
+from waves.utils.validators import ServiceInputValidator
 from waves.eav.config import JobEavConfig, JobInputEavConfig, JobOutputEavConfig
 from waves.managers import JobManager
 from waves.models.base import TimeStampable, SlugAble, OrderAble
@@ -113,7 +113,7 @@ class Job(TimeStampable, SlugAble):
         return self.service.command
 
     def command_line(self):
-        return self.command.create_command_line(job_inputs=self.job_inputs)
+        return self.command.create_command_line(job_inputs=self.job_inputs.all())
 
     @property
     def label_class(self):
@@ -167,7 +167,6 @@ class JobInput(OrderAble, SlugAble):
 
     @property
     def validated_value(self):
-        validator.validate_input(self, self.value)
         if self.type == const.TYPE_FILE:
             return self.file_path
         elif self.type == const.TYPE_BOOLEAN:
@@ -180,25 +179,23 @@ class JobInput(OrderAble, SlugAble):
             return float(self.value)
         elif self.type == const.TYPE_LIST:
             # test value for boolean TODO update to be more efficient
-            if validator.validate_input_boolean(self, self.value):
-                if self.value == 'None':
-                    return False
-                return bool(eval(self.value))
-            return self.value
+            if self.value == 'None':
+                return False
+            return bool(eval(self.value))
         else:
             logger.warn('No Input type !')
             raise ValueError("No type specified for input")
 
     @property
-    def command_line(self):
+    def command_line_element(self):
         value = self.validated_value
         if self.param_type == const.OPT_TYPE_VALUATED:
-            if validator.validate_input_boolean(self, self.value) and bool(eval(value)) is False:
-                # Special case, optional valuated param (See to move this in a dedicated Command parser
-                return None
             return '--%s=%s' % (self.name, value)
         elif self.param_type == const.OPT_TYPE_SIMPLE:
-            return '-%s %s' % (self.name, value)
+            if value:
+                return '-%s %s' % (self.name, value)
+            else:
+                return ''
         elif self.param_type == const.OPT_TYPE_OPTION:
             if self.type != const.TYPE_BOOLEAN:
                 raise ValueError("Param type option must be boolean")
@@ -210,11 +207,14 @@ class JobInput(OrderAble, SlugAble):
                 raise ValueError("Param type option must be boolean")
             if value:
                 return '--%s' % self.name
-            return None
+            return ''
         elif self.param_type == const.OPT_TYPE_POSIX:
-            return '%s' % value
+            if value:
+                return '%s' % value
+            else:
+                return ''
         elif self.param_type == const.OPT_TYPE_NONE:
-            return None
+            return ''
         # By default it's OPT_TYPE_SIMPLE way
         return '-%s %s' % (self.name, self.value)
 

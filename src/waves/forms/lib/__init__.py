@@ -29,20 +29,26 @@ class BaseHelper(object):
                                             required=False,
                                             help_text=service_input.description)
         elif service_input.type == const.TYPE_LIST:
-            form_field = forms.ChoiceField(label=service_input.label,
-                                           choices=service_input.get_choices(),
-                                           initial=service_input.default,
-                                           required=service_input.mandatory,
-                                           help_text=service_input.description)
+            if not service_input.multiple:
+                form_field = forms.ChoiceField(label=service_input.label,
+                                               choices=service_input.get_choices(),
+                                               initial=service_input.default,
+                                               required=service_input.mandatory,
+                                               help_text=service_input.description)
+                if service_input.display == const.DISPLAY_RADIO:
+                    form_field.widget = forms.RadioSelect()
+                elif service_input.display == const.DISPLAY_CHECKBOX:
+                    form_field.widget = forms.CheckboxChoiceInput()
+            else:
+                form_field = forms.MultipleChoiceField(label=service_input.label,
+                                                       choices=service_input.get_choices(),
+                                                       initial=service_input.default,
+                                                       required=service_input.mandatory,
+                                                       help_text=service_input.description)
+                if service_input.display == const.DISPLAY_CHECKBOX:
+                    form_field.widget = forms.CheckboxSelectMultiple()
+
             form_field.css_class = 'text-left'
-            if service_input.display == const.DISPLAY_RADIO:
-                form_field.widget = forms.RadioSelect(label=service_input.label,
-                                                      required=service_input.mandatory,
-                                                      help_text=service_input.description)
-            elif service_input.display == const.DISPLAY_CHECKBOX:
-                form_field.widget = forms.CheckboxSelectMultiple(label=service_input.label,
-                                                                 required=service_input.mandatory,
-                                                                 help_text=service_input.description)
         elif service_input.type == const.TYPE_INTEGER:
             form_field = forms.IntegerField(initial=service_input.default,
                                             label=service_input.label,
