@@ -23,6 +23,7 @@ class BaseCommand(object):
         """
         return ' '.join(self.get_command_line_element_list(job_inputs))
 
-    def get_command_line_element_list(self, job_inputs):
+    @staticmethod
+    def get_command_line_element_list(job_inputs):
         return filter(None, [e.command_line_element for e in job_inputs])
 

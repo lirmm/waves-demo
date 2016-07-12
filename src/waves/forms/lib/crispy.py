@@ -1,13 +1,19 @@
 from __future__ import unicode_literals
 
 from crispy_forms.helper import FormHelper as BaseFormHelper
+from crispy_forms.utils import get_template_pack
+
 from crispy_forms.layout import *
-from crispy_forms.bootstrap import FormActions
-from django import forms
 
 from waves.forms.lib import BaseHelper
-
 import waves.const as const
+
+if 'bootstrap' in get_template_pack():
+    from crispy_forms.bootstrap import FormActions
+elif 'foundation' in get_template_pack():
+    # import foundation
+    pass
+
 
 __all__ = ['FormHelper', 'FormLayout']
 
@@ -28,7 +34,7 @@ class FormHelper(BaseFormHelper, BaseHelper):
         self.form_class = form_class
         self.label_class = label_class
         self.field_class = field_class
-        self.render_unmentioned_fields = True
+        self.render_unmentioned_fields = False
         self.layout = Layout()
 
     def set_layout(self, service_input):
@@ -47,7 +53,6 @@ class FormHelper(BaseFormHelper, BaseHelper):
         dependent_on = ""
         dependent_4_value = ""
         if service_input.dependent_inputs.count() > 0:
-            print 'has dependents ? ', service_input
             css_class = "has_dependent"
         if hasattr(service_input, 'related_to'):
             field_id += '_' + service_input.related_to.name + '_' + service_input.when_value
@@ -57,7 +62,6 @@ class FormHelper(BaseFormHelper, BaseHelper):
                 wrapper_class = "hid_dep_parameter"
             else:
                 wrapper_class = "dis_dep_parameter"
-        print "Field ", service_input
         input_field = Field(service_input.name,
                             css_class=css_class,
                             id=field_id,
@@ -74,13 +78,13 @@ class FormHelper(BaseFormHelper, BaseHelper):
     def init_layout(self):
         self.layout = Layout(
             Field('title'),
+            Field('email', ),
             HTML('<HR/>')
         )
 
     def end_layout(self):
         self.layout.extend([
             HTML('<HR/>'),
-            Field('email', ),
             FormActions(
                 Reset('reset', 'Reset form'),
                 Submit('save', 'Submit a job')

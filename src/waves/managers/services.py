@@ -15,6 +15,14 @@ __all__ = ['ServiceManager', 'WebSiteMetaMngr', 'DocumentationMetaMngr', 'Downlo
            'MiscellaneousMetaMngr', 'CitationMetaMngr', 'CommandLineMetaMngr']
 
 
+def _upload_job_file(in_input, job_input):
+    if isinstance(in_input, TemporaryUploadedFile):
+        filename = job_input.job.input_dir + in_input.name
+        with open(filename, 'wb+') as uploaded_file:
+            for chunk in in_input.chunks():
+                uploaded_file.write(chunk)
+
+
 class ServiceManager(models.Manager):
     def get_service_for_client(self, client):
         """
@@ -36,34 +44,27 @@ class ServiceManager(models.Manager):
         else:
             return self.filter(status=waves.const.SRV_PUBLIC)
 
-    @staticmethod
-    def import_submitted_input(incoming_input, service_input):
-        input_dict = dict()
-        if incoming_input is not None:
-            logger.debug('Incoming %s ', incoming_input)
-            if not service_input.multiple:
-                if service_input.type == waves.const.TYPE_FILE:
-                    # move temporary file to job input_dir
-                    input_dict['value'] = incoming_input.name
-                elif any(e == service_input.type for e, _ in waves.const.IN_TYPE[2:]):
-                    input_dict['value'] = incoming_input
-                else:
-                    raise RuntimeError(
-                        'Unexpected error in job submission %s ' % service_input.get_type_display())
-                return input_dict
-            else:
-                input_dict = []
-                for input_tmp in incoming_input:
-                    # TODO actually manage command
-                    print "input_tmp", input_tmp
-                    # input_dict.extend(ServiceManager.import_submitted_input(input_tmp, service_input))
-                raise RuntimeError("Fake error")
-                return input_dict
+    def _create_job_input(self, job, service_input, order, submitted_input):
+        from waves.models import JobInput
+        input_dict = dict(job=job,
+                          name=service_input.name,
+                          order=order,
+                          type=service_input.type,
+                          param_type=service_input.param_type,
+                          related_service_input=service_input,
+                          value=str(submitted_input))
+        if service_input.type == waves.const.TYPE_FILE:
+            assert isinstance(submitted_input, TemporaryUploadedFile), "Wrong data type for file %s" %service_input
+            filename = job.input_dir + submitted_input.name
+            with open(filename, 'wb+') as uploaded_file:
+                for chunk in submitted_input.chunks():
+                    uploaded_file.write(chunk)
+        job.job_inputs.add(JobInput.objects.create(**input_dict))
 
-    @staticmethod
     @transaction.atomic
-    def create_new_job(service, email_to, submitted_inputs, user=None, title=None):
-        """Create a new job from service data and submitted params values
+    def create_new_job(self, service, email_to, submitted_inputs, user=None, title=None):
+        """
+        Create a new job from service data and submitted params values
         Args:
             title: Job title
             submitted_inputs: Dictionary { param_name:param_value }
@@ -75,84 +76,51 @@ class ServiceManager(models.Manager):
             A newly created Job object
         """
         from waves.models import Job, JobInput, JobOutput
-        job = Job.objects.create(service=service,
-                                 email_to=email_to,
-                                 client=user,
-                                 title=title)
-        job.make_job_dirs()
-        order = 0
-        for service_input in service.service_inputs.filter(relatedinput=None):
-            try:
-                order += 1
+        job = Job.objects.create(service=service, email_to=email_to, client=user, title=title)
+        order_inputs = 0
+        try:
+            for service_input in service.service_inputs.filter(editable=True, relatedinput=None):
+                # Treat only non dependent inputs first
+                order_inputs += 1
                 incoming_input = submitted_inputs[service_input.name]
-                input_dict = dict(job=job,
-                                  name=service_input.name,
-                                  order=order,
-                                  type=service_input.type,
-                                  param_type=service_input.param_type,
-                                  related_service_input=service_input)
-                # raise RuntimeError('Test Error')
-                if service_input.mandatory and not service_input.default and incoming_input is None:
-                    logger.info('Parameter submitted')
+                # test service input mandatory, without default and no value
+                if service_input.mandatory and not service_input.default and incoming_input is None \
+                        and not hasattr(service_input, 'when_value'):
                     raise JobMissingMandatoryParam(service_input.name, job)
-                details = ServiceManager.import_submitted_input(incoming_input, service_input)
-                if service_input.dependent_inputs.count() > 0:
-                    # import related data (and only this one)
-                    try:
-                        related_input_4_value = service_input.dependent_inputs.filter(
-                            when_value=details['value']).first()
-                        # TODO manage multiple 'when-value' ... ex with MAFTT
-                        if related_input_4_value is not None:
-                            logger.debug('Create dependent parameter %s ' % related_input_4_value)
-                            order += 1
-                            related_input_dict = dict(job=job,
-                                                      name=related_input_4_value.name,
-                                                      order=order,
-                                                      type=related_input_4_value.type,
-                                                      param_type=related_input_4_value.param_type)
-                            related_input_dict.update(
-                                ServiceManager.import_submitted_input(submitted_inputs[related_input_4_value.name],
-                                                                      related_input_4_value))
-                            related_input = JobInput.objects.create(**related_input_dict)
-                            job.job_inputs.add(related_input)
-                    except ObjectDoesNotExist as e:
-                        logger.warn('Object does not exists')
-                if service_input.type == waves.const.TYPE_FILE and isinstance(incoming_input, TemporaryUploadedFile):
-                    temp_file = incoming_input
-                    filename = job.input_dir + temp_file.name
-                    logger.debug('File job parameters:' + filename)
-                    with open(filename, 'wb+') as uploaded_file:
-                        for chunk in temp_file.chunks():
-                            uploaded_file.write(chunk)
-                if isinstance(details, dict):
-                    input_dict.update(details)
-                    job_input = JobInput.objects.create(**input_dict)
-                    job.job_inputs.add(job_input)
-                elif isinstance(details, list):
-                    for input_data in details:
-                        input_dict.update(input_data)
-                    job_input = JobInput.objects.create(**input_dict)
-                    job.job_inputs.add(job_input)
-                elif incoming_input is not None:
-                    raise JobCreateException('Valuated input could not be managed', job=job)
-            except KeyError:
-                if service_input.mandatory and not service_input.default:
-                    raise JobMissingMandatoryParam(service_input.name, job=job)
-                elif service_input.mandatory:
-                    job_input = JobInput.objects.create(
-                        job=job,
-                        name=service_input.name,
-                        type=service_input.type,
-                        value=service_input.default,
-                        order=order
-                    )
-                    job.job_inputs.add(job_input)
-                else:
-                    # parameters has not been submitted, but no mandatory
-                    pass
-            except AssertionError as e:
-                raise JobCreateException('Unexpected error in job submission %s (%s)' %
-                                         (service_input.get_type_display(), e.message), job=job)
+                # transform single incoming into list to keep process iso
+                if type(incoming_input) != list:
+                    incoming_input = [incoming_input]
+                for in_input in incoming_input:
+                    order_inputs += 1
+                    self._create_job_input(job, service_input, order_inputs, in_input)
+                    # TODO remove this kind of duplicated code
+                    related_4_value = service_input.dependent_inputs.filter(when_value=str(in_input)).all()
+                    for related_input in related_4_value:
+                        income_input = submitted_inputs[related_input.name]
+                        if type(income_input) != list:
+                            income_input = [income_input]
+                        for dep_input in income_input:
+                            order_inputs += 1
+                            self._create_job_input(job, related_input, order_inputs, dep_input)
+        except KeyError:
+            if service_input.mandatory and not service_input.default:
+                raise JobMissingMandatoryParam(service_input.name, job=job)
+            elif service_input.mandatory:
+                job_input = JobInput.objects.create(
+                    job=job,
+                    name=service_input.name,
+                    type=service_input.type,
+                    value=service_input.default,
+                    order=order_inputs
+                )
+                job.job_inputs.add(job_input)
+            else:
+                # parameters has not been submitted, but no mandatory
+                pass
+        except AssertionError as e:
+            print e
+            raise
+            # raise JobSubmissionException('Unexpected error in job submission %s (%s)' % (service_input.get_type_display(), e), job=job)
         logger.debug('Job %s created with %i inputs', job.slug, job.job_inputs.count())
         for service_output in service.service_outputs.all():
             JobOutput.objects.create(job=job, name=service_output.name, label=service_output.name)
@@ -160,6 +128,7 @@ class ServiceManager(models.Manager):
 
     def api_public(self):
         return self.filter(api_on=True, status=waves.const.SRV_PUBLIC)
+
 
 class WebSiteMetaMngr(models.Manager):
     def get_queryset(self):

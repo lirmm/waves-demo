@@ -45,7 +45,7 @@ class ServiceJobForm(forms.ModelForm):
             helper = import_string('.'.join(['waves', 'forms', 'lib', settings.WAVES_FORM_PROCESSOR, 'FormHelper']))
             return helper(**kwargs)
         except ImportError:
-            raise None
+            raise RuntimeError('No helper defined for WAVES, unable to create any form')
 
     def __init__(self, *args, **kwargs):
         instance = kwargs.pop('instance')
@@ -73,12 +73,10 @@ class ServiceJobForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(ServiceJobForm, self).clean()
-        # TODO add form field format validation
         validator = ServiceInputValidator()
         for data in self.cleaned_data:
             srv_input = next((x for x in self.list_inputs if x.name == data), None)
             if srv_input:
-                print data, ' input ', srv_input, self.cleaned_data[data]
                 validator.validate_input(srv_input, self.cleaned_data[data])
         return cleaned_data
 

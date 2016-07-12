@@ -4,8 +4,8 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.views import generic
 from waves.forms.services import ServiceJobForm
-from waves.managers import ServiceManager
-from waves.models import ServiceCategory, Service, ServiceMeta
+from waves.exceptions import JobException
+from waves.models import ServiceCategory, Service
 from django.db.models import Prefetch
 import waves.const as const
 from django.contrib import messages
@@ -87,7 +87,6 @@ class JobSubmissionView(generic.FormView, ServiceDetailView):
             'all': ('tabbed_admin/css/tabbed_admin.css',)
         }
 
-
     def __init__(self, *args, **kwargs):
         super(JobSubmissionView, self).__init__(*args, **kwargs)
         self.object = None
@@ -130,23 +129,24 @@ class JobSubmissionView(generic.FormView, ServiceDetailView):
         job_title = form.cleaned_data.pop('title')
         if not ass_email and self.request.user.is_authenticated():
             ass_email = self.request.user.email
+        user = self.request.user if self.request.user.is_authenticated() else None
         try:
-            self.job = ServiceManager.create_new_job(service=self.object,
-                                                     email_to=ass_email,
-                                                     submitted_inputs=form.cleaned_data,
-                                                     user=self.request.user if self.request.user.is_authenticated() else None,
-                                                     title=job_title)
+            self.job = Service.objects.create_new_job(service=self.object,
+                                                      email_to=ass_email,
+                                                      submitted_inputs=form.cleaned_data,
+                                                      user=user,
+                                                      title=job_title)
             messages.success(
                 self.request,
                 "Job successfully submitted"
             )
-        except Exception as e:
-            logger.fatal("Unknown error in job creation %s %s ", e.message, e.__class__)
+        except JobException as e:
+            logger.fatal("Create Error %s", e.message)
             messages.error(
                 self.request,
-                "An error occurred, sorry for inconvenience, our team has been noticed"
+                "An unexpected error occurred, sorry for the inconvenience, our team has been noticed"
             )
-            raise
+            return self.render_to_response(self.get_context_data(form=form))
         return super(JobSubmissionView, self).form_valid(form)
 
     def form_invalid(self, form):

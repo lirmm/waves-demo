@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from multiupload.fields import MultiFileField
 from django import forms
+from django.conf import settings
 
 import waves.const as const
 
@@ -17,11 +18,12 @@ class BaseHelper(object):
         )
         if service_input.type == const.TYPE_FILE:
             # TODO manage multiple file input
+            field_dict.update(dict(allow_empty_file=False))
             if service_input.multiple:
-                field_dict.update(dict(min_num=1, max_file_size=1024*5))
+                field_dict.update(dict(min_num=1, max_file_size=settings.WAVES_UPLOAD_MAX_SIZE))
+                form_field = MultiFileField(**field_dict)
             else:
-                field_dict.update(dict(max_num=1))
-            form_field = MultiFileField(**field_dict)
+                form_field = forms.FileField(**field_dict)
         elif service_input.type == const.TYPE_BOOLEAN:
             field_dict.update(dict(required=False))
             form_field = forms.BooleanField(**field_dict)

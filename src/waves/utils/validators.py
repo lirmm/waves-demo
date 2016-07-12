@@ -1,9 +1,11 @@
 from __future__ import unicode_literals
 
-import sys
 import os
 import logging
+
 from django.core.exceptions import ValidationError
+
+import waves.const
 
 logger = logging.getLogger(__name__)
 """
@@ -17,40 +19,64 @@ TYPE_TEXT = 'text'
 """
 
 
-# TODO Refactoring this in a concrete class with validation more explicit error messages
 class ServiceInputValidator(object):
-
-    message = '%s is not valid %s (%s) got: %s'
-    extra_message = ''
+    """
+    Dynamic validation class for ServiceInput objects, according to ServiceInput type and format
+    """
+    invalid_message = '%s is not valid %s (%s) got: %s'
+    specific_message = ''
 
     def validate_input(self, the_input, value):
-        assert the_input is not None
         try:
+            if the_input.mandatory and not the_input.default and value is None:
+                raise ValidationError('Mandatory parameter -%s- needs a value' % the_input.label)
             validator = '_validate_input_' + the_input.type
             func = getattr(self, validator)
-            if not func(the_input, value):
+            if type(value) == list:
+                valid = True
+                for val in value:
+                    valid = valid and func(the_input, val)
+            else:
+                valid = func(the_input, value)
+            if not valid:
                 logger.info('Failed input -%s-, service -%s-, with value %s', the_input, the_input.service, value)
-                raise ValidationError(self.message % (the_input.label, the_input.type, self.extra_message, value))
+                raise ValidationError(
+                    self.invalid_message % (the_input.label, the_input.type, self.specific_message, value))
             return True
+        except AssertionError as e:
+            logger.error('Validation error:%s', e.message)
+            raise ValidationError('Wrong input "%s": %s' % (the_input, e.message))
         except AttributeError as e:
             logger.error('Validation error:%s', e.message)
             raise ValidationError('Unknown type for input: %s - type: %s' % (the_input, the_input.type))
 
     def _validate_input_boolean(self, the_input, value):
         # Add check format values
-        self.extra_message = ' allowed values are "yes", "true", "1", "no", "false", "0", "None"'
-        return str(value).lower() in ("yes", "true", "1", 'no', 'false', '0', 'none')
+        self.specific_message = ' allowed values are "yes", "true", "1", "no", "false", "0", "None"'
+        return str(value).lower() in ("yes", "true", "1", 'no', 'false', '0', 'none') and type(
+            value) == bool and the_input.type == waves.const.TYPE_BOOLEAN
 
     def _validate_input_file(self, the_input, value):
         from django.core.files.base import File
-        assert isinstance(value, File)
+        assert the_input.type == waves.const.TYPE_FILE
+        self.specific_message = 'allowed extension are %s' % str([e[1] for e in the_input.get_choices()])
         # TODO Check file consistency with BioPython ?
         # TODO modify message for more 'user friendly' display
-        self.extra_message = 'allowed extension are %s' % str([e[1] for e in the_input.get_choices()])
-        _, extension = os.path.splitext(value.name)
-        return any(e[1] == extension for e in the_input.get_choices())
+        if type(value) == list:
+            assert all(isinstance(_, File) for _ in value), '%s is not a valid File' % value
+            result = True
+            for up_file in value:
+                _, extension = os.path.splitext(up_file.name)
+                result = result and (any(e[1] == extension for e in the_input.get_choices()))
+                return result
+        else:
+            assert isinstance(value, File), '%s is not a valid File' % value
+            _, extension = os.path.splitext(value.name)
+            return any(e[1] == extension for e in the_input.get_choices())
 
     def _validate_input_int(self, the_input, value):
+        assert the_input.type == waves.const.TYPE_INTEGER
+        self.specific_message = 'value %s is not a valid integer' % value
         try:
             int(value)
             if the_input.format:
@@ -61,6 +87,8 @@ class ServiceInputValidator(object):
             return False
 
     def _validate_input_float(self, the_input, value):
+        assert the_input.type == waves.const.TYPE_FLOAT
+        self.specific_message = 'value %s is not a valid float' % value
         try:
             float(value)
             if the_input.format:
@@ -71,8 +99,12 @@ class ServiceInputValidator(object):
             return False
 
     def _validate_input_select(self, the_input, value):
-        self.extra_message = 'allowed values are %s' % str([e[1] for e in the_input.get_choices()])
+        assert the_input.type == waves.const.TYPE_LIST
+        self.specific_message = 'allowed values are %s' % str([e[1] for e in the_input.get_choices()])
         return any(e[0] == value for e in the_input.get_choices())
 
     def _validate_input_text(self, the_input, value):
+        assert the_input.type == waves.const.TYPE_TEXT
+        assert isinstance(value, basestring), 'value %s is not a valid string' % value
+        self.specific_message = 'value %s is not a valid string' % value
         return True

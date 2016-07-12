@@ -36,6 +36,7 @@ settings.TABBED_ADMIN_USE_JQUERY_UI = getattr(settings, 'TABBED_ADMIN_USE_JQUERY
 settings.CRON_LOGS = getattr(settings, 'CRON_LOGS', '>> %s/spool_log.log' % settings.LOGFILE_ROOT)
 
 settings.CRONTAB_LOCK_JOBS = True
+settings.WAVES_UPLOAD_MAX_SIZE = getattr(settings, 'WAVES_UPLOAD_MAX_SIZE', 20*1024*1024)
 
 settings.CRONJOBS = getattr(settings, 'CRONJOBS', [
     ('*/1 * * * *', 'waves.managers.cron.treat_queue_jobs'),
