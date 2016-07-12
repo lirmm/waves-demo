@@ -3,8 +3,10 @@ from __future__ import unicode_literals
 from crispy_forms.helper import FormHelper as BaseFormHelper
 from crispy_forms.layout import *
 from crispy_forms.bootstrap import FormActions
+from django import forms
 
 from waves.forms.lib import BaseHelper
+
 import waves.const as const
 
 __all__ = ['FormHelper', 'FormLayout']
@@ -15,6 +17,7 @@ class FormHelper(BaseFormHelper, BaseHelper):
     Extended FormHelper based on crispy FormHelper,
     Dynamic form fields according to inputs types and parameters
     """
+
     def __init__(self, form=None, **kwargs):
         form_tag = kwargs.pop('form_tag', True)
         form_class = kwargs.pop('form_class', 'form-horizontal')
@@ -28,7 +31,7 @@ class FormHelper(BaseFormHelper, BaseHelper):
         self.render_unmentioned_fields = True
         self.layout = Layout()
 
-    def get_field_layout(self, service_input, hidden=False):
+    def set_layout(self, service_input):
         """
 
         Args:
@@ -38,42 +41,48 @@ class FormHelper(BaseFormHelper, BaseHelper):
         Returns:
 
         """
-        field_layout = []
+        css_class = ""
+        wrapper_class = ""
+        field_id = "id_" + service_input.name
+        dependent_on = ""
+        dependent_4_value = ""
+        if service_input.dependent_inputs.count() > 0:
+            print 'has dependents ? ', service_input
+            css_class = "has_dependent"
+        if hasattr(service_input, 'related_to'):
+            field_id += '_' + service_input.related_to.name + '_' + service_input.when_value
+            dependent_on = service_input.related_to.name
+            dependent_4_value = service_input.when_value
+            if service_input.when_value != service_input.related_to.default:
+                wrapper_class = "hid_dep_parameter"
+            else:
+                wrapper_class = "dis_dep_parameter"
+        print "Field ", service_input
+        input_field = Field(service_input.name,
+                            css_class=css_class,
+                            id=field_id,
+                            title=service_input.description,
+                            wrapper_class=wrapper_class,
+                            dependent_on=dependent_on,
+                            dependent_4_value=dependent_4_value
+                            )
 
-        if service_input.type == const.TYPE_FILE:
-            input_field = Field(service_input.name, css_class='tool-tip',
-                                id='id_' + service_input.name,
-                                title=service_input.description)
-        elif service_input.type == const.TYPE_BOOLEAN:
-            input_field = Field(service_input.name, title=service_input.description)
-        elif service_input.type == const.TYPE_LIST:
-            input_field = Field(service_input.name, title=service_input.description)
-        elif service_input.type == const.TYPE_INTEGER:
-            input_field = Field(service_input.name, title=service_input.description)
-        elif service_input.type == const.TYPE_FLOAT:
-            input_field = Field(service_input.name, title=service_input.description)
-        elif service_input.type == const.TYPE_TEXT:
-            input_field = Field(service_input.name, title=service_input.description)
-        else:
-            raise Exception('Error wrong data type to layout !' + service_input.type)
-        if hidden:
-            input_field.css_class = 'hidden'
-        self.layout.append(input_field)
-        # add dependent parameters
-        for dependent_input in service_input.dependent_inputs.all():
-            self.layout.extend(self.get_field_layout(dependent_input, hidden=True))
+        self.layout.append(
+            input_field
+        )
 
-        return field_layout
-
-    def set_layout(self, list_input):
-        self.layout.extend([
+    def init_layout(self):
+        self.layout = Layout(
             Field('title'),
             HTML('<HR/>')
-        ])
-        for form_input in list_input:
-            self.layout.extend(self.get_field_layout(form_input))
+        )
+
+    def end_layout(self):
         self.layout.extend([
             HTML('<HR/>'),
             Field('email', ),
-            FormActions(Submit('save', 'Submit a job'))
+            FormActions(
+                Reset('reset', 'Reset form'),
+                Submit('save', 'Submit a job')
+            )
         ])

@@ -1,6 +1,16 @@
 {% extends "services/service_details.html" %}
 {% load staticfiles crispy_forms_tags %}
 
+{% block styles %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'site/css/forms.css' %}">
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script src="{% static 'site/js/forms.js' %}"></script>
+{% endblock scripts %}
+
 {% block service_body %}
     <div class="panel panel-default">
         <div class="panel-heading">

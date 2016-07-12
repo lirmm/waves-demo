@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 class BaseCommand(object):
 
     def __init__(self, service):
-        assert isinstance(service, Service)
         self.service = service
 
     def create_command_line(self, job_inputs):

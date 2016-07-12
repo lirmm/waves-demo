@@ -1,109 +1,71 @@
 from __future__ import unicode_literals
 
-from functools import partial, wraps
-
+from multiupload.fields import MultiFileField
 from django import forms
 
 import waves.const as const
-from waves.models import ServiceInput, Service
 
 
 class BaseHelper(object):
-    @staticmethod
-    def get_field_for_type(service_input):
+
+    def set_field(self, service_input, form):
+        field_dict = dict(
+            label=service_input.label,
+            required=service_input.mandatory,
+            help_text=service_input.description,
+            initial=service_input.default
+        )
         if service_input.type == const.TYPE_FILE:
             # TODO manage multiple file input
-            """
             if service_input.multiple:
-                form_field = forms.models.inlineformset_factory(model=ServiceInput, parent_model=Service,
-                                                                form=FileInputForm)
-                # form=wraps(FileInputForm)(partial(FileInputForm, service_input=service_input))
+                field_dict.update(dict(min_num=1, max_file_size=1024*5))
             else:
-            """
-            form_field = forms.FileField(label=service_input.label,
-                                         required=service_input.mandatory,
-                                         help_text=service_input.description)
+                field_dict.update(dict(max_num=1))
+            form_field = MultiFileField(**field_dict)
         elif service_input.type == const.TYPE_BOOLEAN:
-            form_field = forms.BooleanField(label=service_input.label,
-                                            initial=service_input.default,
-                                            required=False,
-                                            help_text=service_input.description)
+            field_dict.update(dict(required=False))
+            form_field = forms.BooleanField(**field_dict)
         elif service_input.type == const.TYPE_LIST:
+            field_dict.update(dict(choices=service_input.get_choices()))
             if not service_input.multiple:
-                form_field = forms.ChoiceField(label=service_input.label,
-                                               choices=service_input.get_choices(),
-                                               initial=service_input.default,
-                                               required=service_input.mandatory,
-                                               help_text=service_input.description)
+                form_field = forms.ChoiceField(**field_dict)
                 if service_input.display == const.DISPLAY_RADIO:
                     form_field.widget = forms.RadioSelect()
-                elif service_input.display == const.DISPLAY_CHECKBOX:
-                    form_field.widget = forms.CheckboxChoiceInput()
             else:
-                form_field = forms.MultipleChoiceField(label=service_input.label,
-                                                       choices=service_input.get_choices(),
-                                                       initial=service_input.default,
-                                                       required=service_input.mandatory,
-                                                       help_text=service_input.description)
+                form_field = forms.MultipleChoiceField(**field_dict)
                 if service_input.display == const.DISPLAY_CHECKBOX:
                     form_field.widget = forms.CheckboxSelectMultiple()
-
             form_field.css_class = 'text-left'
         elif service_input.type == const.TYPE_INTEGER:
-            form_field = forms.IntegerField(initial=service_input.default,
-                                            label=service_input.label,
-                                            required=service_input.mandatory,
-                                            min_value=service_input.get_min(),
-                                            max_value=service_input.get_max(),
-                                            help_text=service_input.description)
+            field_dict.update(dict(min_value=service_input.get_min(),
+                                   max_value=service_input.get_max()))
+            form_field = forms.IntegerField(**field_dict)
         elif service_input.type == const.TYPE_FLOAT:
-            form_field = forms.FloatField(initial=service_input.default,
-                                          label=service_input.label,
-                                          required=service_input.mandatory,
-                                          min_value=service_input.get_min(),
-                                          max_value=service_input.get_max(),
-                                          help_text=service_input.description)
+            field_dict.update(dict(min_value=service_input.get_min(),
+                                   max_value=service_input.get_max()))
+            form_field = forms.FloatField(**field_dict)
         elif service_input.type == const.TYPE_TEXT:
-            form_field = forms.CharField(max_length=100,
-                                         label=service_input.label,
-                                         required=service_input.mandatory,
-                                         initial=service_input.default,
-                                         help_text=service_input.description)
+            field_dict.update(dict(max_length=255))
+            form_field = forms.CharField(**field_dict)
         else:
             raise Exception('Error wrong data type to service_input !' + service_input.type)
+        #if hasattr(service_input, 'related_to') and service_input.when_value != service_input.related_to.default:
+        #    print "update display for ", service_input
+        #    form_field.widget.attrs.update(dict(style='display:none'))
+        form.fields[service_input.name] = form_field
 
-        """
-        if hasattr(service_input, 'related_to'):
-            value_for = service_input.get_value_for_choice(service_input.when_value)
-            form_field.label = '%s for %s "%s"' % (form_field.label, service_input.related_to.label, value_for)
-            form_field.help_text = 'When %s is "%s"' % (service_input.related_to.label, value_for)
-            form_field.required = False
-        """
-        return form_field
-
-    @staticmethod
-    def get_field_layout(service_input):
+    def set_layout(self, service_input):
         raise NotImplementedError()
 
-    def render_layout(self):
-        raise NotImplementedError()
+    def init_layout(self):
+        pass
+
+    def end_layout(self):
+        pass
 
 
 class FileInputForm(forms.ModelForm):
-    class Meta:
-        model = ServiceInput
-        exclude = ['pk']
-
-    def __init__(self, *args, **kwargs):
-        """
-        parameters from parent : data, files, auto_id, prefix, initial, error_class, label_suffix, empty_permitted,
-            field_order
-        Args:
-            *args:
-            **kwargs:
-        """
-        self.input = kwargs.pop('service_input')
-        assert isinstance(self.input, ServiceInput)
-        super(FileInputForm, self).__init__(*args, **kwargs)
-        self.fields[self.input.name] = forms.FileField(label=self.input.label, required=self.input.mandatory,
-                                                       help_text=self.input.description, initial=self.input.default)
+    """
+    Specific file input form element, added with a copy/paste content aside in layout
+    """
+    pass

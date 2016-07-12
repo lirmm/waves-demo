@@ -84,7 +84,6 @@ class ToolRunnerImporter(object):
         raise NotImplementedError
 
     def set_service(self, service):
-        assert isinstance(service, Service)
         self._service = service
         self._runner = service.runner
 

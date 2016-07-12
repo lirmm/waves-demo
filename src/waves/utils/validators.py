@@ -31,6 +31,7 @@ class ServiceInputValidator(object):
             if not func(the_input, value):
                 logger.info('Failed input -%s-, service -%s-, with value %s', the_input, the_input.service, value)
                 raise ValidationError(self.message % (the_input.label, the_input.type, self.extra_message, value))
+            return True
         except AttributeError as e:
             logger.error('Validation error:%s', e.message)
             raise ValidationError('Unknown type for input: %s - type: %s' % (the_input, the_input.type))

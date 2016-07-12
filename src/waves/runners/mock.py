@@ -28,12 +28,10 @@ class MockJobRunner(JobRunner):
 
     def _prepare_job(self, job):
         for job_input in job.inputs.values():
-            assert isinstance(input, JobInput)
             # TODO parse and setup input according to their type
             logger.debug(u'current input ' + job_input.name + u'/current input value ' + job_input.value)
         for job_output in job.job_outputs.values():
             # TODO checkout output and setup associated members to their values
-            assert isinstance(job_output, JobOutput)
             logger.debug(u'current output ' + job_output.name + u'/current input value ' +
                          job_output.value)
         job.status = const.JOB_PREPARED

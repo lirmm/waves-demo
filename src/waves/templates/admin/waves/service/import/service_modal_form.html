@@ -24,8 +24,6 @@
         </div>
         <script type="text/javascript">
             django.jQuery('#launch-import').click(function (e) {
-                console.log('form click');
-                console.log('submit form !!!' + django.jQuery("#form_import"));
                 e.defaultPrevented;
                 django.jQuery.ajax({
                     type: django.jQuery("#form_import").attr('method'),
@@ -42,7 +40,6 @@
                     django.jQuery('#id_tool_list').removeAttr('disabled');
                     django.jQuery('#spinner').css('display', 'none');
                 }).done(function (data) {
-                    console.log('Request done ' + JSON.stringify(data));
                     window.location.replace(data.url_redirect);
                     django.jQuery('#form-modal').modal('toggle');
                 }).fail(function (xhr, ajaxOptions, thrownError) {
@@ -50,7 +47,7 @@
                     console.log('errors ' + JSON.stringify(xhr));
                     django.jQuery('#form-message').html(xhr.responseText);
                 }).always(function (data) {
-                    console.log('always call ' + JSON.stringify(data));
+                    // console.log('always call ' + JSON.stringify(data));
                 });
                 return false;
             });

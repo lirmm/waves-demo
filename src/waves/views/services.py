@@ -82,6 +82,12 @@ class JobSubmissionView(generic.FormView, ServiceDetailView):
     queryset = Service.objects.all().prefetch_related("service_inputs")
     user = None
 
+    class Media:
+        css = {
+            'all': ('tabbed_admin/css/tabbed_admin.css',)
+        }
+
+
     def __init__(self, *args, **kwargs):
         super(JobSubmissionView, self).__init__(*args, **kwargs)
         self.object = None
@@ -105,7 +111,8 @@ class JobSubmissionView(generic.FormView, ServiceDetailView):
     def get_form_kwargs(self):
         kwargs = super(JobSubmissionView, self).get_form_kwargs()
         kwargs.update({
-            'instance': self.object
+            'instance': self.object,
+            'user': self.request.user
         })
         return kwargs
 

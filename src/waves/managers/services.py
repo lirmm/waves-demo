@@ -118,8 +118,6 @@ class ServiceManager(models.Manager):
                     except ObjectDoesNotExist as e:
                         logger.warn('Object does not exists')
                 if service_input.type == waves.const.TYPE_FILE and isinstance(incoming_input, TemporaryUploadedFile):
-                    logger.info('input name %s (upcoming %s)', service_input.name,
-                                isinstance(incoming_input, TemporaryUploadedFile))
                     temp_file = incoming_input
                     filename = job.input_dir + temp_file.name
                     logger.debug('File job parameters:' + filename)

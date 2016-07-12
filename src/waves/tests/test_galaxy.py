@@ -76,7 +76,6 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
 
                 logger.debug(u'Job retrieved:' + str(job))
                 service = job.service
-                assert isinstance(service, Service)
                 runner = self.runner
                 run_params = job.service.run_params()
                 runner.remote_tool_id = run_params['remote_tool_id']

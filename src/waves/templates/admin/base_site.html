@@ -16,12 +16,9 @@
     {{ block.super }}
     <link href="{% static 'site/css/main.css' %}" rel="stylesheet">
     <link href="{% static 'waves/waves.css' %}" rel="stylesheet">
-    <!--link href="{% static 'waves/jquery-ui.min.css' %}" rel="stylesheet"-->
 {% endblock extrastyle %}
 
 {% block extrahead %}
-    <!--<script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
-    <script type="text/javascript" src="{% static 'waves/js/jquery-ui/jquery-ui.js' %}"></script>-->
     <script src="{% static 'waves/waves.js' %}"></script>
     <link rel="shortcut icon" type="image/png" href="{% static 'site/ico/favicon.png' %}"/>
 {% endblock %}

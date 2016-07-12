@@ -26,7 +26,6 @@ def treat_queue_jobs():
             runner = job.runner
             logger.debug('[Runner]-------\n%s\n----------------', runner.dump_config())
             try:
-                assert isinstance(runner, JobRunner)
                 logger.info("Launching Job %s (runner:%s)", job, runner)
                 if not runner.connected:
                     runner.connect()

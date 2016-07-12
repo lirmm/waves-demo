@@ -99,7 +99,6 @@ class JobRunner(object):
         Args:
             job:
         """
-        assert isinstance(job, Job)
         if not self._ready():
             raise RunnerNotReady()
         if job.status != waves.const.JOB_CREATED:
@@ -144,7 +143,6 @@ class JobRunner(object):
         :param job:
         :return:
         """
-        assert isinstance(job, Job)
         if job.status not in dict(self._state_allow_cancel):
             raise JobInconsistentStateError(job.get_status_display(), self._state_allow_cancel, 'Cancel not allowed')
         try:

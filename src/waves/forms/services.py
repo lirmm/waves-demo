@@ -1,12 +1,15 @@
 from __future__ import unicode_literals
 
+import copy
+
 from django import forms
 from django.conf import settings
-from django.forms.models import inlineformset_factory
 from django.utils.module_loading import import_string
 
 from waves.models import Service, ServiceInput
 from waves.utils.validators import ServiceInputValidator
+import waves.const
+
 
 def popover_html(content):
     return '<a tabindex="0" role="button" data-toggle="popover" data-html="true" \
@@ -47,34 +50,37 @@ class ServiceJobForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         instance = kwargs.pop('instance')
         form_tag = kwargs.pop('form_tag', True)
+        user = kwargs.pop('user')
+        # TODO add re- captcha for unauthenticated user
+        # https://www.marcofucci.com/blog/integrating-recaptcha-with-django/
+        # and https://github.com/praekelt/django-recaptcha
         super(ServiceJobForm, self).__init__(*args, **kwargs)
         self.helper = self.get_helper(form_tag=form_tag)
         # dynamically add fields according to service parameters
         self.list_inputs = instance.service_inputs.filter(relatedinput=None)
+        self.helper.init_layout()
+        self.fields['title'].initial = '%s job' % instance.name
         for service_input in self.list_inputs:
-            self.fields[service_input.name] = self.helper.get_field_for_type(service_input)
+            self.helper.set_field(service_input, self)
+            self.helper.set_layout(service_input)
+            # TODO handle copy/paste content field
             for dependent_input in service_input.dependent_inputs.all():
-                self.fields[dependent_input.name] = self.helper.get_field_for_type(dependent_input)
-        self.helper.set_layout(self.list_inputs)
+                # conditional parameters must not be required to use classic django form validation process
+                dependent_input.required = False
+                self.helper.set_field(dependent_input, self)
+                self.helper.set_layout(dependent_input)
+        self.helper.end_layout()
 
     def clean(self):
-        # from waves.utils.validators import validate_input
         cleaned_data = super(ServiceJobForm, self).clean()
         # TODO add form field format validation
         validator = ServiceInputValidator()
-        for field in self.fields:
-            srv_input = next((x for x in self.list_inputs if x.name == field), None)
+        for data in self.cleaned_data:
+            srv_input = next((x for x in self.list_inputs if x.name == data), None)
             if srv_input:
-                print field, ' input ', srv_input, field.__class__
-                validator.validate_input(srv_input, cleaned_data[field])
+                print data, ' input ', srv_input, self.cleaned_data[data]
+                validator.validate_input(srv_input, self.cleaned_data[data])
         return cleaned_data
 
     def save(self, commit=True):
         return super(ServiceJobForm, self).save(commit)
-
-ServiceJobInputFormSet = inlineformset_factory(Service,
-                                               ServiceInput,
-                                               form=ServiceJobForm,
-                                               extra=0,
-                                               can_delete=False,
-                                               can_order=False)

@@ -18,7 +18,6 @@ class JobManager(models.Manager):
         return self.all().values()
 
     def get_user_job(self, user):
-        assert isinstance(user, get_user_model())
         try:
             admin_group = Group.objects.get(name=settings.WAVES_GROUP_ADMIN)
         except Group.DoesNotExist:
