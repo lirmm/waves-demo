@@ -12,10 +12,14 @@ $(document).ready(function () {
         var dependents = $("[dependent-on='" + $(this).attr("name") + "']")
         var has_dep = $(this);
         dependents.each(function() {
-            if ($(this).attr('dependent-4-value') == has_dep.val())
+            //console.log($(this), $(this).attr('dependent-4-value'), has_dep.val());
+            if ($(this).attr('dependent-4-value') == has_dep.val()) {
                 $('#div_id_' + $(this).attr('name')).removeClass('hid_dep_parameter');
-            else
+                $('#tab_pane_' + $(this).attr('name')).removeClass('hid_dep_parameter');
+            } else {
                 $('#div_id_' + $(this).attr('name')).addClass('hid_dep_parameter');
+                $('#tab_pane_' + $(this).attr('name')).addClass('hid_dep_parameter');
+            }
         });
     });
 });

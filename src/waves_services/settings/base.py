@@ -16,12 +16,13 @@ import environ
 # Build paths inside the project like this: join(BASE_DIR, "directory")
 if 'env' not in vars():
     env = environ.Env()
+    ENV = environ.Env()
     root = environ.Path(__file__) - 4
     # Ideally move env file should be outside the git repo
     # i.e. BASE_DIR.parent.parent
-    env_file = join(dirname(__file__), 'waves.env')
-    if exists(env_file):
-        environ.Env.read_env(str(env_file))
+    ENV_FILE = join(dirname(__file__), 'waves.env')
+    if exists(ENV_FILE):
+        environ.Env.read_env(str(ENV_FILE))
     else:
         raise RuntimeError('Unable to process WAVES environment data')
 
@@ -103,16 +104,10 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'waves_services.urls'
 
 DATABASES = {
-    # Raises ImproperlyConfigured exception if DATABASE_URL not in
-    # os.environ
     'default': env.db(),
 }
 
 WSGI_APPLICATION = 'waves_services.wsgi.application'
-
-DATABASES = {
-    'default': env.db(),
-}
 
 LANGUAGE_CODE = 'en-gb'
 

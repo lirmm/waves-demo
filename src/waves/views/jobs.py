@@ -16,6 +16,10 @@ class JobView(generic.DetailView):
     model = Job
     slug_field = 'slug'
     template_name = 'services/job_detail.html'
+    context_object_name = 'job'
+
+    def dispatch(self, request, *args, **kwargs):
+        return super(JobView, self).dispatch(request, *args, **kwargs)
 
 
 class JobListView(generic.ListView):

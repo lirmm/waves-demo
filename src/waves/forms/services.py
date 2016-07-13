@@ -5,33 +5,19 @@ import copy
 from django import forms
 from django.conf import settings
 from django.utils.module_loading import import_string
+from django.core.exceptions import ValidationError
 
-from waves.models import Service, ServiceInput
+from waves.models import Service
 from waves.utils.validators import ServiceInputValidator
 import waves.const
 
 
-def popover_html(content):
-    return '<a tabindex="0" role="button" data-toggle="popover" data-html="true" \
-                            data-trigger="hover" data-placement="auto" data-content="' + content + '"> \
-                            <span class="glyphicon glyphicon-info-sign"></span></a>'
-
-
-class ServiceJobInputInline(forms.ModelForm):
-    class Meta:
-        model = ServiceInput
-        fields = ('name', 'type')
-
-    def __init__(self, *args, **kwargs):
-        super(ServiceJobInputInline, self).__init__(*args, **kwargs)
-        self.helper = self.get_helper(form_tag=False)
-        self.helper.form_tag = False
-        self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-lg-4'
-        self.helper.field_class = 'col-lg-8'
-
-
+# TODO refactoring for the copy_paste field associated with FileInput (override formfield template ?)
 class ServiceJobForm(forms.ModelForm):
+    """
+    Service Job Submission form
+    Allows to create a new job from a service instance
+    """
     class Meta:
         model = Service
         fields = ['title', 'email']
@@ -47,6 +33,18 @@ class ServiceJobForm(forms.ModelForm):
         except ImportError:
             raise RuntimeError('No helper defined for WAVES, unable to create any form')
 
+    def _create_copy_paste_field(self, service_input):
+        service_input.mandatory = False # Field is validated in clean process
+        cp_service = copy.copy(service_input)
+        cp_service.label = 'Or Copy/paste your content'
+        cp_service.description = ''
+        cp_service.mandatory = False
+        cp_service.type = waves.const.TYPE_TEXT
+        cp_service.name = 'cp_' + service_input.name
+        self.helper.set_field(cp_service, self)
+        self.fields[cp_service.name].widget = forms.Textarea(attrs={'cols': 20, 'rows': 10})
+        return cp_service
+
     def __init__(self, *args, **kwargs):
         instance = kwargs.pop('instance')
         form_tag = kwargs.pop('form_tag', True)
@@ -57,27 +55,44 @@ class ServiceJobForm(forms.ModelForm):
         super(ServiceJobForm, self).__init__(*args, **kwargs)
         self.helper = self.get_helper(form_tag=form_tag)
         # dynamically add fields according to service parameters
-        self.list_inputs = instance.service_inputs.filter(relatedinput=None)
+        self.list_inputs = list(instance.service_inputs.filter(relatedinput=None))
         self.helper.init_layout()
         self.fields['title'].initial = '%s job' % instance.name
+        extra_fields = []
         for service_input in self.list_inputs:
+            if service_input.type == waves.const.TYPE_FILE and not service_input.multiple:
+                extra_fields.append(self._create_copy_paste_field(service_input))
             self.helper.set_field(service_input, self)
-            self.helper.set_layout(service_input)
-            # TODO handle copy/paste content field
+            self.helper.set_layout(service_input, self)
             for dependent_input in service_input.dependent_inputs.all():
                 # conditional parameters must not be required to use classic django form validation process
                 dependent_input.required = False
+                if dependent_input.type == waves.const.TYPE_FILE and not dependent_input.multiple:
+                    extra_fields.append(self._create_copy_paste_field(dependent_input))
                 self.helper.set_field(dependent_input, self)
-                self.helper.set_layout(dependent_input)
+                self.helper.set_layout(dependent_input, self)
+                # extra_fields.append(dependent_input)
+        self.list_inputs.extend(extra_fields)
         self.helper.end_layout()
 
     def clean(self):
         cleaned_data = super(ServiceJobForm, self).clean()
         validator = ServiceInputValidator()
-        for data in self.cleaned_data:
+        for data in copy.copy(cleaned_data):
+            # test if a value has been posted
             srv_input = next((x for x in self.list_inputs if x.name == data), None)
             if srv_input:
-                validator.validate_input(srv_input, self.cleaned_data[data])
+                posted_data = cleaned_data.get(srv_input.name)
+                if srv_input.type == waves.const.TYPE_FILE and not posted_data:
+                    # print srv_input.name, srv_input.type
+                    if not cleaned_data.get('cp_' + srv_input.name):
+                        self.add_error(srv_input.name, ValidationError('You must provide data for %s' % srv_input.label))
+                    else:
+                        # replace cleaned data for initial field
+                        cleaned_data[srv_input.name] = cleaned_data.get('cp_' + srv_input.name)
+                else:
+                    # print "No ==> ", srv_input.name, srv_input.type
+                    validator.validate_input(srv_input, posted_data, self)
         return cleaned_data
 
     def save(self, commit=True):

@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from .base import * # NOQA
 import sys
+import os
 import logging.config
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -66,4 +67,3 @@ logging.config.dictConfig(LOGGING)
 ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
-

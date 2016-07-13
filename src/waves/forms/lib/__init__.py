@@ -9,12 +9,13 @@ import waves.const as const
 
 class BaseHelper(object):
 
-    def set_field(self, service_input, form):
+    @staticmethod
+    def set_field(service_input, form):
         field_dict = dict(
             label=service_input.label,
             required=service_input.mandatory,
             help_text=service_input.description,
-            initial=service_input.default
+            initial=form.data.get(service_input.name, service_input.default)
         )
         if service_input.type == const.TYPE_FILE:
             # TODO manage multiple file input
@@ -47,13 +48,9 @@ class BaseHelper(object):
                                    max_value=service_input.get_max()))
             form_field = forms.FloatField(**field_dict)
         elif service_input.type == const.TYPE_TEXT:
-            field_dict.update(dict(max_length=255))
             form_field = forms.CharField(**field_dict)
         else:
             raise Exception('Error wrong data type to service_input !' + service_input.type)
-        #if hasattr(service_input, 'related_to') and service_input.when_value != service_input.related_to.default:
-        #    print "update display for ", service_input
-        #    form_field.widget.attrs.update(dict(style='display:none'))
         form.fields[service_input.name] = form_field
 
     def set_layout(self, service_input):
@@ -64,10 +61,3 @@ class BaseHelper(object):
 
     def end_layout(self):
         pass
-
-
-class FileInputForm(forms.ModelForm):
-    """
-    Specific file input form element, added with a copy/paste content aside in layout
-    """
-    pass

@@ -3,8 +3,6 @@ from __future__ import unicode_literals
 import os
 import logging
 
-from django.core.exceptions import ValidationError
-
 import waves.const
 
 logger = logging.getLogger(__name__)
@@ -19,6 +17,10 @@ TYPE_TEXT = 'text'
 """
 
 
+# TODO check to go with https://docs.djangoproject.com/en/1.9/ref/validators/
+# https://docs.djangoproject.com/en/1.9/ref/forms/validation/
+
+
 class ServiceInputValidator(object):
     """
     Dynamic validation class for ServiceInput objects, according to ServiceInput type and format
@@ -26,10 +28,8 @@ class ServiceInputValidator(object):
     invalid_message = '%s is not valid %s (%s) got: %s'
     specific_message = ''
 
-    def validate_input(self, the_input, value):
+    def validate_input(self, the_input, value, form):
         try:
-            if the_input.mandatory and not the_input.default and value is None:
-                raise ValidationError('Mandatory parameter -%s- needs a value' % the_input.label)
             validator = '_validate_input_' + the_input.type
             func = getattr(self, validator)
             if type(value) == list:
@@ -40,15 +40,15 @@ class ServiceInputValidator(object):
                 valid = func(the_input, value)
             if not valid:
                 logger.info('Failed input -%s-, service -%s-, with value %s', the_input, the_input.service, value)
-                raise ValidationError(
-                    self.invalid_message % (the_input.label, the_input.type, self.specific_message, value))
+                form.add_error(the_input.name,
+                               self.invalid_message % (the_input.label, the_input.type, self.specific_message, value))
             return True
         except AssertionError as e:
             logger.error('Validation error:%s', e.message)
-            raise ValidationError('Wrong input "%s": %s' % (the_input, e.message))
+            form.add_error(the_input.name, 'Wrong input "%s": %s' % (the_input, e.message))
         except AttributeError as e:
             logger.error('Validation error:%s', e.message)
-            raise ValidationError('Unknown type for input: %s - type: %s' % (the_input, the_input.type))
+            form.add_error(the_input.name, 'Unknown type for input: %s - type: %s' % (the_input, the_input.type))
 
     def _validate_input_boolean(self, the_input, value):
         # Add check format values
@@ -86,6 +86,9 @@ class ServiceInputValidator(object):
         except ValueError:
             return False
 
+    def _validate_input_number(self, the_input, value):
+        return self._validate_input_int(the_input, value)
+
     def _validate_input_float(self, the_input, value):
         assert the_input.type == waves.const.TYPE_FLOAT
         self.specific_message = 'value %s is not a valid float' % value
@@ -105,6 +108,6 @@ class ServiceInputValidator(object):
 
     def _validate_input_text(self, the_input, value):
         assert the_input.type == waves.const.TYPE_TEXT
-        assert isinstance(value, basestring), 'value %s is not a valid string' % value
+        assert isinstance(value, basestring) or value is None, 'value %s is not a valid string' % value
         self.specific_message = 'value %s is not a valid string' % value
         return True

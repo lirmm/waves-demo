@@ -1,20 +1,19 @@
 from __future__ import unicode_literals
 
 from crispy_forms.helper import FormHelper as BaseFormHelper
-from crispy_forms.utils import get_template_pack
 
 from crispy_forms.layout import *
 
 from waves.forms.lib import BaseHelper
+from crispy_forms.utils import get_template_pack
+
 import waves.const as const
 
 if 'bootstrap' in get_template_pack():
-    from crispy_forms.bootstrap import FormActions
+    from crispy_forms.bootstrap import *
 elif 'foundation' in get_template_pack():
     # import foundation
     pass
-
-
 __all__ = ['FormHelper', 'FormLayout']
 
 
@@ -23,6 +22,7 @@ class FormHelper(BaseFormHelper, BaseHelper):
     Extended FormHelper based on crispy FormHelper,
     Dynamic form fields according to inputs types and parameters
     """
+    # TODO clean dirty code for tab layout (copy_paste field)
 
     def __init__(self, form=None, **kwargs):
         form_tag = kwargs.pop('form_tag', True)
@@ -37,7 +37,7 @@ class FormHelper(BaseFormHelper, BaseHelper):
         self.render_unmentioned_fields = False
         self.layout = Layout()
 
-    def set_layout(self, service_input):
+    def set_layout(self, service_input, form):
         """
 
         Args:
@@ -58,7 +58,8 @@ class FormHelper(BaseFormHelper, BaseHelper):
             field_id += '_' + service_input.related_to.name + '_' + service_input.when_value
             dependent_on = service_input.related_to.name
             dependent_4_value = service_input.when_value
-            if service_input.when_value != service_input.related_to.default:
+            when_value = form.data.get(service_input.related_to.name, service_input.related_to.default)
+            if service_input.when_value != when_value:
                 wrapper_class = "hid_dep_parameter"
             else:
                 wrapper_class = "dis_dep_parameter"
@@ -70,10 +71,34 @@ class FormHelper(BaseFormHelper, BaseHelper):
                             dependent_on=dependent_on,
                             dependent_4_value=dependent_4_value
                             )
-
-        self.layout.append(
-            input_field
-        )
+        if service_input.type == const.TYPE_FILE and not service_input.multiple:
+            cp_input_field = Field('cp_' + service_input.name, css_id='id_'+'cp_' + service_input.name)
+            self.layout.append(
+                Div(
+                    TabHolder(
+                        Tab(
+                            "File Upload",
+                            input_field,
+                            css_id='tab_' + service_input.name
+                        ),
+                        Tab(
+                            "Copy/paste content",
+                            cp_input_field,
+                            css_class=wrapper_class,
+                            css_id='tab_cp_' + service_input.name,
+                        ),
+                        css_id='tab_holder_' + service_input.name,
+                    ),
+                    id='tab_pane_' + service_input.name,
+                    css_class=wrapper_class,
+                    dependent_on=dependent_on,
+                    dependent_4_value=dependent_4_value
+                )
+            )
+        else:
+            self.layout.append(
+                input_field
+            )
 
     def init_layout(self):
         self.layout = Layout(

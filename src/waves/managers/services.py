@@ -15,14 +15,6 @@ __all__ = ['ServiceManager', 'WebSiteMetaMngr', 'DocumentationMetaMngr', 'Downlo
            'MiscellaneousMetaMngr', 'CitationMetaMngr', 'CommandLineMetaMngr']
 
 
-def _upload_job_file(in_input, job_input):
-    if isinstance(in_input, TemporaryUploadedFile):
-        filename = job_input.job.input_dir + in_input.name
-        with open(filename, 'wb+') as uploaded_file:
-            for chunk in in_input.chunks():
-                uploaded_file.write(chunk)
-
-
 class ServiceManager(models.Manager):
     def get_service_for_client(self, client):
         """
@@ -54,11 +46,16 @@ class ServiceManager(models.Manager):
                           related_service_input=service_input,
                           value=str(submitted_input))
         if service_input.type == waves.const.TYPE_FILE:
-            assert isinstance(submitted_input, TemporaryUploadedFile), "Wrong data type for file %s" %service_input
-            filename = job.input_dir + submitted_input.name
-            with open(filename, 'wb+') as uploaded_file:
-                for chunk in submitted_input.chunks():
-                    uploaded_file.write(chunk)
+            if isinstance(submitted_input, TemporaryUploadedFile):
+                filename = job.input_dir + submitted_input.name
+                with open(filename, 'wb+') as uploaded_file:
+                    for chunk in submitted_input.chunks():
+                        uploaded_file.write(chunk)
+            else:
+                filename = job.input_dir + service_input.name + '.txt'
+                input_dict.update(dict(value=service_input.name + '.txt'))
+                with open(filename, 'wb+') as uploaded_file:
+                    uploaded_file.write(submitted_input)
         job.job_inputs.add(JobInput.objects.create(**input_dict))
 
     @transaction.atomic
