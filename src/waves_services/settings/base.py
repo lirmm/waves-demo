@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 """
 from __future__ import unicode_literals
 
+import sys
 from django.core.urlresolvers import reverse_lazy
 from os.path import dirname, join, exists
 from django.contrib import messages
@@ -19,8 +20,8 @@ if 'env' not in vars():
     ENV = environ.Env()
     root = environ.Path(__file__) - 4
     # Ideally move env file should be outside the git repo
-    # i.e. BASE_DIR.parent.parent
-    ENV_FILE = join(dirname(__file__), 'waves.env')
+    # i.e. BASE_DIR.parent.parent.config
+    ENV_FILE = join(str(root.path('config')), 'waves.env')
     if exists(ENV_FILE):
         environ.Env.read_env(str(ENV_FILE))
     else:
@@ -80,6 +81,7 @@ INSTALLED_APPS = (
     'django_countries',
     'crispy_forms',
     'easy_thumbnails',
+    'mail_templated',
     # WAVES APPS
     'waves',
     'waves.api',
@@ -106,6 +108,7 @@ ROOT_URLCONF = 'waves_services.urls'
 DATABASES = {
     'default': env.db(),
 }
+print env.db()
 
 WSGI_APPLICATION = 'waves_services.wsgi.application'
 

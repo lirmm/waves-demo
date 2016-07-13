@@ -1,0 +1,17 @@
+{% extends "mail_templated/base.tpl" %}
+
+{% block subject %}
+::{{ WAVES_APP_NAME }}:: {% block subject_content %}{% endblock %}
+{% endblock %}
+
+{% block body %}
+    Plain text Part
+{% endblock %}
+
+{% block html %}
+  {% block body_content %}
+  {% endblock %}
+{% endblock %}
+
+
+

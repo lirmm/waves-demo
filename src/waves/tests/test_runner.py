@@ -6,7 +6,6 @@ import time
 import os
 import unittest
 from django.utils.timezone import localtime
-from os.path import join
 
 from django.test import override_settings
 from django.conf import settings

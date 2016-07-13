@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 def pre_job_save_handler(sender, instance, **kwargs):
     if not instance.title:
         instance.title = '%s_%s' % (instance.service.api_name, instance.slug)
+    instance.send_mail()
 
 
 @receiver(post_save, sender=Job)
@@ -28,17 +29,11 @@ def job_save_handler(sender, instance, created, **kwargs):
     if created:
         JobHistory.objects.create(job=instance, status=instance.status, message="Job Created", timestamp=timezone.now())
         instance.make_job_dirs()
-    else:
-        if instance.has_changed_status():
-            logger.debug('Changed status saved to history %s ' % instance.status)
-            if not instance.status_time:
-                instance.status_time = timezone.now()
-            JobHistory.objects.create(job=instance, status=instance.status, message=instance.message,
-                                      timestamp=instance.status_time)
-            # TODO : manage sending email here ?
-        else:
-            # logger.debug('Instance did not changed status')
-            pass
+    if instance.has_changed_status():
+        logger.debug('Changed status saved to history %s ' % instance.status)
+        if not instance.status_time:
+            instance.status_time = timezone.now()
+        JobHistory.objects.create(job=instance, status=instance.status, message=instance.message)
 
 
 @receiver(post_delete, sender=Job)

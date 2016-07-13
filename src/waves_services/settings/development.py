@@ -17,7 +17,7 @@ if "celery" in sys.argv[0]:
 INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
 
 # Show emails to console in DEBUG mode
-#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 vars().update(env.email(backend='django.core.mail.backends.smtp.EmailBackend'))
 
 # Show thumbnail generation errors
@@ -67,3 +67,4 @@ logging.config.dictConfig(LOGGING)
 ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
+

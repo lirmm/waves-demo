@@ -10,6 +10,7 @@ def _get_setting_or_env(var, cast, default):
     return getattr(settings, var, settings.ENV.get_value(var, cast, default=default))
 
 # WAVES Defaults VALUES
+settings.WAVES_APP_NAME = _get_setting_or_env('WAVES_APP_NAME', str, "WAVES")
 settings.WAVES_NOTIFY_RESULTS = _get_setting_or_env('WAVES_NOTIFY_RESULTS', bool, True)
 settings.WAVES_BASEDIR = _get_setting_or_env('WAVES_BASEDIR', str, dirname(settings.BASE_DIR))
 settings.WAVES_SERVICES_EMAIL = _get_setting_or_env('WAVES_SERVICES_EMAIL', str, 'waves@atgc-montpellier.fr')

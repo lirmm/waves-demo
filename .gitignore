@@ -29,7 +29,7 @@ src/waves.tmp.sqlite3
 *.log
 
 # Environment variables
-src/waves_services/settings/waves.env
+config/waves.env
 
 # Django stuff:
 *.mo
@@ -72,8 +72,8 @@ Desktop.ini
 /test_data/jobs/
 /media/profile
 /src/waves.sample.sav.sqlite3
-/src/waves.sqlite3
+/db/waves.sqlite3
 /src/waves.tmp
 /src/waves.sav.sqlite3
-/src/waves_uwsgi.ini
+/config/waves_uwsgi.ini
 /.venv/

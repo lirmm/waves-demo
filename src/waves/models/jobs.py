@@ -5,9 +5,10 @@ import logging
 import eav
 from django.conf import settings
 from django.db import models
+from django.core.urlresolvers import reverse
+from django.contrib.sites.models import Site
 
 import waves.const as const
-from waves.utils.validators import ServiceInputValidator
 from waves.eav.config import JobEavConfig, JobInputEavConfig, JobOutputEavConfig
 from waves.managers import JobManager
 from waves.models.base import TimeStampable, SlugAble, OrderAble
@@ -37,6 +38,7 @@ class Job(TimeStampable, SlugAble):
     service = models.ForeignKey(Service, related_name='service_jobs', null=False, on_delete=models.CASCADE)
     status = models.IntegerField('Job status', choices=const.STATUS_LIST, default=const.JOB_CREATED,
                                  help_text='Job current run status')
+    status_mail = models.IntegerField(editable=False, default=9999)
     client = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.CASCADE,
                                related_name='clients_job', help_text='Associated registered user')
     email_to = models.EmailField('Email results', null=True, blank=True,
@@ -87,7 +89,7 @@ class Job(TimeStampable, SlugAble):
 
     @property
     def input_params(self):
-        return self.job_inputs.exclude(input__type=const.TYPE_FILE)
+        return self.job_inputs.exclude(type=const.TYPE_FILE)
 
     @property
     def input_dir(self):
@@ -126,6 +128,25 @@ class Job(TimeStampable, SlugAble):
             return 'info'
         else:
             return 'success'
+
+    def send_mail(self):
+        from waves.managers.mails import JobMailer
+        if self.email_to is not None and self.status != self.status_mail:
+            mailer = JobMailer(job=self)
+            self.status_mail = self.status
+            if self.status == const.JOB_CREATED:
+                return mailer.send_job_submission_mail()
+            elif self.status == const.JOB_TERMINATED:
+                return mailer.send_job_completed_mail()
+            elif self.status == const.JOB_ERROR:
+                return mailer.send_job_error_email()
+
+    def get_absolute_url(self):
+        return reverse('waves:job_details', kwargs={'slug': self.slug})
+
+    @property
+    def link(self):
+        return 'http://%s%s' % (Site.objects.get_current().domain, self.get_absolute_url())
 
 
 class JobInput(OrderAble, SlugAble):
@@ -250,6 +271,7 @@ class JobOutput(OrderAble, SlugAble):
                             null=True,
                             default=".txt",
                             blank=True)
+    # TODO add a field to specify if output is available for client
 
     def __str__(self):
         return '%s - %s' % (self.label, self.name)
@@ -267,7 +289,7 @@ class JobHistory(models.Model):
     job = models.ForeignKey(Job,
                             related_name='job_history',
                             on_delete=models.CASCADE)
-    timestamp = models.DateTimeField('Date time',
+    timestamp = models.DateTimeField('Date time', auto_now_add=True,
                                      help_text='History timestamp')
     status = models.IntegerField('Job Status',
                                  blank=False,

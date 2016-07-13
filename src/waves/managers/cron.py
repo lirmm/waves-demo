@@ -4,7 +4,7 @@ import logging
 import time
 
 import django.utils.timezone
-
+from django.contrib.sites.models import Site
 import waves.const as const
 from waves.models import Job
 from waves.runners import JobRunner
@@ -21,6 +21,8 @@ def treat_queue_jobs():
     logger.info("Starting queue processing")
     nb_jobs = jobs.count()
     logger.info("Jobs retrieved %i", nb_jobs)
+    # here to be sure it's cached until another process need it :-)
+    current_site = Site.objects.get_current()
     while nb_jobs > 0:
         for job in jobs:
             runner = job.runner
