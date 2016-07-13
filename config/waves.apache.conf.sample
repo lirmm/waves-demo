@@ -1,0 +1,43 @@
+<VirtualHost 127.0.0.1:80>
+
+    ServerName waves.com
+    ServerAdmin webmaster@waves.com
+
+    DocumentRoot /http//www/waves
+
+    <Directory /http//www/waves/src/>
+      Options +Indexes
+      Require all granted
+    </Directory>
+
+    <Directory /http//www/waves/staticfiles>
+      Options +Indexes
+      Require all granted
+    </Directory>
+
+    <Directory /http//www/waves/media>
+      Options +Indexes
+      Require all granted
+    </Directory>
+
+    SetEnv DJANGO_SETTINGS_MODULE waves_services.settings.production
+
+    WSGIDaemonProcess waves_services python-path=/http//www/waves/.venv/src:/http//www/waves/.venv/lib/python2.7/site-packages:/http//www/waves/src
+    WSGIProcessGroup waves_services
+    WSGIScriptAlias / /http/www/waves/src/waves_services/wsgi.py
+
+    <Directory /http//www/waves/src/waves_services>
+        Options FollowSymLinks Indexes
+        <Files wsgi.py>
+	        Require all granted
+        </Files>
+    </Directory>
+    <Location /static>
+      SetHandler None
+    </Location>
+    <Location /media>
+      SetHandler None
+    </Location>
+    Alias /media /http/www/waves/media
+    Alias /static /http/www/waves/staticfiles
+</VirtualHost>
