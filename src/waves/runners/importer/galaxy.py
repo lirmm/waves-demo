@@ -42,7 +42,7 @@ class GalaxyToolImporter(ToolRunnerImporter):
         self._service.version = details.version
         self._service.set_api_name()
         # check whether another service exists with same generated api_name
-        existing_service = Service.objects.filter(api_name__startswith=self._service.api_name)
+        existing_service = Service.objects.filter(api_name=self._service.api_name)
         if existing_service.count() > 0:
             self._service.api_name += '_%i' % existing_service.count()
             logger.debug('Setting api_name to %s', self._service.api_name)
@@ -290,7 +290,7 @@ class GalaxyWorkFlowImporter(GalaxyToolImporter):
         self._service.name = details.name
         self._service.set_api_name()
         # check whether another service exists with same generated api_name
-        existing_service = Service.objects.filter(api_name__startswith=self._service.api_name)
+        existing_service = Service.objects.filter(api_name=self._service.api_name)
         if existing_service.count() > 0:
             logger.debug('Setting api_name to %s_%i', self._service.api_name, existing_service.count())
             self._service.api_name += '_%i' % existing_service.count()

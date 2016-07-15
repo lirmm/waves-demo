@@ -7,6 +7,7 @@ from django.conf import settings
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
+from django.utils.html import format_html
 
 import waves.const as const
 from waves.eav.config import JobEavConfig, JobInputEavConfig, JobOutputEavConfig
@@ -53,6 +54,11 @@ class Job(TimeStampable, SlugAble):
     def __init__(self, *args, **kwargs):
         super(Job, self).__init__(*args, **kwargs)
         self._status = self.status
+
+    def colored_status(self):
+        return format_html('<span class="{}">{}</span>',
+                           self.label_class,
+                           self.get_status_display())
 
     def save(self, *args, **kwargs):
         """
@@ -129,7 +135,7 @@ class Job(TimeStampable, SlugAble):
         else:
             return 'success'
 
-    def send_mail(self):
+    def check_send_mail(self):
         from waves.managers.mails import JobMailer
         if self.email_to is not None and self.status != self.status_mail:
             mailer = JobMailer(job=self)

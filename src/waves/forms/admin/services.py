@@ -115,7 +115,7 @@ class RelatedInputForm(ServiceInputBaseForm):
     def __init__(self, *args, **kwargs):
         super(RelatedInputForm, self).__init__(*args, **kwargs)
         try:
-            if self.instance and self.instance.related_to:
+            if self.instance and self.instance.related_to and self.instance.related_to.get_choices():
                 self.fields['when_value'] = forms.ChoiceField(choices=self.instance.related_to.get_choices())
         except ObjectDoesNotExist:
             pass

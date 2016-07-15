@@ -56,12 +56,20 @@ class JobAdmin(ModelAdmin):
         JobOutputInline,
         JobHistoryInline
     ]
-    list_filter = ('status', 'service')
-    list_display = ('__str__', 'status', 'client', 'service', 'get_run_on', 'created', 'updated')
-
+    list_filter = ('status', 'service', 'client')
+    list_display = ('__str__', 'get_colored_status', 'client', 'service', 'get_run_on', 'created', 'updated')
     list_per_page = 30
+
+    search_fields = ('client__email', 'service__name', 'service__run_on__clazz', 'service__run_on_name')
+
+    # Suit form params (not used by default)
     suit_form_tabs = (('general', 'General'), ('inputs', 'Inputs'), ('outputs', 'Outputs'), ('history', 'History'))
+
+    # grappelli list filter
+    change_list_template = "admin/change_list_filter_sidebar.html"
+
     readonly_fields = ('slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on')
+
     fieldsets = [
         (None, {
             'classes': ('suit-tab', 'suit-tab-general',),
@@ -70,6 +78,14 @@ class JobAdmin(ModelAdmin):
          ),
 
     ]
+
+    def get_list_filter(self, request):
+        return super(JobAdmin, self).get_list_filter(request)
+
+    def get_queryset(self, request):
+        queryset = super(JobAdmin, self).get_queryset(request)
+        # TODO add user group right filtering, default filtering
+        return queryset
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser or (obj is not None and request.user == obj.client)
@@ -101,6 +117,10 @@ class JobAdmin(ModelAdmin):
     def get_run_on(self, obj):
         return obj.service.run_on.name
 
+    def get_colored_status(self, obj):
+        return obj.colored_status()
+
+    get_colored_status.short_description = 'Status'
     get_run_on.short_description = 'Run on'
 
 admin.site.register(Job, JobAdmin)

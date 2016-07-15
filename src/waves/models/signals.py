@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 def pre_job_save_handler(sender, instance, **kwargs):
     if not instance.title:
         instance.title = '%s_%s' % (instance.service.api_name, instance.slug)
-    instance.send_mail()
+    instance.check_send_mail()
 
 
 @receiver(post_save, sender=Job)

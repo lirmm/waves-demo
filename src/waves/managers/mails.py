@@ -2,17 +2,9 @@ from __future__ import unicode_literals
 
 import logging
 from django.conf import settings
-from django.template.loader import get_template
-
 from mail_templated import send_mail
 
 logger = logging.getLogger(__name__)
-
-"""
-send_mail(template_name, context, from_email, recipient_list,
-              fail_silently=False, auth_user=None, auth_password=None,
-              connection=None, **kwargs)
-    """
 
 
 class JobMailer(object):

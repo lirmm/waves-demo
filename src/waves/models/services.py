@@ -257,9 +257,6 @@ class Service(TimeStampable, DescribeAble):
         logger.debug('Cleaning api_name')
         if not self.api_name:
             self.set_api_name()
-        existing = Service.objects.filter(api_name__startswith=self.api_name).exclude(id=self.pk)
-        if existing.count() > 0:
-            self.api_name += '_%i' % (existing.count() + 1)
         super(Service, self).clean()
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
@@ -474,14 +471,12 @@ class ServiceInput(DescribeAble, TimeStampable, OrderAble):
         super(ServiceInput, self).save(*args, **kwargs)
 
     def get_choices(self):
-        #if self.type in (waves.const.TYPE_LIST, waves.const.TYPE_FILE):
-        return ServiceInputFormat.choice_list(self.format)
-        """
+        if self.type in (waves.const.TYPE_LIST, waves.const.TYPE_FILE):
+            return ServiceInputFormat.choice_list(self.format)
         elif self.type == waves.const.TYPE_BOOLEAN:
             return [(1, 'True'), (0, 'False')]
         else:
             return []
-        """
 
     def get_min(self):
         if self.type == waves.const.TYPE_INTEGER or self.type == waves.const.TYPE_FLOAT:

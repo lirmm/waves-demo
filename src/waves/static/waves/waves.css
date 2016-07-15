@@ -1,3 +1,7 @@
+/**
+WAVES backOffice dedicated css
+**/
+
 #img_footer_container {
     text-align: center;
 }
@@ -83,4 +87,25 @@ input[type=text] {
 }
 textarea{
     width: auto;
+}
+
+span.warning{
+    color: #ff851b;
+    font-weight: bold;
+}
+span.danger{
+    color: #ff4136;
+    font-weight: bold;
+}
+span.danger{
+    color: #ff4136;
+    font-weight: bold;
+}
+span.info{
+    color: #75caeb;
+    font-weight: bold;
+}
+span.success{
+    font-weight: bold;
+    color: #28b62c;
 }

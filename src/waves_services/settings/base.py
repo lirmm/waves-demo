@@ -108,7 +108,6 @@ ROOT_URLCONF = 'waves_services.urls'
 DATABASES = {
     'default': env.db(),
 }
-print env.db()
 
 WSGI_APPLICATION = 'waves_services.wsgi.application'
 

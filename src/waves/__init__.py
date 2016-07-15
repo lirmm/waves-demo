@@ -17,7 +17,6 @@ settings.WAVES_SERVICES_EMAIL = _get_setting_or_env('WAVES_SERVICES_EMAIL', str,
 settings.WAVES_DATA_ROOT = _get_setting_or_env('WAVES_DATA_ROOT', str, join(settings.WAVES_BASEDIR, 'data'))
 settings.WAVES_JOB_DIR = _get_setting_or_env('WAVES_JOB_DIR', str, join(settings.WAVES_DATA_ROOT, 'jobs'))
 settings.WAVES_SAMPLE_DIR = _get_setting_or_env('WAVES_SAMPLE_DIR', str, join(settings.MEDIA_ROOT, 'sample'))
-settings.WAVES_CRON_USER = _get_setting_or_env('WAVES_CRON_USER', str, 'cronjob@waves.atgc-montpellier.fr')
 settings.WAVES_GALAXY_URL = _get_setting_or_env('WAVES_GALAXY_URL', str, 'http://127.0.0.1')
 settings.WAVES_GALAXY_API_KEY = _get_setting_or_env('WAVES_GALAXY_API_KEY', str, '806dcbdca2b8bb34f2693cbf318a358e')
 settings.WAVES_GALAXY_PORT = _get_setting_or_env('WAVES_GALAXY_PORT', str, '8080')
