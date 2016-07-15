@@ -10,6 +10,23 @@
            id="duplicate_service">
             Cancel this job
         </a>
-        <li><a href="#job_history-group">{% trans "History" %}</a></li>
     </li>
+{% endblock %}
+{% block submit_buttons_bottom %}
+    <footer class="grp-module grp-submit-row grp-fixed-footer">
+    <header style="display:none"><h1>Submit Options</h1></header>
+    <ul>
+        {% url opts|admin_urlname:'delete' original.pk|admin_urlquote as delete_url %}
+        <li class="grp-float-left"><a href="{% add_preserved_filters delete_url %}" class="grp-button grp-delete-link">{% trans "Delete" %}</a></li>
+        <li>
+            <a type="button" onclick="javascript:if (confirm('Are you sure?')) window.location.href='{% url 'waves:job_cancel' original.pk %}'; "
+               target="_self"
+               title="Cancel Job"
+               class="btn btn-high btn-warning grp-button grp-delete-link"
+               id="duplicate_service">
+                Cancel this job
+            </a>
+        </li>
+    </ul>
+    </footer>
 {% endblock %}

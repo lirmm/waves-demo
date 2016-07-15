@@ -18,6 +18,7 @@ class JobInputInline(TabularInline):
     can_delete = False
     ordering = ('order',)
     fields = ('name', 'value')
+    classes = ('grp-collapse grp-closed',)
 
     def has_add_permission(self, request):
         return False
@@ -32,6 +33,7 @@ class JobOutputInline(TabularInline):
     readonly_fields = ('label', 'name', 'value')
     ordering = ('order',)
     fields = ('label', 'name', 'value')
+    classes = ('grp-collapse grp-closed',)
 
     def has_add_permission(self, request):
         return False
@@ -40,6 +42,9 @@ class JobOutputInline(TabularInline):
 class JobHistoryInline(TabularInline):
     model = JobHistory
     suit_classes = 'suit-tab suit-tab-history'
+    classes = ('grp-collapse grp-closed',)
+    verbose_name_plural = "Job history"
+
     readonly_fields = ('status', 'timestamp', 'message')
     can_delete = False
     extra = 0
@@ -52,9 +57,9 @@ class JobAdmin(ModelAdmin):
     model = Job
     form = JobForm
     inlines = [
+        JobHistoryInline,
         JobInputInline,
         JobOutputInline,
-        JobHistoryInline
     ]
     list_filter = ('status', 'service', 'client')
     list_display = ('__str__', 'get_colored_status', 'client', 'service', 'get_run_on', 'created', 'updated')
@@ -71,12 +76,10 @@ class JobAdmin(ModelAdmin):
     readonly_fields = ('slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on')
 
     fieldsets = [
-        (None, {
-            'classes': ('suit-tab', 'suit-tab-general',),
-            'fields': ['service', 'status', 'created', 'updated', 'client', 'email_to', 'slug', 'get_run_on']
-        }
+        (None, {'classes': ('suit-tab', 'suit-tab-general',),
+                'fields': ['service', 'status', 'created', 'updated', 'client', 'email_to', 'slug', 'get_run_on']
+                }
          ),
-
     ]
 
     def get_list_filter(self, request):
@@ -112,7 +115,9 @@ class JobAdmin(ModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         request.current_obj = obj
-        return super(JobAdmin, self).get_form(request, obj, **kwargs)
+        form = super(JobAdmin, self).get_form(request, obj, **kwargs)
+        form.base_fields['client'].widget.can_add_related = False
+        return form
 
     def get_run_on(self, obj):
         return obj.service.run_on.name
@@ -122,5 +127,6 @@ class JobAdmin(ModelAdmin):
 
     get_colored_status.short_description = 'Status'
     get_run_on.short_description = 'Run on'
+
 
 admin.site.register(Job, JobAdmin)
