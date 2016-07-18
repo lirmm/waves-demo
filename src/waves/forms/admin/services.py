@@ -100,6 +100,12 @@ class ServiceInputForm(ServiceInputBaseForm):
         model = ServiceInput
         widgets = ServiceInputBaseForm.Meta.widgets
 
+    def clean(self):
+        cleaned_data = super(ServiceInputForm, self).clean()
+        if self.instance.editable is False and not cleaned_data.get('default', False):
+            raise ValidationError('Non editable fields must have a default value')
+        return cleaned_data
+
 
 class RelatedInputForm(ServiceInputBaseForm):
     class Meta(ServiceInputBaseForm.Meta):

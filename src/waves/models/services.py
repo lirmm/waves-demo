@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import logging
 import os
+from django import forms
 from django.conf import settings
 from django.db import models, transaction
 from django.db import IntegrityError
@@ -38,7 +39,7 @@ class ServiceInputFormat(object):
 
     @staticmethod
     def format_list(values):
-        return (''+os.linesep).join(values)
+        return ('' + os.linesep).join(values)
 
     @staticmethod
     def param_type_from_value(value):
@@ -406,7 +407,7 @@ class ServiceInput(DescribeAble, TimeStampable, OrderAble):
     class Meta:
         db_table = 'waves_service_input'
         verbose_name = 'Input parameter'
-        unique_together = ('name', 'service', 'type')
+        # unique_together = ('name', 'service', 'type')
         ordering = ['order']
 
     label = models.CharField('Label',
@@ -471,17 +472,20 @@ class ServiceInput(DescribeAble, TimeStampable, OrderAble):
         super(ServiceInput, self).save(*args, **kwargs)
 
     def get_choices(self):
+        choice_list = []
         if self.type in (waves.const.TYPE_LIST, waves.const.TYPE_FILE):
-            return ServiceInputFormat.choice_list(self.format)
+            choice_list = ServiceInputFormat.choice_list(self.format)
+            return choice_list
         elif self.type == waves.const.TYPE_BOOLEAN:
-            return [(1, 'True'), (0, 'False')]
-        else:
-            return []
+            return [('True', 'True'), ('False', 'False')]
+        return choice_list
 
     def get_min(self):
         if self.type == waves.const.TYPE_INTEGER or self.type == waves.const.TYPE_FLOAT:
             if self.format:
-                return eval(self.format.split('|')[0])
+                min_value = self.format.split('|')
+                if min_value[0]:
+                    return eval(min_value[0])
             return None
         else:
             return None
@@ -489,13 +493,52 @@ class ServiceInput(DescribeAble, TimeStampable, OrderAble):
     def get_max(self):
         if self.type == waves.const.TYPE_INTEGER or self.type == waves.const.TYPE_FLOAT:
             if self.format:
-                return eval(self.format.split('|')[1])
+                max_value = self.format.split('|')
+                if max_value[1]:
+                    return eval(max_value[1])
             return None
         else:
             return None
 
     def __str__(self):
         return '%s (%s)' % (self.label, self.type)
+
+    @property
+    def eval_default(self):
+        if self.type == waves.const.TYPE_BOOLEAN:
+            return bool(eval(self.default)) if self.default else False
+        return self.default
+
+    def clean(self):
+        """
+        Form validation in backoffice when creating service Input (check consistency for list / boolean values / integer
+        and float default values
+            Returns:
+                None
+        """
+        if self.type == waves.const.TYPE_BOOLEAN:
+            self.default = self.default if self.default else "False"
+            try:
+                bool(eval(self.default))
+            except Exception:
+                raise forms.ValidationError('Default value is not a valid boolean value : False|True')
+        elif self.type == waves.const.TYPE_INTEGER:
+            if self.default:
+                try:
+                    int(eval(self.default))
+                except Exception:
+                    raise forms.ValidationError('Default value is not a valid int value')
+        elif self.type == waves.const.TYPE_FLOAT:
+            if self.default:
+                try:
+                    float(eval(self.default))
+                except Exception:
+                    raise forms.ValidationError('Default value is not a valid float value: X.Y')
+        elif self.type == waves.const.TYPE_LIST:
+            if self.default:
+                if not any(e[0] == self.default for e in self.get_choices()):
+                    raise forms.ValidationError('Default value is not in possible values')
+        super(ServiceInput, self).clean()
 
 
 class RelatedInput(ServiceInput):

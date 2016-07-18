@@ -76,6 +76,9 @@ class ServiceManager(models.Manager):
         job = Job.objects.create(service=service, email_to=email_to, client=user, title=title)
         order_inputs = 0
         try:
+            # Update submitted inputs with non editable ones with default value
+            for service_input in service.service_inputs.filter(editable=False):
+                submitted_inputs[service_input.name] = service_input.default
             for service_input in service.service_inputs.filter(editable=True, relatedinput=None):
                 # Treat only non dependent inputs first
                 order_inputs += 1
@@ -84,21 +87,26 @@ class ServiceManager(models.Manager):
                 if service_input.mandatory and not service_input.default and incoming_input is None \
                         and not hasattr(service_input, 'when_value'):
                     raise JobMissingMandatoryParam(service_input.name, job)
-                # transform single incoming into list to keep process iso
-                if type(incoming_input) != list:
-                    incoming_input = [incoming_input]
-                for in_input in incoming_input:
-                    order_inputs += 1
-                    self._create_job_input(job, service_input, order_inputs, in_input)
-                    # TODO remove this kind of duplicated code
-                    related_4_value = service_input.dependent_inputs.filter(when_value=str(in_input)).all()
-                    for related_input in related_4_value:
-                        income_input = submitted_inputs[related_input.name]
-                        if type(income_input) != list:
-                            income_input = [income_input]
-                        for dep_input in income_input:
-                            order_inputs += 1
-                            self._create_job_input(job, related_input, order_inputs, dep_input)
+                if incoming_input:
+                    # transform single incoming into list to keep process iso
+                    if type(incoming_input) != list:
+                        incoming_input = [incoming_input]
+                    # TODO manage non editable fields, hidden fields in form ?
+                    for in_input in incoming_input:
+                        order_inputs += 1
+                        self._create_job_input(job, service_input, order_inputs, in_input)
+                        # TODO remove this kind of duplicated code
+                        related_4_value = service_input.dependent_inputs.filter(when_value=str(in_input)).all()
+                        for related_input in related_4_value:
+                            income_input = submitted_inputs[related_input.name]
+                            if income_input:
+                                if type(income_input) != list:
+                                    income_input = [income_input]
+                                for dep_input in income_input:
+                                    order_inputs += 1
+                                    self._create_job_input(job, related_input, order_inputs, dep_input)
+                # Manage 'non editable fields', add default values to inputs ?
+
         except KeyError:
             if service_input.mandatory and not service_input.default:
                 raise JobMissingMandatoryParam(service_input.name, job=job)
@@ -115,9 +123,7 @@ class ServiceManager(models.Manager):
                 # parameters has not been submitted, but no mandatory
                 pass
         except AssertionError as e:
-            print e
-            raise
-            # raise JobSubmissionException('Unexpected error in job submission %s (%s)' % (service_input.get_type_display(), e), job=job)
+            raise JobSubmissionException('Unexpected error in job submission %s (%s)' % (service_input.get_type_display(), e), job=job)
         logger.debug('Job %s created with %i inputs', job.slug, job.job_inputs.count())
         for service_output in service.service_outputs.all():
             JobOutput.objects.create(job=job, name=service_output.name, label=service_output.name)

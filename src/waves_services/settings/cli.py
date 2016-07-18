@@ -1,26 +1,7 @@
-# In production set the environment variable like this:
-#    DJANGO_SETTINGS_MODULE=waves.settings.production
 from __future__ import unicode_literals
-from .base import *             # NOQA
-from os import path, makedirs
-import errno
+from .production import *
 
 import logging.config
-
-# For security and performance reasons, DEBUG is turned off
-DEBUG = env.bool('DEBUG')
-TEMPLATES[0]['OPTIONS'].update({'debug': DEBUG})
-# Log everything to the logs directory at the top
-
-LOGFILE_ROOT = env('LOG_ROOT_DIR')
-
-if not path.exists(LOGFILE_ROOT):
-    try:
-        makedirs(LOGFILE_ROOT)
-    except OSError as exc:
-        if exc.errno != errno.EEXIST:
-            print "Misconfiguration : waves log dir does not exists !"
-            raise
 
 # Reset logging
 LOGGING_CONFIG = None

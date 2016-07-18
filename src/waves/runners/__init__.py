@@ -12,7 +12,7 @@ from waves.runners.runner import JobRunner
 from waves.runners.sge import SGEJobRunner
 from waves.runners.ssh import SshJobRunner
 
-__all__ = ['SGEJobRunner', 'GalaxyJobRunner', 'GalaxyWorkFlowRunner']
+__all__ = ['SGEJobRunner', 'GalaxyJobRunner', 'GalaxyWorkFlowRunner', 'ShellJobRunner']
 
 if settings.DEBUG:
     from waves.runners.mock import MockJobRunner

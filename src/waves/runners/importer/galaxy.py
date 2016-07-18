@@ -278,10 +278,6 @@ class GalaxyWorkFlowImporter(GalaxyToolImporter):
     def _get_tool_details(self, remote_tool_id):
         self.workflow = self._tool_client.get(id_=remote_tool_id)
         self.workflow_full_description = self.workflow.export()
-        print self.workflow.inputs
-        print self.workflow.steps
-
-        print self.workflow_full_description.__class__, self.workflow_full_description
         return self.workflow
 
     def _update_service(self, details):

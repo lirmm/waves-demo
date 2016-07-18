@@ -18,6 +18,7 @@ class ServiceJobForm(forms.ModelForm):
     Service Job Submission form
     Allows to create a new job from a service instance
     """
+
     class Meta:
         model = Service
         fields = ['title', 'email']
@@ -34,9 +35,9 @@ class ServiceJobForm(forms.ModelForm):
             raise RuntimeError('No helper defined for WAVES, unable to create any form')
 
     def _create_copy_paste_field(self, service_input):
-        service_input.mandatory = False # Field is validated in clean process
+        # service_input.mandatory = False # Field is validated in clean process
         cp_service = copy.copy(service_input)
-        cp_service.label = 'Or Copy/paste your content'
+        cp_service.label = 'Copy/paste content'
         cp_service.description = ''
         cp_service.mandatory = False
         cp_service.type = waves.const.TYPE_TEXT
@@ -46,7 +47,6 @@ class ServiceJobForm(forms.ModelForm):
         return cp_service
 
     def __init__(self, *args, **kwargs):
-        instance = kwargs.pop('instance')
         form_tag = kwargs.pop('form_tag', True)
         user = kwargs.pop('user')
         # TODO add re- captcha for unauthenticated user
@@ -55,16 +55,16 @@ class ServiceJobForm(forms.ModelForm):
         super(ServiceJobForm, self).__init__(*args, **kwargs)
         self.helper = self.get_helper(form_tag=form_tag)
         # dynamically add fields according to service parameters
-        self.list_inputs = list(instance.service_inputs.filter(relatedinput=None))
+        self.list_inputs = list(self.instance.service_inputs.filter(relatedinput=None, editable=True))
         self.helper.init_layout()
-        self.fields['title'].initial = '%s job' % instance.name
+        self.fields['title'].initial = '%s job' % self.instance.name
         extra_fields = []
         for service_input in self.list_inputs:
             if service_input.type == waves.const.TYPE_FILE and not service_input.multiple:
                 extra_fields.append(self._create_copy_paste_field(service_input))
             self.helper.set_field(service_input, self)
             self.helper.set_layout(service_input, self)
-            for dependent_input in service_input.dependent_inputs.all():
+            for dependent_input in service_input.dependent_inputs.filter(editable=True):
                 # conditional parameters must not be required to use classic django form validation process
                 dependent_input.required = False
                 if dependent_input.type == waves.const.TYPE_FILE and not dependent_input.multiple:
@@ -79,19 +79,22 @@ class ServiceJobForm(forms.ModelForm):
         cleaned_data = super(ServiceJobForm, self).clean()
         validator = ServiceInputValidator()
         for data in copy.copy(cleaned_data):
-            # test if a value has been posted
             srv_input = next((x for x in self.list_inputs if x.name == data), None)
             if srv_input:
+                # posted data correspond to a expected input for service
                 posted_data = cleaned_data.get(srv_input.name)
-                if srv_input.type == waves.const.TYPE_FILE and not posted_data:
-                    # print srv_input.name, srv_input.type
+                if srv_input.type == waves.const.TYPE_FILE:
                     if not cleaned_data.get('cp_' + srv_input.name):
-                        self.add_error(srv_input.name, ValidationError('You must provide data for %s' % srv_input.label))
+                        if srv_input.mandatory and not posted_data:
+                            # No posted data in copy/paste but file field is mandatory, so raise error
+                            self.add_error(srv_input.name,
+                                           ValidationError('You must provide data for %s' % srv_input.label))
                     else:
-                        # replace cleaned data for initial field
+                        # cp provided, push value in base file field
                         cleaned_data[srv_input.name] = cleaned_data.get('cp_' + srv_input.name)
+                    # Remove all cp_ from posted data
+                    del self.cleaned_data['cp_' + srv_input.name]
                 else:
-                    # print "No ==> ", srv_input.name, srv_input.type
                     validator.validate_input(srv_input, posted_data, self)
         return cleaned_data
 
