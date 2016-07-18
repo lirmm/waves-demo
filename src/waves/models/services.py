@@ -2,17 +2,18 @@ from __future__ import unicode_literals
 
 import logging
 import os
+
 from django import forms
 from django.conf import settings
 from django.db import models, transaction
-from django.db import IntegrityError
 from mptt.models import MPTTModel, TreeForeignKey
 
 import waves.const
 import waves.managers.services as managers
 from waves.models.base import TimeStampable, DescribeAble, OrderAble
-from waves.models.runners import RunnerParam, Runner
 from waves.models.profiles import APIProfile
+from waves.models.runners import RunnerParam, Runner
+from waves.models.samples import service_sample_directory
 
 logger = logging.getLogger(__name__)
 
@@ -87,10 +88,6 @@ class ServiceInputFormat(object):
         return list_choice
 
 
-def service_sample_directory(instance, filename):
-    return 'sample/{0}/{1}'.format(instance.service.api_name, filename)
-
-
 class ServiceRunnerParam(models.Model):
     class Meta:
         db_table = 'waves_service_runner_param'
@@ -156,24 +153,6 @@ class ServiceCategory(MPTTModel, OrderAble, DescribeAble):
 
     def __str__(self):
         return self.name
-
-
-class ServiceInputSample(models.Model):
-    class Meta:
-        ordering = ['name']
-        db_table = 'waves_service_sample'
-        unique_together = ('name', 'input', 'service')
-
-    name = models.CharField('File name', max_length=200, null=False)
-    file = models.FileField('File path', upload_to=service_sample_directory, null=True, blank=True)
-    input = models.ForeignKey('ServiceInput', on_delete=models.CASCADE, related_name='input_samples',
-                              help_text='Associated input')
-    service = models.ForeignKey('Service', on_delete=models.CASCADE, related_name='services_sample', null=True)
-    dependent_input = models.ForeignKey('ServiceInput',
-                                        on_delete=models.SET_NULL, null=True, blank=True,
-                                        help_text='Dependent on another input value')
-    when_value = models.CharField('Depending on input value', max_length=255, null=True, blank=True,
-                                  help_text='For dependency, related value')
 
 
 class Service(TimeStampable, DescribeAble):
@@ -255,7 +234,6 @@ class Service(TimeStampable, DescribeAble):
     def clean(self):
         # TODO add version number validation
         # TODO add check for mandatory expected params setup (mandatory with no default, not mandatory with default)
-        logger.debug('Cleaning api_name')
         if not self.api_name:
             self.set_api_name()
         super(Service, self).clean()

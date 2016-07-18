@@ -10,6 +10,7 @@ import django_countries.fields
 import mptt.fields
 import uuid
 import waves.models.profiles
+import waves.models.samples
 import waves.models.services
 
 
@@ -231,7 +232,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=200, verbose_name='File name')),
-                ('file', models.FileField(blank=True, null=True, upload_to=waves.models.services.service_sample_directory, verbose_name='File path')),
+                ('file', models.FileField(blank=True, null=True, upload_to=waves.models.samples.service_sample_directory, verbose_name='File path')),
                 ('when_value', models.CharField(blank=True, help_text='For dependency, related value', max_length=255, null=True, verbose_name='Depending on input value')),
             ],
             options={

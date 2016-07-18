@@ -1,12 +1,14 @@
 from __future__ import unicode_literals
 
 import logging
+import os.path as path
 
 from django.core.files.uploadedfile import TemporaryUploadedFile
 from django.db import models, transaction
 from django.core.exceptions import ObjectDoesNotExist
 
 import waves.const
+from waves.models.samples import ServiceInputSample
 from waves.exceptions import *
 
 logger = logging.getLogger(__name__)
@@ -47,11 +49,21 @@ class ServiceManager(models.Manager):
                           value=str(submitted_input))
         if service_input.type == waves.const.TYPE_FILE:
             if isinstance(submitted_input, TemporaryUploadedFile):
+                # classic uploaded file
                 filename = job.input_dir + submitted_input.name
                 with open(filename, 'wb+') as uploaded_file:
                     for chunk in submitted_input.chunks():
                         uploaded_file.write(chunk)
+            elif int(submitted_input):
+                # Manage sample data
+                input_sample = ServiceInputSample.objects.get(pk=submitted_input)
+                filename = job.input_dir + path.basename(input_sample.file.name)
+                input_dict['value'] = path.basename(input_sample.file.name)
+                with open(filename, 'wb+') as uploaded_file:
+                    for chunk in input_sample.file.chunks():
+                        uploaded_file.write(chunk)
             else:
+                # copy / paste content
                 filename = job.input_dir + service_input.name + '.txt'
                 input_dict.update(dict(value=service_input.name + '.txt'))
                 with open(filename, 'wb+') as uploaded_file:

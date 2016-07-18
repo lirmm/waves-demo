@@ -12,7 +12,8 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 from django.conf import settings
-from waves.models import Job, JobHistory, service_sample_directory, Service
+from waves.models import Job, JobHistory, Service
+from waves.models.samples import service_sample_directory
 
 logger = logging.getLogger(__name__)
 

@@ -46,6 +46,22 @@ class ServiceJobForm(forms.ModelForm):
         self.fields[cp_service.name].widget = forms.Textarea(attrs={'cols': 20, 'rows': 10})
         return cp_service
 
+    def _create_sample_fields(self, service_input):
+        extra_fields = []
+        if service_input.input_samples.count() > 0:
+            for input_sample in service_input.input_samples.all():
+                sample_field = copy.copy(service_input)
+                sample_field.label = "Sample: " + input_sample.name
+                sample_field.value = input_sample.file.name
+                sample_field.name = 'sp_' + service_input.name + '_' + str(input_sample.pk)
+                sample_field.type = waves.const.TYPE_BOOLEAN
+                sample_field.description = ''
+                sample_field.mandatory = False
+                extra_fields.append(sample_field)
+                self.helper.set_field(sample_field, self)
+                self.fields[sample_field.name].initial = False
+        return extra_fields
+
     def __init__(self, *args, **kwargs):
         form_tag = kwargs.pop('form_tag', True)
         user = kwargs.pop('user')
@@ -62,6 +78,8 @@ class ServiceJobForm(forms.ModelForm):
         for service_input in self.list_inputs:
             if service_input.type == waves.const.TYPE_FILE and not service_input.multiple:
                 extra_fields.append(self._create_copy_paste_field(service_input))
+                extra_fields.extend(self._create_sample_fields(service_input))
+
             self.helper.set_field(service_input, self)
             self.helper.set_layout(service_input, self)
             for dependent_input in service_input.dependent_inputs.filter(editable=True):
@@ -80,18 +98,30 @@ class ServiceJobForm(forms.ModelForm):
         validator = ServiceInputValidator()
         for data in copy.copy(cleaned_data):
             srv_input = next((x for x in self.list_inputs if x.name == data), None)
+            sample_selected = False
             if srv_input:
                 # posted data correspond to a expected input for service
                 posted_data = cleaned_data.get(srv_input.name)
                 if srv_input.type == waves.const.TYPE_FILE:
-                    if not cleaned_data.get('cp_' + srv_input.name):
-                        if srv_input.mandatory and not posted_data:
-                            # No posted data in copy/paste but file field is mandatory, so raise error
-                            self.add_error(srv_input.name,
-                                           ValidationError('You must provide data for %s' % srv_input.label))
+                    if srv_input.input_samples.count() > 0:
+                        for input_sample in srv_input.input_samples.all():
+                            sample_selected = cleaned_data.get('sp_' + srv_input.name + '_' + str(input_sample.pk),
+                                                               None)
+                            del self.cleaned_data['sp_' + srv_input.name + '_' + str(input_sample.pk)]
+                            if sample_selected:
+                                sample_selected = input_sample.pk
+                                break
+                    if not sample_selected:
+                        if not cleaned_data.get('cp_' + srv_input.name):
+                            if srv_input.mandatory and not posted_data:
+                                # No posted data in copy/paste but file field is mandatory, so raise error
+                                self.add_error(srv_input.name,
+                                               ValidationError('You must provide data for %s' % srv_input.label))
+                        else:
+                            # cp provided, push value in base file field
+                            cleaned_data[srv_input.name] = cleaned_data.get('cp_' + srv_input.name)
                     else:
-                        # cp provided, push value in base file field
-                        cleaned_data[srv_input.name] = cleaned_data.get('cp_' + srv_input.name)
+                        cleaned_data[srv_input.name] = sample_selected
                     # Remove all cp_ from posted data
                     del self.cleaned_data['cp_' + srv_input.name]
                 else:
