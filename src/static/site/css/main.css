@@ -1,4 +1,3 @@
-@import "//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css";
 
 html, body {
     height: 100%; /* For full height images */
@@ -115,7 +114,6 @@ body > .navbar-transparent {
 
 /* About page styling */
 #sec1 {
-    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAJklEQVQIW2NkAIILFy78NzAwYATRjCABZEGwAEwFiA1WBlIOUwkA72gTdDIYVO4AAAAASUVORK5CYII=) repeat;
 }
 
 /* Profile page styling */

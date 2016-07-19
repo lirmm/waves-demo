@@ -160,6 +160,11 @@ class ServiceForm(forms.ModelForm):
             'clazz': forms.Select(choices=get_commands_impl_list()),
         }
 
+    def __init__(self, *args, **kwargs):
+        super(ServiceForm, self).__init__(*args, **kwargs)
+        self.fields['restricted_client'].label = "Restrict access to specified user"
+
+
     def clean(self):
         # TODO add check if running jobs are currently running, to disable any modification of runner / inputs / outputs
         cleaned_data = super(ServiceForm, self).clean()

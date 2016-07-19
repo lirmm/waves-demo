@@ -10,7 +10,11 @@ def get_current_site(request):
     ``Site`` object or a ``RequestSite`` object based on the request.
     """
     site = current_site(request)
-    return WavesSite.on_site.filter(site=site)[0]
+    wave_site = WavesSite.on_site.filter(site=site)
+    if wave_site:
+        return wave_site[0]
+    else:
+        return WavesSite(theme='flatly', site=site)
 
 
 def css_theme(request):

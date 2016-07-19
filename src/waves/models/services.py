@@ -201,8 +201,10 @@ class Service(TimeStampable, DescribeAble):
     restricted_client = models.ManyToManyField(APIProfile,
                                                related_name='restricted_services',
                                                blank=True,
+                                               verbose_name='Restricted clients',
                                                db_table='waves_service_client',
-                                               help_text='Access to specific client')
+                                               help_text='By default access is granted to everyone, '
+                                                         'you may restrict access here.')
     clazz = models.CharField('Parser class',
                              null=True,
                              blank=True,
