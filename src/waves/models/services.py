@@ -198,11 +198,11 @@ class Service(TimeStampable, DescribeAble):
                                            through=ServiceRunnerParam,
                                            related_name='service_init_params',
                                            help_text='Runner initial parameter')
-    authorized_clients = models.ManyToManyField(APIProfile,
-                                                related_name='authorized_services',
-                                                blank=True,
-                                                db_table='waves_service_client',
-                                                help_text='Access to specific client')
+    restricted_client = models.ManyToManyField(APIProfile,
+                                               related_name='restricted_services',
+                                               blank=True,
+                                               db_table='waves_service_client',
+                                               help_text='Access to specific client')
     clazz = models.CharField('Parser class',
                              null=True,
                              blank=True,

@@ -27,7 +27,7 @@ class ServiceManager(models.Manager):
         Returns:
 
         """
-        return self.filter(authorized_clients__in=[client.pk], status__gte=waves.const.SRV_TEST)
+        return self.exclude(authorized_clients__in=[client.pk], status__lt=waves.const.SRV_TEST)
 
     def get_public_services(self, user=None):
         """

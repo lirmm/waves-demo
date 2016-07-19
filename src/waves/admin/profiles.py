@@ -14,7 +14,7 @@ class UserProfileInline(admin.StackedInline):
     model = APIProfile
     form = ProfileForm
     extra = 0
-    fields = ['api_key', 'registered_for_api', 'ip', 'country', 'institution', 'authorized_services',
+    fields = ['api_key', 'registered_for_api', 'ip', 'country', 'institution', 'restricted_services',
               'comment']
     readonly_fields = ('api_key',)
 

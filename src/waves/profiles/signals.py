@@ -28,15 +28,8 @@ def create_profile_handler(sender, instance, created, **kwargs):
             instance.groups.add(Group.objects.get(name=settings.WAVES_GROUP_API))
         except Group.DoesNotExist:
             pass
-
-        for service in Service.objects.api_public():
-            logger.debug("Add service authorization : %s" % service)
-            instance.profile.authorized_services.add(service)
     if instance.is_active and not instance.profile.registered_for_api:
         instance.profile.api_key = None
-        instance.profile.authorized_services.remove()
-        for service in Service.objects.all():
-            service.authorized_clients.remove(instance.profile)
     instance.profile.save()
 
 

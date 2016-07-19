@@ -162,7 +162,7 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, TabbedModelAdmin, TinyMCEAdmin
     )
     change_form_template = 'admin/waves/service/change_form.html'
     form = ServiceForm
-    filter_horizontal = ['authorized_clients']
+    filter_horizontal = ['restricted_client']
     readonly_fields = ['created', 'updated']
     list_display = ('name', 'api_name', 'api_on', 'version', 'run_on', 'status')
     list_filter = ('status', 'name', 'run_on')
@@ -174,7 +174,7 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, TabbedModelAdmin, TinyMCEAdmin
         }),
         ('More Details', {
             'classes': ('grp-collapse', 'grp-closed',),
-            'fields': ['short_description', 'description', 'api_name', 'created', 'updated', 'authorized_clients']
+            'fields': ['short_description', 'description', 'api_name', 'created', 'updated', 'restricted_client']
         })
     )
     tab_runner = (ServiceRunnerParamInLine,)
