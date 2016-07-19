@@ -238,9 +238,10 @@ input[readonly] {
 .input_output {
     margin-right: 0;
     margin-left: 0;
-    background-color: #fff;
+    /* background-color: #fff;
     border-color: #ddd;
     border-width: 1px;
+    */
     border-radius: 4px 4px 0 0;
     -webkit-box-shadow: none;
     box-shadow: none;

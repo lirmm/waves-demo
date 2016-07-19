@@ -168,14 +168,15 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, TabbedModelAdmin, TinyMCEAdmin
     list_filter = ('status', 'name', 'run_on')
 
     tab_overview = (
-        ('Main', {
+        (None, {
             'fields': ['category', 'name', 'status', 'run_on', 'version',
-                       'api_on', 'email_on', 'clazz']
+                       'short_description', 'description']
         }),
-        ('More Details', {
-            'classes': ('grp-collapse', 'grp-closed',),
-            'fields': ['short_description', 'description', 'api_name', 'created', 'updated', 'restricted_client']
-        })
+    )
+    tab_details = (
+        (None, {
+            'fields': ['api_name', 'restricted_client', 'email_on', 'api_on', 'clazz', 'created', 'updated']
+        }),
     )
     tab_runner = (ServiceRunnerParamInLine,)
     tab_inputs = (ServiceInputInline,)
@@ -184,6 +185,7 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, TabbedModelAdmin, TinyMCEAdmin
     tab_samples = (ServiceSampleInline,)
     tabs = [
         ('General', tab_overview),
+        ('Details', tab_details),
         ('Metas', tab_metas),
         ('Runner Params', tab_runner),
         ('Service Inputs', tab_inputs),

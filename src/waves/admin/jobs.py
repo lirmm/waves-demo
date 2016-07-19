@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin, TabularInline
+from tabbed_admin import TabbedModelAdmin
 
 import waves.const as const
 from waves.forms.admin import JobInputForm, JobOutputForm, JobForm
@@ -18,7 +19,7 @@ class JobInputInline(TabularInline):
     can_delete = False
     ordering = ('order',)
     fields = ('name', 'value')
-    classes = ('grp-collapse grp-closed',)
+    # classes = ('grp-collapse grp-closed',)
 
     def has_add_permission(self, request):
         return False
@@ -33,7 +34,7 @@ class JobOutputInline(TabularInline):
     readonly_fields = ('label', 'name', 'value')
     ordering = ('order',)
     fields = ('label', 'name', 'value')
-    classes = ('grp-collapse grp-closed',)
+    # classes = ('grp-collapse grp-closed',)
 
     def has_add_permission(self, request):
         return False
@@ -42,7 +43,7 @@ class JobOutputInline(TabularInline):
 class JobHistoryInline(TabularInline):
     model = JobHistory
     suit_classes = 'suit-tab suit-tab-history'
-    classes = ('grp-collapse grp-closed',)
+    # classes = ('grp-collapse grp-closed',)
     verbose_name_plural = "Job history"
 
     readonly_fields = ('status', 'timestamp', 'message')
@@ -53,7 +54,11 @@ class JobHistoryInline(TabularInline):
         return False
 
 
-class JobAdmin(ModelAdmin):
+class JobAdmin(TabbedModelAdmin, ModelAdmin):
+    class Media:
+        css = {
+            'all': ('tabbed_admin/css/tabbed_admin.css',)
+        }
     model = Job
     form = JobForm
     inlines = [
@@ -72,14 +77,30 @@ class JobAdmin(ModelAdmin):
 
     # grappelli list filter
     change_list_template = "admin/change_list_filter_sidebar.html"
-
+    change_form_template = 'admin/waves/job/change_form.html'
     readonly_fields = ('slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on')
 
+    """
     fieldsets = [
         (None, {'classes': ('suit-tab', 'suit-tab-general',),
                 'fields': ['service', 'status', 'created', 'updated', 'client', 'email_to', 'slug', 'get_run_on']
                 }
          ),
+    ]
+    """
+    tab_overview = (
+        (None, {
+            'fields': ['service', 'status', 'created', 'updated', 'client', 'email_to', 'slug', 'get_run_on']
+        }),
+    )
+    tab_history = (JobHistoryInline,)
+    tab_inputs = (JobInputInline,)
+    tab_outputs = (JobOutputInline,)
+    tabs = [
+        ('General', tab_overview),
+        ('Job History', tab_history),
+        ('Service Inputs', tab_inputs),
+        ('Services outputs', tab_outputs),
     ]
 
     def get_list_filter(self, request):
