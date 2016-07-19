@@ -92,9 +92,10 @@ class ServiceManager(models.Manager):
         job = Job.objects.create(service=service, email_to=email_to, client=user, title=job_title)
         order_inputs = 0
         try:
-            # Update submitted inputs with non editable ones with default value
             for service_input in service.service_inputs.filter(editable=False):
-                submitted_inputs[service_input.name] = service_input.default
+                if service_input.name not in submitted_inputs:
+                    # Update "submitted_inputs" dictionary with non editable ones with default value if not already set
+                    submitted_inputs[service_input.name] = service_input.default
             for service_input in service.service_inputs.filter(editable=True, relatedinput=None):
                 # Treat only non dependent inputs first
                 order_inputs += 1
@@ -142,7 +143,12 @@ class ServiceManager(models.Manager):
             raise JobSubmissionException('Unexpected error in job submission %s (%s)' % (service_input.get_type_display(), e), job=job)
         logger.debug('Job %s created with %i inputs', job.slug, job.job_inputs.count())
         for service_output in service.service_outputs.all():
-            JobOutput.objects.create(job=job, name=service_output.name, label=service_output.name)
+            output_dict = dict(job=job, name=service_output.name, label=service_output.name)
+            if service_output.from_input:
+                # issued from a input value
+                output_dict.update(dict(value=submitted_inputs.get(service_output.from_input,
+                                                                   service_output.from_input.default)))
+            JobOutput.objects.create(**output_dict)
         return job
 
     def api_public(self):

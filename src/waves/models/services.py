@@ -520,6 +520,13 @@ class ServiceInput(DescribeAble, TimeStampable, OrderAble):
                     raise forms.ValidationError('Default value is not in possible values')
         super(ServiceInput, self).clean()
 
+    def get_value_for_choice(self, value):
+        choices = self.get_choices()
+        for (code, choice) in choices:
+            if code == value:
+                return choice
+        return None
+
 
 class RelatedInput(ServiceInput):
     class Meta:

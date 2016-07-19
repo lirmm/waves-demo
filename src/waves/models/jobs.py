@@ -246,6 +246,10 @@ class JobInput(OrderAble, SlugAble):
         # By default it's OPT_TYPE_SIMPLE way
         return '-%s %s' % (self.name, self.value)
 
+    @property
+    def get_label_for_choice(self):
+        return self.related_service_input.get_value_for_choice(self.value)
+
 
 def file_path(instance, filename):
     return instance.file_path
