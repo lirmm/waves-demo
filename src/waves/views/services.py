@@ -110,7 +110,6 @@ class JobSubmissionView(ServiceDetailView, generic.FormView):
     def form_valid(self, form):
         # create job in database
         ass_email = form.cleaned_data.pop('email')
-        job_title = form.cleaned_data.pop('title')
         if not ass_email and self.request.user.is_authenticated():
             ass_email = self.request.user.email
         user = self.request.user if self.request.user.is_authenticated() else None
@@ -118,8 +117,7 @@ class JobSubmissionView(ServiceDetailView, generic.FormView):
             self.job = Service.objects.create_new_job(service=self.object,
                                                       email_to=ass_email,
                                                       submitted_inputs=form.cleaned_data,
-                                                      user=user,
-                                                      title=job_title)
+                                                      user=user)
             messages.success(
                 self.request,
                 "Job successfully submitted"

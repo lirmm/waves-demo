@@ -4,7 +4,7 @@
  */
 
 $(document).ready(function () {
-    $("input.has_dependent").change(function(elem){
+    $(".has_dependent").change(function(elem){
         /*
           * for each inputs with related_inputs, hide all except the one corresponding
           * to input value

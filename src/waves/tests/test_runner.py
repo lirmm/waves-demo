@@ -1,4 +1,3 @@
-
 from __future__ import unicode_literals
 
 import logging
@@ -11,10 +10,12 @@ from django.test import override_settings
 from django.conf import settings
 
 import waves.const
+import waves.tests.utils.cluster_util as test_util
+
 from waves.exceptions import *
 from waves.tests import WavesBaseTestCase
 from waves.runners import JobRunner
-from waves.models import Service, Runner, Job, RunnerParam
+from waves.models import Service, Runner, Job, RunnerParam, JobInput, JobOutput
 
 
 logger = logging.getLogger(__name__)
@@ -76,7 +77,9 @@ class TestBaseJobRunner(WavesBaseTestCase):
     def tearDown(self):
         super(TestBaseJobRunner, self).tearDown()
         if self.current_result.wasSuccessful():
-            self.job.delete_job_dirs()
+            if getattr(settings, 'TESTING_MODE', 'prod') != 'dev':
+                self.job.delete_job_dirs()
+                pass
             pass
 
     def testConnect(self):
@@ -136,24 +139,30 @@ class TestBaseJobRunner(WavesBaseTestCase):
                 logger.info('Job state ended to %s ', self.job.get_status_display())
                 break
             else:
-                time.sleep(3)
+                time.sleep(1)
         self.assertGreaterEqual(self.job.status, waves.const.JOB_COMPLETED)
         self.runner.job_results(self.job)
         self.runner.job_run_details(self.job)
         history = self.job.job_history.first()
         logger.debug("History timestamp %s", localtime(history.timestamp))
         logger.debug("Job status timestamp %s", self.job.status_time)
-        # TODO reactivate this assertion times should be equals
-        # self.assertEqual(history.timestamp, self.job.status_time)
-        if self.job.results_available:
+        with self.assertTrue(self.job.results_available):
             for output_job in self.job.job_outputs.all():
                 logger.info("Testing file %s ", output_job.file_path)
                 self.assertTrue(os.path.isfile(output_job.file_path))
-        else:
-            logger.warn("Job state is %s and results available %s", self.job.get_status_display(),
-                        self.job.results_available )
         # last history
 
     def testExtraUnexpectedParameter(self):
         with self.assertRaises(RunnerUnexpectedInitParam):
             self.runner = JobRunner(init_params=dict(unexpected_param='unexpected value'))
+
+    def _prepare_hello_world(self):
+        self.runner.command = os.path.join(test_util.get_sample_dir(), 'services/hello_world.sh')
+        JobInput.objects.create(job=self.job, name="TestInput1", value='Test Input 1',
+                                param_type=waves.const.OPT_TYPE_POSIX, type=waves.const.TYPE_TEXT)
+        JobInput.objects.create(job=self.job, name="TestInput2", value='Test Input 2',
+                                param_type=waves.const.OPT_TYPE_POSIX, type=waves.const.TYPE_TEXT)
+
+        JobOutput.objects.create(job=self.job, value='hello_world_output.txt', name="Output file", type="txt")
+        JobOutput.objects.create(job=self.job, value='.err', name="Error (stderr)", type="")
+        JobOutput.objects.create(job=self.job, value='.out', name="Std output (stdout)", type="")

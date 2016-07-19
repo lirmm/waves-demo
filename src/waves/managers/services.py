@@ -71,7 +71,7 @@ class ServiceManager(models.Manager):
         job.job_inputs.add(JobInput.objects.create(**input_dict))
 
     @transaction.atomic
-    def create_new_job(self, service, email_to, submitted_inputs, user=None, title=None):
+    def create_new_job(self, service, email_to, submitted_inputs, user=None):
         """
         Create a new job from service data and submitted params values
         Args:
@@ -85,7 +85,11 @@ class ServiceManager(models.Manager):
             A newly created Job object
         """
         from waves.models import Job, JobInput, JobOutput
-        job = Job.objects.create(service=service, email_to=email_to, client=user, title=title)
+        try:
+            job_title = submitted_inputs.pop('title')
+        except KeyError:
+            job_title = ""
+        job = Job.objects.create(service=service, email_to=email_to, client=user, title=job_title)
         order_inputs = 0
         try:
             # Update submitted inputs with non editable ones with default value

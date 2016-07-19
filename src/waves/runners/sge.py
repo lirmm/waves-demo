@@ -3,7 +3,6 @@ from waves.runners.drmaa import DRMAAJobRunner
 import os
 import logging
 from django.conf import settings
-import waves.const
 
 logger = logging.getLogger(__name__)
 
