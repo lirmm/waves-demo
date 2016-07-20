@@ -20,7 +20,6 @@ class BaseHelper(object):
         if service_input.type == const.TYPE_FILE:
             # TODO manage multiple file input
             field_dict.update(dict(allow_empty_file=False, required=False))
-            # print 'field_dict', field_dict
             if service_input.multiple:
                 field_dict.update(dict(min_num=1, max_file_size=settings.WAVES_UPLOAD_MAX_SIZE))
                 form_field = MultiFileField(**field_dict)

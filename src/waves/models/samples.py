@@ -1,8 +1,7 @@
 from django.db import models
 
+from waves.utils import service_sample_directory
 
-def service_sample_directory(instance, filename):
-    return 'sample/{0}/{1}'.format(instance.service.api_name, filename)
 
 class ServiceInputSample(models.Model):
     class Meta:

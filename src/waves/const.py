@@ -37,7 +37,7 @@ JOB_CANCELLED = 7
 JOB_ERROR = 9
 
 STR_JOB_UNDEFINED = 'Unknown'
-STR_JOB_CREATED = 'Created'
+STR_JOB_CREATED = 'New'
 STR_JOB_PREPARED = 'Prepared for run'
 STR_JOB_QUEUED = 'Queued'
 STR_JOB_RUNNING = 'Running'

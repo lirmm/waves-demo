@@ -8,10 +8,13 @@ import time
 
 from django.conf import settings
 from django.utils import timezone, formats
+from django.core.exceptions import ObjectDoesNotExist
+
 import waves.const
 from waves.exceptions import RunnerNotInitialized
 from waves.runners.lib.lib_drmaa import DrmaaSessionFactory
 from waves.runners.runner import JobRunner
+from waves.models import ServiceExitCode
 
 logger = logging.getLogger(__name__)
 drmaa = None
@@ -76,7 +79,7 @@ class DRMAAJobRunner(JobRunner):
             jt = dict(
                 remoteCommand=self.command,
                 jobName=str(job.title),
-                workingDirectory=job.output_dir,
+                workingDirectory=job.working_dir,
                 outputPath=":%s.out" % job.output_dir,
                 errorPath=":%s.err" % job.output_dir,
                 args=job.command.get_command_line_element_list(job.job_inputs.all())
@@ -135,15 +138,11 @@ class DRMAAJobRunner(JobRunner):
             raise
 
     def _job_results(self, job):
-        if job.exit_code == 0:
-            job.results_available = True
-            job.save()
-        else:
-            # TODO manage exit code from SGE and add .err as job output
-            pass
+        # TODO get actual result code from DRMAA
+        job.exit_code = 0
+        return job.exit_code == 0
 
     def _job_run_details(self, job):
-        import drmaa.session
         # TODO setup storage for run details
         if os.path.isfile(os.path.join(job.working_dir, 'run_details.p')):
             try:
@@ -162,6 +161,11 @@ class DRMAAJobRunner(JobRunner):
             # TODO check if convention related ?
             if job.exit_code != 0:
                 job.status = waves.const.JOB_ERROR
+                try:
+                    exit_code = ServiceExitCode.objects.get(exit_code=job.exit_code)
+                    job.message = exit_code.message
+                except ObjectDoesNotExist:
+                    pass
             # from datetime import datetime
             from django.utils.timezone import datetime, get_current_timezone
             job.status_time = datetime.fromtimestamp(float(details.resourceUsage['end_time']),

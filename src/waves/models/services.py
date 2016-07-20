@@ -13,16 +13,9 @@ import waves.managers.services as managers
 from waves.models.base import TimeStampable, DescribeAble, OrderAble
 from waves.models.profiles import APIProfile
 from waves.models.runners import RunnerParam, Runner
-from waves.models.samples import service_sample_directory
+from waves.utils import service_sample_directory, set_api_name
 
 logger = logging.getLogger(__name__)
-
-
-def set_api_name(value):
-    import inflection
-    import re
-    temp_name = re.sub(r'\W+', '_', value)
-    return inflection.underscore(temp_name)
 
 
 class ServiceInputFormat(object):
@@ -382,6 +375,10 @@ class Service(TimeStampable, DescribeAble):
             srv_sample.save()
         return self
 
+    @property
+    def sample_dir(self):
+        return os.path.join(settings.WAVES_SAMPLE_DIR, self.api_name)
+
 
 class ServiceInput(DescribeAble, TimeStampable, OrderAble):
     class Meta:
@@ -489,6 +486,7 @@ class ServiceInput(DescribeAble, TimeStampable, OrderAble):
             return bool(eval(self.default)) if self.default else False
         return self.default
 
+    # TODO use validators already made (and better made)
     def clean(self):
         """
         Form validation in backoffice when creating service Input (check consistency for list / boolean values / integer
@@ -582,15 +580,24 @@ class ServiceOutput(TimeStampable, OrderAble, DescribeAble):
                                 related_name='service_outputs',
                                 on_delete=models.CASCADE,
                                 help_text='Output associated service')
-    from_input = models.ForeignKey(ServiceInput,
-                                   null=True,
-                                   blank=True,
-                                   help_text='Output is valued from an input')
+    from_input = models.OneToOneField(ServiceInput,
+                                      null=True,
+                                      blank=True,
+                                      related_name='to_output',
+                                      help_text='Output is valued from an input',
+                                      primary_key=False)
+    ext = models.CharField('File extension', max_length=5, null=False, default=".txt")
+    may_be_empty = models.BooleanField('May be empty', default=True)
 
     def __str__(self):
         if self.from_input:
             return 'from input "%s"' % self.from_input.label
         return '%s (%s)' % (self.name, self.description)
+
+    def save(self, *args, **kwargs):
+        if not self.from_input:
+            self.may_be_empty = False
+        super(ServiceOutput, self).save(*args, **kwargs)
 
 
 class ServiceMeta(OrderAble, DescribeAble):

@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.forms import ModelForm, Textarea
 from django.core import validators
@@ -164,7 +165,7 @@ class ServiceForm(forms.ModelForm):
 
     class Meta:
         model = Service
-        fields = ('name', 'api_name', 'version', 'run_on', 'runner_params', 'status', 'description')
+        fields = ('__all__')
         widgets = {
             # 'description': RedactorWidget(editor_options={'lang': 'en', 'maxWidth': '500', 'minHeight': '100'}),
             'clazz': forms.Select(choices=get_commands_impl_list()),
@@ -173,7 +174,17 @@ class ServiceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ServiceForm, self).__init__(*args, **kwargs)
         self.fields['restricted_client'].label = "Restrict access to specified user"
+        if not settings.WAVES_NOTIFY_RESULTS:
+            self.fields['email_on'].widget.attrs['readonly'] = True
+            self.fields['email_on'].help_text = '<span class="warning">Disabled by main configuration</span><br/>' \
+                                                + self.fields['email_on'].help_text
+            pass
 
+    def clean_email_on(self):
+        if not settings.WAVES_NOTIFY_RESULTS:
+            return self.instance.email_on
+        else:
+            return self.cleaned_data.get('email_on')
 
     def clean(self):
         # TODO add check if running jobs are currently running, to disable any modification of runner / inputs / outputs

@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from django.conf import settings
 from waves.models import Job, JobHistory, Service
-from waves.models.samples import service_sample_directory
+from waves.utils import service_sample_directory
 
 logger = logging.getLogger(__name__)
 

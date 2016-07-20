@@ -31,6 +31,8 @@ $(document).ready(function () {
             }
         });
     });
+
+    // TODO add function to disable/enable associated file fields when selecting a sample
 });
 
 

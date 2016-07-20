@@ -18,3 +18,18 @@ def log_func_details(func):
         logger.info('//-- end %s', '.'.join([func.__module__, func.__name__]))
         return returned
     return decorate
+
+
+def service_sample_directory(instance, filename):
+    return 'sample/{0}/{1}'.format(instance.service.api_name, filename)
+
+
+def normalize(value):
+    import inflection
+    import re
+    temp_name = re.sub(r'\W+', '_', value)
+    return inflection.underscore(temp_name)
+
+
+def set_api_name(value):
+    return normalize(value)

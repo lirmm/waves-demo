@@ -36,13 +36,35 @@ class ShellJobRunner(JobRunner):
             saga.job.RUNNING: waves.const.JOB_RUNNING,
             saga.job.SUSPENDED: waves.const.JOB_SUSPENDED,
             saga.job.CANCELED: waves.const.JOB_CANCELLED,
-            saga.job.DONE: waves.const.JOB_TERMINATED,
+            saga.job.DONE: waves.const.JOB_COMPLETED,
             saga.job.FAILED: waves.const.JOB_ERROR,
         }
+        # current job Description
+        self._jd = None
+        # current job service
+        self._js = saga.job.Service(self._saga_host)
 
     @property
     def connected(self):
         return True
+
+    def __load_job_description(self, job):
+        with open(os.path.join(job.working_dir, 'job_description.p'), 'r') as fp:
+            jd_dict = pickle.load(fp)
+        self._jd = saga.job.Description()
+        for key in jd_dict.keys():
+            setattr(self._jd, key, jd_dict[key])
+        return self._jd
+
+    def __dump_job_description(self, job):
+        jd_dict = dict(working_directory=job.working_dir,
+                       executable=self.command,
+                       arguments=job.command.get_command_line_element_list(job.job_inputs.all()),
+                       output=os.path.join(job.output_dir, '.stdout'),
+                       error=os.path.join(job.output_dir, '.sterr')
+                       )
+        with open(os.path.join(job.working_dir, 'job_description.p'), 'w+') as fp:
+            pickle.dump(jd_dict, fp)
 
     @property
     def init_params(self):
@@ -57,14 +79,10 @@ class ShellJobRunner(JobRunner):
 
     def _prepare_job(self, job):
         try:
-            _jd = dict(working_directory=job.working_dir,
-                       executable=self.command,
-                       arguments=job.command.get_command_line_element_list(job.job_inputs.all()),
-                       output=os.path.join(job.output_dir, '.stdout'),
-                       error=os.path.join(job.output_dir, '.sterr')
-                       )
-            with open(os.path.join(job.working_dir, 'job_description.p'), 'w+') as fp:
-                pickle.dump(_jd, fp)
+            self.__dump_job_description(job)
+        except pickle.PickleError as e:
+            job.message = e.message
+            raise e
         except IOError as e:
             job.message = e.message
             raise e
@@ -80,14 +98,9 @@ class ShellJobRunner(JobRunner):
         """
         if os.path.isfile(os.path.join(job.working_dir, 'job_description.p')):
             try:
-                with open(os.path.join(job.working_dir, 'job_description.p'), 'r') as fp:
-                    jd_dict = pickle.load(fp)
-                jd = saga.job.Description()
-                for key in jd_dict.keys():
-                    setattr(jd, key, jd_dict[key])
+                jd = self.__load_job_description(job)
                 logger.debug('JobInfo %s %s', jd, jd.__class__.__name__)
-                js = saga.job.Service(self._saga_host)
-                new_job = js.create_job(jd)
+                new_job = self._js.create_job(jd)
                 new_job.run()
                 job.remote_job_id = new_job.id
             except pickle.UnpicklingError as e:
@@ -104,15 +117,22 @@ class ShellJobRunner(JobRunner):
     def _cancel_job(self, job):
         """Jobs cannot be cancelled for Galaxy runners
         """
-        pass
+        the_job = self._js.get_job(job.remote_job_id)
+        try:
+            the_job.cancel()
+        except saga.exceptions.DoesNotExist:
+            raise JobRunException('Unable to retrieve job ', job)
 
     def _job_status(self, job):
-        _js = saga.job.Service(self._saga_host)
-        the_job = _js.get_job(job.remote_job_id)
-        return the_job.state
+        try:
+            the_job = self._js.get_job(job.remote_job_id)
+            return the_job.state
+        except saga.exceptions.SagaException as e:
+            raise JobRunException(e.message, job)
 
     def _job_results(self, job):
-
+        # TODO check exit code from saga
+        return True
         pass
 
     def _job_run_details(self, job):

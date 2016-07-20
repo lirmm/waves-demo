@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 class WavesBaseTestCase(TestCase):
 
     current_result = None
+    fixtures = ['test_init.json']
 
     @classmethod
     def setUpClass(cls):
@@ -39,4 +40,3 @@ class WavesBaseTestCase(TestCase):
 
     def tearDown(self):
         super(WavesBaseTestCase, self).tearDown()
-

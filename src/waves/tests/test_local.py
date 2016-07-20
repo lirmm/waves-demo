@@ -4,10 +4,9 @@ import logging
 import saga
 
 import waves.const
-
+import waves.tests.utils.shell_util as test_util
 from waves.tests.test_runner import *
 from waves.runners import ShellJobRunner
-from waves.models import JobOutput, JobInput, RunnerParam
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +16,11 @@ class LocalSagaAdapterTestCase(TestBaseJobRunner):
     def setUp(self):
         self.runner = ShellJobRunner()
         super(LocalSagaAdapterTestCase, self).setUp()
+
+    @classmethod
+    def setUpClass(cls):
+        super(LocalSagaAdapterTestCase, cls).setUpClass()
+        # class level sample data
 
     def testBasicSagaLocalJob(self):
         try:
@@ -67,3 +71,12 @@ class LocalSagaAdapterTestCase(TestBaseJobRunner):
         self._prepare_hello_world()
         self.runJobWorkflow()
         self.assertEqual(self.job.status, waves.const.JOB_TERMINATED)
+
+    @test_util.skip_unless_tool('physic_ist')
+    def testPhysicIST(self):
+        jobs = self._preparePhysicISTJobs()
+        self.runner.command = 'physic_ist'
+        for job in jobs:
+            logger.debug('Job command line %s', job.command_line)
+            self.runJobWorkflow(job)
+            self.assertGreaterEqual(job.status, waves.const.JOB_COMPLETED)

@@ -1,10 +1,12 @@
 from __future__ import unicode_literals
 import os
 import logging
+from collections import namedtuple
 
 import eav
 from django.conf import settings
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
 from django.utils.html import format_html
@@ -16,6 +18,10 @@ from waves.models.base import TimeStampable, SlugAble, OrderAble
 from waves.models.services import Service, ServiceInput
 
 logger = logging.getLogger(__name__)
+
+RunJobInfo = namedtuple("RunJobInfo",
+                        """jobId hasExited hasSignal terminatedSignal hasCoreDump
+                           wasAborted exitStatus resourceUsage""")
 
 
 class Job(TimeStampable, SlugAble):
@@ -154,15 +160,31 @@ class Job(TimeStampable, SlugAble):
     def link(self):
         return 'http://%s%s' % (Site.objects.get_current().domain, self.get_absolute_url())
 
+    @property
+    def details_available(self):
+        return os.path.isfile(os.path.join(self.working_dir, 'run_details.p'))
+
+    def load_run_details(self):
+        job_info = RunJobInfo()
+        if self.details_available:
+            import pickle
+            try:
+                with open(os.path.join(self.working_dir, 'run_details.p')) as fp:
+                    job_info = pickle.load(fp)
+            except pickle.PickleError as e:
+                logger.warn('Unable to load JobRunInfo [job:%s]', self.slug)
+        return job_info
+
 
 class JobInput(OrderAble, SlugAble):
+    # TODO inherit from ServiceInput !!!
     class Meta:
         db_table = 'waves_job_input'
 
     job = models.ForeignKey(Job,
                             related_name='job_inputs',
                             on_delete=models.CASCADE)
-    related_service_input = models.ForeignKey(ServiceInput, null=True, on_delete=models.SET_NULL)
+    related_service_input = models.ForeignKey(ServiceInput, null=True, on_delete=models.CASCADE)
     param_type = models.IntegerField('Parameter Type',
                                      choices=const.OPT_TYPE,
                                      null=False,
@@ -217,6 +239,12 @@ class JobInput(OrderAble, SlugAble):
     @property
     def command_line_element(self):
         value = self.validated_value
+        try:
+            if self.related_service_input.to_output:
+                # related service input is a output 'name' parameter
+                value = os.path.join('outputs', value)
+        except ObjectDoesNotExist:
+            pass
         if self.param_type == const.OPT_TYPE_VALUATED:
             return '--%s=%s' % (self.name, value)
         elif self.param_type == const.OPT_TYPE_SIMPLE:
@@ -256,6 +284,7 @@ def file_path(instance, filename):
 
 
 class JobOutput(OrderAble, SlugAble):
+    # TODO inherit from service Output !!!
     class Meta:
         db_table = 'waves_job_output'
 
@@ -272,15 +301,17 @@ class JobOutput(OrderAble, SlugAble):
                              null=True,
                              blank=True,
                              help_text='This is the displayed name for output (default is name)')
-    value = models.TextField('Output value',
+    value = models.CharField('Output value',
+                             max_length=200,
                              null=True,
                              blank=True,
                              default="")
     type = models.CharField('Output file ext',
-                            max_length=255,
+                            max_length=5,
                             null=True,
-                            default=".txt",
+                            default="txt",
                             blank=True)
+    may_be_empty = models.BooleanField('MayBe empty', default=True)
     # TODO add a field to specify if output is available for client
 
     def __str__(self):
@@ -288,7 +319,7 @@ class JobOutput(OrderAble, SlugAble):
 
     @property
     def file_path(self):
-        return os.path.join(self.job.output_dir, str(self.value))
+        return os.path.join(self.job.output_dir, self.value)
 
 
 class JobHistory(models.Model):

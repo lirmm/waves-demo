@@ -1,0 +1,27 @@
+{
+  "physic_ist_run": [
+    {
+      "title": "Physic IST Basic test",
+      "inputs": {
+        "s": "physic_ist_ex.txt"
+      },
+      "params": {
+        "o": "Basic out tree"
+      }
+    },
+    {
+      "title": "Physic IST full test",
+      "inputs": {
+        "s": "physic_ist_ex.txt",
+        "t": "physic_ist_ex.txt",
+        "r": "outgroup_ex.txt"
+      },
+      "params": {
+        "o": "Full out Tree",
+        "b": 50,
+        "f": "new Forest File",
+        "c": 0.2
+      }
+    }
+  ]
+}

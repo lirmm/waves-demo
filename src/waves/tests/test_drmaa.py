@@ -7,7 +7,7 @@ import time
 from django.conf import settings
 
 import waves.const
-import waves.tests.utils.cluster_util as test_util
+import waves.tests.utils.shell_util as test_util
 from waves.tests.test_runner import *
 from waves.runners import SGEJobRunner
 from waves.models import JobOutput, JobInput, RunnerParam
@@ -44,8 +44,6 @@ class SGEAdapterTestCase(TestBaseJobRunner):
                                 param_type=waves.const.OPT_TYPE_POSIX, type=waves.const.TYPE_TEXT)
 
         JobOutput.objects.create(job=self.job, value='hello_world_output.txt', name="Output file", type="txt")
-        JobOutput.objects.create(job=self.job, value='.err', name="Error (stderr)", type="")
-        JobOutput.objects.create(job=self.job, value='.out', name="Std output (stdout)", type="")
 
     @test_util.skip_unless_tool('cp')
     def testSimpleCP(self):
@@ -109,3 +107,12 @@ class SGEAdapterTestCase(TestBaseJobRunner):
         # Test retrieve job_run details twice
         job_details = self.runner.job_run_details(self.job)
         self.assertIsInstance(job_details, drmaa.session.JobInfo)
+
+    @test_util.skip_unless_tool('physic_ist')
+    def testPhysicIST(self):
+        jobs = self._preparePhysicISTJobs()
+        self.runner.command = 'physic_ist'
+        for job in jobs:
+            logger.debug('Job command line %s', job.command_line)
+            self.runJobWorkflow(job)
+            self.assertGreaterEqual(job.status, waves.const.JOB_COMPLETED)

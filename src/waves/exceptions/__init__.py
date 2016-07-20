@@ -8,7 +8,7 @@ __all__ = ['RunnerException', 'RunnerNotInitialized', 'RunnerNotReady', 'RunnerC
 logger = logging.getLogger(__name__)
 
 
-class WavesException(Exception):
+class WavesException(BaseException):
     """Waves webapp base exception
 
     """

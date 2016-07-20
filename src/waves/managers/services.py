@@ -6,10 +6,10 @@ import os.path as path
 from django.core.files.uploadedfile import TemporaryUploadedFile
 from django.db import models, transaction
 from django.core.exceptions import ObjectDoesNotExist
-
 import waves.const
-from waves.models.samples import ServiceInputSample
 from waves.exceptions import *
+from waves.models.samples import ServiceInputSample
+from waves.utils import normalize
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +40,7 @@ class ServiceManager(models.Manager):
 
     def _create_job_input(self, job, service_input, order, submitted_input):
         from waves.models import JobInput
+
         input_dict = dict(job=job,
                           name=service_input.name,
                           order=order,
@@ -47,6 +48,11 @@ class ServiceManager(models.Manager):
                           param_type=service_input.param_type,
                           related_service_input=service_input,
                           value=str(submitted_input))
+        try:
+            if service_input.to_output:
+                input_dict['value'] = normalize(input_dict['value'])
+        except ObjectDoesNotExist:
+            pass
         if service_input.type == waves.const.TYPE_FILE:
             if isinstance(submitted_input, TemporaryUploadedFile):
                 # classic uploaded file
@@ -54,7 +60,7 @@ class ServiceManager(models.Manager):
                 with open(filename, 'wb+') as uploaded_file:
                     for chunk in submitted_input.chunks():
                         uploaded_file.write(chunk)
-            elif int(submitted_input):
+            elif type(submitted_input) is int:
                 # Manage sample data
                 input_sample = ServiceInputSample.objects.get(pk=submitted_input)
                 filename = job.input_dir + path.basename(input_sample.file.name)
@@ -62,7 +68,7 @@ class ServiceManager(models.Manager):
                 with open(filename, 'wb+') as uploaded_file:
                     for chunk in input_sample.file.chunks():
                         uploaded_file.write(chunk)
-            else:
+            elif isinstance(submitted_input, basestring):
                 # copy / paste content
                 filename = job.input_dir + service_input.name + '.txt'
                 input_dict.update(dict(value=service_input.name + '.txt'))
@@ -71,7 +77,7 @@ class ServiceManager(models.Manager):
         job.job_inputs.add(JobInput.objects.create(**input_dict))
 
     @transaction.atomic
-    def create_new_job(self, service, email_to, submitted_inputs, user=None):
+    def create_new_job(self, service, submitted_inputs, email_to=None, user=None):
         """
         Create a new job from service data and submitted params values
         Args:
@@ -122,7 +128,7 @@ class ServiceManager(models.Manager):
                                 for dep_input in income_input:
                                     order_inputs += 1
                                     self._create_job_input(job, related_input, order_inputs, dep_input)
-                # Manage 'non editable fields', add default values to inputs ?
+                                    # Manage 'non editable fields', add default values to inputs ?
 
         except KeyError:
             if service_input.mandatory and not service_input.default:
@@ -140,15 +146,19 @@ class ServiceManager(models.Manager):
                 # parameters has not been submitted, but no mandatory
                 pass
         except AssertionError as e:
-            raise JobSubmissionException('Unexpected error in job submission %s (%s)' % (service_input.get_type_display(), e), job=job)
+            raise JobSubmissionException(
+                'Unexpected error in job submission %s (%s)' % (service_input.get_type_display(), e), job=job)
         logger.debug('Job %s created with %i inputs', job.slug, job.job_inputs.count())
         for service_output in service.service_outputs.all():
-            output_dict = dict(job=job, name=service_output.name, label=service_output.name)
-            if service_output.from_input:
+            output_dict = dict(job=job, name=service_output.name, label=service_output.name, type=service_output.ext)
+            if not service_output.from_input:
+                JobOutput.objects.create(**output_dict)
+            if service_output.from_input and submitted_inputs.get(service_output.from_input.name, None):
                 # issued from a input value
-                output_dict.update(dict(value=submitted_inputs.get(service_output.from_input,
-                                                                   service_output.from_input.default)))
-            JobOutput.objects.create(**output_dict)
+                output_dict.update(dict(value=normalize(submitted_inputs.get(service_output.from_input.name,
+                                                                             service_output.from_input.default)),
+                                        may_be_empty=service_output.may_be_empty))
+                JobOutput.objects.create(**output_dict)
         return job
 
     def api_public(self):

@@ -12,6 +12,7 @@ import mptt.fields
 import uuid
 import waves.models.profiles
 import waves.models.samples
+import waves.utils
 
 
 class Migration(migrations.Migration):
@@ -233,7 +234,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=200, verbose_name=b'File name')),
-                ('file', models.FileField(blank=True, null=True, upload_to=waves.models.samples.service_sample_directory, verbose_name=b'File path')),
+                ('file', models.FileField(blank=True, null=True, upload_to=waves.utils.service_sample_directory, verbose_name=b'File path')),
                 ('when_value', models.CharField(blank=True, help_text=b'For dependency, related value', max_length=255, null=True, verbose_name=b'Depending on input value')),
             ],
             options={
