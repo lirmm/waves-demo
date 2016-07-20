@@ -557,7 +557,7 @@ class ServiceExitCode(models.Model):
         db_table = 'waves_service_exitcode'
         verbose_name = 'Service Exit Code'
 
-    exit_code = models.IntegerField('Exit code value')
+    exit_code = models.IntegerField('Exit code value', primary_key=True)
     message = models.CharField('Exit code message', max_length=255)
     service = models.ForeignKey(Service, related_name='service_exit_codes',
                                 on_delete=models.CASCADE)
@@ -604,7 +604,9 @@ class ServiceMeta(OrderAble, DescribeAble):
         verbose_name = 'Service Meta information'
 
     type = models.CharField('Meta type', max_length=100, choices=waves.const.SERVICE_META)
-    value = models.CharField('Meta value', max_length=500, blank=False, null=False)
+    title = models.CharField('Meta title', max_length=255, blank=True, null=True)
+    value = models.CharField('Meta value', max_length=500, blank=True, null=True)
+    is_url = models.BooleanField('Is a url', editable=False, default=False)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='metas')
 
 

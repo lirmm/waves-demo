@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
+
 from django import forms
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.forms import ModelForm, Textarea
-from django.core.exceptions import ValidationError
+from django.core import validators
 from crispy_forms.layout import Layout, Div, Field, Button
 from crispy_forms.helper import FormHelper
 
@@ -59,7 +60,6 @@ class ServiceMetaForm(forms.ModelForm):
     """
     A ServiceMeta form part for inline insertion
     """
-
     class Meta:
         exclude = ['id']
         model = ServiceMeta
@@ -67,6 +67,16 @@ class ServiceMetaForm(forms.ModelForm):
         widgets = {
             'description': Textarea(attrs={'rows': 3, 'class': 'input-xlarge'}),
         }
+
+    def clean(self):
+        try:
+            validator = validators.URLValidator()
+            validator(self.cleaned_data['value'])
+            self.instance.is_url = True
+        except ValidationError as e:
+            if self.instance.type in (const.META_WEBSITE, const.META_DOC, const.META_DOWNLOAD):
+                raise e
+        return super(ServiceMetaForm, self).clean()
 
 
 class ServiceInputBaseForm(forms.ModelForm):

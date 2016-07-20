@@ -14,12 +14,12 @@ META_USER_GUIDE = 'rtfm'
 META_FEATURES = 'feat'
 
 SERVICE_META = (
-    (META_WEBSITE, 'Dedicated website link'),
-    (META_DOC, 'Documentation link'),
-    (META_DOWNLOAD, 'Download link'),
-    (META_FEATURES, 'Tool features'),
+    (META_WEBSITE, 'Online resources'),
+    (META_DOC, 'Documentation'),
+    (META_DOWNLOAD, 'Downloads'),
+    (META_FEATURES, 'Features'),
     (META_MISC, 'Miscellaneous'),
-    (META_PAPER, 'Related Paper link'),
+    (META_PAPER, 'Related Paper'),
     (META_CITE, 'Citation'),
     (META_USER_GUIDE, 'User Guide'),
     (META_CMD_LINE, 'Command line')

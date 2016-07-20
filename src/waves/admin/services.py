@@ -23,7 +23,7 @@ class ServiceMetaInline(GrappelliSortableHiddenMixin, admin.TabularInline):
     extra = 1
     suit_classes = 'suit-tab suit-tab-metas'
     classes = ('grp-collapse grp-open',)
-    fields = ['type', 'value', 'description', 'order']
+    fields = ['type', 'title', 'value', 'description', 'order']
     sortable_field_name = "order"
 
 
