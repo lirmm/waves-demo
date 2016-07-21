@@ -19,9 +19,9 @@ AuthModel = get_user_model()
 
 def _create_test_file(path, index):
     import os
-    full_path = os.path.join(settings.WAVES_DATA_ROOT, '_'+str(index)+'_'+path)
+    full_path = os.path.join(settings.WAVES_DATA_ROOT, '_' + str(index) + '_' + path)
     f = open(full_path, 'w')
-    f.write('sample content for input file %s' % ('_'+str(index)+'_' + path))
+    f.write('sample content for input file %s' % ('_' + str(index) + '_' + path))
     f.close()
     f = open(full_path, 'rb')
     return f
@@ -157,3 +157,20 @@ class JobTests(WavesAPITestCase):
 
     def test_get_status(self):
         pass
+
+    def testPhysicIST(self):
+        detail = self.client.get(reverse('servicetool-detail',
+                                         kwargs={'api_name': 'physic_ist'}),
+                                 data=self._dataUser(initial={'api_name': 'physic_ist'}))
+        jobs_params = self._loadServiceJobsParams(api_name='physic_ist')
+        input_service = {
+            'service': self.service.pk,
+        }
+        for submitted_input in jobs_params:
+            logger.debug('Data posted %s', submitted_input)
+            submitted_input.update(input_service)
+            response = self.client.post('/api/jobs/',
+                                        data=self._dataUser(initial=submitted_input),
+                                        format='multipart')
+            logger.debug(response)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)

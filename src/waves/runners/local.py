@@ -8,7 +8,7 @@ import logging
 
 from django.conf import settings
 
-from waves.exceptions import JobRunException
+from waves.exceptions import JobRunException, RunnerConnectionError
 from waves.runners.runner import JobRunner
 import waves.const
 
@@ -23,8 +23,10 @@ class ShellJobRunner(JobRunner):
 
     """
     command = None
+    host = 'localhost'
     _environ = None
-    _saga_host = 'fork://localhost'
+    _saga_protocol = 'fork'
+    _connector = None
 
     def __init__(self, **kwargs):
         super(ShellJobRunner, self).__init__(**kwargs)
@@ -42,11 +44,26 @@ class ShellJobRunner(JobRunner):
         # current job Description
         self._jd = None
         # current job service
-        self._js = saga.job.Service(self._saga_host)
+        # self._connector = saga.job.Service(self.saga_host)
 
     @property
-    def connected(self):
-        return True
+    def saga_host(self):
+        return '%s://%s' % (self._saga_protocol, self.host)
+
+    @property
+    def session(self):
+        session = saga.Session()
+        if self.context:
+            session.add_context(self.context)
+        return session
+
+    @property
+    def context(self):
+        return None
+
+    def _connect(self):
+        self._connector = saga.job.Service(self.saga_host, session=self.session)
+        self._connected = self._connector is not None
 
     def __load_job_description(self, job):
         with open(os.path.join(job.working_dir, 'job_description.p'), 'r') as fp:
@@ -56,22 +73,21 @@ class ShellJobRunner(JobRunner):
             setattr(self._jd, key, jd_dict[key])
         return self._jd
 
-    def __dump_job_description(self, job):
-        jd_dict = dict(working_directory=job.working_dir,
-                       executable=self.command,
-                       arguments=job.command.get_command_line_element_list(job.job_inputs.all()),
-                       output=os.path.join(job.output_dir, '.stdout'),
-                       error=os.path.join(job.output_dir, '.sterr')
-                       )
+    def __dump_job_description(self, job, job_description):
         with open(os.path.join(job.working_dir, 'job_description.p'), 'w+') as fp:
-            pickle.dump(jd_dict, fp)
+            pickle.dump(job_description, fp)
+
+    def _job_description(self, job):
+        return dict(working_directory=job.working_dir,
+                    executable=self.command,
+                    arguments=job.command.get_command_line_element_list(job.job_inputs.all()),
+                    output=os.path.join(job.output_dir, '.stdout'),
+                    error=os.path.join(job.output_dir, '.sterr')
+                    )
 
     @property
     def init_params(self):
         return dict(command=self.command)
-
-    def _connect(self):
-        self._connected = True
 
     def _disconnect(self):
         self._connector = None
@@ -79,7 +95,7 @@ class ShellJobRunner(JobRunner):
 
     def _prepare_job(self, job):
         try:
-            self.__dump_job_description(job)
+            self.__dump_job_description(job, self._job_description(job))
         except pickle.PickleError as e:
             job.message = e.message
             raise e
@@ -100,7 +116,7 @@ class ShellJobRunner(JobRunner):
             try:
                 jd = self.__load_job_description(job)
                 logger.debug('JobInfo %s %s', jd, jd.__class__.__name__)
-                new_job = self._js.create_job(jd)
+                new_job = self._connector.create_job(jd)
                 new_job.run()
                 job.remote_job_id = new_job.id
             except pickle.UnpicklingError as e:
@@ -117,7 +133,7 @@ class ShellJobRunner(JobRunner):
     def _cancel_job(self, job):
         """Jobs cannot be cancelled for Galaxy runners
         """
-        the_job = self._js.get_job(job.remote_job_id)
+        the_job = self._connector.get_job(job.remote_job_id)
         try:
             the_job.cancel()
         except saga.exceptions.DoesNotExist:
@@ -125,7 +141,7 @@ class ShellJobRunner(JobRunner):
 
     def _job_status(self, job):
         try:
-            the_job = self._js.get_job(job.remote_job_id)
+            the_job = self._connector.get_job(job.remote_job_id)
             return the_job.state
         except saga.exceptions.SagaException as e:
             raise JobRunException(e.message, job)

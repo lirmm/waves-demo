@@ -1,5 +1,5 @@
 {
-  "physic_ist_run": [
+  "runs": [
     {
       "title": "Physic IST Basic test",
       "inputs": {

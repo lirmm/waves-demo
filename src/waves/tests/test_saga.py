@@ -5,30 +5,38 @@ import saga
 
 import waves.const
 import waves.tests.utils.shell_util as test_util
-from waves.tests.test_runner import *
-from waves.runners import ShellJobRunner
+from waves.tests.test_runner import TestBaseJobRunner, Service
+from waves.runners import ShellJobRunner, SshUserPassJobRunner, SGEOverSSHRunner, SGEJobRunner
+
 
 logger = logging.getLogger(__name__)
 
 
-class LocalSagaAdapterTestCase(TestBaseJobRunner):
+class LocalRunnerTestCase(TestBaseJobRunner):
 
     def setUp(self):
         self.runner = ShellJobRunner()
-        super(LocalSagaAdapterTestCase, self).setUp()
+        super(LocalRunnerTestCase, self).setUp()
 
     @classmethod
     def setUpClass(cls):
-        super(LocalSagaAdapterTestCase, cls).setUpClass()
+        super(LocalRunnerTestCase, cls).setUpClass()
         # class level sample data
 
-    def testBasicSagaLocalJob(self):
+    def _testBasicSagaLocalJob(self):
         try:
             # Create a job service object that represent the local machine.
             # The keyword 'fork://' in the url scheme triggers the 'shell' adaptor
             # which can execute jobs on the local machine as well as on a remote
             # machine via "ssh://hostname".
-            js = saga.job.Service("fork://localhost")
+            ctx = saga.Context('UserPass')
+            ctx.user_id = "lefort"
+            ctx.user_pass = 'lrdj_@81'
+            # ctx.user_cert = '$HOME/.ssh/id_rsa'
+            # ctx.user_key = '$HOME/.ssh/id_rsa.pub'
+            ses = saga.Session()
+            ses.add_context(ctx)
+            js = saga.job.Service("sge+ssh://wilkins")
 
             # describe our job
             jd = saga.job.Description()
@@ -40,6 +48,8 @@ class LocalSagaAdapterTestCase(TestBaseJobRunner):
             jd.arguments = ['$MYOUTPUT']
             jd.output = "mysagajob.stdout"
             jd.error = "mysagajob.stderr"
+            jd.working_directory = '/tmp/'
+            jd.queue = 'all.q'
 
             # Create a new job from the job description. The initial state of
             # the job is 'New'.
@@ -59,8 +69,8 @@ class LocalSagaAdapterTestCase(TestBaseJobRunner):
             # wait for the job to either finish or fail
             myjob.wait()
 
-            logger.degug("Job State : %s" % (myjob.state))
-            logger.degug("Exitcode  : %s" % (myjob.exit_code))
+            logger.debug("Job State : %s" % (myjob.state))
+            logger.debug("Exitcode  : %s" % (myjob.exit_code))
             self.assertTrue(True)
         except saga.SagaException as ex:
             # Catch all saga exceptions
@@ -74,9 +84,31 @@ class LocalSagaAdapterTestCase(TestBaseJobRunner):
 
     @test_util.skip_unless_tool('physic_ist')
     def testPhysicIST(self):
-        jobs = self._preparePhysicISTJobs()
+        jobs_params = self._loadServiceJobsParams(api_name='physic_ist')
         self.runner.command = 'physic_ist'
-        for job in jobs:
+        for submitted_input in jobs_params:
+            job = Service.objects.create_new_job(service=self.service, submitted_inputs=submitted_input)
             logger.debug('Job command line %s', job.command_line)
             self.runJobWorkflow(job)
-            self.assertGreaterEqual(job.status, waves.const.JOB_COMPLETED)
+
+
+class SshRunnerTestCase(LocalRunnerTestCase):
+    def setUp(self):
+        self.runner = SshUserPassJobRunner(init_params=dict(user_id='marc',
+                                                            user_pass='Projet2501LIRMM:-)'))
+        super(LocalRunnerTestCase, self).setUp()
+
+
+class SgeRunnerTestCase(LocalRunnerTestCase):
+    def setUp(self):
+        self.runner = SGEJobRunner(init_params=dict(queue='mainqueue'))
+        super(SgeRunnerTestCase, self).setUp()
+
+
+class SgeSshRunnerTestCase(LocalRunnerTestCase):
+    def setUp(self):
+        self.runner = SGEOverSSHRunner(init_params=dict(host='lamarck',
+                                                        user_id='lefort',
+                                                        user_pass='lrdj_@81'))
+        super(LocalRunnerTestCase, self).setUp()
+

@@ -79,11 +79,13 @@ class DRMAAJobRunner(JobRunner):
             jt = dict(
                 remoteCommand=self.command,
                 jobName=str(job.title),
-                workingDirectory=job.working_dir,
+                workingDirectory="%s" % job.working_dir,
                 outputPath=":%s.out" % job.output_dir,
                 errorPath=":%s.err" % job.output_dir,
                 args=job.command.get_command_line_element_list(job.job_inputs.all())
+                # args=self.__get_command_line(job)
             )
+            self.__get_command_line(job)
             filename = "%s/job_template.json" % job.working_dir
             with open(filename, 'w+') as fp:
                 json.dump(jt, fp)

@@ -218,7 +218,9 @@ class JobInput(OrderAble, SlugAble):
     @property
     def validated_value(self):
         if self.type == const.TYPE_FILE:
-            return self.file_path
+            # return self.file_path
+            # TODO WARNING !!!
+            return 'inputs/' + self.value
         elif self.type == const.TYPE_BOOLEAN:
             return bool(self.value)
         elif self.type == const.TYPE_TEXT:
@@ -237,10 +239,10 @@ class JobInput(OrderAble, SlugAble):
             raise ValueError("No type specified for input")
 
     @property
-    def command_line_element(self):
-        value = self.validated_value
+    def command_line_element(self, forced_value=None):
+        value = self.validated_value if forced_value is None else forced_value
         try:
-            if self.related_service_input.to_output:
+            if self.related_service_input and self.related_service_input.to_output:
                 # related service input is a output 'name' parameter
                 value = os.path.join('outputs', value)
         except ObjectDoesNotExist:

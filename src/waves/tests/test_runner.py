@@ -126,10 +126,12 @@ class TestBaseJobRunner(WavesBaseTestCase):
     def runJobWorkflow(self, job=None):
         if job is not None:
             self.job = job
+        logger.info('Starting workflow process for job %s', self.job.title)
         self.assertEqual(1, self.job.job_history.count())
         self.runner.prepare_job(self.job)
         self.assertEqual(self.job.status, waves.const.JOB_PREPARED)
-        self.runner.run_job(self.job)
+        remote_job_id = self.runner.run_job(self.job)
+        logger.debug('Remote Job ID %s', remote_job_id)
         self.assertEqual(self.job.status, waves.const.JOB_QUEUED)
         for ix in range(30):
             job_state = self.runner.job_status(self.job)
@@ -150,6 +152,7 @@ class TestBaseJobRunner(WavesBaseTestCase):
             logger.info("Testing file %s ", output_job.file_path)
             self.assertTrue(os.path.isfile(output_job.file_path))
             # last history
+        self.assertGreaterEqual(job.status, waves.const.JOB_COMPLETED)
 
     def testExtraUnexpectedParameter(self):
         with self.assertRaises(RunnerUnexpectedInitParam):
@@ -163,33 +166,3 @@ class TestBaseJobRunner(WavesBaseTestCase):
                                 param_type=waves.const.OPT_TYPE_POSIX, type=waves.const.TYPE_TEXT)
 
         JobOutput.objects.create(job=self.job, value='hello_world_output.txt', name="Output file", type="txt")
-
-    def _preparePhysicISTJobs(self):
-        """
-        Test specific phyisic_ist job submission
-        Returns:
-
-        """
-        jobs = []
-        try:
-            physic_ist_srv = Service.objects.get(api_name='physic_ist')
-            logger.debug('Physic_IST service %s %s ', physic_ist_srv.name, physic_ist_srv.version)
-            logger.debug('Sample dir %s ', physic_ist_srv.sample_dir)
-            with open(os.path.join(physic_ist_srv.sample_dir, 'physic_ist_run.json'), 'r') as run_params:
-                job_parameters = json.load(run_params)
-            self.assertIsInstance(job_parameters, object)
-            submitted_input = {}
-            for job_params in job_parameters['physic_ist_run']:
-                logger.debug('job_params: %s %s ', job_params.__class__, job_params)
-                submitted_input['title'] = job_params['title']
-                # All files inputs
-                for key in job_params['inputs']:
-                    with open(os.path.join(physic_ist_srv.sample_dir, job_params['inputs'][key])) as f:
-                        submitted_input.update({key: f.read()})
-                for key in job_params['params']:
-                    submitted_input.update({key: job_params['params'][key]})
-                jobs.append(Service.objects.create_new_job(service=physic_ist_srv, submitted_inputs=submitted_input))
-        except ObjectDoesNotExist as e :
-            print e.message
-            self.skipTest("No physic_ist service available")
-        return jobs

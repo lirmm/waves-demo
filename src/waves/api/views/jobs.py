@@ -6,9 +6,8 @@ from rest_framework import viewsets
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 
-from waves.models import Job, Service
+from waves.models import Job
 from waves.api.serializers import JobSerializer, ServiceJobSerializer
-from waves.utils import log_func_details
 from . import WavesBaseView
 
 logger = logging.getLogger(__name__)
@@ -26,7 +25,6 @@ class JobViewSet(viewsets.ModelViewSet, WavesBaseView):
     def get_queryset(self):
         return Job.objects.all()
 
-    @log_func_details
     def list(self, request, *args, **kwargs):
         queryset = Job.objects.get_user_job(user=request.user)
         serializer = JobSerializer(queryset,
@@ -35,7 +33,6 @@ class JobViewSet(viewsets.ModelViewSet, WavesBaseView):
                                    fields=('url', 'created', 'status', 'service'))
         return Response(serializer.data)
 
-    @log_func_details
     def retrieve(self, request, slug=None, *args, **kwargs):
         queryset = Job.objects.get_user_job(user=request.user)
         service_job = get_object_or_404(queryset,
@@ -49,11 +46,9 @@ class JobViewSet(viewsets.ModelViewSet, WavesBaseView):
             return ServiceJobSerializer
         return super(JobViewSet, self).get_serializer_class()
 
-    @log_func_details
     def get_serializer(self, *args, **kwargs):
         return super(JobViewSet, self).get_serializer(*args, **kwargs)
 
-    @log_func_details
     def create(self, request, *args, **kwargs):
         if logger.isEnabledFor(logging.DEBUG):
             for param in request.data:
@@ -63,7 +58,6 @@ class JobViewSet(viewsets.ModelViewSet, WavesBaseView):
         request.data['client'] = request.user.pk
         return super(JobViewSet, self).create(request, *args, **kwargs)
 
-    @log_func_details
     def perform_create(self, serializer):
         logger.debug('Request data %s', self.request.data)
         return super(JobViewSet, self).perform_create(serializer)

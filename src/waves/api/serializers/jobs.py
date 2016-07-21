@@ -3,11 +3,9 @@ import logging
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 from dynamic import DynamicFieldsModelSerializer
 
 from waves.models import Service, JobHistory, JobInput, Job
-from waves.utils import log_func_details
 from waves.api.serializers.services import ServiceSerializer
 
 logger = logging.getLogger(__name__)
@@ -60,18 +58,15 @@ class JobSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsModelSe
     def get_status(job):
         return job.get_status_display()
 
-    @log_func_details
     def save(self, **kwargs):
         return super(JobSerializer, self).save(**kwargs)
 
-    @log_func_details
     def is_valid(self, raise_exception=False):
         logger.debug('initial %s', self.initial_data['service'])
         # TODO add service input validation
         self.initial_data['service'] = ServiceSerializer(data={'service': self.initial_data['service']})
         return super(JobSerializer, self).is_valid(raise_exception)
 
-    @log_func_details
     def create(self, validated_data):
         logger.debug("Validated data %s", validated_data)
         logger.debug("Initial ? %s", self.initial_data)
@@ -99,35 +94,23 @@ class ServiceJobSerializer(serializers.ModelSerializer):
         model = Job
         fields = ('client', 'service')
 
-    @log_func_details
     def is_valid(self, raise_exception=False):
         logger.debug('ServiceJobSerializer initial %s', self.initial_data)
         return super(ServiceJobSerializer, self).is_valid(raise_exception)
 
-    @log_func_details
     def create(self, validated_data):
-
         client = validated_data.pop('client')
-        service = validated_data.pop('service')
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug("******************* serializer create ****************")
-            logger.debug("Validated data %s", validated_data)
-            logger.debug('Initial data %s', self.initial_data)
-            logger.debug('Submitted inputs %s', validated_data)
-            logger.debug('Service %s', service)
-            logger.debug('Client %s', client)
         try:
             ass_email = validated_data['email']
         except KeyError:
             ass_email = None
             pass
-        # service = Service.objects.get(pk=)
-        self.instance = Service.objects.create_new_job(service=service,
+        self.instance = Service.objects.create_new_job(service=validated_data['service'],
                                                        email_to=ass_email,
                                                        submitted_inputs=self.initial_data,
                                                        user=client)
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug('Current service job submission ' + self.instance.title)
+            # logger.debug('Current service job submission ' + self.instance.title)
             for job_input in self.instance.job_inputs.all():
                 logger.debug(job_input.name)
                 logger.debug(job_input.value)

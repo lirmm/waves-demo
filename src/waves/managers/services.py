@@ -60,6 +60,7 @@ class ServiceManager(models.Manager):
                 with open(filename, 'wb+') as uploaded_file:
                     for chunk in submitted_input.chunks():
                         uploaded_file.write(chunk)
+                # input_dict.update(dict(value='inputs/' + submitted_input.name))
             elif type(submitted_input) is int:
                 # Manage sample data
                 input_sample = ServiceInputSample.objects.get(pk=submitted_input)
@@ -68,6 +69,7 @@ class ServiceManager(models.Manager):
                 with open(filename, 'wb+') as uploaded_file:
                     for chunk in input_sample.file.chunks():
                         uploaded_file.write(chunk)
+                # input_dict.update(dict(value='inputs/' + submitted_input.name))
             elif isinstance(submitted_input, basestring):
                 # copy / paste content
                 filename = job.input_dir + service_input.name + '.txt'

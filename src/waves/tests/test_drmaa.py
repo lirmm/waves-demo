@@ -10,12 +10,11 @@ import waves.const
 import waves.tests.utils.shell_util as test_util
 from waves.tests.test_runner import *
 from waves.runners import SGEJobRunner
-from waves.models import JobOutput, JobInput, RunnerParam
+from waves.models import JobOutput, JobInput, RunnerParam, Service
 
 logger = logging.getLogger(__name__)
 
 
-@test_util.skip_unless_sge()
 class SGEAdapterTestCase(TestBaseJobRunner):
     """
     DRMAA API compliant test cases
@@ -110,9 +109,9 @@ class SGEAdapterTestCase(TestBaseJobRunner):
 
     @test_util.skip_unless_tool('physic_ist')
     def testPhysicIST(self):
-        jobs = self._preparePhysicISTJobs()
+        jobs_params = self._loadServiceJobsParams(api_name='physic_ist')
         self.runner.command = 'physic_ist'
-        for job in jobs:
+        for submitted_input in jobs_params:
+            job = Service.objects.create_new_job(service=self.service, submitted_inputs=submitted_input)
             logger.debug('Job command line %s', job.command_line)
             self.runJobWorkflow(job)
-            self.assertGreaterEqual(job.status, waves.const.JOB_COMPLETED)
