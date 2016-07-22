@@ -8,7 +8,7 @@ __all__ = ['RunnerException', 'RunnerNotInitialized', 'RunnerNotReady', 'RunnerC
 logger = logging.getLogger(__name__)
 
 
-class WavesException(BaseException):
+class WavesException(Exception):
     """Waves webapp base exception
 
     """
@@ -97,6 +97,6 @@ class JobPrepareException(JobRunException):
     pass
 
 
-class JobRunException(JobRunException):
+class JobRunException(JobRunException, Exception):
     """Run process errors"""
     pass

@@ -13,14 +13,13 @@
       "title": "Physic IST full test",
       "inputs": {
         "s": "physic_ist_ex.txt",
-        "t": "physic_ist_ex.txt",
         "r": "outgroup_ex.txt"
       },
       "params": {
         "o": "Full out Tree",
         "b": 50,
         "f": "new Forest File",
-        "c": 0.2
+        "c": 0.5
       }
     }
   ]

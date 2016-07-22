@@ -1,11 +1,7 @@
 from __future__ import unicode_literals
 
-import logging
 from collections import namedtuple
 
-from django.conf import settings
-
-# from waves.runners.drmaa import DRMAAJobRunner
 from waves.runners.galaxy import GalaxyJobRunner, GalaxyWorkFlowRunner
 from waves.runners.runner import JobRunner
 from waves.runners.sge import *

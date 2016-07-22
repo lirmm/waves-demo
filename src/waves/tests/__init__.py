@@ -60,10 +60,10 @@ class WavesBaseTestCase(TestCase):
             with open(os.path.join(self.service.sample_dir, 'runs.json'), 'r') as run_params:
                 job_parameters = json.load(run_params)
             self.assertIsInstance(job_parameters, object)
-            submitted_input = {}
+
             for job_params in job_parameters['runs']:
                 logger.debug('job_params: %s %s ', job_params.__class__, job_params)
-                submitted_input['title'] = job_params['title']
+                submitted_input = {'title': job_params['title']}
                 # All files inputs
                 for key in job_params['inputs']:
                     with open(os.path.join(self.service.sample_dir, job_params['inputs'][key])) as f:

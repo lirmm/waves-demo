@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 import logging
-import os
-import saga
+
 from django.conf import settings
 
 from waves.runners.ssh import *
@@ -14,7 +13,7 @@ class SGEJobRunner(ShellJobRunner):
     Locally available SGE cluster
     """
     queue = settings.WAVES_SGE_CELL
-    _saga_protocol = 'sge'
+    _protocol = 'sge'
 
     @property
     def init_params(self):
@@ -29,7 +28,7 @@ class SGEJobRunner(ShellJobRunner):
 
 
 class SGEOverSSHRunner(SGEJobRunner, SshUserPassJobRunner):
-    _saga_protocol = 'sge+ssh'
+    _protocol = 'sge+ssh'
 
     @property
     def init_params(self):
@@ -40,8 +39,8 @@ class SGEOverSSHRunner(SGEJobRunner, SshUserPassJobRunner):
     def _job_description(self, job):
 
         dir_name = 'sftp://' + self.host + "/$HOME/sge_runs/"
-        work_dir = saga.filesystem.Directory(dir_name, saga.filesystem.CREATE,
-                                             self.session)
+        work_dir = saga.filesystem.Directory(dir_name, saga.filesystem.READ,
+                                                    self.session)
         jd = super(SGEJobRunner, self)._job_description(job)
         jd.update(dict(queue=self.queue, working_directory='/$HOME/sge_runs/'))
         return jd

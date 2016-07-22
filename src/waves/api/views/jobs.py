@@ -2,18 +2,20 @@ from __future__ import unicode_literals
 import logging
 
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
+from rest_framework.decorators import detail_route, list_route
 
 from waves.models import Job
-from waves.api.serializers import JobSerializer, ServiceJobSerializer
+from waves.api.serializers import JobSerializer, JobInputSerializer, JobHistorySerializer, OutputSerializer
 from . import WavesBaseView
 
 logger = logging.getLogger(__name__)
 
 
-class JobViewSet(viewsets.ModelViewSet, WavesBaseView):
+class JobViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
+                 viewsets.GenericViewSet, WavesBaseView):
     """
     API entry point for ServiceJobs
     """
@@ -41,23 +43,37 @@ class JobViewSet(viewsets.ModelViewSet, WavesBaseView):
                                    context={'request': request})
         return Response(serializer.data)
 
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return ServiceJobSerializer
-        return super(JobViewSet, self).get_serializer_class()
+    def destroy(self, request, slug=None, *args, **kwargs):
+        queryset = Job.objects.get_user_job(user=request.user)
+        service_job = get_object_or_404(queryset, slug=slug)
+        print slug
+        return Response(self.get_serializer(request=request).data)
 
-    def get_serializer(self, *args, **kwargs):
-        return super(JobViewSet, self).get_serializer(*args, **kwargs)
+    def update(self, request, slug=None):
+        print slug
+        return Response(self.get_serializer(request=request).data)
+        pass
 
-    def create(self, request, *args, **kwargs):
-        if logger.isEnabledFor(logging.DEBUG):
-            for param in request.data:
-                logger.debug('param key ' + param)
-                logger.debug(request.data[param])
-            logger.debug('Request Data %s', request.data)
-        request.data['client'] = request.user.pk
-        return super(JobViewSet, self).create(request, *args, **kwargs)
+    def partial_update(self, request, slug=None):
+        print slug
+        return Response(self.get_serializer(request=request).data)
+        pass
 
-    def perform_create(self, serializer):
-        logger.debug('Request data %s', self.request.data)
-        return super(JobViewSet, self).perform_create(serializer)
+    @detail_route(methods=['get'], url_path='history')
+    def list_history(self, request, slug=None):
+        queryset = Job.objects.get_user_job(user=request.user)
+        job = get_object_or_404(queryset, slug=slug)
+        serializer = JobHistorySerializer(job.job_history.all()[:2],
+                                          many=True,
+                                          context={'request': request},
+                                          fields=['status', 'timestamp', 'message', ])
+        return Response(serializer.data)
+
+    @detail_route(methods=['get'], url_path='inputs')
+    def list_inputs(self, request, slug=None):
+        queryset = Job.objects.get_user_job(user=request.user)
+        job = get_object_or_404(queryset, slug=slug)
+        serializer = JobInputSerializer(job.job_inputs,
+                                        many=True,
+                                        context={'request': request})
+        return Response(serializer.data)

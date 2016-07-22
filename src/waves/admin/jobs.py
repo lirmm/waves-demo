@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin import ModelAdmin, TabularInline
 from tabbed_admin import TabbedModelAdmin
 
@@ -15,14 +15,16 @@ class JobInputInline(TabularInline):
     extra = 0
     suit_classes = 'suit-tab suit-tab-inputs'
     exclude = ('order',)
-    readonly_fields = ('name', 'value')
+    readonly_fields = ('name', 'value','srv_input')
     can_delete = False
     ordering = ('order',)
-    fields = ('name', 'value')
-    # classes = ('grp-collapse grp-closed',)
+    fields = ('srv_input', 'name', 'value', )
 
     def has_add_permission(self, request):
         return False
+
+    def get_srv_input(self, obj):
+        return obj.srv_input.label
 
 
 class JobOutputInline(TabularInline):
@@ -31,9 +33,9 @@ class JobOutputInline(TabularInline):
     extra = 0
     suit_classes = 'suit-tab suit-tab-outputs'
     can_delete = False
-    readonly_fields = ('label', 'name', 'value')
+    readonly_fields = ('name', 'value')
     ordering = ('order',)
-    fields = ('label', 'name', 'value')
+    fields = ('name', 'value')
     # classes = ('grp-collapse grp-closed',)
 
     def has_add_permission(self, request):
@@ -54,6 +56,18 @@ class JobHistoryInline(TabularInline):
         return False
 
 
+def mark_rerun(modeladmin, request, queryset):
+    for srv in queryset.all():
+        try:
+            srv.status = const.JOB_PREPARED
+            srv.save()
+            messages.add_message(request, level=messages.SUCCESS, message="Jobs %s successfully marked for re-run" % srv)
+        except StandardError as e:
+            messages.add_message(request, level=messages.ERROR, message="Job %s error %s " % (srv, e.message))
+
+mark_rerun.short_description = "Re-run jobs"
+
+
 class JobAdmin(TabbedModelAdmin, ModelAdmin):
     class Media:
         css = {
@@ -66,6 +80,7 @@ class JobAdmin(TabbedModelAdmin, ModelAdmin):
         JobInputInline,
         JobOutputInline,
     ]
+    actions = [mark_rerun, ]
     list_filter = ('status', 'service', 'client')
     list_display = ('__str__', 'get_colored_status', 'client', 'service', 'get_run_on', 'created', 'updated')
     list_per_page = 30

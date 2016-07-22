@@ -30,7 +30,7 @@ LOGGING = {
             'propagate': True,
             'level': 'WARNING',
         },
-        'queue': {
+        'waves.queue': {
             'handlers': ['console'],
             'level': 'INFO',
         },
@@ -38,10 +38,6 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'INFO',
         },
-        'django_crontab.crontab': {
-            'handlers': ['console'],
-            'level': 'INFO',
-        }
     }
 }
 

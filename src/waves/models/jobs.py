@@ -5,6 +5,7 @@ from collections import namedtuple
 
 import eav
 from django.conf import settings
+from django.contrib import messages
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -15,7 +16,7 @@ import waves.const as const
 from waves.eav.config import JobEavConfig, JobInputEavConfig, JobOutputEavConfig
 from waves.managers import JobManager
 from waves.models.base import TimeStampable, SlugAble, OrderAble
-from waves.models.services import Service, ServiceInput
+from waves.models.services import Service, ServiceInput, ServiceOutput
 
 logger = logging.getLogger(__name__)
 
@@ -97,11 +98,11 @@ class Job(TimeStampable, SlugAble):
 
     @property
     def input_files(self):
-        return self.job_inputs.filter(type=const.TYPE_FILE)
+        return self.job_inputs.filter(srv_input__type=const.TYPE_FILE)
 
     @property
     def input_params(self):
-        return self.job_inputs.exclude(type=const.TYPE_FILE)
+        return self.job_inputs.exclude(srv_input__type=const.TYPE_FILE)
 
     @property
     def input_dir(self):
@@ -134,7 +135,7 @@ class Job(TimeStampable, SlugAble):
     def label_class(self):
         if self.status in (const.JOB_UNDEFINED, const.JOB_SUSPENDED):
             return 'warning'
-        elif self.status in (const.JOB_ERROR, const.JOB_TERMINATED):
+        elif self.status == const.JOB_ERROR:
             return 'danger'
         elif self.status == const.JOB_CANCELLED:
             return 'info'
@@ -143,22 +144,31 @@ class Job(TimeStampable, SlugAble):
 
     def check_send_mail(self):
         from waves.managers.mails import JobMailer
-        if self.email_to is not None and self.status != self.status_mail:
-            mailer = JobMailer(job=self)
-            self.status_mail = self.status
-            if self.status == const.JOB_CREATED:
-                return mailer.send_job_submission_mail()
-            elif self.status == const.JOB_TERMINATED:
-                return mailer.send_job_completed_mail()
-            elif self.status == const.JOB_ERROR:
-                return mailer.send_job_error_email()
+        if settings.WAVES_NOTIFY_RESULTS and self.service.email_on:
+            if self.email_to is not None and self.status != self.status_mail:
+                # should send a email
+                try:
+                    nb_sent = 0
+                    mailer = JobMailer(job=self)
+                    self.status_mail = self.status
+                    if self.status == const.JOB_CREATED:
+                        nb_sent = mailer.send_job_submission_mail()
+                    elif self.status == const.JOB_TERMINATED:
+                        nb_sent = mailer.send_job_completed_mail()
+                    elif self.status == const.JOB_ERROR:
+                        nb_sent = mailer.send_job_error_email()
+                    return nb_sent
+                except Exception as e:
+                    logger.error('Unable to send mail : %s', e.message)
+                    if settings.DEBUG:
+                        raise
 
     def get_absolute_url(self):
         return reverse('waves:job_details', kwargs={'slug': self.slug})
 
     @property
     def link(self):
-        return 'http://%s%s' % (Site.objects.get_current().domain, self.get_absolute_url())
+        return '%s%s' % (Site.objects.get_current().domain, self.get_absolute_url())
 
     @property
     def details_available(self):
@@ -175,30 +185,24 @@ class Job(TimeStampable, SlugAble):
                 logger.warn('Unable to load JobRunInfo [job:%s]', self.slug)
         return job_info
 
+    @property
+    def stdout(self):
+        return 'job.stdout'
+
+    @property
+    def stderr(self):
+        return 'job.stderr'
+
 
 class JobInput(OrderAble, SlugAble):
-    # TODO inherit from ServiceInput !!!
     class Meta:
         db_table = 'waves_job_input'
 
     job = models.ForeignKey(Job,
                             related_name='job_inputs',
                             on_delete=models.CASCADE)
-    related_service_input = models.ForeignKey(ServiceInput, null=True, on_delete=models.CASCADE)
-    param_type = models.IntegerField('Parameter Type',
-                                     choices=const.OPT_TYPE,
-                                     null=False,
-                                     default=const.OPT_TYPE_POSIX,
-                                     help_text='Input type (used in command line)')
-    name = models.CharField(max_length=20,
-                            blank=True,
-                            null=False,
-                            help_text='This is the parameter name for the runs')
-    type = models.CharField(max_length=50,
-                            blank=False,
-                            null=True,
-                            choices=const.IN_TYPE,
-                            help_text='Type of parameter (bool, int, text, file etc.)')
+    srv_input = models.ForeignKey(ServiceInput, null=True, on_delete=models.CASCADE)
+
     value = models.CharField('Input content',
                              max_length=255,
                              null=True,
@@ -207,6 +211,22 @@ class JobInput(OrderAble, SlugAble):
 
     def __str__(self):
         return u'|'.join([self.name, str(self.value)])
+
+    @property
+    def param_type(self):
+        return self.srv_input.param_type if self.srv_input else const.OPT_TYPE_POSIX
+
+    @property
+    def name(self):
+        return self.srv_input.name if self.srv_input else 'N/A'
+
+    @property
+    def type(self):
+        return self.srv_input.type if self.srv_input else const.TYPE_TEXT
+
+    @property
+    def label(self):
+        return self.srv_input.label if self.srv_input else 'N/A'
 
     @property
     def file_path(self):
@@ -242,7 +262,7 @@ class JobInput(OrderAble, SlugAble):
     def command_line_element(self, forced_value=None):
         value = self.validated_value if forced_value is None else forced_value
         try:
-            if self.related_service_input and self.related_service_input.to_output:
+            if self.srv_input and self.srv_input.to_output:
                 # related service input is a output 'name' parameter
                 value = os.path.join('outputs', value)
         except ObjectDoesNotExist:
@@ -278,7 +298,7 @@ class JobInput(OrderAble, SlugAble):
 
     @property
     def get_label_for_choice(self):
-        return self.related_service_input.get_value_for_choice(self.value)
+        return self.srv_input.get_value_for_choice(self.value)
 
 
 def file_path(instance, filename):
@@ -286,38 +306,41 @@ def file_path(instance, filename):
 
 
 class JobOutput(OrderAble, SlugAble):
-    # TODO inherit from service Output !!!
     class Meta:
         db_table = 'waves_job_output'
 
     job = models.ForeignKey(Job,
                             related_name='job_outputs',
                             on_delete=models.CASCADE)
-    name = models.CharField('Name',
-                            max_length=200,
-                            null=False,
-                            blank=False,
-                            help_text='This is the parameter name for the runs')
-    label = models.CharField('Label',
-                             max_length=255,
-                             null=True,
-                             blank=True,
-                             help_text='This is the displayed name for output (default is name)')
+    srv_output = models.ForeignKey(ServiceOutput,
+                                   null=True,
+                                   on_delete=models.CASCADE)
     value = models.CharField('Output value',
                              max_length=200,
                              null=True,
                              blank=True,
                              default="")
-    type = models.CharField('Output file ext',
-                            max_length=5,
-                            null=True,
-                            default="txt",
-                            blank=True)
     may_be_empty = models.BooleanField('MayBe empty', default=True)
-    # TODO add a field to specify if output is available for client
+
+    @property
+    def name(self):
+        if not self.srv_output:
+            if self.value == self.job.stdout:
+                return "Standard script output"
+            elif self.value == self.job.stderr:
+                return "Standard script error"
+            else:
+                return 'N/A'
+        return self.srv_output.name
+
+    @property
+    def type(self):
+        if not self.srv_output:
+            return "txt"
+        return self.srv_output.ext if self.srv_output else ''
 
     def __str__(self):
-        return '%s - %s' % (self.label, self.name)
+        return '%s - %s' % (self.name, self.value)
 
     @property
     def file_path(self):

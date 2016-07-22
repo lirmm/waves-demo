@@ -69,6 +69,7 @@ SRV_RESTRICTED = 2
 # publicly available
 SRV_PUBLIC = 3
 
+
 SRV_STATUS_LIST = [
     [SRV_DRAFT, 'Draft'],
     [SRV_TEST, 'Test'],

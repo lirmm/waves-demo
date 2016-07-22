@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
 
 import nested_admin
-from django.contrib import admin
-from django.conf import settings
+from django.contrib import admin, messages
 from django.template.defaultfilters import truncatechars
 from django.contrib.admin import StackedInline
 from grappelli.forms import GrappelliSortableHiddenMixin
@@ -131,7 +130,7 @@ def duplicate_in_mass(modeladmin, request, queryset):
 
 
 def mark_public(modeladmin, request, queryset):
-    from django.contrib import messages
+
     for srv in queryset.all():
         try:
             srv.status = waves.const.SRV_PUBLIC

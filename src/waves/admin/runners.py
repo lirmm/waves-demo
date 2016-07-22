@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.contrib import messages
 from django.contrib.admin import TabularInline
 
+import waves.const
 from waves.admin.base import TinyMCEAdmin
 from waves.forms.admin import RunnerParamForm, RunnerForm
 from waves.models import RunnerParam, Runner
@@ -46,13 +47,14 @@ class RunnerAdmin(TinyMCEAdmin):
     def save_model(self, request, obj, form, change):
         if 'clazz' in form.changed_data:
             obj.runner_params.all().delete()
-            messages.warning(request, 'Be aware that related service configuration has been updated ! ')
+            messages.warning(request, 'Be aware that related service configuration has been deleted ! ')
         if 'update_init_params' in form.changed_data and obj is not None:
+            obj.runner_params.all().delete()
+            messages.warning(request, 'Be aware that related service configuration has been deleted ! ')
             for name, initial in obj.runner.init_params.items():
                 param = RunnerParam.objects.update_or_create(defaults={'default': initial}, name=name, runner=obj)
-                # param.default = initial
-                # param.save()
             for service in obj.runs.all():
+                service.status = waves.const.SRV_TEST
                 service.save()
             messages.warning(request, 'Be aware that related service configuration has been updated ! ')
 

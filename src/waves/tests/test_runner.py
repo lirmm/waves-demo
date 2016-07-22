@@ -3,13 +3,11 @@ from __future__ import unicode_literals
 import logging
 import time
 import os
-import json
 import unittest
 from django.utils.timezone import localtime
 
 from django.test import override_settings
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
 
 import waves.const
 import waves.tests.utils.shell_util as test_util
@@ -88,11 +86,6 @@ class TestBaseJobRunner(WavesBaseTestCase):
             self.assertTrue(self.runner.connected)
             self.assertIsNotNone(self.runner._connector)
 
-    @unittest.skip('')
-    def testFailTestDoNotRemoveJobDir(self):
-        with self.assertTrue(False):
-            self.assertTrue(os.path.isdir(self.job.working_dir))
-
     def testJobStates(self):
         """
         Test exceptions raise when inconsistency is detected in jobs
@@ -133,14 +126,14 @@ class TestBaseJobRunner(WavesBaseTestCase):
         remote_job_id = self.runner.run_job(self.job)
         logger.debug('Remote Job ID %s', remote_job_id)
         self.assertEqual(self.job.status, waves.const.JOB_QUEUED)
-        for ix in range(30):
+        for ix in range(100):
             job_state = self.runner.job_status(self.job)
             logger.info(u'Current job state (%i) : %s ', ix, self.job.get_status_display())
             if job_state >= waves.const.JOB_COMPLETED:
                 logger.info('Job state ended to %s ', self.job.get_status_display())
                 break
             else:
-                time.sleep(1)
+                time.sleep(3)
         self.assertIn(self.job.status, (waves.const.JOB_COMPLETED, waves.const.JOB_TERMINATED))
         # Get job run details
         self.runner.job_run_details(self.job)
@@ -150,9 +143,11 @@ class TestBaseJobRunner(WavesBaseTestCase):
         self.assertTrue(self.job.results_available)
         for output_job in self.job.job_outputs.filter(may_be_empty=False):
             logger.info("Testing file %s ", output_job.file_path)
-            self.assertTrue(os.path.isfile(output_job.file_path))
+            self.assertTrue(os.path.isfile(output_job.file_path),
+                            msg="Job <<%s>> did not output expected data in %s " %
+                                (self.job.title, self.job.output_dir))
             # last history
-        self.assertGreaterEqual(job.status, waves.const.JOB_COMPLETED)
+        self.assertGreaterEqual(self.job.status, waves.const.JOB_COMPLETED)
 
     def testExtraUnexpectedParameter(self):
         with self.assertRaises(RunnerUnexpectedInitParam):
@@ -160,9 +155,6 @@ class TestBaseJobRunner(WavesBaseTestCase):
 
     def _prepare_hello_world(self):
         self.runner.command = os.path.join(test_util.get_sample_dir(), 'services/hello_world.sh')
-        JobInput.objects.create(job=self.job, name="TestInput1", value='Test Input 1',
-                                param_type=waves.const.OPT_TYPE_POSIX, type=waves.const.TYPE_TEXT)
-        JobInput.objects.create(job=self.job, name="TestInput2", value='Test Input 2',
-                                param_type=waves.const.OPT_TYPE_POSIX, type=waves.const.TYPE_TEXT)
-
-        JobOutput.objects.create(job=self.job, value='hello_world_output.txt', name="Output file", type="txt")
+        JobInput.objects.create(job=self.job, value='Test Input 1', srv_input=None)
+        JobInput.objects.create(job=self.job, value='Test Input 2', srv_input=None)
+        JobOutput.objects.create(job=self.job, value='hello_world_output.txt', srv_output=None)

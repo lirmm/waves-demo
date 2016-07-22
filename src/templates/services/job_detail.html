@@ -29,17 +29,14 @@
                                             <dl>
                                                 {% for job_input in job.input_files.all %}
                                                     <dt>
-                                                        {{ job_input.related_service_input.label|default:job_input.name }}</dt>
+                                                        {{ job_input.label }}</dt>
                                                     <dd class="input_output">
                                                         {{ job_input.value }}
                                                         <div class="pull-right">
-                                                            {% if job_input.type == 'file' %}
-                                                                <a href="{% url 'waves:job_input' job_input.slug %}?export=1">
-                                                                    Download File <i
-                                                                        class="glyphicon glyphicon-download-alt"></i>
-                                                                </a>
-                                                            {% else %}
-                                                            {% endif %}
+                                                            <a href="{% url 'waves:job_input' job_input.slug %}?export=1">
+                                                                Download File <i
+                                                                    class="glyphicon glyphicon-download-alt"></i>
+                                                            </a>
                                                         </div>
                                                     </dd>
                                                 {% endfor %}
@@ -57,10 +54,7 @@
                                         <div class="panel-body">
                                             <dl>
                                                 {% for job_input in job.input_params.all %}
-                                                    <dt>
-                                                        {{ job_input.related_service_input.label|default:job_input.name }}
-                                                        set to
-                                                    </dt>
+                                                    <dt>"{{ job_input.label }}" set to </dt>
                                                     <dd class="input_output">
                                                         {% if job_input.type == 'select' %}
                                                             {{ job_input.get_label_for_choice }}

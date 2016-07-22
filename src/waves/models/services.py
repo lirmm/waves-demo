@@ -384,7 +384,6 @@ class ServiceInput(DescribeAble, TimeStampable, OrderAble):
     class Meta:
         db_table = 'waves_service_input'
         verbose_name = 'Input parameter'
-        # unique_together = ('name', 'service', 'type')
         ordering = ['order']
 
     label = models.CharField('Label',

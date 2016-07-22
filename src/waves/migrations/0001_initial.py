@@ -367,7 +367,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='jobinput',
-            name='related_service_input',
+            name='srv_input',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='waves.ServiceInput'),
         ),
         migrations.AddField(

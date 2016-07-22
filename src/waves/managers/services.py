@@ -42,11 +42,8 @@ class ServiceManager(models.Manager):
         from waves.models import JobInput
 
         input_dict = dict(job=job,
-                          name=service_input.name,
                           order=order,
-                          type=service_input.type,
-                          param_type=service_input.param_type,
-                          related_service_input=service_input,
+                          srv_input=service_input,
                           value=str(submitted_input))
         try:
             if service_input.to_output:
@@ -60,7 +57,7 @@ class ServiceManager(models.Manager):
                 with open(filename, 'wb+') as uploaded_file:
                     for chunk in submitted_input.chunks():
                         uploaded_file.write(chunk)
-                # input_dict.update(dict(value='inputs/' + submitted_input.name))
+                        # input_dict.update(dict(value='inputs/' + submitted_input.name))
             elif type(submitted_input) is int:
                 # Manage sample data
                 input_sample = ServiceInputSample.objects.get(pk=submitted_input)
@@ -69,7 +66,7 @@ class ServiceManager(models.Manager):
                 with open(filename, 'wb+') as uploaded_file:
                     for chunk in input_sample.file.chunks():
                         uploaded_file.write(chunk)
-                # input_dict.update(dict(value='inputs/' + submitted_input.name))
+                        # input_dict.update(dict(value='inputs/' + submitted_input.name))
             elif isinstance(submitted_input, basestring):
                 # copy / paste content
                 filename = job.input_dir + service_input.name + '.txt'
@@ -100,14 +97,18 @@ class ServiceManager(models.Manager):
         job = Job.objects.create(service=service, email_to=email_to, client=user, title=job_title)
         order_inputs = 0
         try:
-            for service_input in service.service_inputs.filter(editable=False):
+            for service_input in service.service_inputs.filter(editable=False)\
+                    .exclude(param_type=waves.const.OPT_TYPE_NONE):
                 if service_input.name not in submitted_inputs:
                     # Update "submitted_inputs" dictionary with non editable ones with default value if not already set
                     submitted_inputs[service_input.name] = service_input.default
-            for service_input in service.service_inputs.filter(editable=True, relatedinput=None):
+            for service_input in service.service_inputs.filter(editable=True,
+                                                               name__in=submitted_inputs.keys()).\
+                    exclude(param_type=waves.const.OPT_TYPE_NONE):
                 # Treat only non dependent inputs first
                 order_inputs += 1
                 incoming_input = submitted_inputs[service_input.name]
+                logger.debug('Retrieved %s for service input %s', incoming_input, service_input.name)
                 # test service input mandatory, without default and no value
                 if service_input.mandatory and not service_input.default and incoming_input is None \
                         and not hasattr(service_input, 'when_value'):
@@ -116,10 +117,10 @@ class ServiceManager(models.Manager):
                     # transform single incoming into list to keep process iso
                     if type(incoming_input) != list:
                         incoming_input = [incoming_input]
-                    # TODO manage non editable fields, hidden fields in form ?
                     for in_input in incoming_input:
                         order_inputs += 1
                         self._create_job_input(job, service_input, order_inputs, in_input)
+                        """
                         # TODO remove this kind of duplicated code
                         related_4_value = service_input.dependent_inputs.filter(when_value=str(in_input)).all()
                         for related_input in related_4_value:
@@ -131,6 +132,7 @@ class ServiceManager(models.Manager):
                                     order_inputs += 1
                                     self._create_job_input(job, related_input, order_inputs, dep_input)
                                     # Manage 'non editable fields', add default values to inputs ?
+                        """
 
         except KeyError:
             if service_input.mandatory and not service_input.default:
@@ -138,8 +140,7 @@ class ServiceManager(models.Manager):
             elif service_input.mandatory:
                 job_input = JobInput.objects.create(
                     job=job,
-                    name=service_input.name,
-                    type=service_input.type,
+                    srv_input=service_input,
                     value=service_input.default,
                     order=order_inputs
                 )
@@ -152,7 +153,7 @@ class ServiceManager(models.Manager):
                 'Unexpected error in job submission %s (%s)' % (service_input.get_type_display(), e), job=job)
         logger.debug('Job %s created with %i inputs', job.slug, job.job_inputs.count())
         for service_output in service.service_outputs.all():
-            output_dict = dict(job=job, name=service_output.name, label=service_output.name, type=service_output.ext)
+            output_dict = dict(job=job, srv_output=service_output)
             if not service_output.from_input:
                 JobOutput.objects.create(**output_dict)
             if service_output.from_input and submitted_inputs.get(service_output.from_input.name, None):
@@ -161,6 +162,11 @@ class ServiceManager(models.Manager):
                                                                              service_output.from_input.default)),
                                         may_be_empty=service_output.may_be_empty))
                 JobOutput.objects.create(**output_dict)
+        # Add default stdout and stderr outputs for all jobs
+        output_dict = dict(job=job, value='job.stdout', may_be_empty=True)
+        JobOutput.objects.create(**output_dict)
+        output_dict['value'] = 'job.stderr'
+        JobOutput.objects.create(**output_dict)
         return job
 
     def api_public(self):

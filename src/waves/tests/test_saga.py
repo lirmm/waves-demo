@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 
-import logging
 import saga
+import logging
 
 import waves.const
 import waves.tests.utils.shell_util as test_util
 from waves.tests.test_runner import TestBaseJobRunner, Service
-from waves.runners import ShellJobRunner, SshUserPassJobRunner, SGEOverSSHRunner, SGEJobRunner
-
+from waves.runners import ShellJobRunner, SshUserPassJobRunner, SGEJobRunner
+from waves.runners.sge import SGEOverSSHRunner
 
 logger = logging.getLogger(__name__)
 
