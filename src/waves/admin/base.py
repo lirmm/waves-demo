@@ -17,7 +17,7 @@ class TinyMCEAdmin(admin.ModelAdmin):
 class WavesSiteAdmin(admin.ModelAdmin):
     list_display = ('get_domain', 'get_name', 'theme')
     search_fields = ('site__domain', 'site__name')
-    fields = ('site', 'theme', 'config_file', 'config_file_content')
+    fields = ('site', 'theme', 'config_file') #, 'config_file_content')
     readonly_fields = ('config_file', )
 
     def get_domain(self, obj):

@@ -79,9 +79,9 @@ class Job(TimeStampable, SlugAble):
 
     def make_job_dirs(self):
         if not os.path.isdir(self.input_dir):
-            os.makedirs(self.input_dir, mode=0755)
+            os.makedirs(self.input_dir, mode=0775)
         if not os.path.isdir(self.output_dir):
-            os.makedirs(self.output_dir, mode=0755)
+            os.makedirs(self.output_dir, mode=0775)
 
     def delete_job_dirs(self):
         import shutil

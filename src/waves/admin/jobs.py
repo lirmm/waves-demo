@@ -59,7 +59,7 @@ class JobHistoryInline(TabularInline):
 def mark_rerun(modeladmin, request, queryset):
     for srv in queryset.all():
         try:
-            srv.status = const.JOB_PREPARED
+            srv.status = const.JOB_CREATED
             srv.save()
             messages.add_message(request, level=messages.SUCCESS, message="Jobs %s successfully marked for re-run" % srv)
         except StandardError as e:

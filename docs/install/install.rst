@@ -31,15 +31,15 @@ Get WAVES application
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]$ pip install -r requirements.txt
 
 4. Configuration files:
-    - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]$ cd src/waves_services/
-    - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]/src/waves_services$ mv waves.env.sample waves.env
+    - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]$ cd config/
+    - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]/config$ mv waves.env.sample waves.env
     - Edit your waves.env file to set WAVES parameters ([link:waves parameters])
 
 3. Create database and initialize some data:
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]$ cd src
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]/src$ python manage.py makemigrations eav
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]/src$ python manage.py migrate
-    - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]/src$ python manage.py loaddata /fixtures/init.json
+    - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]/src$ python manage.py loaddata waves/fixtures/init.json
 
 4. Test your env:
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]/src$ python manage.py runserver [link: runserver django doc]
