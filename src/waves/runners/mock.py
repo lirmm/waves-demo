@@ -47,7 +47,7 @@ class MockJobRunner(JobRunner):
         return Job.objects.get(pk=job.pk).status
 
     def _job_results(self, job):
-        return job.job_outputs.values()
+        return True
 
     def _job_run_details(self, job):
         pass

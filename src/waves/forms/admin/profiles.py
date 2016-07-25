@@ -31,23 +31,18 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = APIProfile
         fields = ['api_key', 'registered_for_api', 'comment', 'ip', 'country', 'comment', 'institution',
-                  'authorized_services']
+                  'restricted_services']
 
-    filter_horizontal = ['authorized_services']
+    filter_horizontal = ['restricted_services']
     widgets = {
         'country': CountrySelectWidget()
     }
 
     def __init__(self, *args, **kwargs):
         super(ProfileForm, self).__init__(*args, **kwargs)
-        if self.instance.pk:
-            self.fields['authorized_services'].initial = \
-                (self.instance.authorized_services.all())
-            # (self.instance.authorized_services.filter(status=waves.const.SRV_PUBLIC) if self.instance.pk else ())
-    # TODO repair bug in backoffice when disabling API access.
 
-    authorized_services = forms.ModelMultipleChoiceField(
-        queryset=Service.objects.filter(api_on=True, status=waves.const.SRV_PUBLIC),
+    restricted_services = forms.ModelMultipleChoiceField(
+        queryset=Service.objects.all(),
         required=False,
         # limit_choices_to=Service.objects.filter(api_on=True, status=waves.const.SRV_PUBLIC),
         widget=FilteredSelectMultiple(

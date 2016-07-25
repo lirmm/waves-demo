@@ -13,7 +13,7 @@ MISSING_TOOL_MESSAGE = "Executable script is not in PATH : %s"
 
 
 def skip_unless_sge():
-    os.environ['SGE_ROOT'] = settings.WAVES_SGE_ROOT
+    # os.environ['SGE_ROOT'] = settings.WAVES_SGE_ROOT
     os.environ['SGE_CELL'] = settings.WAVES_SGE_CELL
     os.environ['DRMAA_LIBRARY_PATH'] = settings.WAVES_DRMAA_LIBRARY_PATH
     try:

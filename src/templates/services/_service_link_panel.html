@@ -6,13 +6,24 @@
     </div>
     <div id="panel-element-{{ title|slugify }}" class="panel-collapse collapse {% if open %}in{% else %}out{% endif %}">
     <div class="panel-body">
-{% else %}
-    <blockquote>
-        <p>{{ meta.description }}</p>
-        <small><cite><a href="{{ meta.value }}" target="_blank">{{ meta.value }}</a></cite>
-        </small>
-    </blockquote>
 {% endif %}
+<blockquote>
+    {%  if meta.title %}
+    <p>{{ meta.title }}</p>
+    {% endif %}
+    <small>
+        <cite>
+            {% if meta.is_url %}
+            <a href="{{ meta.value }}" target="_blank">{{ meta.value }}</a>
+                {%  else %}
+                {{ meta.value }} <br/>
+            {% endif %}
+            {% if meta.description %}
+                {{ meta.description }}
+            {% endif %}
+        </cite>
+    </small>
+</blockquote>
 {% if forloop.last %}
     </div>
     </div>

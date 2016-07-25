@@ -61,18 +61,20 @@ class ServiceInputValidator(object):
         assert the_input.type == waves.const.TYPE_FILE
         self.specific_message = 'allowed extension are %s' % str([e[1] for e in the_input.get_choices()])
         # TODO Check file consistency with BioPython ?
-        # TODO modify message for more 'user friendly' display
-        if type(value) == list:
-            assert all(isinstance(_, File) for _ in value), '%s is not a valid File' % value
-            result = True
-            for up_file in value:
-                _, extension = os.path.splitext(up_file.name)
-                result = result and (any(e[1] == extension for e in the_input.get_choices()))
-                return result
-        else:
-            assert isinstance(value, File), '%s is not a valid File' % value
-            _, extension = os.path.splitext(value.name)
-            return any(e[1] == extension for e in the_input.get_choices())
+        filter_extension = the_input.get_choices()
+        if filter_extension:
+            if type(value) == list:
+                assert all(isinstance(_, File) for _ in value), '%s is not a valid File' % value
+                result = True
+                for up_file in value:
+                    _, extension = os.path.splitext(up_file.name)
+                    result = result and (any(e[1] == extension for e in filter_extension))
+                    return result
+            else:
+                assert isinstance(value, File), '%s is not a valid File' % value
+                _, extension = os.path.splitext(value.name)
+                return any(e[1] == extension for e in filter_extension)
+        return True
 
     def _validate_input_int(self, the_input, value):
         assert the_input.type == waves.const.TYPE_INTEGER

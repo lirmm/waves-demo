@@ -65,6 +65,12 @@
                         <span class="pull-left"><strong>Phone</strong></span>
                         {{ show_user.profile.phone|default:'N/A' }}
                     </li>
+                    {% if show_user.profile.registered_for_api %}
+                        <li class="list-group-item text-right">
+                            <span class="pull-left"><strong>Your api key</strong> (Don't share it with others)</span>
+                            {{ show_user.profile.api_key|default:'Contact us to renew your api_key' }}
+                        </li>
+                    {% endif %}
                 </ul>
                 <div class="panel panel-default">
                     <div class="panel-body">

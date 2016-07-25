@@ -12,10 +12,10 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = ServiceCategory
-        fields = ('url', 'name', 'description', 'tools')
+        fields = ('url', 'name', 'short_description', 'tools')
         lookup_field = 'name'
         extra_kwargs = {
-            'url': {'view_name': 'servicetoolcategory-detail', 'lookup_field': 'name'}
+            'url': {'view_name': 'waves-services-category-detail', 'lookup_field': 'name'}
         }
         depth = 1
 
@@ -27,5 +27,5 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
         serializer = ServiceSerializer(instance=tool_queryset,
                                        many=True,
                                        context=self.context,
-                                       fields=('url', 'name', 'description', 'version'))
+                                       fields=('url', 'name', 'short_description', 'version'))
         return serializer.data

@@ -26,6 +26,15 @@ class JobManager(models.Manager):
             return self.all()
         return self.filter(Q(client=user) | Q(email_to=user.email))
 
+    def get_service_job(self, user, service):
+        try:
+            admin_group = Group.objects.get(name=settings.WAVES_GROUP_ADMIN)
+        except Group.DoesNotExist:
+            admin_group = None
+        if user.is_superuser or admin_group in user.groups.all():
+            return self.filter(service=service)
+        return self.filter(Q(client=user) | Q(email_to=user.email)).filter(service=service)
+
     def get_pending_jobs(self, user=None):
         if user is not None:
             if user.is_super_user:

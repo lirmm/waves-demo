@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin import ModelAdmin, TabularInline
+from tabbed_admin import TabbedModelAdmin
 
 import waves.const as const
 from waves.forms.admin import JobInputForm, JobOutputForm, JobForm
@@ -14,14 +15,16 @@ class JobInputInline(TabularInline):
     extra = 0
     suit_classes = 'suit-tab suit-tab-inputs'
     exclude = ('order',)
-    readonly_fields = ('name', 'value')
+    readonly_fields = ('name', 'value','srv_input')
     can_delete = False
     ordering = ('order',)
-    fields = ('name', 'value')
-    classes = ('grp-collapse grp-closed',)
+    fields = ('srv_input', 'name', 'value', )
 
     def has_add_permission(self, request):
         return False
+
+    def get_srv_input(self, obj):
+        return obj.srv_input.label
 
 
 class JobOutputInline(TabularInline):
@@ -30,10 +33,10 @@ class JobOutputInline(TabularInline):
     extra = 0
     suit_classes = 'suit-tab suit-tab-outputs'
     can_delete = False
-    readonly_fields = ('label', 'name', 'value')
+    readonly_fields = ('name', 'value')
     ordering = ('order',)
-    fields = ('label', 'name', 'value')
-    classes = ('grp-collapse grp-closed',)
+    fields = ('name', 'value')
+    # classes = ('grp-collapse grp-closed',)
 
     def has_add_permission(self, request):
         return False
@@ -42,7 +45,7 @@ class JobOutputInline(TabularInline):
 class JobHistoryInline(TabularInline):
     model = JobHistory
     suit_classes = 'suit-tab suit-tab-history'
-    classes = ('grp-collapse grp-closed',)
+    # classes = ('grp-collapse grp-closed',)
     verbose_name_plural = "Job history"
 
     readonly_fields = ('status', 'timestamp', 'message')
@@ -53,7 +56,23 @@ class JobHistoryInline(TabularInline):
         return False
 
 
-class JobAdmin(ModelAdmin):
+def mark_rerun(modeladmin, request, queryset):
+    for srv in queryset.all():
+        try:
+            srv.status = const.JOB_PREPARED
+            srv.save()
+            messages.add_message(request, level=messages.SUCCESS, message="Jobs %s successfully marked for re-run" % srv)
+        except StandardError as e:
+            messages.add_message(request, level=messages.ERROR, message="Job %s error %s " % (srv, e.message))
+
+mark_rerun.short_description = "Re-run jobs"
+
+
+class JobAdmin(TabbedModelAdmin, ModelAdmin):
+    class Media:
+        css = {
+            'all': ('tabbed_admin/css/tabbed_admin.css',)
+        }
     model = Job
     form = JobForm
     inlines = [
@@ -61,6 +80,7 @@ class JobAdmin(ModelAdmin):
         JobInputInline,
         JobOutputInline,
     ]
+    actions = [mark_rerun, ]
     list_filter = ('status', 'service', 'client')
     list_display = ('__str__', 'get_colored_status', 'client', 'service', 'get_run_on', 'created', 'updated')
     list_per_page = 30
@@ -72,14 +92,30 @@ class JobAdmin(ModelAdmin):
 
     # grappelli list filter
     change_list_template = "admin/change_list_filter_sidebar.html"
-
+    change_form_template = 'admin/waves/job/change_form.html'
     readonly_fields = ('slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on')
 
+    """
     fieldsets = [
         (None, {'classes': ('suit-tab', 'suit-tab-general',),
                 'fields': ['service', 'status', 'created', 'updated', 'client', 'email_to', 'slug', 'get_run_on']
                 }
          ),
+    ]
+    """
+    tab_overview = (
+        (None, {
+            'fields': ['service', 'status', 'created', 'updated', 'client', 'email_to', 'slug', 'get_run_on']
+        }),
+    )
+    tab_history = (JobHistoryInline,)
+    tab_inputs = (JobInputInline,)
+    tab_outputs = (JobOutputInline,)
+    tabs = [
+        ('General', tab_overview),
+        ('Job History', tab_history),
+        ('Service Inputs', tab_inputs),
+        ('Services outputs', tab_outputs),
     ]
 
     def get_list_filter(self, request):

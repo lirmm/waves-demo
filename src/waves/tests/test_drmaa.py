@@ -7,15 +7,14 @@ import time
 from django.conf import settings
 
 import waves.const
-import waves.tests.utils.cluster_util as test_util
+import waves.tests.utils.shell_util as test_util
 from waves.tests.test_runner import *
 from waves.runners import SGEJobRunner
-from waves.models import JobOutput, JobInput, RunnerParam
+from waves.models import JobOutput, JobInput, RunnerParam, Service
 
 logger = logging.getLogger(__name__)
 
 
-@test_util.skip_unless_sge()
 class SGEAdapterTestCase(TestBaseJobRunner):
     """
     DRMAA API compliant test cases
@@ -44,8 +43,6 @@ class SGEAdapterTestCase(TestBaseJobRunner):
                                 param_type=waves.const.OPT_TYPE_POSIX, type=waves.const.TYPE_TEXT)
 
         JobOutput.objects.create(job=self.job, value='hello_world_output.txt', name="Output file", type="txt")
-        JobOutput.objects.create(job=self.job, value='.err', name="Error (stderr)", type="")
-        JobOutput.objects.create(job=self.job, value='.out', name="Std output (stdout)", type="")
 
     @test_util.skip_unless_tool('cp')
     def testSimpleCP(self):
@@ -109,3 +106,12 @@ class SGEAdapterTestCase(TestBaseJobRunner):
         # Test retrieve job_run details twice
         job_details = self.runner.job_run_details(self.job)
         self.assertIsInstance(job_details, drmaa.session.JobInfo)
+
+    @test_util.skip_unless_tool('physic_ist')
+    def testPhysicIST(self):
+        jobs_params = self._loadServiceJobsParams(api_name='physic_ist')
+        self.runner.command = 'physic_ist'
+        for submitted_input in jobs_params:
+            job = Service.objects.create_new_job(service=self.service, submitted_inputs=submitted_input)
+            logger.debug('Job command line %s', job.command_line)
+            self.runJobWorkflow(job)

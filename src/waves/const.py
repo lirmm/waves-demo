@@ -14,12 +14,12 @@ META_USER_GUIDE = 'rtfm'
 META_FEATURES = 'feat'
 
 SERVICE_META = (
-    (META_WEBSITE, 'Dedicated website link'),
-    (META_DOC, 'Documentation link'),
-    (META_DOWNLOAD, 'Download link'),
-    (META_FEATURES, 'Tool features'),
+    (META_WEBSITE, 'Online resources'),
+    (META_DOC, 'Documentation'),
+    (META_DOWNLOAD, 'Downloads'),
+    (META_FEATURES, 'Features'),
     (META_MISC, 'Miscellaneous'),
-    (META_PAPER, 'Related Paper link'),
+    (META_PAPER, 'Related Paper'),
     (META_CITE, 'Citation'),
     (META_USER_GUIDE, 'User Guide'),
     (META_CMD_LINE, 'Command line')
@@ -37,7 +37,7 @@ JOB_CANCELLED = 7
 JOB_ERROR = 9
 
 STR_JOB_UNDEFINED = 'Unknown'
-STR_JOB_CREATED = 'Created'
+STR_JOB_CREATED = 'New'
 STR_JOB_PREPARED = 'Prepared for run'
 STR_JOB_QUEUED = 'Queued'
 STR_JOB_RUNNING = 'Running'
@@ -68,6 +68,7 @@ SRV_TEST = 1
 SRV_RESTRICTED = 2
 # publicly available
 SRV_PUBLIC = 3
+
 
 SRV_STATUS_LIST = [
     [SRV_DRAFT, 'Draft'],

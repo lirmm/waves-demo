@@ -3,15 +3,18 @@ from __future__ import unicode_literals
 from .base import * # NOQA
 import sys
 import os
+
 import logging.config
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 TEMPLATES[0]['OPTIONS'].update({'debug': True})
-
 # Turn off debug while imported by Celery with a workaround
 # See http://stackoverflow.com/a/4806384
 if "celery" in sys.argv[0]:
     DEBUG = False
+
+TESTING_MODE = 'dev'
 
 # Django Debug Toolbar
 INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
@@ -43,7 +46,13 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
-        }
+        },
+        'queue_log_file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': join(LOGFILE_ROOT, 'spool.log'),
+            'formatter': 'verbose',
+        },
     },
     'loggers': {
         'django': {
@@ -51,16 +60,17 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
-        'waves': {
-            'handlers': ['console'],
+        'waves.queue': {
+            'handlers': ['queue_log_file'],
             'level': 'DEBUG',
         },
-        'job_queue': {
+        'waves': {
             'handlers': ['console'],
-            'level': 'DEBUG',
-        }
+            'level': vars()['ENV'].str('TEST_LOG_LEVEL', 'DEBUG'),
+        },
     }
 }
+
 
 logging.config.dictConfig(LOGGING)
 # ADDED restriction to host

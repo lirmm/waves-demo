@@ -51,9 +51,6 @@ class SignupForm(registration.forms.RegistrationFormTermsOfService,
         widget=forms.CheckboxInput,
         label='I have read and agree to the '
               '<a href="#" data-toggle="modal" data-target="#tosModal">Terms of Service</a>,',
-        error_messages={
-            'required': registration.forms.TOS_REQUIRED,
-        }
     )
     # TODO add picture upload (change template pack value for input type file)
     institution = forms.CharField()
