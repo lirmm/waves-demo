@@ -173,6 +173,8 @@ class JobRunner(object):
                 raise RunnerNotReady('%s runner not ready : \nInit_param:%s\nConnector:%s - initialized:%s' % (
                     self.__class__.__name__, self.init_params, self._connector, self._initialized))
             job.status = self.__map_status(self._job_status(job))
+            if job.status == waves.const.JOB_COMPLETED:
+                self.job_results(job)
         except Exception as exc:
             job.status = waves.const.JOB_ERROR
             raise JobRunException('Run job error:\n%s: %s' %
@@ -193,15 +195,15 @@ class JobRunner(object):
         try:
             if not job.results_available:
                 # actually retrieve outputs
-                self._job_results(job)
-                logger.info('Job %s results', job.slug)
-                job.status = waves.const.JOB_TERMINATED
+                job.results_available = self._job_results(job)
             else:
                 # TODO do something with results ?
                 pass
         except JobException as e:
             job.status = waves.const.JOB_UNDEFINED
         finally:
+            if job.results_available:
+                job.status = waves.const.JOB_TERMINATED
             job.save()
         return job.job_outputs.all()
 
@@ -211,12 +213,12 @@ class JobRunner(object):
                                             waves.const.STATUS_LIST[1:4])
         details = None
         try:
-            details = self._job_run_details(job)
+            self._job_run_details(job)
         except Exception as exc:
             job.message('Error retrieving job details:\n%s:%s' %
                         (exc.__class__.__name__, str(exc)))
-            job.status = waves.const.JOB_TERMINATED
         finally:
+            job.status = waves.const.JOB_TERMINATED
             job.save()
         return details
 

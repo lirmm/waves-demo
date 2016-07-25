@@ -19,7 +19,7 @@ class ReadOnlyForm(forms.ModelForm):
 class JobInputForm(forms.ModelForm):
     class Meta:
         model = JobInput
-        fields = ['name', 'type', 'value']
+        fields = ['value']
         widgets = {
             'input': widgets.Select(attrs={'readonly': True}),
             'value': forms.Textarea(attrs={'rows': 2, 'class': 'span12'})
@@ -33,7 +33,7 @@ class JobInputForm(forms.ModelForm):
 class JobOutputForm(ReadOnlyForm):
     class Meta:
         model = JobOutput
-        fields = ['name', 'value']
+        fields = ['value']
         widgets = {
             'value': forms.Textarea(attrs={'rows': 2, 'class': 'span12'})
         }

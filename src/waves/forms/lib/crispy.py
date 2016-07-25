@@ -73,14 +73,21 @@ class FormHelper(BaseFormHelper, BaseHelper):
                             )
         if service_input.type == const.TYPE_FILE and not service_input.multiple:
             cp_input_field = Field('cp_' + service_input.name, css_id='id_'+'cp_' + service_input.name)
-            self.layout.append(
-                Div(
-                    TabHolder(
-                        Tab(
+            tab_input = Tab(
                             "File Upload",
                             input_field,
                             css_id='tab_' + service_input.name
-                        ),
+                        )
+            if service_input.input_samples.count() > 0:
+                all_sample = []
+                for sample in service_input.input_samples.all():
+                    all_sample.append(Field('sp_' + service_input.name + '_' + str(sample.pk)))
+                tab_input.extend(all_sample)
+
+            self.layout.append(
+                Div(
+                    TabHolder(
+                        tab_input,
                         Tab(
                             "Copy/paste content",
                             cp_input_field,

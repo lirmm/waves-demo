@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
+
 from django import forms
-from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.forms import ModelForm, Textarea
-from django.core.exceptions import ValidationError
+from django.core import validators
 from crispy_forms.layout import Layout, Div, Field, Button
 from crispy_forms.helper import FormHelper
 
@@ -59,7 +61,6 @@ class ServiceMetaForm(forms.ModelForm):
     """
     A ServiceMeta form part for inline insertion
     """
-
     class Meta:
         exclude = ['id']
         model = ServiceMeta
@@ -67,6 +68,16 @@ class ServiceMetaForm(forms.ModelForm):
         widgets = {
             'description': Textarea(attrs={'rows': 3, 'class': 'input-xlarge'}),
         }
+
+    def clean(self):
+        try:
+            validator = validators.URLValidator()
+            validator(self.cleaned_data['value'])
+            self.instance.is_url = True
+        except ValidationError as e:
+            if self.instance.type in (const.META_WEBSITE, const.META_DOC, const.META_DOWNLOAD):
+                raise e
+        return super(ServiceMetaForm, self).clean()
 
 
 class ServiceInputBaseForm(forms.ModelForm):
@@ -99,6 +110,12 @@ class ServiceInputForm(ServiceInputBaseForm):
         fields = ServiceInputBaseForm.Meta.fields + ['order', 'mandatory']
         model = ServiceInput
         widgets = ServiceInputBaseForm.Meta.widgets
+
+    def clean(self):
+        cleaned_data = super(ServiceInputForm, self).clean()
+        if self.instance.editable is False and not cleaned_data.get('default', False):
+            raise ValidationError('Non editable fields must have a default value')
+        return cleaned_data
 
 
 class RelatedInputForm(ServiceInputBaseForm):
@@ -148,11 +165,26 @@ class ServiceForm(forms.ModelForm):
 
     class Meta:
         model = Service
-        fields = ('name', 'api_name', 'version', 'run_on', 'runner_params', 'status', 'description')
+        fields = ('__all__')
         widgets = {
             # 'description': RedactorWidget(editor_options={'lang': 'en', 'maxWidth': '500', 'minHeight': '100'}),
             'clazz': forms.Select(choices=get_commands_impl_list()),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(ServiceForm, self).__init__(*args, **kwargs)
+        self.fields['restricted_client'].label = "Restrict access to specified user"
+        if not settings.WAVES_NOTIFY_RESULTS:
+            self.fields['email_on'].widget.attrs['readonly'] = True
+            self.fields['email_on'].help_text = '<span class="warning">Disabled by main configuration</span><br/>' \
+                                                + self.fields['email_on'].help_text
+            pass
+
+    def clean_email_on(self):
+        if not settings.WAVES_NOTIFY_RESULTS:
+            return self.instance.email_on
+        else:
+            return self.cleaned_data.get('email_on')
 
     def clean(self):
         # TODO add check if running jobs are currently running, to disable any modification of runner / inputs / outputs

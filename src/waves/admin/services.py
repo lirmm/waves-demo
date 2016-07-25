@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import nested_admin
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.template.defaultfilters import truncatechars
 from django.contrib.admin import StackedInline
 from grappelli.forms import GrappelliSortableHiddenMixin
@@ -23,7 +23,7 @@ class ServiceMetaInline(GrappelliSortableHiddenMixin, admin.TabularInline):
     extra = 1
     suit_classes = 'suit-tab suit-tab-metas'
     classes = ('grp-collapse grp-open',)
-    fields = ['type', 'value', 'description', 'order']
+    fields = ['type', 'title', 'value', 'description', 'order']
     sortable_field_name = "order"
 
 
@@ -34,7 +34,7 @@ class ServiceOutputInline(GrappelliSortableHiddenMixin, admin.TabularInline):
     extra = 0
     classes = ('grp-collapse grp-open',)
     sortable_field_name = "order"
-    fields = ['name', 'from_input', 'description', 'order']
+    fields = ['name', 'from_input', 'description', 'may_be_empty', 'order']
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == 'from_input':
@@ -130,7 +130,7 @@ def duplicate_in_mass(modeladmin, request, queryset):
 
 
 def mark_public(modeladmin, request, queryset):
-    from django.contrib import messages
+
     for srv in queryset.all():
         try:
             srv.status = waves.const.SRV_PUBLIC
@@ -162,20 +162,22 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, TabbedModelAdmin, TinyMCEAdmin
     )
     change_form_template = 'admin/waves/service/change_form.html'
     form = ServiceForm
-    filter_horizontal = ['authorized_clients']
+    filter_horizontal = ['restricted_client']
     readonly_fields = ['created', 'updated']
     list_display = ('name', 'api_name', 'api_on', 'version', 'run_on', 'status')
     list_filter = ('status', 'name', 'run_on')
 
+
     tab_overview = (
-        ('Main', {
+        (None, {
             'fields': ['category', 'name', 'status', 'run_on', 'version',
-                       'api_on', 'email_on', 'clazz']
+                       'short_description', 'description']
         }),
-        ('More Details', {
-            'classes': ('grp-collapse', 'grp-closed',),
-            'fields': ['short_description', 'description', 'api_name', 'created', 'updated', 'authorized_clients']
-        })
+    )
+    tab_details = (
+        (None, {
+            'fields': ['api_name', 'restricted_client', 'email_on', 'api_on', 'clazz', 'created', 'updated']
+        }),
     )
     tab_runner = (ServiceRunnerParamInLine,)
     tab_inputs = (ServiceInputInline,)
@@ -184,6 +186,7 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, TabbedModelAdmin, TinyMCEAdmin
     tab_samples = (ServiceSampleInline,)
     tabs = [
         ('General', tab_overview),
+        ('Details', tab_details),
         ('Metas', tab_metas),
         ('Runner Params', tab_runner),
         ('Service Inputs', tab_inputs),

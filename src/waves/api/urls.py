@@ -12,17 +12,14 @@ router = routers.DefaultRouter()
 # Services URIs configuration
 router.register(prefix=r'categories',
                 viewset=categories.CategoryViewSet,
-                base_name='servicetoolcategory')
+                base_name='waves-services-category')
 router.register(prefix=r'services',
                 viewset=services.ServiceViewSet,
-                base_name='servicetool')
-router.register(prefix=r'services/(?P<service>[0-9]+)/inputs',
-                viewset=services.ServiceInputViewSet,
-                base_name='servicetoolinput')
+                base_name='waves-services')
 # Jobs URIs configuration
 router.register(prefix=r'jobs',
                 viewset=jobs.JobViewSet,
-                base_name='servicejob')
+                base_name='waves-jobs')
 
 urlpatterns = [
     url(r'^', include(router.urls)),

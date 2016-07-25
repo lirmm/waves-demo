@@ -19,14 +19,15 @@ class BaseHelper(object):
         )
         if service_input.type == const.TYPE_FILE:
             # TODO manage multiple file input
-            field_dict.update(dict(allow_empty_file=False))
+            field_dict.update(dict(allow_empty_file=False, required=False))
             if service_input.multiple:
                 field_dict.update(dict(min_num=1, max_file_size=settings.WAVES_UPLOAD_MAX_SIZE))
                 form_field = MultiFileField(**field_dict)
             else:
                 form_field = forms.FileField(**field_dict)
         elif service_input.type == const.TYPE_BOOLEAN:
-            field_dict.update(dict(required=False))
+            field_dict.update(dict(required=False,
+                                   initial=form.data.get(service_input.name, service_input.eval_default)))
             form_field = forms.BooleanField(**field_dict)
         elif service_input.type == const.TYPE_LIST:
             field_dict.update(dict(choices=service_input.get_choices()))

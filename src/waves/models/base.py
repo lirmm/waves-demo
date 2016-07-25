@@ -40,6 +40,7 @@ class DescribeAble(models.Model):
                                          help_text='Short description (Text only)')
 
 
+
 class SlugAble(models.Model):
     class Meta:
         abstract = True

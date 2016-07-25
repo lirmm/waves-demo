@@ -10,7 +10,7 @@ from waves.models import Job
 from waves.runners import JobRunner
 
 __all__ = ['treat_queue_jobs', 'prepare_new_jobs', 'launch_prepared_jobs', 'update_running_jobs']
-logger = logging.getLogger('queue')
+logger = logging.getLogger('waves.queue')
 
 
 def treat_queue_jobs():

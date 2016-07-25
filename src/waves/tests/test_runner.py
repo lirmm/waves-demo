@@ -1,4 +1,3 @@
-
 from __future__ import unicode_literals
 
 import logging
@@ -11,11 +10,12 @@ from django.test import override_settings
 from django.conf import settings
 
 import waves.const
+import waves.tests.utils.shell_util as test_util
+
 from waves.exceptions import *
 from waves.tests import WavesBaseTestCase
 from waves.runners import JobRunner
-from waves.models import Service, Runner, Job, RunnerParam
-
+from waves.models import Service, Runner, Job, RunnerParam, JobInput, JobOutput
 
 logger = logging.getLogger(__name__)
 
@@ -86,11 +86,6 @@ class TestBaseJobRunner(WavesBaseTestCase):
             self.assertTrue(self.runner.connected)
             self.assertIsNotNone(self.runner._connector)
 
-    @unittest.skip('')
-    def testFailTestDoNotRemoveJobDir(self):
-        with self.assertTrue(False):
-            self.assertTrue(os.path.isdir(self.job.working_dir))
-
     def testJobStates(self):
         """
         Test exceptions raise when inconsistency is detected in jobs
@@ -124,12 +119,14 @@ class TestBaseJobRunner(WavesBaseTestCase):
     def runJobWorkflow(self, job=None):
         if job is not None:
             self.job = job
+        logger.info('Starting workflow process for job %s', self.job.title)
         self.assertEqual(1, self.job.job_history.count())
         self.runner.prepare_job(self.job)
         self.assertEqual(self.job.status, waves.const.JOB_PREPARED)
-        self.runner.run_job(self.job)
+        remote_job_id = self.runner.run_job(self.job)
+        logger.debug('Remote Job ID %s', remote_job_id)
         self.assertEqual(self.job.status, waves.const.JOB_QUEUED)
-        for ix in range(30):
+        for ix in range(100):
             job_state = self.runner.job_status(self.job)
             logger.info(u'Current job state (%i) : %s ', ix, self.job.get_status_display())
             if job_state >= waves.const.JOB_COMPLETED:
@@ -137,23 +134,27 @@ class TestBaseJobRunner(WavesBaseTestCase):
                 break
             else:
                 time.sleep(3)
-        self.assertGreaterEqual(self.job.status, waves.const.JOB_COMPLETED)
-        self.runner.job_results(self.job)
+        self.assertIn(self.job.status, (waves.const.JOB_COMPLETED, waves.const.JOB_TERMINATED))
+        # Get job run details
         self.runner.job_run_details(self.job)
         history = self.job.job_history.first()
         logger.debug("History timestamp %s", localtime(history.timestamp))
         logger.debug("Job status timestamp %s", self.job.status_time)
-        # TODO reactivate this assertion times should be equals
-        # self.assertEqual(history.timestamp, self.job.status_time)
-        if self.job.results_available:
-            for output_job in self.job.job_outputs.all():
-                logger.info("Testing file %s ", output_job.file_path)
-                self.assertTrue(os.path.isfile(output_job.file_path))
-        else:
-            logger.warn("Job state is %s and results available %s", self.job.get_status_display(),
-                        self.job.results_available )
-        # last history
+        self.assertTrue(self.job.results_available)
+        for output_job in self.job.job_outputs.filter(may_be_empty=False):
+            logger.info("Testing file %s ", output_job.file_path)
+            self.assertTrue(os.path.isfile(output_job.file_path),
+                            msg="Job <<%s>> did not output expected data in %s " %
+                                (self.job.title, self.job.output_dir))
+            # last history
+        self.assertGreaterEqual(self.job.status, waves.const.JOB_COMPLETED)
 
     def testExtraUnexpectedParameter(self):
         with self.assertRaises(RunnerUnexpectedInitParam):
             self.runner = JobRunner(init_params=dict(unexpected_param='unexpected value'))
+
+    def _prepare_hello_world(self):
+        self.runner.command = os.path.join(test_util.get_sample_dir(), 'services/hello_world.sh')
+        JobInput.objects.create(job=self.job, value='Test Input 1', srv_input=None)
+        JobInput.objects.create(job=self.job, value='Test Input 2', srv_input=None)
+        JobOutput.objects.create(job=self.job, value='hello_world_output.txt', srv_output=None)

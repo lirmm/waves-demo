@@ -97,6 +97,6 @@ class JobPrepareException(JobRunException):
     pass
 
 
-class JobRunException(JobRunException):
+class JobRunException(JobRunException, Exception):
     """Run process errors"""
     pass

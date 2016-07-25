@@ -233,7 +233,8 @@ class GalaxyJobRunner(JobRunner):
                                                                   use_default_filename=False)
                 logger.debug("Saving output to " + job_output.file_path)
                 job_output.save()
-            job.results_available = True
+            return True
+        return False
 
     def _job_run_details(self, job):
         # logger.warn('Not method run details for %s' % self.__class__)

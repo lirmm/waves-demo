@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-{% load staticfiles %}
+{% load staticfiles bootstrap_themes %}
 {% load thumbnail %}
 <head>
     <meta charset="utf-8"/>
@@ -13,14 +13,7 @@
     <title>{% block title %} :: {% include "_brandname.html" %} :: {% endblock %}</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet"
-          type="text/css"/>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
-          integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous"/>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css"
-          crossorigin="anonymous"/>
-
+    {% bootstrap_styles theme=BOOTSTRAP_CSS_THEME type='css' %}
     <!-- Custom styles for this site -->
     {% block styles %}
         <link href="{% static 'site/css/main.css' %}" rel="stylesheet"/>
@@ -163,13 +156,9 @@
     {% include 'tos/tos_modal.html' %}
 {% endblock modalcontent %}
 <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
-<script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+{% bootstrap_script use_min=True %}
 <script type="text/javascript"
         src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
-
-<script type="text/javascript">
-
-</script>
 {% block scripts %}
     <script src="{% static 'site/js/site.js' %}"></script>
 {% endblock scripts %}

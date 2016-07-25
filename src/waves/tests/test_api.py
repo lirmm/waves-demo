@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 import logging
+from urlparse import urlparse
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -19,9 +20,9 @@ AuthModel = get_user_model()
 
 def _create_test_file(path, index):
     import os
-    full_path = os.path.join(settings.WAVES_DATA_ROOT, '_'+str(index)+'_'+path)
+    full_path = os.path.join(settings.WAVES_DATA_ROOT, '_' + str(index) + '_' + path)
     f = open(full_path, 'w')
-    f.write('sample content for input file %s' % ('_'+str(index)+'_' + path))
+    f.write('sample content for input file %s' % ('_' + str(index) + '_' + path))
     f.close()
     f = open(full_path, 'rb')
     return f
@@ -58,7 +59,6 @@ class WavesAPITestCase(APITestCase, WavesBaseTestCase):
 
     def _dataUser(self, user='api', initial={}):
         initial.update({'api_key': self.users[user].profile.api_key})
-        logger.debug('Request Data: %s', initial)
         return initial
 
 
@@ -69,7 +69,7 @@ class ServiceTests(WavesAPITestCase):
         self.assertGreaterEqual(len(api_root.data), 3)
 
     def test_list_services(self):
-        tool_list = self.client.get(reverse('servicetool-list'),
+        tool_list = self.client.get(reverse('waves-services-list'),
                                     data=self._dataUser('admin'),
                                     format='json')
         self.assertEqual(tool_list.status_code, status.HTTP_200_OK)
@@ -84,7 +84,7 @@ class ServiceTests(WavesAPITestCase):
 
     def test_list_categories(self):
         category_list = self.client.get(
-            reverse('servicetoolcategory-list'), data=self._dataUser())
+            reverse('waves-services-category-list'), data=self._dataUser())
         self.assertEqual(category_list.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(category_list.data), 2)
         for category in category_list.data:
@@ -98,8 +98,8 @@ class JobTests(WavesAPITestCase):
         """
         import random
         import string
-        logger.debug('Retrieving servicetool-list from ' + reverse('servicetool-list'))
-        tool_list = self.client.get(reverse('servicetool-list'), data=self._dataUser())
+        logger.debug('Retrieving service-list from ' + reverse('waves-services-list'))
+        tool_list = self.client.get(reverse('waves-services-list'), data=self._dataUser())
         self.assertEqual(tool_list.status_code, status.HTTP_200_OK)
         for servicetool in tool_list.data:
             logger.debug('Creating job submission for %s %s', servicetool['name'], str(servicetool['version']))
@@ -108,12 +108,8 @@ class JobTests(WavesAPITestCase):
             detail = self.client.get(servicetool['url'], data=self._dataUser())
             logger.debug('Details data: %s', detail)
             tool_data = detail.data
-            service_id = tool_data['id']
-            logger.debug('Retrieved service %s ', detail.data['id'])
-            input_datas = {
-                'service': detail.data['id'],
-            }
             i = 0
+            input_datas = {}
             for job_input in tool_data['inputs']:
                 if job_input['type'] == waves.const.TYPE_FILE:
                     i += 1
@@ -135,16 +131,18 @@ class JobTests(WavesAPITestCase):
                 input_datas[job_input['name']] = input_data
 
             logger.debug('Data posted %s', input_datas)
-
-            response = self.client.post('/api/jobs/',
+            logger.debug('To => %s', servicetool['url'])
+            o = urlparse(servicetool['url'])
+            path = o.path.split('/')
+            response = self.client.post(reverse('waves-services-jobs',
+                                                kwargs={'api_name': path[-2]}),
                                         data=self._dataUser(initial=input_datas),
                                         format='multipart')
             logger.debug(response)
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
             job = Job.objects.all().order_by('-created').first()
-            service = Service.objects.get(pk=service_id)
-            self.assertEquals(len(job.job_outputs.all()), len(service.service_outputs.all()))
+            print job
 
     def test_update_job(self):
         pass
@@ -157,3 +155,32 @@ class JobTests(WavesAPITestCase):
 
     def test_get_status(self):
         pass
+
+    def testPhysicIST(self):
+        jobs_params = self._loadServiceJobsParams(api_name='physic_ist')
+        for submitted_input in jobs_params:
+            logger.debug('Data posted %s', submitted_input)
+            response = self.client.post(reverse('waves-services-jobs',
+                                                kwargs={'api_name': 'physic_ist'}),
+                                        data=self._dataUser(initial=submitted_input),
+                                        format='multipart')
+            logger.debug(response)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            job_details = self.client.get(reverse('waves-jobs-detail',
+                                                  kwargs={'slug': response.data['slug']}),
+                                          data=self._dataUser())
+            self.assertEqual(job_details.status_code, status.HTTP_200_OK)
+            job = Job.objects.get(slug=response.data['slug'])
+            self.assertIsInstance(job, Job)
+
+    def testMissingParam(self):
+        jobs_params = self._loadServiceJobsParams(api_name='physic_ist')
+        for submitted_input in jobs_params:
+            logger.debug('Data posted %s', submitted_input)
+            submitted_input.pop('')
+            response = self.client.post(reverse('services-jobs',
+                                                kwargs={'api_name': 'physic_ist'}),
+                                        data=self._dataUser(initial=submitted_input),
+                                        format='multipart')
+            logger.debug(response)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)

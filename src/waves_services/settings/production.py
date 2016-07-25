@@ -82,16 +82,12 @@ LOGGING = {
             'propagate': True,
             'level': 'WARNING',
         },
-        'queue': {
+        'waves.queue': {
             'handlers': ['queue_log_file'],
             'level': 'INFO',
         },
         'waves': {
             'handlers': ['waves_log_file'],
-            'level': 'INFO',
-        },
-        'django_crontab.crontab': {
-            'handlers': ['queue_log_file'],
             'level': 'INFO',
         }
     }

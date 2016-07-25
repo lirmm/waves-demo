@@ -1,11 +1,9 @@
 #!/bin/bash
-
-rm ./outputs//hello_world_output.txt
-echo "Stdout message"
-
+echo "Working dir: $(pwd)"
+dir=$(pwd)
 sleep 1
-echo "Hello world" > hello_world_output.txt
+echo "Hello world" > ${dir}/outputs/hello_world_output.txt
 sleep 1
-echo "Follow " $1 >> hello_world_output.txt
+echo "Follow " $1 >> ${dir}/outputs/hello_world_output.txt
 sleep 1
-echo "Last" $2 >> hello_world_output.txt
+echo "Last" $2 >> ${dir}/outputs/hello_world_output.txt

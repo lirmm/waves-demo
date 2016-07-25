@@ -23,8 +23,7 @@ settings.WAVES_GALAXY_PORT = _get_setting_or_env('WAVES_GALAXY_PORT', str, '8080
 settings.WAVES_API_TEST_KEY = _get_setting_or_env('WAVES_API_TEST_KEY', str, '806dcbdca2b8bb34f2693cbf318a358e')
 settings.WAVES_DRMAA_LIBRARY_PATH = _get_setting_or_env('WAVES_DRMAA_LIBRARY_PATH', str, getenv('DRMAA_LIBRARY_PATH',
                                                                                                 '/usr/lib/libdrmaa.so'))
-settings.WAVES_SGE_ROOT = _get_setting_or_env('WAVES_SGE_ROOT', str, getenv('SGE_ROOT', '/var/lib/gridengine'))
-settings.WAVES_SGE_CELL = _get_setting_or_env('WAVES_SGE_CELL', str, getenv('SGE_CELL', 'default'))
+settings.WAVES_SGE_CELL = _get_setting_or_env('WAVES_SGE_CELL', str, 'mainqueue')
 settings.WAVES_GROUP_ADMIN = _get_setting_or_env('WAVES_GROUP_ADMIN', str, 'WAVES_ADMIN')
 settings.WAVES_GROUP_API = _get_setting_or_env('WAVES_GROUP_API', str, 'WAVES_API_USER')
 settings.WAVES_GROUP_USER = _get_setting_or_env('WAVES_GROUP_USER', str, 'WAVES_WEB_USER')

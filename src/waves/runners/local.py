@@ -1,68 +1,124 @@
-"""
-Author : Marc Chakiachvili
-Email: marc.chakiachvili@lirmm.fr
-Date : 2015, November
-"""
 from __future__ import unicode_literals
-from django.conf import settings
+
+import os
+import saga
+import pickle
+import logging
 
 from waves.runners.runner import JobRunner
+import waves.const
+
+__author__ = "Marc Chakiachvili <marc.chakiachvili@lirmm.fr>"
+
+logger = logging.getLogger(__name__)
 
 
 class ShellJobRunner(JobRunner):
+    """
+    Local script job runner, command line tools must be in path or specified as absolute path
 
+    """
     command = None
-    working_dir = '/tmp'
-    base_dir = '/usr/bin'
+    host = 'localhost'
+    _environ = None
+    _protocol = 'fork'
+    _connector = None
 
     def __init__(self, **kwargs):
         super(ShellJobRunner, self).__init__(**kwargs)
+        self._environ = os.environ.copy()
+        # current job Description
+        self._jd = None
+        # current job service
+        # self._connector = saga.job.Service(self.saga_host)
+        self._states_map = {
+            saga.job.UNKNOWN: waves.const.JOB_UNDEFINED,
+            saga.job.NEW: waves.const.JOB_CREATED,
+            saga.job.PENDING: waves.const.JOB_QUEUED,
+            saga.job.RUNNING: waves.const.JOB_RUNNING,
+            saga.job.SUSPENDED: waves.const.JOB_SUSPENDED,
+            saga.job.CANCELED: waves.const.JOB_CANCELLED,
+            saga.job.DONE: waves.const.JOB_COMPLETED,
+            saga.job.FAILED: waves.const.JOB_ERROR,
+        }
+
+    @property
+    def saga_host(self):
+        return '%s://%s' % (self._protocol, self.host)
+
+    @property
+    def session(self):
+        session = saga.Session()
+        if self.context:
+            session.add_context(self.context)
+        return session
+
+    @property
+    def context(self):
+        return None
+
+    def _connect(self):
+        self._connector = saga.job.Service(self.saga_host, session=self.session)
+        self._connected = self._connector is not None
+
+    def __load_job_description(self, job):
+        with open(os.path.join(job.working_dir, 'job_description.p'), 'r') as fp:
+            jd_dict = pickle.load(fp)
+        self._jd = saga.job.Description()
+        for key in jd_dict.keys():
+            setattr(self._jd, key, jd_dict[key])
+        return self._jd
+
+    def __dump_job_description(self, job, job_description):
+        with open(os.path.join(job.working_dir, 'job_description.p'), 'w+') as fp:
+            pickle.dump(job_description, fp)
+
+    def _job_description(self, job):
+        return dict(working_directory=job.working_dir,
+                    executable=self.command,
+                    arguments=job.command.get_command_line_element_list(job.job_inputs.all()),
+                    output=os.path.join(job.output_dir, job.stdout),
+                    error=os.path.join(job.output_dir, job.stderr)
+                    )
 
     @property
     def init_params(self):
-        return dict(command=self.command,
-                    working_dir=self.working_dir,
-                    base_dir=self.base_dir)
+        return dict(command=self.command)
 
-    def _run_job(self, job):
-        super(ShellJobRunner, self).run_job(job)
-
-    def _job_results(self, job):
-        super(ShellJobRunner, self).job_results(job)
-
-    def _connect(self):
-        super(ShellJobRunner, self).connect()
-
-    def _job_status(self):
-        return self.commandStatus
-
-    def _get_inputs(self, job):
-        # TODO retrieve job input params
-        pass
+    def _disconnect(self):
+        self._connector = None
+        self._connected = False
 
     def _prepare_job(self, job):
-        """
-        Prepare and setup up command parameters
-        :param job: the job object to prepare
-        :return: boolean
-        """
-        self.commandLine = self.command + ' '
-        for param in job.atgcjobinput_set.all():
-            self.commandLine += param.name + ' = ' if param.name else ''
-            self.commandLine += param.value + ' '
+        self.__dump_job_description(job, self._job_description(job))
 
+    def _run_job(self, job):
+        """
+        Launch the job with current parameters from associated history
+        Args:
+            job:
+        """
+        jd = self.__load_job_description(job)
+        logger.debug('JobInfo %s %s', jd, jd.__class__.__name__)
+        new_job = self._connector.create_job(jd)
+        new_job.run()
+        job.remote_job_id = new_job.id
 
     def _cancel_job(self, job):
-        raise Exception(u'A local command cannot be cancelled once launched')
+        """Jobs cannot be cancelled for Galaxy runners
+        """
+        the_job = self._connector.get_job(job.remote_job_id)
+        the_job.cancel()
 
-    def _disconnect(self, job):
-        self._connected = False
-        return self._connected
+    def _job_status(self, job):
+        the_job = self._connector.get_job(job.remote_job_id)
+        return the_job.state
 
-        # def connect(self, job):
-        #    self._connected = True
-        #    return self._connected
-
-    def _ready(self):
-        # TODO check shell availability ?
+    def _job_results(self, job):
+        # TODO check exit code from saga
         return True
+        pass
+
+    def _job_run_details(self, job):
+        # TODO get job run details from saga.job.attributes
+        pass

@@ -3,13 +3,14 @@ import logging
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.views import generic
+from django.db.models import Prefetch
+from django.contrib import messages
+
+import waves.const as const
+
 from waves.forms.services import ServiceJobForm
 from waves.exceptions import JobException
 from waves.models import ServiceCategory, Service
-from django.db.models import Prefetch
-import waves.const as const
-from django.contrib import messages
-
 from waves.views.jobs import logger
 
 logger = logging.getLogger(__name__)
@@ -31,7 +32,6 @@ class ServiceDetailView(generic.DetailView):
     template_name = 'services/service_details.html'
     context_object_name = 'service'
     queryset = Service.objects.all().prefetch_related("metas")
-    form_class = ServiceJobForm
     possible_submission = False
 
     def get_context_data(self, **kwargs):
@@ -75,37 +75,21 @@ class CategoryListView(generic.ListView):
         )
 
 
-class JobSubmissionView(generic.FormView, ServiceDetailView):
+class JobSubmissionView(ServiceDetailView, generic.FormView):
     template_name = 'services/service_form.html'
-    model = Service
+
     form_class = ServiceJobForm
     queryset = Service.objects.all().prefetch_related("service_inputs")
-    user = None
-
-    class Media:
-        css = {
-            'all': ('tabbed_admin/css/tabbed_admin.css',)
-        }
 
     def __init__(self, *args, **kwargs):
         super(JobSubmissionView, self).__init__(*args, **kwargs)
-        self.object = None
         self.job = None
-        # self.object = self.get_object()
-
-    def get_object(self):
-        return get_object_or_404(Service, pk=self.kwargs['pk'])
+        self.object = None
+        self.user = None
 
     def get(self, request, *args, **kwargs):
         self.user = self.request.user
-        self.object = self.get_object()
         return super(JobSubmissionView, self).get(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super(JobSubmissionView, self).get_context_data(**kwargs)
-        context['service'] = self.object
-        get_context_meta_service(context, self.object)
-        return context
 
     def get_form_kwargs(self):
         kwargs = super(JobSubmissionView, self).get_form_kwargs()
@@ -126,7 +110,6 @@ class JobSubmissionView(generic.FormView, ServiceDetailView):
     def form_valid(self, form):
         # create job in database
         ass_email = form.cleaned_data.pop('email')
-        job_title = form.cleaned_data.pop('title')
         if not ass_email and self.request.user.is_authenticated():
             ass_email = self.request.user.email
         user = self.request.user if self.request.user.is_authenticated() else None
@@ -134,8 +117,7 @@ class JobSubmissionView(generic.FormView, ServiceDetailView):
             self.job = Service.objects.create_new_job(service=self.object,
                                                       email_to=ass_email,
                                                       submitted_inputs=form.cleaned_data,
-                                                      user=user,
-                                                      title=job_title)
+                                                      user=user)
             messages.success(
                 self.request,
                 "Job successfully submitted"
