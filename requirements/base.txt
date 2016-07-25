@@ -1,9 +1,8 @@
-Django>=1.9.6
+Django==1.9.8
 MySQL-python==1.2.5
 Pillow==3.3.0
 PyJWT==1.4.1
 PyYAML==3.11
-Werkzeug==0.11.10
 apache-libcloud==1.1.0
 argparse==1.2.1
 bioblend==0.7.0
@@ -20,8 +19,7 @@ django-cors-headers==1.1.0
 django-countries==3.4.1
 django-crispy-forms==1.6.0
 django-crontab==0.7.1
-django-debug-toolbar==1.4
--e git://github.com/mvpdev/django-eav.git@f46e3433e743af3e43c28ca3abd84509e7e0b14f#egg=django_eav-master
+-e git://github.com/mvpdev/django-eav.git#egg=django_eav-master
 django-environ==0.4.0
 django-grappelli==2.8.1
 django-jquery==1.12.2
