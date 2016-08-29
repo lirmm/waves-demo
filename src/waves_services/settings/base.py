@@ -182,12 +182,3 @@ THUMBNAIL_DEBUG = DEBUG
 TEMPLATES[0]['OPTIONS'].update({'debug': DEBUG})
 # LOG FILE ROOT
 LOG_ROOT = ROOT_DIR + '/logs'
-# ---- LOGGING ----
-# -- Base root
-ROOT_LOG_LEVEL='ERROR'
-# -- Django framework
-DJANGO_LOG_LEVEL='WARNING'
-# -- Cron execution
-CRON_LOG_LEVEL='WARNING'
-# -- Waves app
-WAVES_LOG_LEVEL='WARNING'
