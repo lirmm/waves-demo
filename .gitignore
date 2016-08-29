@@ -81,3 +81,4 @@ Desktop.ini
 /db/waves.sav.sqlite3
 /staticfiles/
 
+/src/waves_services/settings/production.py

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% load staticfiles %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags waves_tags %}
 
 {% block title %}{{ block.super }}Home{% endblock %}
 
@@ -16,7 +16,7 @@
             <div class="row">
                 <div class="col-md-8 col-sm-8">
                     <h1>{% include "_brandname.html" %}</h1>
-                    <p>Bioinformatic online tools made easy</p>
+                    <p>{% get_app_verbose_name %}</p>
                     <a class="btn btn-primary" href="{% url 'waves:about' %}" role="button">More info</a>
                 </div>
                 <div class="col-md-4 col-sm-4">

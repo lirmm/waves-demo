@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from .base import *             # NOQA
 import logging.config
-
+ALLOWED_HOSTS = []
 # Cache the templates in memory for speed-up
 loaders = [
     ('django.template.loaders.cached.Loader', [
@@ -29,7 +29,7 @@ LOGGING = {
     'handlers': {
         'waves_log_file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': join(WAVES_LOG_ROOT, 'waves.log'),
+            'filename': join(LOG_ROOT, 'waves.log'),
             'formatter': 'verbose',
             'backupCount': 10,
             'maxBytes': 1024*1024*5
@@ -43,7 +43,7 @@ LOGGING = {
         },
         'django': {
             'handlers': ['waves_log_file'],
-            'level': env.str('DJANGO_LOG_LEVEL', default='WARNING'),
+            'level': 'WARNING',
         },
         'saga': {
             'handlers': ['waves_log_file'],
@@ -51,7 +51,7 @@ LOGGING = {
         },
         'waves': {
             'handlers': ['waves_log_file'],
-            'level': env.str('WAVES_LOG_LEVEL', default='WARNING'),
+            'level': 'WARNING',
         }
     }
 }

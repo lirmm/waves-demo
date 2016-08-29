@@ -23,7 +23,7 @@ LOGGING = {
         },
         'queue_log_file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': join(ROOT_DIR, 'logs', 'spool.log'),
+            'filename': join(LOG_ROOT, 'spool.log'),
             'formatter': 'verbose',
             'maxBytes': 1024*1024*5,
             'backupCount': 10

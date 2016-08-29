@@ -15,3 +15,12 @@ def get_admin_title():
     return waves.settings.WAVES_ADMIN_TITLE
 
 
+@register.simple_tag
+def get_app_verbose_name():
+    return waves.settings.WAVES_APP_VERBOSE_NAME
+
+
+@register.simple_tag
+def get_app_name():
+    return waves.settings.WAVES_APP_NAME
+

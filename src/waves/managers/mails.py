@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import logging
-# from django.conf import settings
+from django.conf import settings
 from mail_templated import send_mail
 import waves.settings
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class JobMailer(object):
             context = self.get_context_data()
             return send_mail(template_name=template, context=context, from_email=waves.settings.WAVES_SERVICES_EMAIL,
                              recipient_list=[self.job.email_to], subject='Job Submitted',
-                             fail_silently=not waves.settings.WAVES_DEBUG)
+                             fail_silently=not settings.DEBUG)
         else:
             # No mail sent since not activated (keep value returned at same type than send_mail
             return 0

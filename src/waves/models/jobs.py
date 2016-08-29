@@ -181,7 +181,7 @@ class Job(TimeStampable, SlugAble):
                     return nb_sent
                 except Exception as e:
                     logger.error('Unable to send mail : %s', e.message)
-                    if waves.settings.WAVES_DEBUG:
+                    if settings.DEBUG:
                         raise e
 
     def get_absolute_url(self):

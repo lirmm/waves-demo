@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from .base import * # NOQA
 
 import logging.config
+DEBUG = True
 # Django Debug Toolbar
 INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
 # vars().update(env.email(backend='django.core.mail.backends.smtp.EmailBackend'))
@@ -27,12 +28,12 @@ LOGGING = {
         },
         'queue_log_file': {
             'class': 'logging.FileHandler',
-            'filename': join(ROOT_DIR, 'logs', 'spool.log'),
+            'filename': join(LOG_ROOT, 'spool.log'),
             'formatter': 'verbose',
         },
         'waves_log_file': {
             'class': 'logging.FileHandler',
-            'filename': join(ROOT_DIR, 'logs', 'waves.log'),
+            'filename': join(LOG_ROOT, 'waves.log'),
             'formatter': 'verbose',
         },
     },
