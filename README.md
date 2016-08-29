@@ -1,4 +1,4 @@
-RAVEN services - Bioinformatic services web application 
+WAVES services - Bioinformatic services web application 
 =======================================================
 
 Authors
@@ -21,10 +21,10 @@ AngularJS
 Documentation
 -------------
 More Documentation can be found on :
-http://waves-bioinformatics.readthedocs.org/en/latest/
+http://waves-webapp.readthedocs.org/en/latest/
 
 Project home page:
-https://sourcesup.renater.fr/projects/waves/
+https://gite.lirmm.fr/waves/waves-webapp
 
 
 License
