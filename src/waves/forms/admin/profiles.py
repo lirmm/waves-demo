@@ -30,7 +30,7 @@ class UserForm(forms.ModelForm):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = APIProfile
-        fields = ['api_key', 'registered_for_api', 'comment', 'ip', 'country', 'comment', 'institution',
+        fields = ['api_key', 'registered_for_api', 'banned', 'comment', 'ip', 'country', 'comment', 'institution',
                   'restricted_services']
 
     filter_horizontal = ['restricted_services']

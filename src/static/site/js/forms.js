@@ -25,9 +25,11 @@ $(document).ready(function () {
             if ($(this).attr('dependent-4-value') == has_dep) {
                 $('#div_id_' + $(this).attr('name')).removeClass('hid_dep_parameter');
                 $('#tab_pane_' + $(this).attr('name')).removeClass('hid_dep_parameter');
+                $(this).removeAttr('disabled');
             } else {
                 $('#div_id_' + $(this).attr('name')).addClass('hid_dep_parameter');
                 $('#tab_pane_' + $(this).attr('name')).addClass('hid_dep_parameter');
+                $(this).attr('disabled', '');
             }
         });
     });

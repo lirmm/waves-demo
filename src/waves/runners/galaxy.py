@@ -16,7 +16,7 @@ import waves.const
 from waves.exceptions import RunnerConnectionError, RunnerNotReady
 from waves.models import JobOutput
 from waves.runners.runner import JobRunner
-
+import waves.settings
 logger = logging.getLogger(__name__)
 
 
@@ -36,9 +36,9 @@ class GalaxyJobRunner(JobRunner):
     - library_dir: remote library dir, where to place files in order to create galaxy histories
     """
 
-    host = getattr(settings, 'WAVES_GALAXY_URL', None)
-    port = getattr(settings, 'WAVES_GALAXY_PORT', None)
-    app_key = getattr(settings, 'WAVES_GALAXY_API_KEY', None)
+    host = getattr(waves.settings, 'WAVES_GALAXY_URL', None)
+    port = getattr(waves.settings, 'WAVES_GALAXY_PORT', None)
+    app_key = getattr(waves.settings, 'WAVES_GALAXY_API_KEY', None)
     library_dir = ""
     remote_tool_id = None
 
@@ -122,7 +122,8 @@ class GalaxyJobRunner(JobRunner):
                 job_input_file.save()
                 logger.debug(u'Remote dataset id ' + job_input_file.eav.galaxy_input_dataset_id + u' for ' +
                              job_input_file.name + u'(' + job_input_file.value + u')')
-                # TODO create a dataset_collection from "MULITPLE FILES" upload
+            if job.input_files.count() == 0:
+                logger.info("No inputs files for galaxy service ??? %s ", job)
             job.eav.galaxy_history_id = history.id
             job.message = 'Job prepared with %i args ' % job.job_inputs.count()
             logger.debug(u'History initialized [galaxy_history_id:' + job.eav.galaxy_history_id + u']')
@@ -150,7 +151,9 @@ class GalaxyJobRunner(JobRunner):
         """
         try:
             history = self._connector.histories.get(job.eav.galaxy_history_id)
+            print self._connector.tools.__class__
             galaxy_tool = self._connector.tools.get(id_=self.remote_tool_id)
+            logger.debug('Galaxy tool connector %s', galaxy_tool)
             if galaxy_tool:
                 logger.debug('Galaxy tool %s', galaxy_tool)
 
@@ -178,13 +181,12 @@ class GalaxyJobRunner(JobRunner):
                     logger.debug('Current output %s', remote_output)
                     logger.debug('Remote output details %s', output_data)
                     logger.debug('Remote output id %s', output_data['id'])
-                    # TODO merge this with objects oriented
                     try:
-                        job_related_output = job.job_outputs.get(name=remote_output)
+                        job_related_output = job.job_outputs.get(srv_output__name=remote_output)
                         job_related_output.eav.galaxy_output_dataset_id = output_data['id']
                     except ObjectDoesNotExist as e:
                         logger.warn('Output not retrieved from remote')
-                    job_output = JobOutput.objects.get(job=job, name=remote_output)
+                    job_output = JobOutput.objects.get(job=job, srv_output__name=remote_output)
                     job_output.eav.galaxy_output_dataset_id = output_data['id']
                     job_output.save()
                 for data_set in output_data_sets:
@@ -220,7 +222,6 @@ class GalaxyJobRunner(JobRunner):
         return remote_job.state
 
     def _job_results(self, job):
-        # TODO refactor this in a clean way !
         remote_job = self._connector.jobs.get(job.remote_job_id, full_details=True)
         if remote_job and remote_job.state == 'ok':
             logger.debug('Job info %s', remote_job)

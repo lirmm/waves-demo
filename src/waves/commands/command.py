@@ -1,11 +1,5 @@
 from __future__ import unicode_literals
 
-import logging
-
-from waves.models import Service, JobInput
-
-logger = logging.getLogger(__name__)
-
 
 class BaseCommand(object):
 

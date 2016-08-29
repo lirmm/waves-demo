@@ -15,7 +15,7 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'name', 'short_description', 'tools')
         lookup_field = 'name'
         extra_kwargs = {
-            'url': {'view_name': 'waves-services-category-detail', 'lookup_field': 'name'}
+            'url': {'view_name': 'waves:waves-services-category-detail', 'lookup_field': 'name'}
         }
         depth = 1
 

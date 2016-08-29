@@ -36,17 +36,36 @@ class JobListView(generic.ListView):
 
 
 class JobFileView(DownloadFileView):
+    context_object_name = "file_obj"
 
-    def get_file_name(self):
+    @property
+    def file_name(self):
         return self.object.value
 
-    def get_file_path(self):
+    @property
+    def file_path(self):
         return self.object.file_path
+
+    @property
+    def return_link(self):
+        return self.object.job.get_absolute_url()
 
 
 class JobOutputView(JobFileView):
     model = JobOutput
 
+    @property
+    def file_description(self):
+        return self.object.srv_output.short_description if self.object.srv_output else self.object.value
+
 
 class JobInputView(JobFileView):
     model = JobInput
+
+    @property
+    def file_name(self):
+        return self.object.srv_input.label if self.object.srv_input else self.object.value
+
+    @property
+    def file_description(self):
+        return self.object.srv_input.short_description if self.object.srv_input else self.object.value

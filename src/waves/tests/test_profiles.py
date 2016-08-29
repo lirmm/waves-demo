@@ -1,22 +1,22 @@
 from __future__ import unicode_literals
 
 from django.test import TestCase
-from django.core.urlresolvers import resolve, reverse
-from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 
 from waves.tests import WavesBaseTestCase
+import waves.const
 
 
 class PageOpenTestCase(TestCase):
     def test_home_page_exists(self):
-        url = reverse('home')
+        url = reverse('waves:home')
         r = self.client.get(url)
         self.assertEqual(r.status_code, 200)
 
     def test_about_page_exists(self):
-        url = reverse('about')
+        url = reverse('waves:about')
         r = self.client.get(url)
         self.assertEqual(r.status_code, 200)
 
@@ -31,7 +31,7 @@ class ProfileTestCase(WavesBaseTestCase):
         u.profile.registered_for_api = True
         u.save()
         self.assertIsNotNone(u.profile.api_key)
-        api_group = Group.objects.get(name=settings.WAVES_GROUP_API)
+        api_group = Group.objects.get(name=waves.const.WAVES_GROUP_API)
         self.assertIsNotNone(api_group)
         self.assertIn(api_group, u.groups.all())
 

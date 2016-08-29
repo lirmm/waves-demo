@@ -1,4 +1,5 @@
 from jobs import JobForm, JobInputForm, JobOutputForm
-from profiles import *
-from runners import *
-from services import *
+from profiles import UserForm, ProfileForm
+from runners import RunnerForm, RunnerParamForm
+from services import ServiceCategoryForm, ServiceInputBaseForm, ServiceInputForm, ServiceInputSampleForm, \
+    ServiceOutputForm, ServiceRunnerParamForm, ImportForm

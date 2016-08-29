@@ -8,7 +8,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 
 from waves.models import Job
-from waves.api.serializers import JobSerializer, JobInputSerializer, JobHistorySerializer, OutputSerializer
+from waves.api.serializers.jobs import JobSerializer, JobHistoryDetailSerializer, \
+    JobInputDetailSerializer, JobOutputDetailSerializer
 from . import WavesBaseView
 
 logger = logging.getLogger(__name__)
@@ -46,34 +47,37 @@ class JobViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Destro
     def destroy(self, request, slug=None, *args, **kwargs):
         queryset = Job.objects.get_user_job(user=request.user)
         service_job = get_object_or_404(queryset, slug=slug)
-        print slug
         return Response(self.get_serializer(request=request).data)
 
     def update(self, request, slug=None):
-        print slug
         return Response(self.get_serializer(request=request).data)
-        pass
 
     def partial_update(self, request, slug=None):
-        print slug
         return Response(self.get_serializer(request=request).data)
-        pass
 
     @detail_route(methods=['get'], url_path='history')
     def list_history(self, request, slug=None):
         queryset = Job.objects.get_user_job(user=request.user)
         job = get_object_or_404(queryset, slug=slug)
-        serializer = JobHistorySerializer(job.job_history.all()[:2],
-                                          many=True,
-                                          context={'request': request},
-                                          fields=['status', 'timestamp', 'message', ])
+        serializer = JobHistoryDetailSerializer(job,
+                                                many=False,
+                                                context={'request': request})
         return Response(serializer.data)
 
     @detail_route(methods=['get'], url_path='inputs')
     def list_inputs(self, request, slug=None):
         queryset = Job.objects.get_user_job(user=request.user)
         job = get_object_or_404(queryset, slug=slug)
-        serializer = JobInputSerializer(job.job_inputs,
-                                        many=True,
-                                        context={'request': request})
+        serializer = JobInputDetailSerializer(job,
+                                              many=False,
+                                              context={'request': request})
+        return Response(serializer.data)
+
+    @detail_route(methods=['get'], url_path='outputs')
+    def list_outputs(self, request, slug=None):
+        queryset = Job.objects.get_user_job(user=request.user)
+        job = get_object_or_404(queryset, slug=slug)
+        serializer = JobOutputDetailSerializer(job,
+                                               many=False,
+                                               context={'request': request})
         return Response(serializer.data)

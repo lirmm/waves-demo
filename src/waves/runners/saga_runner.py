@@ -13,6 +13,7 @@ class SagaJobRunner(JobRunner):
     @property
     def init_params(self):
         base = super(SagaJobRunner, self).init_params
+        return base
 
     @property
     def saga_protocol(self):

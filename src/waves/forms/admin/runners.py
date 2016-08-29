@@ -1,15 +1,16 @@
 from __future__ import unicode_literals
 
-from django.forms import ModelForm, Textarea, Select, TextInput, CheckboxInput, BooleanField
+from django.forms import ModelForm, Textarea, Select, TextInput, CheckboxInput, BooleanField, ChoiceField
 from django.utils.module_loading import import_string
 
 from waves.models import Runner, RunnerParam
-from waves.runners import get_implementation
+
 
 __all__ = ['RunnerForm', 'RunnerParamForm']
 
 
 def get_runners_list():
+    from waves.runners import get_implementation
     classes_list = [('', 'Select a implementation class...')]
     for class_name in get_implementation():
         clazz = import_string(class_name)

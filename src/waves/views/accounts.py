@@ -10,9 +10,11 @@ from django.contrib.auth import get_user_model
 from smtplib import SMTPException
 from django.core.urlresolvers import reverse_lazy
 from django.views import generic
+
 from registration.backends.hmac.views import RegistrationView, ActivationView as BaseActivationView
 
 from waves.forms.accounts import *
+import waves.settings
 User = get_user_model()
 
 
@@ -25,14 +27,14 @@ class LoginView(bracesviews.AnonymousRequiredMixin,
         redirect = super(LoginView, self).form_valid(form)
         remember_me = form.cleaned_data.get('remember_me')
         if remember_me is True:
-            ONE_MONTH = 30 * 24 * 60 * 60
-            expiry = getattr(settings, "KEEP_LOGGED_DURATION", ONE_MONTH)
+            one_month = 30 * 24 * 60 * 60
+            expiry = getattr(settings, "KEEP_LOGGED_DURATION", one_month)
             self.request.session.set_expiry(expiry)
         return redirect
 
 
 class LogoutView(authviews.LogoutView):
-    url = reverse_lazy('home')
+    url = reverse_lazy('waves:home')
 
     def get(self, *args, **kwargs):
         auth.logout(self.request)
@@ -48,14 +50,14 @@ class SignUpView(bracesviews.AnonymousRequiredMixin,
     form_class = SignupForm
     model = User
     template_name = 'accounts/signup.html'
-    success_url = reverse_lazy('accounts:registration_complete')
+    success_url = reverse_lazy('waves:registration_complete')
     form_valid_message = "You are now registered, don't forget to activate !"
     email_body_template = 'accounts/emails/activation_email.txt'
     email_subject_template = 'accounts/emails/activation_email_subject.txt'
-    disallowed_url = 'accounts:registration_disallowed'
+    disallowed_url = 'waves:registration_disallowed'
 
     def get_success_url(self, user):
-        return ('accounts:registration_complete', (), {})
+        return ('waves:registration_complete', (), {})
 
     @transaction.atomic()
     def create_inactive_user(self, form):
@@ -73,13 +75,13 @@ class SignUpView(bracesviews.AnonymousRequiredMixin,
             raise e
 
     def registration_allowed(self):
-        return settings.REGISTRATION_ALLOWED
+        return waves.settings.WAVES_REGISTRATION_ALLOWED
 
 
 class PasswordChangeView(authviews.PasswordChangeView):
     form_class = PasswordChangeForm
     template_name = 'accounts/password_change.html'
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('waves:home')
 
     def form_valid(self, form):
         form.save()
@@ -92,7 +94,7 @@ class PasswordChangeView(authviews.PasswordChangeView):
 class PasswordResetView(authviews.PasswordResetView):
     form_class = PasswordResetForm
     template_name = 'accounts/password_reset.html'
-    success_url = reverse_lazy('accounts:password-reset-done')
+    success_url = reverse_lazy('waves:password-reset-done')
     subject_template_name = 'accounts/emails/password_reset_subject.txt'
     email_template_name = 'accounts/emails/password_reset_email.html'
 
@@ -115,4 +117,4 @@ class ActivationView(BaseActivationView):
         return user
 
     def get_success_url(self, user):
-        return ('accounts:registration_activation_complete', (), {})
+        return ('waves:registration_activation_complete', (), {})

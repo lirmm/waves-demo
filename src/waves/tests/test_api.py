@@ -1,18 +1,19 @@
 from __future__ import unicode_literals
+
 import logging
 from urlparse import urlparse
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from waves.models import Job, Service
-from waves.tests import WavesBaseTestCase
-from waves.api.urls import router
 import waves.const
+from waves.models import Job
+from waves.tests import WavesBaseTestCase
+import waves.settings
 
 logger = logging.getLogger(__name__)
 AuthModel = get_user_model()
@@ -20,7 +21,7 @@ AuthModel = get_user_model()
 
 def _create_test_file(path, index):
     import os
-    full_path = os.path.join(settings.WAVES_DATA_ROOT, '_' + str(index) + '_' + path)
+    full_path = os.path.join(waves.settings.WAVES_DATA_ROOT, 'jobs', '_' + str(index) + '_' + path)
     f = open(full_path, 'w')
     f.write('sample content for input file %s' % ('_' + str(index) + '_' + path))
     f.close()
@@ -31,7 +32,7 @@ def _create_test_file(path, index):
 class WavesAPITestCase(APITestCase, WavesBaseTestCase):
     def setUp(self):
         super(WavesAPITestCase, self).setUp()
-        self.group_admin = Group.objects.get(name=settings.WAVES_GROUP_ADMIN)
+        self.group_admin = Group.objects.get(name=waves.const.WAVES_GROUP_ADMIN)
         self.super_user = AuthModel.objects.create(email='superadmin@waves.fr',
                                                    is_superuser=True)
         self.super_user.groups.add(self.group_admin)
@@ -43,7 +44,7 @@ class WavesAPITestCase(APITestCase, WavesBaseTestCase):
                                                  is_superuser=False)
         self.api_user.profile.registered_for_api = True
         self.api_user.save()
-        self.api_user.groups.add(Group.objects.get(name=settings.WAVES_GROUP_API))
+        self.api_user.groups.add(Group.objects.get(name=waves.const.WAVES_GROUP_API))
         self.users = {'api': self.api_user, 'admin': self.admin_user, 'root': self.super_user}
 
     def tearDown(self):
@@ -64,12 +65,12 @@ class WavesAPITestCase(APITestCase, WavesBaseTestCase):
 
 class ServiceTests(WavesAPITestCase):
     def test_api_key(self):
-        api_root = self.client.get(reverse('api-root'), data=self._dataUser('root'))
+        api_root = self.client.get(reverse('waves:api-root'), data=self._dataUser('root'))
         self.assertEqual(api_root.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(api_root.data), 3)
 
     def test_list_services(self):
-        tool_list = self.client.get(reverse('waves-services-list'),
+        tool_list = self.client.get(reverse('waves:waves-services-list'),
                                     data=self._dataUser('admin'),
                                     format='json')
         self.assertEqual(tool_list.status_code, status.HTTP_200_OK)
@@ -84,11 +85,14 @@ class ServiceTests(WavesAPITestCase):
 
     def test_list_categories(self):
         category_list = self.client.get(
-            reverse('waves-services-category-list'), data=self._dataUser())
+            reverse('waves:waves-services-category-list'), data=self._dataUser())
         self.assertEqual(category_list.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(category_list.data), 2)
         for category in category_list.data:
             self.assertGreaterEqual(category['tools'], 1)
+
+    def testHTTPMethods(self):
+        pass
 
 
 class JobTests(WavesAPITestCase):
@@ -98,9 +102,10 @@ class JobTests(WavesAPITestCase):
         """
         import random
         import string
-        logger.debug('Retrieving service-list from ' + reverse('waves-services-list'))
-        tool_list = self.client.get(reverse('waves-services-list'), data=self._dataUser())
+        logger.debug('Retrieving service-list from ' + reverse('waves:waves-services-list'))
+        tool_list = self.client.get(reverse('waves:waves-services-list'), data=self._dataUser())
         self.assertEqual(tool_list.status_code, status.HTTP_200_OK)
+        self.assertGreater(len(tool_list.data), 0)
         for servicetool in tool_list.data:
             logger.debug('Creating job submission for %s %s', servicetool['name'], str(servicetool['version']))
             # for each servicetool retrieve inputs
@@ -128,21 +133,23 @@ class JobTests(WavesAPITestCase):
                     input_data = ''.join(random.sample(string.letters, 15))
                     # input_datas[job_input['name']] = input_data
                     logger.debug('text input %s', input_data)
+                else:
+                    input_data = ''.join(random.sample(string.letters, 15))
+                    logger.warn('default ???? %s %s', input_data, job_input['type'])
                 input_datas[job_input['name']] = input_data
 
             logger.debug('Data posted %s', input_datas)
             logger.debug('To => %s', servicetool['url'])
             o = urlparse(servicetool['url'])
             path = o.path.split('/')
-            response = self.client.post(reverse('waves-services-jobs',
+            response = self.client.post(reverse('waves:waves-services-jobs',
                                                 kwargs={'api_name': path[-2]}),
                                         data=self._dataUser(initial=input_datas),
                                         format='multipart')
             logger.debug(response)
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
             job = Job.objects.all().order_by('-created').first()
-            print job
+            logger.debug(job)
 
     def test_update_job(self):
         pass
@@ -160,27 +167,29 @@ class JobTests(WavesAPITestCase):
         jobs_params = self._loadServiceJobsParams(api_name='physic_ist')
         for submitted_input in jobs_params:
             logger.debug('Data posted %s', submitted_input)
-            response = self.client.post(reverse('waves-services-jobs',
+            response = self.client.post(reverse('waves:waves-services-jobs',
                                                 kwargs={'api_name': 'physic_ist'}),
                                         data=self._dataUser(initial=submitted_input),
                                         format='multipart')
             logger.debug(response)
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-            job_details = self.client.get(reverse('waves-jobs-detail',
+            job_details = self.client.get(reverse('waves:waves-jobs-detail',
                                                   kwargs={'slug': response.data['slug']}),
                                           data=self._dataUser())
             self.assertEqual(job_details.status_code, status.HTTP_200_OK)
             job = Job.objects.get(slug=response.data['slug'])
             self.assertIsInstance(job, Job)
+            self.assertEqual(job.status, waves.const.JOB_CREATED)
 
     def testMissingParam(self):
         jobs_params = self._loadServiceJobsParams(api_name='physic_ist')
-        for submitted_input in jobs_params:
-            logger.debug('Data posted %s', submitted_input)
-            submitted_input.pop('')
-            response = self.client.post(reverse('services-jobs',
-                                                kwargs={'api_name': 'physic_ist'}),
-                                        data=self._dataUser(initial=submitted_input),
-                                        format='multipart')
-            logger.debug(response)
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        submitted_input = jobs_params[0]
+        submitted_input.pop('s')
+        logger.debug('Data posted %s', submitted_input)
+
+        response = self.client.post(reverse('waves:waves-services-jobs',
+                                            kwargs={'api_name': 'physic_ist'}),
+                                    data=self._dataUser(initial=submitted_input),
+                                    format='multipart')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        logger.info(response)

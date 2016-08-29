@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import logging
-import inspect
 
 __all__ = ['log_func_details']
 
@@ -18,10 +17,6 @@ def log_func_details(func):
         logger.info('//-- end %s', '.'.join([func.__module__, func.__name__]))
         return returned
     return decorate
-
-
-def service_sample_directory(instance, filename):
-    return 'sample/{0}/{1}'.format(instance.service.api_name, filename)
 
 
 def normalize(value):

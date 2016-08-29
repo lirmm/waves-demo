@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import logging
 
 from authtools.admin import NamedUserAdmin
 from django.contrib import admin
@@ -8,13 +9,14 @@ from waves.forms.admin import ProfileForm
 from waves.models.profiles import APIProfile
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class UserProfileInline(admin.StackedInline):
     model = APIProfile
     form = ProfileForm
     extra = 0
-    fields = ['api_key', 'registered_for_api', 'ip', 'country', 'institution', 'restricted_services',
+    fields = ['api_key', 'registered_for_api', 'banned', 'ip', 'country', 'institution', 'restricted_services',
               'comment']
     readonly_fields = ('api_key',)
 
@@ -34,7 +36,8 @@ def resend_activation_email(modeladmin, request, queryset):
             regview.send_activation_email(usr)
             messages.add_message(request, level=messages.SUCCESS, message="Mail(s) successfully sent")
         except Exception as e:
-            messages.add_message(request, level=messages.ERROR, message="Mail not sent %s" % e.message)
+            messages.add_message(request, level=messages.ERROR, message="Mail not sent %s" % e)
+            logger.error('Error sending mail %s', e)
 
 
 class NewUserAdmin(NamedUserAdmin):

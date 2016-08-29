@@ -1,0 +1,87 @@
+{% extends "services/base.html" %}
+
+{% block container %}
+    <div id="sec1" class="text-page">
+        <div class="container">
+            {% include 'services/_service_head.html' with service=service %}
+        </div><!-- /.container -->
+    </div>
+    <div id="sec2" class="container">
+        <div class="row">
+            <div class="col-md-8">
+                {% block service_body %}
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title ">
+                                <span class="text-primary">{{ service.name }} v{{ service.version }}</span>
+                            </h3>
+                        </div>
+                        <div class="panel-body">
+                            {{ service.description|safe }}
+                            <!-- Meta features -->
+                            <dl>
+                                {% for meta in service_feat %}
+                                    {% if forloop.first %}
+                                        <h4 class="text-primary">{{ meta }}</h4>
+                                    {% else %}
+                                        <dt>{{ meta.value }}</dt>
+                                        <dd>
+                                            <pre>{{ meta.description|safe }}</pre>
+                                        </dd>
+                                    {% endif %}
+                                {% endfor %}
+                            </dl>
+                            {% if service.api_on %}
+                                <p class="text-right">
+                                    This service is available on API calls
+                                    <a href="{% url 'waves:signup' %}" class="btn btn-default">Register for api</a>
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="panel-footer text-right">
+                            Last update {{ service.updated }}
+                        </div>
+                    </div>
+                {% endblock service_body %}
+            </div>
+            <div class="col-md-4">
+                {% block service_cold %}
+                    <div class="panel-group" id="panel-102030">
+                        {% for meta in service_website %}
+                            {% include 'services/_service_link_panel.html' with meta=meta title=service_meta_title_website forloop=forloop open=True %}
+                        {% endfor %}
+                        {% for meta in service_doc %}
+                            {% include 'services/_service_link_panel.html' with meta=meta title=service_meta_title_doc forloop=forloop open=False %}
+                        {% endfor %}
+                        {% for meta in service_download %}
+                            {% include 'services/_service_link_panel.html' with meta=meta title=service_meta_title_download forloop=forloop open=False %}
+                        {% endfor %}
+                        {% for meta in service_rtfm %}
+                            {% include 'services/_service_link_panel.html' with meta=meta title=service_meta_title_rtfm forloop=forloop open=False %}
+                        {% endfor %}
+                    </div>
+                    {% block job_submission %}
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title ">
+                                <span class="text-primary">Online execution</span>
+                            </h3>
+                        </div>
+                        <div class="panel-body text-right">
+                            {% if service.run_on.available %}
+                                <a class="btn btn-primary" href="{% url 'waves:job_submission' service.id %}">Access
+                                    form</a>
+                            {% else %}
+                                <div class="alert alert-info text-center">
+                                    <i>Submission is not available at the moment</i>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endblock %}
+                {% endblock service_cold %}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,13 +1,9 @@
 from __future__ import unicode_literals
-
-import logging
-
-from django.db import transaction
-from django.conf import settings
-
 import waves.const
 from waves.exceptions import *
-from waves.models import Job, JobInput, JobOutput
+from waves.models import Job
+
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +34,7 @@ class JobRunner(object):
                 setattr(self, name, value)
         except AttributeError as e:
             raise RunnerUnexpectedInitParam('Unexpected init param %s ' % e)
-        self._initialized = all(self.init_params)
+        self._initialized = all(init_param is not None for init_param in self.init_params)
 
     @property
     def init_params(self):
@@ -62,9 +58,9 @@ class JobRunner(object):
         :return: _connector reference or raise an ConnectionException
         """
         if self.connected:
+            logger.debug('Already connected to %s', self._connector)
             return self._connector
         else:
-            logger.info('Try re-connect')
             try:
                 self._connect()
             except Exception as exc:
@@ -72,7 +68,7 @@ class JobRunner(object):
                 self._connected = False
                 raise RunnerConnectionError(str(exc), 'Connect')
             finally:
-                # TODO code needed here ?
+                # TODO add retry capability
                 pass
         return self._connector
 

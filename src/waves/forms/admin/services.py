@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 from django import forms
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.forms import ModelForm, Textarea
 from django.core import validators
@@ -12,6 +11,7 @@ from waves.commands import get_commands_impl_list
 from waves.models import ServiceMeta, ServiceInput, RelatedInput, ServiceOutput, \
     ServiceCategory, Service, ServiceRunnerParam, ServiceInputSample
 import waves.const as const
+import waves.settings
 
 __all__ = ['ServiceForm', 'ServiceCategoryForm', 'ImportForm']
 
@@ -97,8 +97,6 @@ class ServiceInputBaseForm(forms.ModelForm):
         super(ServiceInputBaseForm, self).__init__(*args, **kwargs)
         if not self.instance.type == const.TYPE_LIST:
             self.fields['display'].widget = forms.HiddenInput()
-        if self.instance.type == const.TYPE_LIST:
-            self.fields['default'].widget = forms.Select(choices=self.instance.get_choices())
 
 
 class ServiceInputForm(ServiceInputBaseForm):
@@ -115,18 +113,20 @@ class ServiceInputForm(ServiceInputBaseForm):
         cleaned_data = super(ServiceInputForm, self).clean()
         if self.instance.editable is False and not cleaned_data.get('default', False):
             raise ValidationError('Non editable fields must have a default value')
+        cleaned_data.pop('baseinput_ptr', None)
         return cleaned_data
 
 
 class RelatedInputForm(ServiceInputBaseForm):
     class Meta(ServiceInputBaseForm.Meta):
-        fields = ServiceInputBaseForm.Meta.fields + ['when_value']
+        fields = ServiceInputBaseForm.Meta.fields + ['when_value', 'related_to']
+        exclude = ['baseinput_ptr']
         model = RelatedInput
         widgets = ServiceInputBaseForm.Meta.widgets
 
     def save(self, commit=True):
-        self.cleaned_data['service_id'] = self.instance.related_to.service.pk
-        self.instance.service = self.instance.related_to.service
+        # self.cleaned_data['service_id'] = self.instance.related_to.service.pk
+        # self.instance.service = self.instance.related_to.service
         return super(RelatedInputForm, self).save(commit)
 
     def __init__(self, *args, **kwargs):
@@ -136,6 +136,11 @@ class RelatedInputForm(ServiceInputBaseForm):
                 self.fields['when_value'] = forms.ChoiceField(choices=self.instance.related_to.get_choices())
         except ObjectDoesNotExist:
             pass
+
+    def clean(self):
+        cleaned_data = super(RelatedInputForm, self).clean()
+        cleaned_data.pop('baseinput_ptr', None)
+        return cleaned_data
 
 
 class ServiceInputSampleForm(forms.ModelForm):
@@ -152,9 +157,10 @@ class ServiceOutputForm(forms.ModelForm):
     class Meta:
         model = ServiceOutput
         exclude = ['id']
-        fields = ['name', 'from_input', 'description']
+        fields = ['name', 'from_input', 'description', 'short_description']
         widgets = {
             'description': Textarea(attrs={'rows': 1, 'class': 'input-xlarge'}),
+            'short_description': Textarea(attrs={'rows': 1, 'class': 'input-xlarge'}),
         }
 
 
@@ -167,29 +173,23 @@ class ServiceForm(forms.ModelForm):
         model = Service
         fields = ('__all__')
         widgets = {
-            # 'description': RedactorWidget(editor_options={'lang': 'en', 'maxWidth': '500', 'minHeight': '100'}),
             'clazz': forms.Select(choices=get_commands_impl_list()),
         }
 
     def __init__(self, *args, **kwargs):
         super(ServiceForm, self).__init__(*args, **kwargs)
         self.fields['restricted_client'].label = "Restrict access to specified user"
-        if not settings.WAVES_NOTIFY_RESULTS:
+        if not waves.settings.WAVES_NOTIFY_RESULTS:
             self.fields['email_on'].widget.attrs['readonly'] = True
             self.fields['email_on'].help_text = '<span class="warning">Disabled by main configuration</span><br/>' \
                                                 + self.fields['email_on'].help_text
             pass
 
     def clean_email_on(self):
-        if not settings.WAVES_NOTIFY_RESULTS:
+        if not waves.settings.WAVES_NOTIFY_RESULTS:
             return self.instance.email_on
         else:
             return self.cleaned_data.get('email_on')
-
-    def clean(self):
-        # TODO add check if running jobs are currently running, to disable any modification of runner / inputs / outputs
-        cleaned_data = super(ServiceForm, self).clean()
-        return cleaned_data
 
 
 class ServiceRunnerParamForm(ModelForm):

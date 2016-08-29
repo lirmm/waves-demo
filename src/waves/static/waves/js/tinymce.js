@@ -5,5 +5,6 @@ tinymce.init({
     selector: '#id_description',
     resize: true,
     min_width: 350,
-    width:650
+    width:650,
+    themes: "inlite",
 });

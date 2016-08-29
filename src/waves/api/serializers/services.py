@@ -14,7 +14,7 @@ class InputSerializer(DynamicFieldsModelSerializer):
         model = ServiceInput
         fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'description', 'multiple')
         extra_kwargs = {
-            'url': {'view_name': 'waves-services-detail', 'lookup_field': 'api_name'}
+            'url': {'view_name': 'waves:waves-services-detail', 'lookup_field': 'api_name'}
         }
 
     format = serializers.SerializerMethodField()
@@ -26,7 +26,7 @@ class InputSerializer(DynamicFieldsModelSerializer):
         super(InputSerializer, self).__init__(instance, data, **kwargs)
 
     def to_representation(self, instance):
-        if instance.dependent_inputs.count() > 0:
+        if hasattr(instance, 'dependent_inputs') and instance.dependent_inputs.count() > 0:
             representation = ConditionalInputSerializer(instance, context=self.context).to_representation(instance)
         else:
             representation = super(InputSerializer, self).to_representation(instance)
@@ -75,10 +75,10 @@ class ServiceSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsMod
     class Meta:
         model = Service
         fields = ('url', 'category', 'name', 'version', 'created', 'short_description',
-                  'jobs_uri', 'inputs', 'metas')
+                  'jobs', 'inputs', 'metas')
         lookup_field = 'api_name'
         extra_kwargs = {
-            'url': {'view_name': 'waves-services-detail', 'lookup_field': 'api_name'}
+            'url': {'view_name': 'waves:waves-services-detail', 'lookup_field': 'api_name'},
         }
 
     metas = MetaSerializer(many=True,
@@ -88,13 +88,13 @@ class ServiceSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsMod
                              source='base_inputs')
     category = serializers.HyperlinkedRelatedField(many=False,
                                                    read_only=True,
-                                                   view_name='waves-services-category-detail',
+                                                   view_name='waves:waves-services-category-detail',
                                                    lookup_field='name')
-    jobs_uri = serializers.SerializerMethodField()
+    jobs = serializers.SerializerMethodField()
 
-    def get_jobs_uri(self, obj):
-        return '%s%s' % (
-            Site.objects.get_current().domain, reverse('waves-services-jobs', kwargs={'api_name': obj.api_name}))
+    def get_jobs(self, obj):
+        return 'http://%s%s' % (
+            Site.objects.get_current().domain, reverse('waves:waves-services-jobs', kwargs={'api_name': obj.api_name}))
 
 
 class ServiceJobSerializer(serializers.ModelSerializer):
@@ -102,7 +102,16 @@ class ServiceJobSerializer(serializers.ModelSerializer):
         model = Job
         fields = ('client', 'service')
 
+    def validate(self, attrs):
+        print 'validate call', attrs
+        return super(ServiceJobSerializer, self).validate(attrs)
+
+    def run_validation(self, data=empty):
+        print "run validation", data
+        return super(ServiceJobSerializer, self).run_validation(data)
+
     def is_valid(self, raise_exception=False):
+        print 'validation data ', self.initial_data
         return super(ServiceJobSerializer, self).is_valid(raise_exception)
 
     def create(self, validated_data):

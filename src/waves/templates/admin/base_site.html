@@ -1,5 +1,5 @@
 {% extends "admin/base.html" %}
-{% load i18n grp_tags admin_static %}
+{% load i18n waves_tags admin_static %}
 
 {% block admin_title %}
     <div id="grp-admin-brand">
@@ -19,7 +19,6 @@
 {% endblock extrastyle %}
 
 {% block extrahead %}
-    <script src="{% static 'waves/waves.js' %}"></script>
     <link rel="shortcut icon" type="image/png" href="{% static 'site/ico/favicon.png' %}"/>
 {% endblock %}
 

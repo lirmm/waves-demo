@@ -7,6 +7,7 @@ from django.core import mail
 from waves.tests import WavesBaseTestCase, settings, override_settings
 from waves.models import Job, JobInput, JobOutput, Service
 import waves.const
+import waves.settings
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,6 @@ class JobMailTest(WavesBaseTestCase):
         logger.info('EMAIL_BACKEND: %s', settings.EMAIL_BACKEND)
 
     def test_mail_job(self):
-        # TODO add method in parent to create 'x' time jobs
         job = Job.objects.create(
             service=Service.objects.create(name='Sample Service', email_on=True),
             email_to='marc@fake.com')
@@ -30,33 +30,43 @@ class JobMailTest(WavesBaseTestCase):
         job.job_inputs.add(JobInput.objects.create(name="param3", value="Value3", job=job))
         job.job_outputs.add(JobOutput.objects.create(name="out1", value="out1", job=job))
         job.job_outputs.add(JobOutput.objects.create(name="out2", value="out2", job=job))
-        job.status = waves.const.JOB_CREATED
         job.status_time = timezone.datetime.now()
+        job.check_send_mail()
         self.assertEqual(len(mail.outbox), 1)
         sent_mail = mail.outbox[-1]
         self.assertTrue(job.service.name in sent_mail.subject)
         self.assertEqual(job.email_to, sent_mail.to[0])
-        self.assertEqual(settings.WAVES_SERVICES_EMAIL, sent_mail.from_email)
+        self.assertEqual(waves.settings.WAVES_SERVICES_EMAIL, sent_mail.from_email)
         logger.debug('Mail subject: %s', sent_mail.subject)
         logger.debug('Mail from: %s', sent_mail.from_email)
         logger.debug('Mail content: \n%s', sent_mail.body)
         job.status = waves.const.JOB_COMPLETED
-        job.save()
+        # job.save()
+        job.check_send_mail()
         # no more mails
         self.assertEqual(len(mail.outbox), 1)
 
         job.status = waves.const.JOB_TERMINATED
-        job.save()
+        # job.save()
+        job.check_send_mail()
         self.assertEqual(len(mail.outbox), 2)
         sent_mail = mail.outbox[-1]
         logger.debug('Mail subject: %s', sent_mail.subject)
         logger.debug('Mail from: %s', sent_mail.from_email)
         logger.debug('Mail content: \n%s', sent_mail.body)
         job.status = waves.const.JOB_ERROR
-        job.save()
+        # job.save()
+        job.check_send_mail()
         self.assertEqual(len(mail.outbox), 3)
         sent_mail = mail.outbox[-1]
         logger.debug('Mail subject: %s', sent_mail.subject)
         logger.debug('Mail from: %s', sent_mail.from_email)
         logger.debug('Mail content: \n%s', sent_mail.body)
-        pass
+        job.status = waves.const.JOB_CANCELLED
+        # job.save()
+        job.check_send_mail()
+        self.assertEqual(len(mail.outbox), 4)
+        sent_mail = mail.outbox[-1]
+        logger.debug('Mail subject: %s', sent_mail.subject)
+        logger.debug('Mail from: %s', sent_mail.from_email)
+        logger.debug('Mail content: \n%s', sent_mail.body)

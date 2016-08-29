@@ -30,7 +30,8 @@ class ToolRunnerImporter(object):
             self._runner = service.runner
         else:
             logger.debug("New Service from runner")
-            self._service = Service.objects.create(name='New imported service', run_on=runner_model)
+            self._service = Service.objects.create(name='New imported service', run_on=runner_model,
+                                                   api_name='new_imported_service', version="1.0")
             self._runner = runner_model.runner
         self._update = (self._service is None)
 
@@ -61,6 +62,7 @@ class ToolRunnerImporter(object):
         logger.debug('Import service %i exit codes ', len(exit_codes))
         self._service.service_exit_codes.all().delete()
         self._service.service_exit_codes.set(exit_codes, bulk=False, clear=True)
+        return self._service
 
     def _update_service(self, details):
         raise NotImplementedError

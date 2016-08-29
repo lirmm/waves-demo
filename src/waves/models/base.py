@@ -1,9 +1,26 @@
 from __future__ import unicode_literals
-from django.db import models
 import uuid
+from django.db import models
+
+from django.conf import settings
+if 'ckeditor' not in settings.INSTALLED_APPS:
+    class RichTextField(models.TextField):
+        pass
+else:
+    # If ckeditor enabled, use RichTextField, if not, define simply TextField subclass
+    from ckeditor.fields import RichTextField
+
+__all__ = ['TimeStampable', 'OrderAble', 'DescribeAble', 'SlugAble']
 
 
 class TimeStampable(models.Model):
+    """
+    Time stamped models objects, add :
+    - "created" (auto_now_add)
+    - "updated" (auto_now)
+    fields to Models objects
+    """
+
     class Meta:
         abstract = True
         ordering = ['-updated', '-created']
@@ -19,6 +36,10 @@ class TimeStampable(models.Model):
 
 
 class OrderAble(models.Model):
+    """
+    Order-able models objects, ordered with "order" field (Positive Integer default 0)
+    """
+
     class Meta:
         abstract = True
         ordering = ['order']
@@ -27,21 +48,30 @@ class OrderAble(models.Model):
 
 
 class DescribeAble(models.Model):
+    """
+    Add description and short_description field to models Objects
+    - Description will accept
+
+    """
+
     class Meta:
         abstract = True
 
-    description = models.TextField('Description',
-                                   null=True,
-                                   blank=True,
-                                   help_text='Full description (HTML enabled)')
+    description = RichTextField('Description',
+                                null=True,
+                                blank=True,
+                                help_text='Full description (HTML enabled)')
     short_description = models.TextField('Short Description',
                                          null=True,
                                          blank=True,
                                          help_text='Short description (Text only)')
 
 
-
 class SlugAble(models.Model):
+    """
+    Add a 'slug' field to models Objects, based on uuid.uuid1 field generator
+    """
+
     class Meta:
         abstract = True
 

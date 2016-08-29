@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import saga
 from local import ShellJobRunner
+from waves.runners.sge import SGEJobRunner
 
 
 class SshJobRunner(ShellJobRunner):
@@ -77,3 +78,22 @@ class SshUserPassJobRunner(SshJobRunner):
         ctx.user_id = self.user_id
         ctx.user_pass = self.user_pass
         return ctx
+
+
+class SGEOverSSHRunner(SGEJobRunner, SshUserPassJobRunner):
+    _protocol = 'sge+ssh'
+
+    @property
+    def init_params(self):
+        base = super(SGEJobRunner, self).init_params
+        base.update(super(SshJobRunner, self).init_params)
+        return base
+
+    def _job_description(self, job):
+
+        dir_name = 'sftp://' + self.host + "/$HOME/sge_runs/"
+        work_dir = saga.filesystem.Directory(dir_name, saga.filesystem.READ,
+                                                    self.session)
+        jd = super(SGEJobRunner, self)._job_description(job)
+        jd.update(dict(queue=self.queue, working_directory='/$HOME/sge_runs/'))
+        return jd

@@ -3,12 +3,11 @@ from __future__ import unicode_literals
 import logging
 import bioblend
 import six
-import json
 from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.objects import galaxy_instance as galaxy
-from django.conf import settings
 
 import waves.const
+import waves.settings
 from waves.runners.importer import ToolRunnerImporter
 from waves.models.services import ServiceInputFormat
 from waves.models import RelatedInput, ServiceOutput, ServiceInput, Service
@@ -38,7 +37,8 @@ class GalaxyToolImporter(ToolRunnerImporter):
     def _update_service(self, details):
         self._service.short_description = self._get_input_value(details.wrapped, 'description',
                                                                 self._service.short_description)
-        self._service.name = details.name
+        self._service.name = details.name + ' (Import From Galaxy)'
+        self._service.status = waves.const.SRV_DRAFT
         self._service.version = details.version
         self._service.set_api_name()
         # check whether another service exists with same generated api_name
@@ -151,6 +151,7 @@ class GalaxyToolImporter(ToolRunnerImporter):
                                        type=waves.const.TYPE_LIST,
                                        service=self._service)
             conditional = self._import_param(tool_input['test_param'], conditional)
+            logger.debug('Test param %s', tool_input['test_param'])
             conditional.save()
             conditional_inputs.append(conditional)
 
@@ -250,7 +251,7 @@ class GalaxyWorkFlowImporter(GalaxyToolImporter):
         wl = self._tool_client.get(id_=tool_id)
         wc = bioblend.galaxy.workflows.WorkflowClient(self._tool_client.gi)
         wc.export_workflow_to_local_path(workflow_id=tool_id,
-                                         file_local_path=settings.WAVES_DATA_ROOT + '/' + tool_id + '.json',
+                                         file_local_path=waves.settings.WAVES_DATA_ROOT + '/' + tool_id + '.json',
                                          use_default_filename=False)
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('inputs %s', wl.inputs)

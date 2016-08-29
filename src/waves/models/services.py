@@ -1,20 +1,20 @@
 from __future__ import unicode_literals
-
 import logging
 import os
 
 from django import forms
-from django.conf import settings
 from django.db import models, transaction
 from mptt.models import MPTTModel, TreeForeignKey
+from polymorphic.models import PolymorphicModel
 
 import waves.const
 import waves.managers.services as managers
+import waves.settings
+
 from waves.models.base import TimeStampable, DescribeAble, OrderAble
 from waves.models.profiles import APIProfile
 from waves.models.runners import RunnerParam, Runner
-from waves.utils import service_sample_directory, set_api_name
-
+from waves.utils import set_api_name
 logger = logging.getLogger(__name__)
 
 
@@ -157,7 +157,7 @@ class Service(TimeStampable, DescribeAble):
         ordering = ['name']
         db_table = 'waves_service'
         verbose_name = 'Service'
-        unique_together = ('api_name', 'category', 'version', 'status')
+        unique_together = ('api_name', 'version', 'status')
 
     # manager
     objects = managers.ServiceManager()
@@ -219,9 +219,10 @@ class Service(TimeStampable, DescribeAble):
                                    default=True,
                                    help_text='This service sends notification email')
 
-    partial = models.BooleanField('Allow retrieval of partial results',
+    # TODO CHANGE THIS TO LIST (Non dynamic, Dynamics, dynamics + redirect output to dir
+    partial = models.BooleanField('Dynamic outputs',
                                   default=False,
-                                  help_text='Set whether this service has outputs while still running')
+                                  help_text='Set whether some service outputs are dynamic (not known in advance)')
 
     def __str__(self):
         return "%s v(%s)" % (self.name, self.version)
@@ -287,14 +288,15 @@ class Service(TimeStampable, DescribeAble):
 
     @property
     def base_inputs(self):
-        return self.service_inputs.filter(relatedinput=None)
+        return self.service_inputs.all()
 
     def allow_partial(self):
         return self.partial is True
 
     @transaction.atomic
     def duplicate(self):
-        service_inputs = self.service_inputs.filter(relatedinput=None)
+        from waves.models.samples import service_sample_directory
+        service_inputs = self.service_inputs.filter()
         service_outputs = self.service_outputs.all()
         service_metas = self.metas.all()
         service_exit_codes = self.service_exit_codes.all()
@@ -318,42 +320,45 @@ class Service(TimeStampable, DescribeAble):
         for srv_input in service_inputs:
             logger.debug('Duplicate input %s ', srv_input)
             dependents = None
-            if srv_input.dependent_inputs.count() > 0:
-                logger.debug('Input has dependents !!!! %i', srv_input.dependent_inputs.count())
-                dependents = srv_input.dependent_inputs.all()
             srv_input.pk = None
             srv_input.service = self
-            srv_input.save()
-            if dependents:
+            # srv_input.save()
+            self.service_inputs.add(srv_input)
+            if srv_input.dependent_inputs.count() > 0:
+                dependents = srv_input.dependent_inputs.all()
                 logger.debug('Duplicate dependents parameters ')
                 for dep_input in dependents:
                     logger.debug('dep_input %s', dep_input)
                     dep_input.pk = None
                     dep_input.related_to = srv_input
                     dep_input.service = self
-                    dep_input.save()
+                    #       dep_input.save()
+                    self.service_inputs.add(dep_input)
             else:
                 logger.debug("No Dependency")
         # Duplicates outputs
         for srv_output in service_outputs:
             logger.debug('Duplicate output %s ', srv_output)
             srv_output.pk = None
-            # TODO manage this relationship to set it up with new related input
-            srv_output.from_input = None
+            from_input_name = srv_output.from_input.name
+            srv_output.from_input = next((x for x in self.service_inputs if x.value == from_input_name), None)
             srv_output.service = self
-            srv_output.save()
+            # srv_output.save()
+            self.service_outputs.add(srv_output)
         # Duplicate Metas
         for srv_meta in service_metas:
             logger.debug('Duplicate meta %s ', srv_meta)
             srv_meta.pk = None
             srv_output.service = self
-            srv_meta.save()
+            # srv_meta.save()
+            self.metas.add(srv_meta)
         # Duplicate exit codes
         for srv_exit_code in service_exit_codes:
             logger.debug('Duplicate exitcode %s ', srv_exit_code)
             srv_exit_code.pk = None
             srv_output.service = self
-            srv_exit_code.save()
+            # srv_exit_code.save()
+            self.service_exit_codes.add(srv_exit_code)
         # Duplicate samples
         import shutil
         import os
@@ -365,87 +370,49 @@ class Service(TimeStampable, DescribeAble):
             destination = service_sample_directory(srv_sample, os.path.basename(srv_sample.file.name))
 
             logger.debug('copy from %s to %s : %s ', srv_sample.file.path,
-                         settings.WAVES_SAMPLE_DIR + '/' + self.api_name, destination)
-            shutil.copy(srv_sample.file.path, settings.WAVES_SAMPLE_DIR + '/' + self.api_name)
+                         waves.settings.WAVES_SAMPLE_DIR + '/' + self.api_name, destination)
+            shutil.copy(srv_sample.file.path, waves.settings.WAVES_SAMPLE_DIR + '/' + self.api_name)
             srv_sample.file = destination
             srv_sample.input = ServiceInput.objects.get(name=srv_sample.input.name, service__pk=old_pk)
             if srv_sample.dependent_input:
                 srv_sample.dependent_input = ServiceInput.objects.get(name=srv_sample.dependent_input.name,
                                                                       service__pk=old_pk)
             srv_sample.save()
+            self.services_sample.add(srv_sample)
         return self
 
     @property
     def sample_dir(self):
-        return os.path.join(settings.WAVES_SAMPLE_DIR, self.api_name)
+        return os.path.join(waves.settings.WAVES_SAMPLE_DIR, self.api_name)
 
 
-class ServiceInput(DescribeAble, TimeStampable, OrderAble):
+class BaseInput(PolymorphicModel, DescribeAble, TimeStampable, OrderAble):
     class Meta:
-        db_table = 'waves_service_input'
-        verbose_name = 'Input parameter'
-        ordering = ['order']
+        db_table = 'waves_service_base_input'
+        unique_together = ('label', 'name', 'default', 'service')
 
-    label = models.CharField('Label',
-                             max_length=100,
-                             blank=False,
-                             null=False,
-                             help_text='Input displayed label')
-    name = models.CharField('Name',
-                            max_length=50,
-                            blank=False,
-                            null=False,
-                            help_text='Input runner\'s job param name')
-    default = models.CharField('Default',
-                               max_length=255,
-                               null=True,
-                               blank=True,
+    label = models.CharField('Label', max_length=100, blank=False, null=False, help_text='Input displayed label')
+    name = models.CharField('Name', max_length=50, blank=False, null=False, help_text='Input runner\'s job param name')
+    default = models.CharField('Default', max_length=255, null=True, blank=True,
                                help_text='Input runner\'s job param default value')
-    type = models.CharField('Control Type',
-                            choices=waves.const.IN_TYPE,
-                            null=False,
-                            default=waves.const.TYPE_TEXT,
-                            max_length=15,
-                            help_text='Input Form generation/control')
-    param_type = models.IntegerField('Parameter Type',
-                                     choices=waves.const.OPT_TYPE,
-                                     default=waves.const.OPT_TYPE_POSIX,
+    type = models.CharField('Control Type', choices=waves.const.IN_TYPE, null=False, default=waves.const.TYPE_TEXT,
+                            max_length=15, help_text='Input Form generation/control')
+    param_type = models.IntegerField('Parameter Type', choices=waves.const.OPT_TYPE, default=waves.const.OPT_TYPE_POSIX,
                                      help_text='Input type (used in command line)')
-    format = models.CharField('Type format',
-                              null=True,
-                              max_length=500,
-                              blank=True,
+    format = models.CharField('Type format', null=True, max_length=500, blank=True,
                               help_text='ONE PER LINE<br/>'
                                         'For File: fileExt...<br/>'
                                         'For List: label|value ..."<br/>'
                                         'For Number(optional]: min|max<br/>'
                                         'For Boolean(optional): labelTrue|LabelFalse')
-    service = models.ForeignKey(Service,
-                                related_name='service_inputs',
-                                on_delete=models.CASCADE)
-    mandatory = models.BooleanField('Mandatory',
-                                    default=False,
-                                    help_text='Input needs a value to submit job')
-    multiple = models.BooleanField('Multiple',
-                                   default=False,
-                                   help_text='Input may be multiple values')
-    editable = models.BooleanField('Submitted by user',
-                                   default=True,
+    mandatory = models.BooleanField('Mandatory', default=False, help_text='Input needs a value to submit job')
+    multiple = models.BooleanField('Multiple', default=False, help_text='Input may be multiple values')
+    editable = models.BooleanField('Submitted by user', default=True,
                                    help_text='Input is displayed for job submission if checked')
-    display = models.CharField('List display type',
-                               choices=waves.const.LIST_DISPLAY_TYPE,
-                               default='select',
-                               max_length=100,
-                               null=True,
-                               blank=True,
+    display = models.CharField('List display type', choices=waves.const.LIST_DISPLAY_TYPE, default='select',
+                               max_length=100, null=True, blank=True,
                                help_text='Input list display mode (for type list only)')
-
-    def save(self, *args, **kwargs):
-        if self.type == waves.const.TYPE_LIST:
-            if self.display == waves.const.DISPLAY_RADIO:
-                self.multiple = False
-
-        super(ServiceInput, self).save(*args, **kwargs)
+    service = models.ForeignKey(Service, related_name='service_inputs', on_delete=models.CASCADE)
 
     def get_choices(self):
         choice_list = []
@@ -476,45 +443,74 @@ class ServiceInput(DescribeAble, TimeStampable, OrderAble):
         else:
             return None
 
-    def __str__(self):
-        return '%s (%s)' % (self.label, self.type)
-
     @property
     def eval_default(self):
         if self.type == waves.const.TYPE_BOOLEAN:
             return bool(eval(self.default)) if self.default else False
         return self.default
 
+    def clean(self):
+        """
+        Base clean for all service input
+        Returns:
+
+        """
+        if not (self.display or self.default):
+            # param is mandatory
+            raise forms.ValidationError(
+                'Not displayed parameters must have a default value %s:%s' % (self.name, self.label))
+            # TODO add mode base controls
+
+    def __str__(self):
+        return '%s (%s - %s)' % (self.label, self.name, self.type)
+
+
+class ServiceInput(BaseInput):
+    class Meta:
+        db_table = 'waves_service_input'
+        verbose_name = 'Base Input parameter'
+        proxy = True
+
+    def save(self, *args, **kwargs):
+        if self.type == waves.const.TYPE_LIST:
+            if self.display == waves.const.DISPLAY_RADIO:
+                self.multiple = False
+
+        super(ServiceInput, self).save(*args, **kwargs)
+
+    def __init__(self, *args, **kwargs):
+        super(ServiceInput, self).__init__(*args, **kwargs)
+        self.__original_type = self.type
+
     # TODO use validators already made (and better made)
     def clean(self):
         """
-        Form validation in backoffice when creating service Input (check consistency for list / boolean values / integer
+        Form validation when creating service Input (check consistency for list / boolean values / integer
         and float default values
             Returns:
                 None
         """
-        if self.type == waves.const.TYPE_BOOLEAN:
-            self.default = self.default if self.default else "False"
-            try:
-                bool(eval(self.default))
-            except Exception:
-                raise forms.ValidationError('Default value is not a valid boolean value : False|True')
-        elif self.type == waves.const.TYPE_INTEGER:
+        if self.type != self.__original_type:
             if self.default:
-                try:
-                    int(eval(self.default))
-                except Exception:
-                    raise forms.ValidationError('Default value is not a valid int value')
-        elif self.type == waves.const.TYPE_FLOAT:
-            if self.default:
-                try:
-                    float(eval(self.default))
-                except Exception:
-                    raise forms.ValidationError('Default value is not a valid float value: X.Y')
-        elif self.type == waves.const.TYPE_LIST:
-            if self.default:
-                if not any(e[0] == self.default for e in self.get_choices()):
-                    raise forms.ValidationError('Default value is not in possible values')
+                # validate default value given according to parameter type
+                if self.type == waves.const.TYPE_BOOLEAN:
+                    try:
+                        bool(eval(self.default))
+                    except Exception:
+                        raise forms.ValidationError('Default value is not a valid boolean value : False|True')
+                elif self.type == waves.const.TYPE_INTEGER:
+                    try:
+                        int(eval(self.default))
+                    except Exception:
+                        raise forms.ValidationError('Default value is not a valid int value')
+                elif self.type == waves.const.TYPE_FLOAT:
+                    try:
+                        float(eval(self.default))
+                    except Exception:
+                        raise forms.ValidationError('Default value is not a valid float value: X.Y')
+                elif self.type == waves.const.TYPE_LIST:
+                    if not any(e[0] == self.default for e in self.get_choices()):
+                        raise forms.ValidationError('Default value is not in possible values')
         super(ServiceInput, self).clean()
 
     def get_value_for_choice(self, value):
@@ -525,11 +521,10 @@ class ServiceInput(DescribeAble, TimeStampable, OrderAble):
         return None
 
 
-class RelatedInput(ServiceInput):
+class RelatedInput(BaseInput):
     class Meta:
         verbose_name = 'Dependent parameter'
-        db_table = 'waves_service_conditional_when'
-        # unique_together = ('when_value', 'related_to')
+        db_table = 'waves_service_related_input'
 
     when_value = models.CharField('When condition',
                                   max_length=255,
@@ -539,6 +534,7 @@ class RelatedInput(ServiceInput):
     related_to = models.ForeignKey(ServiceInput,
                                    related_name="dependent_inputs",
                                    on_delete=models.CASCADE,
+                                   null=False,
                                    help_text='Input is associated to')
 
     def get_value_for_choice(self, value):
@@ -553,8 +549,9 @@ class ServiceExitCode(models.Model):
     class Meta:
         db_table = 'waves_service_exitcode'
         verbose_name = 'Service Exit Code'
+        unique_together = ('exit_code', 'service')
 
-    exit_code = models.IntegerField('Exit code value', primary_key=True)
+    exit_code = models.IntegerField('Exit code value')
     message = models.CharField('Exit code message', max_length=255)
     service = models.ForeignKey(Service, related_name='service_exit_codes',
                                 on_delete=models.CASCADE)
@@ -579,12 +576,12 @@ class ServiceOutput(TimeStampable, OrderAble, DescribeAble):
                                 related_name='service_outputs',
                                 on_delete=models.CASCADE,
                                 help_text='Output associated service')
-    from_input = models.OneToOneField(ServiceInput,
-                                      null=True,
-                                      blank=True,
-                                      related_name='to_output',
-                                      help_text='Output is valued from an input',
-                                      primary_key=False)
+    from_input = models.ForeignKey(BaseInput,
+                                   null=True,
+                                   blank=True,
+                                   related_name='to_output',
+                                   help_text='Output is valued from an input',
+                                   primary_key=False)
     ext = models.CharField('File extension', max_length=5, null=False, default=".txt")
     may_be_empty = models.BooleanField('May be empty', default=True)
 
@@ -608,6 +605,7 @@ class ServiceMeta(OrderAble, DescribeAble):
     class Meta:
         db_table = 'waves_service_meta'
         verbose_name = 'Service Meta information'
+        unique_together = ('type', 'title', 'value')
 
     type = models.CharField('Meta type', max_length=100, choices=waves.const.SERVICE_META)
     title = models.CharField('Meta title', max_length=255, blank=True, null=True)

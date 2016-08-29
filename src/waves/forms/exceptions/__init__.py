@@ -1,6 +1,5 @@
+from __future__ import unicode_literals
 from waves.exceptions import WavesException
-
-
 __all__ = ['WrongFieldDescriptionException', 'NoInputException']
 
 

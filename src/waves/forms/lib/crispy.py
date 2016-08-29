@@ -1,9 +1,6 @@
 from __future__ import unicode_literals
-
 from crispy_forms.helper import FormHelper as BaseFormHelper
-
 from crispy_forms.layout import *
-
 from waves.forms.lib import BaseHelper
 from crispy_forms.utils import get_template_pack
 
@@ -52,25 +49,27 @@ class FormHelper(BaseFormHelper, BaseHelper):
         field_id = "id_" + service_input.name
         dependent_on = ""
         dependent_4_value = ""
-        if service_input.dependent_inputs.count() > 0:
+        if hasattr(service_input, 'dependent_inputs') and service_input.dependent_inputs.count() > 0:
             css_class = "has_dependent"
+        field_dict = dict(
+            css_class=css_class,
+            id=field_id,
+            title=service_input.description,
+        )
         if hasattr(service_input, 'related_to'):
             field_id += '_' + service_input.related_to.name + '_' + service_input.when_value
             dependent_on = service_input.related_to.name
             dependent_4_value = service_input.when_value
+            field_dict.update(dict(dependent_on=service_input.related_to.name,
+                                   dependent_4_value=service_input.when_value))
             when_value = form.data.get(service_input.related_to.name, service_input.related_to.default)
             if service_input.when_value != when_value:
                 wrapper_class = "hid_dep_parameter"
+                field_dict.update(dict(wrapper_class="hid_dep_parameter", disabled="disabled"))
             else:
                 wrapper_class = "dis_dep_parameter"
-        input_field = Field(service_input.name,
-                            css_class=css_class,
-                            id=field_id,
-                            title=service_input.description,
-                            wrapper_class=wrapper_class,
-                            dependent_on=dependent_on,
-                            dependent_4_value=dependent_4_value
-                            )
+                field_dict.update(dict(wrapper_class="dis_dep_parameter"))
+        input_field = Field(service_input.name, **field_dict)
         if service_input.type == const.TYPE_FILE and not service_input.multiple:
             cp_input_field = Field('cp_' + service_input.name, css_id='id_'+'cp_' + service_input.name)
             tab_input = Tab(

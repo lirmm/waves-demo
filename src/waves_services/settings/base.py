@@ -1,35 +1,15 @@
-"""
-Django settings for waves project.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/dev/topics/settings/
-
-For the full list of settings and their values, see
-https://docs.djangoproject.com/en/dev/ref/settings/
-"""
 from __future__ import unicode_literals
-
-import sys
-from django.core.urlresolvers import reverse_lazy
-from os.path import dirname, join, exists
-from django.contrib import messages
 import environ
-# Build paths inside the project like this: join(BASE_DIR, "directory")
-if 'env' not in vars():
-    env = environ.Env()
-    ENV = environ.Env()
-    root = environ.Path(__file__) - 4
-    # Ideally move env file should be outside the git repo
-    # i.e. BASE_DIR.parent.parent.config
-    ENV_FILE = join(str(root.path('config')), 'waves.env')
-    if exists(ENV_FILE):
-        environ.Env.read_env(str(ENV_FILE))
-    else:
-        raise RuntimeError('Unable to process WAVES environment data')
+from os.path import dirname, join, exists
+from django.core.urlresolvers import reverse_lazy
 
+env = environ.Env()
+root = environ.Path(__file__) - 4
+
+ROOT_DIR = str(root.path())
 BASE_DIR = str(root.path('src'))
-MEDIA_ROOT = env.str('MEDIA_ROOT', str(root.path('media')))
-MEDIA_URL = env.str('MEDIA_URL', "/media/")
+MEDIA_ROOT = str(root.path('media'))
+MEDIA_URL = '/media/'
 # Use Django templates using the new Django 1.8 TEMPLATES settings
 TEMPLATES = [
     {
@@ -37,7 +17,7 @@ TEMPLATES = [
         'DIRS': [
             join(BASE_DIR, 'templates'),
             # insert more TEMPLATE_DIRS here
-            join(BASE_DIR, 'waves', 'templates'),
+            # join(BASE_DIR, 'waves', 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -58,22 +38,23 @@ TEMPLATES = [
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # Raises ImproperlyConfigured exception if SECRET_KEY not in os.environ
-SECRET_KEY = env.str('SECRET_KEY')
+SECRET_KEY = env.str('SECRET_KEY', "You-should-consider-setting-a-secret-key")
 
 # Application definition
 INSTALLED_APPS = (
+    'polymorphic',
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'authtools',
-    'grappelli',
     'tabbed_admin',
+    'grappelli',
     'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'bootstrap_themes',
-    # WAVES dependencies
+    # WAVES required dependencies
+    # 'django-log-file-viewer',
     'mptt',
     'eav',
     'nested_admin',
@@ -82,15 +63,13 @@ INSTALLED_APPS = (
     'crispy_forms',
     'easy_thumbnails',
     'mail_templated',
-    # WAVES APPS
-    'waves',
-    'waves.api',
-    'waves.accounts',
-    'waves.profiles',
-    # WAVES API dependencies
+    'waves.apps.WavesApp',
     'rest_framework',
     'corsheaders',
     'rest_framework_docs',
+    # WAVES optional dependencies
+    'ckeditor',
+    'bootstrap_themes',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -105,8 +84,9 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'waves_services.urls'
 
+# DATABASE configuration
 DATABASES = {
-    'default': env.db(),
+    'default': env.db(default='sqlite:///' + ROOT_DIR + '/db/waves.sample.sqlite3'),
 }
 
 WSGI_APPLICATION = 'waves_services.wsgi.application'
@@ -119,49 +99,44 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = env.bool('USE_TZ')
+USE_TZ = True
 
 STATICFILES_DIRS = [
     join(BASE_DIR, 'static'),
-    join(BASE_DIR, 'waves', 'static')
+    # join(BASE_DIR, 'waves', 'static')
 ]
 STATIC_URL = '/static/'
 STATIC_ROOT = join(dirname(BASE_DIR), 'staticfiles')
 
-BOOTSTRAP_THEME = 'darkly'
+################################################
+#    --------- WAVES CONFIGURATION ---------   #
+################################################
+# Bootstrap theme default
+# BOOTSTRAP_THEME = 'darkly'
 
-# Crispy Form Theme - Bootstrap 3
-CRISPY_TEMPLATE_PACK = 'bootstrap3'
-
-MESSAGE_TAGS = {
-    messages.SUCCESS: 'success success',
-    messages.WARNING: 'warning warning',
-    messages.ERROR: 'danger error'
-}
-
+# Crispy Configuration
+CRISPY_TEMPLATE_PACK = 'trucmuche'
+# WAVES_ENV_FILE = 'waves333.env'
 # Authentication Settings
 AUTH_USER_MODEL = 'authtools.User'
-LOGIN_REDIRECT_URL = reverse_lazy("profiles:show_self")
-LOGIN_URL = reverse_lazy("accounts:login")
 
+# Thumbnails configuration
 THUMBNAIL_EXTENSION = 'png'  # Or any extn for your thumbnails
 THUMBNAIL_MEDIA_ROOT = MEDIA_ROOT
 
-ACCOUNT_ACTIVATION_DAYS = 7
-REGISTRATION_SALT = 'waves-registration-salt'
-REGISTRATION_ALLOWED = True
+# Two step registration configuration
 
-GRAPPELLI_ADMIN_TITLE = 'WAVES Services Administration'
+# GRAPPELLI configuration
+# GRAPPELLI_ADMIN_TITLE = 'WAVES Services Administration'
 
+# Django countries configuration
 COUNTRIES_FIRST = [
     'FR',
     'GB',
-    'US'
+    'US',
+    'DE'
 ]
 
-# Site admin
-SITE_ID = 1
-JET_SIDE_MENU_COMPACT = True
 # DRF Configuration
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
@@ -170,15 +145,14 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ],
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'waves.api.authentication.auth.WavesAPI_KeyAuthBackend',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 'waves.api.authentication.auth.WavesAPI_KeyAuthBackend',
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-    ),
+    ],
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
-        'rest_framework.parsers.FormParser',
         'rest_framework.parsers.FormParser',
         'rest_framework_xml.parsers.XMLParser',
         'rest_framework.parsers.MultiPartParser',
@@ -191,15 +165,23 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
 
-# FileUploads
+# File Upload configuration
 FILE_UPLOAD_HANDLERS = [
     "django.core.files.uploadhandler.TemporaryFileUploadHandler"
 ]
-
 FILE_UPLOAD_MAX_MEMORY_SIZE = 0
 
-TEST_RUNNER = 'waves.tests.runner.WavesTestRunner'
-# RE-CAPTCHA
-RECAPTCHA_PUBLIC_KEY = '6LdLZx0TAAAAAIzYJQMcB5YPcWAg2fBKy5NI3QmK'
-RECAPTCHA_PRIVATE_KEY = '6LdLZx0TAAAAADyqVdsZrkJleprRg-sW18yJsL3g'
+# Default Site id
+SITE_ID = 1
+# TODO add recaptcha for registration
+
+# Tabbed Admin configuration
 TABBED_ADMIN_USE_JQUERY_UI = False
+# DEBUG
+DEBUG = env.bool('DEBUG', default=False)
+THUMBNAIL_DEBUG = DEBUG
+TEMPLATES[0]['OPTIONS'].update({'debug': DEBUG})
+# LOG FILE ROOT
+WAVES_LOG_ROOT = env.str('WAVES_LOG_ROOT', default=ROOT_DIR + '/logs')
+if DEBUG:
+    print "loaded settings from base"

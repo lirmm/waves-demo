@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 
 import nested_admin
+from django.conf import settings
 from django.contrib import admin, messages
 from django.template.defaultfilters import truncatechars
 from django.contrib.admin import StackedInline
 from grappelli.forms import GrappelliSortableHiddenMixin
-from tabbed_admin import TabbedModelAdmin
 from mptt.admin import MPTTModelAdmin
 
 import waves.const
@@ -14,6 +14,14 @@ from waves.forms.admin.services import ServiceMetaForm, ServiceOutputForm, Servi
     ServiceCategoryForm, ServiceInputForm, RelatedInputForm, ServiceInputSampleForm
 from waves.models import ServiceMeta, ServiceOutput, ServiceInput, RelatedInput, \
     Service, ServiceRunnerParam, ServiceCategory, Runner, ServiceExitCode, ServiceInputSample
+
+if 'tabbed_admin' in settings.INSTALLED_APPS:
+    from tabbed_admin import TabbedModelAdmin
+    admin_template = 'tabbed_change_form.html'
+else:
+    class TabbedModelAdmin(admin.ModelAdmin):
+        pass
+    admin_template = 'change_form.html'
 
 
 class ServiceMetaInline(GrappelliSortableHiddenMixin, admin.TabularInline):
@@ -25,6 +33,7 @@ class ServiceMetaInline(GrappelliSortableHiddenMixin, admin.TabularInline):
     classes = ('grp-collapse grp-open',)
     fields = ['type', 'title', 'value', 'description', 'order']
     sortable_field_name = "order"
+    is_nested = False
 
 
 class ServiceOutputInline(GrappelliSortableHiddenMixin, admin.TabularInline):
@@ -34,7 +43,8 @@ class ServiceOutputInline(GrappelliSortableHiddenMixin, admin.TabularInline):
     extra = 0
     classes = ('grp-collapse grp-open',)
     sortable_field_name = "order"
-    fields = ['name', 'from_input', 'description', 'may_be_empty', 'order']
+    is_nested = False
+    fields = ['name', 'from_input', 'short_description', 'description', 'may_be_empty', 'order']
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == 'from_input':
@@ -50,6 +60,7 @@ class ServiceRunnerParamInLine(admin.TabularInline):
     suit_classes = 'suit-tab suit-tab-runner'
     can_delete = False
     readonly_fields = ['param']
+    is_nested = False
 
     def get_max_num(self, request, obj=None, **kwargs):
         if obj is not None:
@@ -75,6 +86,7 @@ class ServiceSampleInline(admin.TabularInline):
     form = ServiceInputSampleForm
     extra = 0
     fk_name = 'service'
+    is_nested = False
 
     def get_field_queryset(self, db, db_field, request):
         field_queryset = super(ServiceSampleInline, self).get_field_queryset(db, db_field, request)
@@ -85,37 +97,36 @@ class ServiceSampleInline(admin.TabularInline):
         return field_queryset
 
 
-class ServiceWhenInline(nested_admin.NestedStackedInline):
+class RelatedInputInline(nested_admin.NestedStackedInline, StackedInline):
     model = RelatedInput
     form = RelatedInputForm
-    extra = 1
+    extra = 0
     sortable = 'order'
     fk_name = 'related_to'
+    readonly_fields = ['baseinput_ptr']
     sortable_excludes = ('order', )
 
     def has_add_permission(self, request):
         return True
 
 
-class ServiceInputInline(GrappelliSortableHiddenMixin, nested_admin.NestedStackedInline, StackedInline):
+class ServiceInputInline(GrappelliSortableHiddenMixin, nested_admin.NestedStackedInline):
     model = ServiceInput
     form = ServiceInputForm
     sortable = 'order'
     extra = 0
     fk_name = 'service'
     classes = ('grp-collapse', 'grp-open')
-    inlines = [ServiceWhenInline, ]
+    inlines = [RelatedInputInline, ]
+    # readonly_fields = ['baseinput_ptr']
     sortable_field_name = "order"
-
-    def get_queryset(self, request):
-        qs = super(ServiceInputInline, self).get_queryset(request)
-        return qs.filter(relatedinput=None)
 
 
 class ServiceExitCodeInline(admin.TabularInline):
     model = ServiceExitCode
     extra = 1
     fk_name = 'service'
+    is_nested = False
     classes = ('grp-collapse', 'grp-open')
 
 
@@ -149,7 +160,6 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, TabbedModelAdmin, TinyMCEAdmin
         css = {
             'all': ('tabbed_admin/css/tabbed_admin.css',)
         }
-
     actions = [duplicate_in_mass, mark_public]
 
     inlines = (
@@ -160,14 +170,12 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, TabbedModelAdmin, TinyMCEAdmin
         ServiceExitCodeInline,
         ServiceSampleInline,
     )
-    change_form_template = 'admin/waves/service/change_form.html'
+    change_form_template = 'admin/waves/service/' + admin_template
     form = ServiceForm
     filter_horizontal = ['restricted_client']
     readonly_fields = ['created', 'updated']
     list_display = ('name', 'api_name', 'api_on', 'version', 'run_on', 'status')
     list_filter = ('status', 'name', 'run_on')
-
-
     tab_overview = (
         (None, {
             'fields': ['category', 'name', 'status', 'run_on', 'version',
@@ -181,7 +189,12 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, TabbedModelAdmin, TinyMCEAdmin
     )
     tab_runner = (ServiceRunnerParamInLine,)
     tab_inputs = (ServiceInputInline,)
-    tab_outputs = (ServiceOutputInline, ServiceExitCodeInline)
+    tab_outputs = (
+        (None, {
+            'fields': ['partial']
+        }),
+        ServiceOutputInline,
+        ServiceExitCodeInline)
     tab_metas = (ServiceMetaInline,)
     tab_samples = (ServiceSampleInline,)
     tabs = [

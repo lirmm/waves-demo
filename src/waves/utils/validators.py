@@ -79,13 +79,15 @@ class ServiceInputValidator(object):
     def _validate_input_int(self, the_input, value):
         assert the_input.type == waves.const.TYPE_INTEGER
         self.specific_message = 'value %s is not a valid integer' % value
+        if not the_input.mandatory and value is None:
+            return True
         try:
             int(value)
             if the_input.format:
                 # TODO check min max
                 pass
             return True
-        except ValueError:
+        except TypeError:
             return False
 
     def _validate_input_number(self, the_input, value):
@@ -94,13 +96,15 @@ class ServiceInputValidator(object):
     def _validate_input_float(self, the_input, value):
         assert the_input.type == waves.const.TYPE_FLOAT
         self.specific_message = 'value %s is not a valid float' % value
+        if not the_input.mandatory and value is None:
+            return True
         try:
             float(value)
             if the_input.format:
                 # TODO check min max
                 pass
             return True
-        except ValueError:
+        except TypeError:
             return False
 
     def _validate_input_select(self, the_input, value):

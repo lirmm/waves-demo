@@ -1,7 +1,11 @@
+from __future__ import unicode_literals
 """
 Constant used in Waves webapps
 """
-from __future__ import unicode_literals
+WAVES_GROUP_ADMIN = 'WAVES_ADMIN'
+WAVES_GROUP_API = 'WAVES_API_USER'
+WAVES_GROUP_USER = 'WAVES_WEB_USER'
+
 
 META_WEBSITE = 'website'
 META_DOC = 'doc'
@@ -37,11 +41,11 @@ JOB_CANCELLED = 7
 JOB_ERROR = 9
 
 STR_JOB_UNDEFINED = 'Unknown'
-STR_JOB_CREATED = 'New'
+STR_JOB_CREATED = 'Created'
 STR_JOB_PREPARED = 'Prepared for run'
 STR_JOB_QUEUED = 'Queued'
 STR_JOB_RUNNING = 'Running'
-STR_JOB_COMPLETED = 'Completed'
+STR_JOB_COMPLETED = 'Run completed'
 STR_JOB_TERMINATED = 'Done'
 STR_JOB_CANCELLED = 'Cancelled'
 STR_JOB_SUSPENDED = 'Suspended'

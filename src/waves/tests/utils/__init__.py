@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django.conf import settings
+import waves.settings
 
 
 def assertion_tracker(func):
@@ -18,4 +18,4 @@ def assertion_tracker(func):
 
 
 def get_sample_dir():
-    return settings.WAVES_DATA_ROOT
+    return waves.settings.WAVES_DATA_ROOT

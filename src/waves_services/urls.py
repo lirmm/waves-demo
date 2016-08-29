@@ -19,19 +19,9 @@ from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
 
-import waves.views.base
-
-# handler404 = 'waves.views.base.Template404View'
-# handler500 = 'waves.views.base.Template500View'
-
 urlpatterns = [
-    url(r'^$', waves.views.base.HomePage.as_view(), name='home'),
-    url(r'^about/$', waves.views.base.AboutPage.as_view(), name='about'),
-    url(r'^waves/', include('waves.urls', namespace='waves')),
-    url(r'^api/', include('waves.api.urls')),
-    url(r'^users/', include('waves.profiles.urls', namespace='profiles')),
-    url(r'^accounts/', include('waves.accounts.urls', namespace='accounts')),
-    url(r'^grappelli/', include('grappelli.urls')),  # grappelli URLS
+    url(r'^', include('waves.urls.urls', namespace='waves')),
     url(r'^nested_admin/', include('nested_admin.urls')),
+    url(r'^grappelli/', include('grappelli.urls')),  # grappelli URLS
     url(r'^admin/', include(admin.site.urls)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

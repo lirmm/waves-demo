@@ -14,8 +14,6 @@ class DownloadFileView(generic.DetailView):
     context_object_name = 'file'
     slug_field = 'slug'
     http_method_names = ['get', ]
-    file_name = 'fake.txt'
-    file_path = '/dev/null'
 
     def __init__(self, **kwargs):
         super(DownloadFileView, self).__init__(**kwargs)
@@ -27,17 +25,37 @@ class DownloadFileView(generic.DetailView):
             """
         # Sniff if we need to return a CSV export
         if 'export' in self.request.GET:
-            wrapper = FileWrapper(file(self.get_file_path()))
+            wrapper = FileWrapper(file(self.file_path))
             response = HttpResponse(wrapper, content_type='application/force-download')
-            response['Content-Disposition'] = 'attachment; filename="' + self.get_file_name() + '"'
-            response['X-Sendfile'] = smart_str(self.get_file_path())
-            response['Content-Length'] = os.path.getsize(self.get_file_path())
+            response['Content-Disposition'] = 'attachment; filename="' + self.file_name + '"'
+            response['X-Sendfile'] = smart_str(self.file_path)
+            response['Content-Length'] = os.path.getsize(self.file_path)
             return response
         else:
             return super(DownloadFileView, self).render_to_response(context, **response_kwargs)
 
-    def get_file_name(self):
-        return self.file_name
+    def get_context_data(self, **kwargs):
+        context = super(DownloadFileView, self).get_context_data(**kwargs)
+        if 'export' not in self.request.GET:
+            with open(self.file_path) as fp:
+                context['file_content'] = fp.read()
+            context['return_link'] = self.return_link
+            context['file_description'] = self.file_description
+            context['file_name'] = self.file_name
+        return context
 
-    def get_file_path(self):
-        return self.file_path
+    @property
+    def return_link(self):
+        return "#"
+
+    @property
+    def file_description(self):
+        return ""
+
+    @property
+    def file_name(self):
+        return "Fake.txt"
+
+    @property
+    def file_path(self):
+        return "/dev/null"

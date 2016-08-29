@@ -109,3 +109,6 @@ span.success{
     font-weight: bold;
     color: #28b62c;
 }
+.restricted_services .selector .selector-filter input[type="text"]{
+    width:75% !important
+}

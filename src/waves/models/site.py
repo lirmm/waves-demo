@@ -1,6 +1,4 @@
 from __future__ import unicode_literals
-
-from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
 from django.db import models
@@ -18,11 +16,8 @@ class WavesSite(models.Model):
 
     site = models.OneToOneField(Site, on_delete=models.CASCADE)
     theme = models.CharField(max_length=255, default='default', choices=list_themes())
-    config_file = models.FilePathField('Configuration file', default=settings.ENV_FILE, editable=False)
     objects = models.Manager()
     on_site = CurrentSiteManager('site')
-
-    # TODO add more params ?
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         Site.objects.clear_cache()

@@ -1,22 +1,21 @@
 from __future__ import unicode_literals
 import os
 import logging
-from collections import namedtuple
-
 import eav
+from collections import namedtuple
 from django.conf import settings
-from django.contrib import messages
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
 from django.utils.html import format_html
+from django.core.exceptions import ValidationError
 
 import waves.const as const
 from waves.eav.config import JobEavConfig, JobInputEavConfig, JobOutputEavConfig
-from waves.managers import JobManager
-from waves.models.base import TimeStampable, SlugAble, OrderAble
-from waves.models.services import Service, ServiceInput, ServiceOutput
+from waves.managers.jobs import JobManager
+from waves.models import TimeStampable, SlugAble, OrderAble
+import waves.settings
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +28,7 @@ class Job(TimeStampable, SlugAble):
     """
     Store current jobs created by the platform
     """
-    # persistent field, used for history savings see signals
+    # non persistent field, used for history savings see signals
     message = None
     _status = None
     status_time = None
@@ -38,12 +37,13 @@ class Job(TimeStampable, SlugAble):
     class Meta(TimeStampable.Meta):
         db_table = 'waves_job'
         verbose_name = 'Job'
+        unique_together = (('service', 'slug'),)
 
     objects = JobManager()
 
     title = models.CharField('Job title', max_length=255, null=True, blank=True)
 
-    service = models.ForeignKey(Service, related_name='service_jobs', null=False, on_delete=models.CASCADE)
+    service = models.ForeignKey('Service', related_name='service_jobs', null=False, on_delete=models.CASCADE)
     status = models.IntegerField('Job status', choices=const.STATUS_LIST, default=const.JOB_CREATED,
                                  help_text='Job current run status')
     status_mail = models.IntegerField(editable=False, default=9999)
@@ -57,6 +57,7 @@ class Job(TimeStampable, SlugAble):
     results_available = models.BooleanField('Results are available', default=False, editable=False)
 
     remote_job_id = models.CharField('Remote Job ID (on runner)', max_length=255, editable=False, null=True)
+    nb_retry = models.IntegerField('Nb Retry', editable=False, default=0)
 
     def __init__(self, *args, **kwargs):
         super(Job, self).__init__(*args, **kwargs)
@@ -69,7 +70,7 @@ class Job(TimeStampable, SlugAble):
 
     def save(self, *args, **kwargs):
         """
-        Override save method to initialize some not required attributes
+        Override save method to initialize some "non db related" attributes
         Args:
         Returns:
             None
@@ -82,6 +83,9 @@ class Job(TimeStampable, SlugAble):
             os.makedirs(self.input_dir, mode=0775)
         if not os.path.isdir(self.output_dir):
             os.makedirs(self.output_dir, mode=0775)
+        os.chmod(self.working_dir, 0775)
+        os.chmod(self.input_dir, 0775)
+        os.chmod(self.output_dir, 0775)
 
     def delete_job_dirs(self):
         import shutil
@@ -101,6 +105,15 @@ class Job(TimeStampable, SlugAble):
         return self.job_inputs.filter(srv_input__type=const.TYPE_FILE)
 
     @property
+    def output_files_exists(self):
+        all_files = self.job_outputs.all()
+        existing = []
+        for _file in all_files:
+            if os.path.isfile(_file.file_path) and os.path.getsize(_file.file_path) > 0:
+                existing.append(_file)
+        return existing
+
+    @property
     def input_params(self):
         return self.job_inputs.exclude(srv_input__type=const.TYPE_FILE)
 
@@ -114,14 +127,14 @@ class Job(TimeStampable, SlugAble):
 
     @property
     def working_dir(self):
-        return os.path.join(settings.WAVES_JOB_DIR, str(self.slug))
+        return os.path.join(waves.settings.WAVES_JOB_DIR, str(self.slug))
 
     @property
     def runner(self):
         return self.service.runner
 
     def __str__(self):
-        return '%s [%s][%s][%s]' % (self.title, self.service.api_name, self.slug, self.email_to)
+        return '%s [%s][%s]' % (self.title, self.service.api_name, self.slug)
 
     @property
     def command(self):
@@ -144,24 +157,32 @@ class Job(TimeStampable, SlugAble):
 
     def check_send_mail(self):
         from waves.managers.mails import JobMailer
-        if settings.WAVES_NOTIFY_RESULTS and self.service.email_on:
+        if waves.settings.WAVES_NOTIFY_RESULTS and self.service.email_on:
             if self.email_to is not None and self.status != self.status_mail:
                 # should send a email
                 try:
                     nb_sent = 0
                     mailer = JobMailer(job=self)
-                    self.status_mail = self.status
                     if self.status == const.JOB_CREATED:
                         nb_sent = mailer.send_job_submission_mail()
                     elif self.status == const.JOB_TERMINATED:
                         nb_sent = mailer.send_job_completed_mail()
                     elif self.status == const.JOB_ERROR:
                         nb_sent = mailer.send_job_error_email()
+                    elif self.status == const.JOB_CANCELLED:
+                        nb_sent = mailer.send_job_cancel_email()
+                    # Avoid resending emails when last status mail already sent
+                    self.status_mail = self.status
+                    if nb_sent:
+                        self.job_history.add(JobAdminHistory.objects.create(message='Sent notification email',
+                                                                            status=self.status,
+                                                                            job=self))
+                    self.save()
                     return nb_sent
                 except Exception as e:
                     logger.error('Unable to send mail : %s', e.message)
-                    if settings.DEBUG:
-                        raise
+                    if waves.settings.WAVES_DEBUG:
+                        raise e
 
     def get_absolute_url(self):
         return reverse('waves:job_details', kwargs={'slug': self.slug})
@@ -193,21 +214,57 @@ class Job(TimeStampable, SlugAble):
     def stderr(self):
         return 'job.stderr'
 
+    def results_file_available(self):
+        return all(os.path.isfile(e.file_path) for e in self.job_outputs.filter(may_be_empty=False))
+
+    def create_non_editable_inputs(self):
+        """
+        Create non editable (== not submitted anywhere and used for run)
+        Used in post_save signal
+        Returns:
+            None
+        """
+        for service_input in self.service.service_inputs.filter(editable=False) \
+                .exclude(param_type=const.OPT_TYPE_NONE):
+            # Create fake "submitted_inputs" with non editable ones with default value if not already set
+            logger.debug('Created non editable job input: %s (%s, %s)', service_input.label,
+                         service_input.name, service_input.default)
+            self.job_inputs.add(JobInput.objects.create(job=self, srv_input=service_input,
+                                                        order=service_input.order,
+                                                        value=service_input.default))
+
+    def create_default_outputs(self):
+        """
+        Create standard default outputs for job (stdout and stderr)
+        Used in post_save signal
+        Returns:
+            None
+        """
+        output_dict = dict(job=self, value='job.stdout', may_be_empty=True, srv_output=None)
+        out = JobOutput.objects.create(**output_dict)
+        self.job_outputs.add(out)
+        output_dict['value'] = 'job.stderr'
+        out1 = JobOutput.objects.create(**output_dict)
+        self.job_outputs.add(out1)
+        logger.debug('Created default outputs: [%s, %s]', out, out1)
+
 
 class JobInput(OrderAble, SlugAble):
     class Meta:
         db_table = 'waves_job_input'
+        unique_together = ('srv_input', 'job', 'value')
 
     job = models.ForeignKey(Job,
                             related_name='job_inputs',
                             on_delete=models.CASCADE)
-    srv_input = models.ForeignKey(ServiceInput, null=True, on_delete=models.CASCADE)
+    srv_input = models.ForeignKey('BaseInput', null=True, on_delete=models.CASCADE)
 
     value = models.CharField('Input content',
                              max_length=255,
                              null=True,
                              blank=True,
-                             help_text='Input value (filename, boolean value, int value etc.)')
+                             help_text='Input value (filename, boolean value, int value etc.)',
+                             )
 
     def __str__(self):
         return u'|'.join([self.name, str(self.value)])
@@ -239,7 +296,7 @@ class JobInput(OrderAble, SlugAble):
     def validated_value(self):
         if self.type == const.TYPE_FILE:
             # return self.file_path
-            # TODO WARNING !!!
+            # FIXME related path is hardcoded
             return 'inputs/' + self.value
         elif self.type == const.TYPE_BOOLEAN:
             return bool(self.value)
@@ -250,19 +307,24 @@ class JobInput(OrderAble, SlugAble):
         elif self.type == const.TYPE_FLOAT:
             return float(self.value)
         elif self.type == const.TYPE_LIST:
-            # test value for boolean TODO update to be more efficient
             if self.value == 'None':
                 return False
-            return bool(eval(self.value))
+            return self.value
         else:
             logger.warn('No Input type !')
             raise ValueError("No type specified for input")
+
+    def clean(self):
+        print "in clean method ! ", self.name
+        if self.srv_input.mandatory and not self.srv_input.default and not self.value:
+            raise ValidationError('Input %(input) is mandatory', params={'input': self.srv_input.label})
+        super(JobInput, self).clean()
 
     @property
     def command_line_element(self, forced_value=None):
         value = self.validated_value if forced_value is None else forced_value
         try:
-            if self.srv_input and self.srv_input.to_output:
+            if self.srv_input and self.srv_input.to_output.exists():
                 # related service input is a output 'name' parameter
                 value = os.path.join('outputs', value)
         except ObjectDoesNotExist:
@@ -275,14 +337,10 @@ class JobInput(OrderAble, SlugAble):
             else:
                 return ''
         elif self.param_type == const.OPT_TYPE_OPTION:
-            if self.type != const.TYPE_BOOLEAN:
-                raise ValueError("Param type option must be boolean")
             if value:
                 return '-%s' % self.name
             return ''
         elif self.param_type == const.OPT_TYPE_NAMED_OPTION:
-            if self.type != const.TYPE_BOOLEAN:
-                raise ValueError("Param type option must be boolean")
             if value:
                 return '--%s' % self.name
             return ''
@@ -308,11 +366,12 @@ def file_path(instance, filename):
 class JobOutput(OrderAble, SlugAble):
     class Meta:
         db_table = 'waves_job_output'
+        unique_together = ('srv_output', 'job', 'value')
 
     job = models.ForeignKey(Job,
                             related_name='job_outputs',
                             on_delete=models.CASCADE)
-    srv_output = models.ForeignKey(ServiceOutput,
+    srv_output = models.ForeignKey('ServiceOutput',
                                    null=True,
                                    on_delete=models.CASCADE)
     value = models.CharField('Output value',
@@ -324,20 +383,19 @@ class JobOutput(OrderAble, SlugAble):
 
     @property
     def name(self):
+        # hard coded value for non service related output (stderr / stdout)
         if not self.srv_output:
             if self.value == self.job.stdout:
-                return "Standard script output"
+                return "Standard output"
             elif self.value == self.job.stderr:
-                return "Standard script error"
+                return "Standard error"
             else:
                 return 'N/A'
         return self.srv_output.name
 
     @property
     def type(self):
-        if not self.srv_output:
-            return "txt"
-        return self.srv_output.ext if self.srv_output else ''
+        return self.srv_output.ext if self.srv_output else 'txt'
 
     def __str__(self):
         return '%s - %s' % (self.name, self.value)
@@ -346,11 +404,26 @@ class JobOutput(OrderAble, SlugAble):
     def file_path(self):
         return os.path.join(self.job.output_dir, self.value)
 
+    @property
+    def file_content(self):
+        if os.path.isfile(self.file_path):
+            with open(self.file_path, 'r') as f:
+                return f.read()
+        return None
+
+    @property
+    def link(self):
+        return '%s%s' % (Site.objects.get_current().domain, self.get_absolute_url())
+
+    def get_absolute_url(self):
+        return reverse('waves:job_output', kwargs={'slug': self.slug})
+
 
 class JobHistory(models.Model):
     class Meta:
         db_table = 'waves_job_history'
         ordering = ['-timestamp']
+        unique_together = ('job', 'timestamp')
 
     job = models.ForeignKey(Job,
                             related_name='job_history',
@@ -362,13 +435,21 @@ class JobHistory(models.Model):
                                  null=False,
                                  choices=const.STATUS_LIST,
                                  help_text='History job status')
-    message = models.TextField('Status message',
+    message = models.TextField('History log',
                                blank=True,
                                null=True,
-                               help_text='History message')
+                               help_text='History log')
+    is_admin = models.BooleanField('Admin Message', default=False)
 
     def __str__(self):
         return '%s:%s:%s' % (self.message, self.get_status_display(), self.job)
+
+
+class JobAdminHistory(JobHistory):
+    class Meta:
+        proxy = True
+
+    id_admin = True
 
 
 eav.register(Job, JobEavConfig)

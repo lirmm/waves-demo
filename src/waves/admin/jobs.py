@@ -1,12 +1,20 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin, messages
-from django.contrib.admin import ModelAdmin, TabularInline
-from tabbed_admin import TabbedModelAdmin
-
+from django.contrib.admin import TabularInline
+from django.conf import settings
 import waves.const as const
 from waves.forms.admin import JobInputForm, JobOutputForm, JobForm
 from waves.models import JobInput, JobOutput, JobHistory, Job
+
+# Disable 'strong dependency to 'django-tabbed-admin'
+if 'tabbed_admin' in settings.INSTALLED_APPS:
+    from tabbed_admin import TabbedModelAdmin
+else:
+    from django.contrib.admin import ModelAdmin
+
+    class TabbedModelAdmin(ModelAdmin):
+        pass
 
 
 class JobInputInline(TabularInline):
@@ -33,7 +41,7 @@ class JobOutputInline(TabularInline):
     extra = 0
     suit_classes = 'suit-tab suit-tab-outputs'
     can_delete = False
-    readonly_fields = ('name', 'value')
+    readonly_fields = ('name', 'value',)
     ordering = ('order',)
     fields = ('name', 'value')
     # classes = ('grp-collapse grp-closed',)
@@ -57,18 +65,22 @@ class JobHistoryInline(TabularInline):
 
 
 def mark_rerun(modeladmin, request, queryset):
-    for srv in queryset.all():
+    for job in queryset.all():
         try:
-            srv.status = const.JOB_CREATED
-            srv.save()
-            messages.add_message(request, level=messages.SUCCESS, message="Jobs %s successfully marked for re-run" % srv)
+            job.job_history.add(JobHistory.objects.create(job=job, status=const.JOB_CREATED,
+                                                          message="Job marked for re-run"))
+            job.nb_retry = 0
+            job.status = const.JOB_CREATED
+            job.save()
+            messages.add_message(request, level=messages.SUCCESS, message="Jobs %s successfully marked for re-run"
+                                                                          % job)
         except StandardError as e:
-            messages.add_message(request, level=messages.ERROR, message="Job %s error %s " % (srv, e.message))
+            messages.add_message(request, level=messages.ERROR, message="Job %s error %s " % (job, e))
 
 mark_rerun.short_description = "Re-run jobs"
 
 
-class JobAdmin(TabbedModelAdmin, ModelAdmin):
+class JobAdmin(TabbedModelAdmin):
     class Media:
         css = {
             'all': ('tabbed_admin/css/tabbed_admin.css',)
@@ -82,10 +94,10 @@ class JobAdmin(TabbedModelAdmin, ModelAdmin):
     ]
     actions = [mark_rerun, ]
     list_filter = ('status', 'service', 'client')
-    list_display = ('__str__', 'get_colored_status', 'client', 'service', 'get_run_on', 'created', 'updated')
+    list_display = ('__str__', 'get_colored_status', 'service', 'get_run_on', 'get_client', 'updated')
     list_per_page = 30
 
-    search_fields = ('client__email', 'service__name', 'service__run_on__clazz', 'service__run_on_name')
+    search_fields = ('client__email', 'service__name', 'service__run_on__clazz', 'service__run_on__name')
 
     # Suit form params (not used by default)
     suit_form_tabs = (('general', 'General'), ('inputs', 'Inputs'), ('outputs', 'Outputs'), ('history', 'History'))
@@ -121,11 +133,6 @@ class JobAdmin(TabbedModelAdmin, ModelAdmin):
     def get_list_filter(self, request):
         return super(JobAdmin, self).get_list_filter(request)
 
-    def get_queryset(self, request):
-        queryset = super(JobAdmin, self).get_queryset(request)
-        # TODO add user group right filtering, default filtering
-        return queryset
-
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser or (obj is not None and request.user == obj.client)
 
@@ -158,11 +165,19 @@ class JobAdmin(TabbedModelAdmin, ModelAdmin):
     def get_run_on(self, obj):
         return obj.service.run_on.name
 
+    def get_client(self, obj):
+        return obj.email_to
+
     def get_colored_status(self, obj):
         return obj.colored_status()
 
+    def get_row_css(self, obj, index):
+        print 'in get row css'
+        return obj.label_class
+
     get_colored_status.short_description = 'Status'
     get_run_on.short_description = 'Run on'
+    get_client.short_description = 'Email'
 
 
 admin.site.register(Job, JobAdmin)

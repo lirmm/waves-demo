@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.decorators import detail_route, list_route
 
 from waves.models import Service, ServiceInput, Job
@@ -26,11 +27,10 @@ class ServiceInputViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):
                                            conditionalwhen=None)
 
 
-class ServiceViewSet(viewsets.ModelViewSet, WavesBaseView):
+class ServiceViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):
     """
     API entry point to Services
     """
-    # TODO filter by client / services associations
     serializer_class = ServiceSerializer
     lookup_field = 'api_name'
 
@@ -41,7 +41,7 @@ class ServiceViewSet(viewsets.ModelViewSet, WavesBaseView):
         queryset = Service.objects.get_public_services()
         serializer = ServiceSerializer(queryset, many=True, context={'request': request},
                                        fields=('url', 'name', 'short_description', 'version', 'created', 'updated',
-                                               'category')
+                                               'category', 'jobs')
                                        )
         return Response(serializer.data)
 
@@ -52,8 +52,9 @@ class ServiceViewSet(viewsets.ModelViewSet, WavesBaseView):
         return Response(serializer.data)
 
     @detail_route(methods=['post', 'get'], url_path='jobs')
-    def submit_job(self, request, api_name=None):
+    def service_job(self, request, api_name=None):
         if request.POST:
+            # CREATE A NEW JOB
             if logger.isEnabledFor(logging.DEBUG):
                 for param in request.data:
                     logger.debug('param key ' + param)
@@ -61,11 +62,18 @@ class ServiceViewSet(viewsets.ModelViewSet, WavesBaseView):
                 logger.debug('Request Data %s', request.data)
             queryset = Service.objects.get_public_services()
             service = get_object_or_404(queryset, api_name=api_name)
+            ass_email = request.data.pop('email', None)
             try:
-                ass_email = request.data.pop('email')
-            except KeyError:
-                ass_email = None
-            try:
+                request.data.pop('api_key')
+                submitted_data = {
+                    'service': service.pk,
+                    'client': request.user.pk,
+                    'inputs': request.data
+                }
+                # serializer = ServiceJobSerializer(many=False, context={'request': request},data=request.data)
+                serializer = self.get_serializer(context={'request': request},
+                                                 fields=('inputs',))
+                serializer.run_validation(data=submitted_data,)
                 job = Service.objects.create_new_job(service=service,
                                                      email_to=ass_email,
                                                      submitted_inputs=request.data,
@@ -73,12 +81,13 @@ class ServiceViewSet(viewsets.ModelViewSet, WavesBaseView):
                 serializer = JobSerializer(job,
                                            many=False,
                                            context={'request': request},
-                                           fields=('slug', 'url', 'created', 'status', ))
+                                           fields=('slug', 'url', 'created', 'status',))
                 return Response(serializer.data, status=201)
             except JobException as e:
                 logger.fatal("Create Error %s", e.message)
-                return Response({'error': 'An error occured'}, status=500)
+                return Response({'error': e.message}, status=status.HTTP_400_BAD_REQUEST)
         else:
+            # RETRIEVE A SERVICE JOB
             queryset = Service.objects.get_public_services()
             service_tool = get_object_or_404(queryset, api_name=api_name)
             queryset_jobs = Job.objects.get_service_job(user=request.user, service=service_tool)

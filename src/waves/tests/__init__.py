@@ -8,17 +8,17 @@ import os
 from django.conf import settings
 from django.test import TestCase, override_settings
 from django.core.exceptions import ObjectDoesNotExist
-
+import waves.settings
 from waves.models import Service
 
 logger = logging.getLogger(__name__)
+waves.settings.WAVES_SAMPLE_DIR = str(os.path.join(settings.ROOT_DIR, 'test_data', 'sample'))
+waves.settings.WAVES_JOB_DIR = str(os.path.join(settings.ROOT_DIR, 'test_data', 'jobs'))
+waves.settings.WAVES_DATA_ROOT = str(os.path.join(settings.ROOT_DIR, 'test_data'))
 
 
 @override_settings(
-    MEDIA_ROOT=os.path.join(settings.BASE_DIR, 'test_media'),
-    WAVES_DATA_ROOT=os.path.join(settings.WAVES_BASEDIR, 'test_data'),
-    WAVES_JOB_DIR=os.path.join(settings.WAVES_BASEDIR, 'test_data', 'jobs'),
-    WAVES_SAMPLE_DIR=os.path.join(settings.WAVES_BASEDIR, 'test_data', 'sample'),
+    MEDIA_ROOT=os.path.join(settings.BASE_DIR, 'test_data')
 )
 class WavesBaseTestCase(TestCase):
     current_result = None
@@ -27,13 +27,10 @@ class WavesBaseTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         super(WavesBaseTestCase, cls).setUpClass()
-        logger.info('WAVES_GALAXY_URL: %s', settings.WAVES_GALAXY_URL)
-        logger.info('WAVES_GALAXY_API_KEY: %s', settings.WAVES_GALAXY_API_KEY)
-        logger.info('WAVES_GALAXY_PORT: %s', settings.WAVES_GALAXY_PORT)
         logger.info('MEDIA_ROOT: %s', settings.MEDIA_ROOT)
-        logger.info('WAVES_DATA_ROOT: %s', settings.WAVES_DATA_ROOT)
-        logger.info('WAVES_JOB_DIR: %s', settings.WAVES_JOB_DIR)
-        logger.info('WAVES_SAMPLE_DIR: %s', settings.WAVES_SAMPLE_DIR)
+        logger.info('WAVES_DATA_ROOT: %s', waves.settings.WAVES_DATA_ROOT)
+        logger.info('WAVES_JOB_DIR: %s', waves.settings.WAVES_JOB_DIR)
+        logger.info('WAVES_SAMPLE_DIR: %s', waves.settings.WAVES_SAMPLE_DIR)
 
     def setUp(self):
         super(WavesBaseTestCase, self).setUp()
@@ -56,6 +53,7 @@ class WavesBaseTestCase(TestCase):
         try:
             self.service = Service.objects.get(api_name=api_name)
             logger.debug('Physic_IST service %s %s ', self.service.name, self.service.version)
+            logger.debug('settings ? %s %s', settings.MEDIA_ROOT, waves.settings.WAVES_SAMPLE_DIR)
             logger.debug('Sample dir %s ', self.service.sample_dir)
             with open(os.path.join(self.service.sample_dir, 'runs.json'), 'r') as run_params:
                 job_parameters = json.load(run_params)

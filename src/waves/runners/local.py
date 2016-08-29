@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
-import os
 import saga
+import os
+
 import pickle
 import logging
 
@@ -58,7 +59,7 @@ class ShellJobRunner(JobRunner):
         return None
 
     def _connect(self):
-        self._connector = saga.job.Service(self.saga_host, session=self.session)
+        self._connector = saga.job.Service(str(self.saga_host), session=self.session)
         self._connected = self._connector is not None
 
     def __load_job_description(self, job):
@@ -83,9 +84,10 @@ class ShellJobRunner(JobRunner):
 
     @property
     def init_params(self):
-        return dict(command=self.command)
+        return dict(command=self.command, host=self.host)
 
     def _disconnect(self):
+        self._connector.close()
         self._connector = None
         self._connected = False
 

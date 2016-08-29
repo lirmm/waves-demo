@@ -7,12 +7,15 @@ from waves.models.base import SlugAble
 import logging
 logger = logging.getLogger(__name__)
 
+
 def profile_directory(instance, filename):
     return 'profile/{0}/{1}'.format(instance.slug, filename)
 
 
 @python_2_unicode_compatible
 class APIProfile(SlugAble):
+    class Meta:
+        unique_together = ('user', 'api_key')
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
                                 primary_key=True, related_name='profile',
@@ -22,7 +25,6 @@ class APIProfile(SlugAble):
                                 null=True,
                                 blank=True,
                                 help_text='Users\'s avatar')
-    # TODO think to activate email validation process
     registered_for_api = models.BooleanField('Registered for api use', default=False,
                                              help_text='Register for REST API use')
     api_key = models.CharField('Api key',
@@ -53,6 +55,7 @@ class APIProfile(SlugAble):
                                       null=True,
                                       blank=True,
                                       help_text='User\'s restricted IP')
+    banned = models.BooleanField('Banned (abuse)', default=False)
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if self.user.is_staff or self.user.is_superuser:

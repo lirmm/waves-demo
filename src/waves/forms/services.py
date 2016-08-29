@@ -1,15 +1,14 @@
 from __future__ import unicode_literals
-
 import copy
-
 from django import forms
-from django.conf import settings
 from django.utils.module_loading import import_string
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
-from waves.models import Service
+from waves.models import Service, ServiceInput
 from waves.utils.validators import ServiceInputValidator
 import waves.const
+import waves.settings
 
 
 # TODO refactoring for the copy_paste field associated with FileInput (override formfield template ?)
@@ -29,7 +28,7 @@ class ServiceJobForm(forms.ModelForm):
     @staticmethod
     def get_helper(**kwargs):
         try:
-            helper = import_string('.'.join(['waves', 'forms', 'lib', settings.WAVES_FORM_PROCESSOR, 'FormHelper']))
+            helper = import_string('.'.join(['waves', 'forms', 'lib', waves.settings.WAVES_FORM_PROCESSOR, 'FormHelper']))
             return helper(**kwargs)
         except ImportError:
             raise RuntimeError('No helper defined for WAVES, unable to create any form')
@@ -71,7 +70,8 @@ class ServiceJobForm(forms.ModelForm):
         super(ServiceJobForm, self).__init__(*args, **kwargs)
         self.helper = self.get_helper(form_tag=form_tag)
         # dynamically add fields according to service parameters
-        self.list_inputs = list(self.instance.service_inputs.filter(relatedinput=None, editable=True))
+        # TODO refacto due to polymorphism
+        self.list_inputs = list(self.instance.service_inputs.filter(Q(instance_of=ServiceInput), editable=True))
         self.helper.init_layout()
         self.fields['title'].initial = '%s job' % self.instance.name
         extra_fields = []
@@ -107,12 +107,14 @@ class ServiceJobForm(forms.ModelForm):
                         for input_sample in srv_input.input_samples.all():
                             sample_selected = cleaned_data.get('sp_' + srv_input.name + '_' + str(input_sample.pk),
                                                                None)
-                            del self.cleaned_data['sp_' + srv_input.name + '_' + str(input_sample.pk)]
+
+                            if 'sp_' + srv_input.name in self.cleaned_data:
+                                del self.cleaned_data['sp_' + srv_input.name + '_' + str(input_sample.pk)]
                             if sample_selected:
                                 sample_selected = input_sample.pk
                                 break
                     if not sample_selected:
-                        if not cleaned_data.get('cp_' + srv_input.name):
+                        if not cleaned_data.get('cp_' + srv_input.name, False):
                             if srv_input.mandatory and not posted_data:
                                 # No posted data in copy/paste but file field is mandatory, so raise error
                                 self.add_error(srv_input.name,
@@ -123,7 +125,8 @@ class ServiceJobForm(forms.ModelForm):
                     else:
                         cleaned_data[srv_input.name] = sample_selected
                     # Remove all cp_ from posted data
-                    del self.cleaned_data['cp_' + srv_input.name]
+                    if 'cp_' + srv_input.name in self.cleaned_data:
+                        del self.cleaned_data['cp_' + srv_input.name]
                 else:
                     validator.validate_input(srv_input, posted_data, self)
         return cleaned_data

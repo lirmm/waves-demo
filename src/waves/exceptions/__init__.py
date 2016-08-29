@@ -1,27 +1,33 @@
-# -*- coding: utf-8
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import logging
+import sys
 
+# TODO move exceptions classes into dedicated files
 __all__ = ['RunnerException', 'RunnerNotInitialized', 'RunnerNotReady', 'RunnerConnectionError',
            'JobException', 'JobInconsistentStateError', 'JobMissingMandatoryParam', 'JobPrepareException',
            'JobRunException', 'JobSubmissionException', 'JobCreateException', 'RunnerUnexpectedInitParam']
-
 logger = logging.getLogger(__name__)
+if sys.version_info[0] < 3:
+    __all__ = [n.encode('ascii') for n in __all__]
 
 
 class WavesException(Exception):
-    """Waves webapp base exception
-
+    """
+    Waves base exception class, add log corresponding logger
     """
     def _log(self):
-        logger.fatal('%s: %s ' % (self.__class__.__name__, self.message))
+        logger.fatal('%s: %s ' % (self.__class__.__name__, self.message), exc_info=sys.exc_info())
 
     def __init__(self, *args, **kwargs):
         super(WavesException, self).__init__(*args, **kwargs)
-        self._log()
+        # TODO find new cool method to print stack trace related to THIS exception
+        # self._log()
 
 
 class RunnerException(WavesException):
-    """Base Exception class for all Runner related errors
+    """
+    Base Exception class for all Runner related errors
     """
     def __init__(self, *args, **kwargs):
         super(RunnerException, self).__init__(*args, **kwargs)
@@ -51,10 +57,10 @@ class JobException(WavesException):
     """Base Exception class for all job related errors
     """
     def __init__(self, message, job=None):
-        if job is not None:
-            # TODO add job things here ?
-            pass
         super(JobException, self).__init__(message)
+        if job is not None:
+            from waves.models.jobs import JobAdminHistory
+            JobAdminHistory.objects.create(job=job, message=self.message, status=job.status)
 
 
 class JobRunException(JobException):
@@ -62,23 +68,22 @@ class JobRunException(JobException):
     pass
 
 
-class JobCreateException(JobException):
-    def __init__(self, message, job=None):
-        if job is not None:
-            job.delete_job_dirs()
-        super(JobException, self).__init__(message)
-
-
-class JobSubmissionException(JobCreateException):
+class JobSubmissionException(JobException):
     """More specifically related job preparation errors"""
     pass
 
 
+class JobCreateException(JobSubmissionException):
+    def __init__(self, message, job=None):
+        super(JobException, self).__init__(message)
+        if job is not None:
+            job.delete()
+
+
 class JobMissingMandatoryParam(JobSubmissionException):
     def __init__(self, param, job):
-        job.delete_job_dirs()
-        message = 'Missing mandatory job parameter "%s"' % param
-        super(JobException, self).__init__(message, job)
+        message = u'Missing mandatory parameter "%s"' % param
+        super(JobMissingMandatoryParam, self).__init__(message, job)
 
 
 class JobInconsistentStateError(JobRunException):
@@ -86,7 +91,7 @@ class JobInconsistentStateError(JobRunException):
         logger.warning('%s: %s ' % (self.__class__.__name__, self.message))
 
     def __init__(self, status, expected, msg=''):
-        message = 'Inconsistent job state, got "%s", expected: %s' % (status, expected)
+        message = u'Inconsistent job state, got "%s", expected: %s' % (status, expected)
         if msg != '':
             message = '%s ' % msg + message
         super(JobInconsistentStateError, self).__init__(message)

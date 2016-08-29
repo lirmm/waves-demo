@@ -11,9 +11,9 @@ Get WAVES application
     In order to install WAVES you will need:
     - python 2.7.X
     - pip
-    - virtualenv (or virtualenvwrapper)
-    - a web server such as Apache or Nginx
-    - (Optional) a database backend Mysql, Oracle, Postgres (WAVES use a sqlite database by default)
+    - dedicated virtualenv is strongly recommended
+    - a web server: Apache or NGINX
+    - (Optional) a database backend Mysql, Oracle, Postgres (WAVES use a sqlite3 database by default)
 
 1. Install source :
     Choose in one of these methods
@@ -28,18 +28,24 @@ Get WAVES application
     - youruser@yourmachine:[INSTALL_DIR]$ source [ENV_NAME]/bin/activate (or specific activation script if needed see [link:virtualenv doc]
 
 3. Install WAVES requirements:
+    - ::: Your need to have git installed in order to get all dependencies :::
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]$ pip install -r requirements.txt
 
 4. Configuration files:
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]$ cd config/
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]/config$ mv waves.env.sample waves.env
     - Edit your waves.env file to set WAVES parameters ([link:waves parameters])
+    - Check parameters with : [INSTALL_DIR]/src/manage.py check and [INSTALL_DIR]/src/manage.py wavesconfig
+    - Collect staticfiles : [INSTALL_DIR]/src/manage.py collectstatics
 
-3. Create database and initialize some data:
+3. If your are NOT using WAVES sample database and want to insert data in your own :
+    Create database and initialize some data:
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]$ cd src
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]/src$ python manage.py makemigrations eav
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]/src$ python manage.py migrate
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]/src$ python manage.py loaddata waves/fixtures/init.json
+
+3.bis If you use WAVES sample database, be sure your 'Web' user has write access to sample db file (waves.sample.sqlite3)
 
 4. Test your env:
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]/src$ python manage.py runserver [link: runserver django doc]

@@ -12,6 +12,7 @@ from authtools import forms as authtoolsforms
 from django.contrib.auth import forms as authforms
 from django.core.urlresolvers import reverse
 import registration.forms
+import waves.settings
 
 __all__ = ['LoginForm', 'SignupForm', 'PasswordChangeForm', 'PasswordResetForm', 'SetPasswordForm']
 User = get_user_model()
@@ -29,7 +30,7 @@ class LoginForm(AuthenticationForm):
             Field('username', placeholder="Enter Email", autofocus=""),
             Field('password', placeholder="Enter Password"),
             HTML('<a href="{}">Forgot Password?</a>'.format(
-                reverse("accounts:password-reset"))),
+                reverse("waves:password-reset"))),
             Field('remember_me'),
             Submit('sign_in', 'Log in',
                    css_class="btn btn-lg btn-primary btn-block"),
@@ -52,7 +53,6 @@ class SignupForm(registration.forms.RegistrationFormTermsOfService,
         label='I have read and agree to the '
               '<a href="#" data-toggle="modal" data-target="#tosModal">Terms of Service</a>,',
     )
-    # TODO add picture upload (change template pack value for input type file)
     institution = forms.CharField()
     register_for_api = forms.BooleanField('Register as a REST API user')
     country = LazyTypedChoiceField(choices=countries)
@@ -67,15 +67,17 @@ class SignupForm(registration.forms.RegistrationFormTermsOfService,
         self.helper.label_class = 'col-md-4 col-xs-4 hidden-sm hidden-xs'
         self.helper.field_class = 'col-md-8 col-xs-12'
         # self.helper.form_show_labels = False
+        if 'bootstrap' in waves.settings.WAVES_TEMPLATE_PACK:
+            email_field = PrependedText('email', '@', placeholder="Enter Email", autofocus="")
+        else:
+            email_field = Field('email', placeholder="Enter Email", autofocus="")
         self.helper.layout = Layout(
-            PrependedText('email', '@', placeholder="Enter Email", autofocus="")
-            if 'bootstrap' in settings.CRISPY_TEMPLATE_PACK
-            else Field('email', placeholder="Enter Email", autofocus=""),
+            email_field,
             Field('name', placeholder="Enter your full name"),
             Field('password1', placeholder="Enter Password"),
             Field('password2', placeholder="Confirm Password"),
             Field('register_for_api', placeholder="Register for our API access"),
-            Field('country', placeholder="Select your country", css_class='selectpicker'),
+            Field('country', placeholder="Select your country"),
             Field('institution', placeholder="Your institution"),
             Field('phone', placeholder="Phone"),
             Field('comment', placeholder="Any comment ?"),

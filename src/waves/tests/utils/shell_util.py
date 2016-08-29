@@ -2,9 +2,7 @@ from __future__ import unicode_literals
 
 import os
 import unittest
-
 import requests
-from django.conf import settings
 
 from waves.tests.utils import get_sample_dir
 
@@ -13,12 +11,7 @@ MISSING_TOOL_MESSAGE = "Executable script is not in PATH : %s"
 
 
 def skip_unless_sge():
-    # os.environ['SGE_ROOT'] = settings.WAVES_SGE_ROOT
-    os.environ['SGE_CELL'] = settings.WAVES_SGE_CELL
-    os.environ['DRMAA_LIBRARY_PATH'] = settings.WAVES_DRMAA_LIBRARY_PATH
-    try:
-        drmaa = __import__('drmaa')
-    except requests.ConnectionError:
+    if not any(os.path.islink(os.path.join(_, 'qsub')) for _ in os.environ['PATH'].split(os.pathsep)):
         return unittest.skip(NO_CLUSTER_MESSAGE)
     return lambda f: f
 

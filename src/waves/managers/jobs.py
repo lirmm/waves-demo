@@ -1,15 +1,9 @@
 from __future__ import unicode_literals
-
 import logging
-
-from django.conf import settings
 from django.db import models
 from django.db.models import Q
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-
 import waves.const
-
 logger = logging.getLogger(__name__)
 
 
@@ -19,7 +13,7 @@ class JobManager(models.Manager):
 
     def get_user_job(self, user):
         try:
-            admin_group = Group.objects.get(name=settings.WAVES_GROUP_ADMIN)
+            admin_group = Group.objects.get(name=waves.const.WAVES_GROUP_ADMIN)
         except Group.DoesNotExist:
             admin_group = None
         if user.is_superuser or admin_group in user.groups.all():
@@ -28,7 +22,7 @@ class JobManager(models.Manager):
 
     def get_service_job(self, user, service):
         try:
-            admin_group = Group.objects.get(name=settings.WAVES_GROUP_ADMIN)
+            admin_group = Group.objects.get(name=waves.const.WAVES_GROUP_ADMIN)
         except Group.DoesNotExist:
             admin_group = None
         if user.is_superuser or admin_group in user.groups.all():

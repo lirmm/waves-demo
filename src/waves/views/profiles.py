@@ -50,7 +50,7 @@ class EditProfile(LoginRequiredMixin, generic.TemplateView):
             user.delete()
             logout(request)
             messages.success(request, 'Your profile has been deleted !')
-            return redirect('home')
+            return redirect('waves:home')
         user = self.request.user
         user_form = UserForm(request.POST, instance=user)
         profile_form = ProfileForm(request.POST,
@@ -70,4 +70,4 @@ class EditProfile(LoginRequiredMixin, generic.TemplateView):
         profile.user = user
         profile.save()
         messages.success(request, "Profile details saved!")
-        return redirect("profiles:show_self")
+        return redirect("waves:show_self")

@@ -2,10 +2,6 @@ from __future__ import unicode_literals
 from .base import *
 import logging.config
 
-DEBUG = env.bool('DEBUG')
-TEMPLATES[0]['OPTIONS'].update({'debug': DEBUG})
-LOGFILE_ROOT = env('LOG_ROOT_DIR')
-ALLOWED_HOSTS = ['193.49.110.17']
 # Reset logging
 LOGGING_CONFIG = None
 LOGGING = {
@@ -22,31 +18,39 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'simple'
-        }
+            'formatter': 'verbose'
+        },
+        'queue_log_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': join(ROOT_DIR, 'logs', 'spool.log'),
+            'formatter': 'verbose',
+            'maxBytes': 1024*1024*5,
+            'backupCount': 10
+        },
     },
     'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'propagate': True,
+        'root': {
+            'handlers': ['queue_log_file'],
+            'propagate': False,
             'level': 'WARNING',
         },
-        'waves.queue': {
-            'handlers': ['console'],
-            'level': 'INFO',
-        },
-        'django_crontab.crontab': {
-            'handlers': ['console'],
-            'level': 'INFO',
-        },
         'waves': {
-            'handlers': ['console'],
+            'handlers': ['queue_log_file'],
+            'level': env.str('CRON_LOG_LEVEL', default="INFO"),
+            'propagate': False
+        },
+        'django_crontab': {
+            'handlers': ['queue_log_file'],
+            'level': env.str('CRON_LOG_LEVEL', default='INFO')
+        },
+        'radical.saga': {
+            'handlers': ['queue_log_file'],
+            'propagate': True,
             'level': 'INFO',
         },
+
     }
 }
-
 logging.config.dictConfig(LOGGING)
 

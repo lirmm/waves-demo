@@ -1,34 +1,13 @@
 from __future__ import unicode_literals
 
 from .base import * # NOQA
-import sys
-import os
 
 import logging.config
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-TEMPLATES[0]['OPTIONS'].update({'debug': True})
-# Turn off debug while imported by Celery with a workaround
-# See http://stackoverflow.com/a/4806384
-if "celery" in sys.argv[0]:
-    DEBUG = False
-
-TESTING_MODE = 'dev'
-
 # Django Debug Toolbar
 INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
-
-# Show emails to console in DEBUG mode
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-vars().update(env.email(backend='django.core.mail.backends.smtp.EmailBackend'))
-
-# Show thumbnail generation errors
-THUMBNAIL_DEBUG = True
-
-CRISPY_FAIL_SILENTLY = not DEBUG
-LOGFILE_ROOT = join(str(root.path()), 'logs')
+# vars().update(env.email(backend='django.core.mail.backends.smtp.EmailBackend'))
 LOGGING_CONFIG = None
+# logging.config.fileConfig('/home/marc/Documents/sources/waves/config/logging/development.conf')
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
@@ -43,38 +22,52 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
         'queue_log_file': {
-            'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': join(LOGFILE_ROOT, 'spool.log'),
+            'filename': join(ROOT_DIR, 'logs', 'spool.log'),
+            'formatter': 'verbose',
+        },
+        'waves_log_file': {
+            'class': 'logging.FileHandler',
+            'filename': join(ROOT_DIR, 'logs', 'waves.log'),
             'formatter': 'verbose',
         },
     },
     'loggers': {
+        'root': {
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'ERROR',
+        },
         'django': {
             'handlers': ['console'],
             'propagate': True,
-            'level': 'INFO',
+            'level': 'WARNING',
         },
-        'waves.queue': {
-            'handlers': ['queue_log_file'],
-            'level': 'DEBUG',
+        'radical.saga': {
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'WARNING',
         },
         'waves': {
             'handlers': ['console'],
-            'level': vars()['ENV'].str('TEST_LOG_LEVEL', 'DEBUG'),
+            'level': 'DEBUG',
+            'propagate': True,
         },
+        'waves.models.jobs': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+        'django_crontab': {
+            'handlers': ['console'],
+            'level': env.str('CRON_LOG_LEVEL', default='INFO')
+        },
+
     }
 }
-
-
 logging.config.dictConfig(LOGGING)
-# ADDED restriction to host
-ALLOWED_HOSTS = [
-    '127.0.0.1',
-]
-
+if DEBUG:
+    print "loaded settings from dev"

@@ -1,0 +1,15 @@
+{% load i18n %}{% autoescape off %}
+{% blocktrans %}
+You're receiving this email because you registered a new user account on {{ site }}.{% endblocktrans %}
+
+{% trans "Please go to the following page to activate your account and gain access to our API:" %}
+
+http://{{ site }}{% url 'waves:registration_activate' activation_key=activation_key %}
+
+{% trans "This link will work for only " %}{{ expiration_days }} {% trans "days, so don't forget to activate !" %}
+
+{% trans "Thanks for using our application!" %}
+
+{% blocktrans %}The {{ site }} team{% endblocktrans %}
+
+{% endautoescape %}

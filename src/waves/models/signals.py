@@ -1,19 +1,23 @@
-"""
-Waves models classes signals
-Defining processes for jobs workflow
-"""
 from __future__ import unicode_literals
 import os
 import logging
 import shutil
+import uuid
 
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
-
+from django.contrib.auth.models import Group
 from django.conf import settings
+from django.contrib.auth.signals import user_logged_in
+from ipware.ip import get_real_ip
+
+import waves.const
+import waves.settings
 from waves.models import Job, JobHistory, Service
-from waves.utils import service_sample_directory
+from waves.models.profiles import APIProfile, profile_directory
+if settings.DEBUG:
+    print "Signals loaded..."
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +32,13 @@ def pre_job_save_handler(sender, instance, **kwargs):
 def job_save_handler(sender, instance, created, **kwargs):
     if created:
         JobHistory.objects.create(job=instance, status=instance.status, message="Job Created", timestamp=timezone.now())
+        # create job working dirs locally
         instance.make_job_dirs()
-        instance.check_send_mail()
-
+        # initiate default non editable params
+        instance.create_non_editable_inputs()
+        # initiate default outputs
+        instance.create_default_outputs()
     if instance.has_changed_status():
-        logger.debug('Changed status saved to history %s ' % instance.status)
-        instance.check_send_mail()
         if not instance.status_time:
             instance.status_time = timezone.now()
         JobHistory.objects.create(job=instance, status=instance.status, message=instance.message)
@@ -46,12 +51,60 @@ def job_delete_handler(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Service)
 def service_input_files_delete(sender, instance, **kwargs):
-    if os.path.exists(os.path.join(settings.WAVES_SAMPLE_DIR, instance.api_name)):
-        shutil.rmtree(os.path.join(settings.WAVES_SAMPLE_DIR, instance.api_name))
+    if os.path.exists(os.path.join(waves.settings.WAVES_SAMPLE_DIR, instance.api_name)):
+        shutil.rmtree(os.path.join(waves.settings.WAVES_SAMPLE_DIR, instance.api_name))
 
 
 @receiver(post_save, sender=Service)
 def service_create_media(sender, instance, created, **kwargs):
-    sample_dir = os.path.join(settings.WAVES_SAMPLE_DIR, instance.api_name)
+    sample_dir = os.path.join(waves.settings.WAVES_SAMPLE_DIR, instance.api_name)
     if created and not os.path.isdir(sample_dir):
         os.makedirs(sample_dir)
+
+
+@receiver(user_logged_in)
+def login_action(sender, user, **kwargs):
+    """
+    Make action upon user login
+    - Register user ip address
+    """
+    logger.debug('Login action fired %s', user)
+    request = kwargs.get('request')
+    ip = get_real_ip(request)
+    if ip is not None:
+        user_prof = user.profile
+        user_prof.ip = ip
+        user_prof.save(update_fields=['ip'])
+    else:
+        ip = request.META.get('REMOTE_ADDR', None)
+        if ip is not None:
+            user_prof = user.profile
+            user_prof.ip = ip
+            user_prof.save(update_fields=['ip'])
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_profile_handler(sender, instance, created, **kwargs):
+    if created:
+        # Create the profile object, only if it is newly created
+        profile = APIProfile(user=instance)
+        profile.save()
+    if instance.is_active and instance.profile.registered_for_api and not instance.profile.api_key:
+        # User is activated, has registered for api services, and do not have any api_key
+        instance.profile.api_key = uuid.uuid1()
+        logger.debug("Update api_key for %s %s", instance, instance.profile.api_key)
+        try:
+            instance.groups.add(Group.objects.get(name=waves.const.WAVES_GROUP_API))
+        except Group.DoesNotExist:
+            pass
+    if instance.is_active and not instance.profile.registered_for_api:
+        instance.profile.api_key = None
+    instance.profile.save()
+
+
+@receiver(post_delete, sender=APIProfile)
+def delete_profile_file(sender, instance, **kwargs):
+    import shutil
+    import os
+    if os.path.exists(os.path.join(settings.MEDIA_ROOT, profile_directory(instance, ''))):
+        shutil.rmtree(os.path.join(settings.MEDIA_ROOT, profile_directory(instance, '')))
