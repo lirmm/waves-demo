@@ -65,7 +65,9 @@ WAVES_REGISTRATION_SALT = get_setting('REGISTRATION_SALT', str, set_value=True)
 WAVES_BOOTSTRAP_THEME = get_setting('WAVES_BOOTSTRAP_THEME', str, default='darkly', set_value='BOOTSTRAP_THEME')
 # ---- WEB APP ----
 # ---- Titles
-WAVES_APP_NAME = get_setting('WAVES_APP_NAME', str, default='Waves')
+WAVES_APP_NAME = get_setting('WAVES_APP_NAME', str, default='WAVES')
+WAVES_APP_VERBOSE_NAME = get_setting('WAVES_APP_VERBOSE_NAME', str,
+                                     default='Web Application for Versatile & Easy bioinformatics Services')
 if 'grappelli' in settings.INSTALLED_APPS:
     WAVES_ADMIN_HEADLINE = get_setting('WAVES_ADMIN_HEADLINE', str, default="Waves",
                                        set_value='GRAPPELLI_ADMIN_HEADLINE')
@@ -186,6 +188,7 @@ if 'rest_framework' in settings.INSTALLED_APPS:
     # For others parameters see 'http://www.django-rest-framework.org/api-guide/settings/'
     from rest_framework.settings import api_settings
     import waves.api.authentication.auth
+
     if waves.api.authentication.auth.WavesAPI_KeyAuthBackend not in api_settings.DEFAULT_AUTHENTICATION_CLASSES:
         current_auths = set(api_settings.DEFAULT_AUTHENTICATION_CLASSES)
         current_auths.update([waves.api.authentication.auth.WavesAPI_KeyAuthBackend])

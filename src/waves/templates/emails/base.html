@@ -1,7 +1,7 @@
 {% extends "mail_templated/base.tpl" %}
-
+{% loag waves_tags %}
 {% block subject %}
-::{{ WAVES_APP_NAME }}:: {% block subject_content %}{% endblock %}
+::{% get_app_name %}:: {% block subject_content %}{% endblock %}
 {% endblock %}
 
 {% block body %}

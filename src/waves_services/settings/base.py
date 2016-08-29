@@ -183,5 +183,6 @@ THUMBNAIL_DEBUG = DEBUG
 TEMPLATES[0]['OPTIONS'].update({'debug': DEBUG})
 # LOG FILE ROOT
 WAVES_LOG_ROOT = env.str('WAVES_LOG_ROOT', default=ROOT_DIR + '/logs')
+
 if DEBUG:
     print "loaded settings from base"

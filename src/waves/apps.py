@@ -4,7 +4,8 @@ from django.apps import AppConfig
 
 class WavesApp(AppConfig):
     name = "waves"
-    verbose_name = 'Web Application for Versatile Evolutionary Services'
+    verbose_name = 'Web Application for Versatile & Easy bioinformatics Services'
 
     def ready(self):
         from waves.models import signals
+
