@@ -35,10 +35,14 @@ Get WAVES application
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]$ cd config/
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]/config$ mv waves.env.sample waves.env
     - Edit your waves.env file to set WAVES parameters ([link:waves parameters])
+        - modify required parameters :
+            - WAVES_ALLOWED_HOST=[yourhostname]
+            - SECRET_KEY=setup your secret key
     - Check parameters with : [INSTALL_DIR]/src/manage.py check and [INSTALL_DIR]/src/manage.py wavesconfig
     - Collect staticfiles : [INSTALL_DIR]/src/manage.py collectstatics
 
-3. If your are NOT using WAVES sample database and want to insert data in your own :
+3. You plan to use default database layer configuration:
+    3.1 If your are NOT using WAVES sample database and want to insert data in your own :
     Create database and initialize some data:
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]$ cd src
     - ([ENV_NAME])youruser@yourmachine:[INSTALL_DIR]/src$ python manage.py makemigrations eav

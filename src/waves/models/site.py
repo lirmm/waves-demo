@@ -1,9 +1,10 @@
 from __future__ import unicode_literals
+
 from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
 from django.db import models
-
 from bootstrap_themes import list_themes
+import waves.settings
 
 
 class WavesSite(models.Model):
@@ -15,7 +16,8 @@ class WavesSite(models.Model):
         verbose_name = "Web application main configuration"
 
     site = models.OneToOneField(Site, on_delete=models.CASCADE)
-    theme = models.CharField(max_length=255, default='default', choices=list_themes())
+    theme = models.CharField(max_length=255, default=waves.settings.WAVES_BOOTSTRAP_THEME,
+                             choices=list_themes())
     objects = models.Manager()
     on_site = CurrentSiteManager('site')
 

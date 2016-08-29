@@ -28,10 +28,12 @@ class ServiceJobForm(forms.ModelForm):
     @staticmethod
     def get_helper(**kwargs):
         try:
-            helper = import_string('.'.join(['waves', 'forms', 'lib', waves.settings.WAVES_FORM_PROCESSOR, 'FormHelper']))
+            helper = import_string(
+                '.'.join(['waves', 'forms', 'lib', waves.settings.WAVES_FORM_PROCESSOR, 'FormHelper']))
             return helper(**kwargs)
         except ImportError:
-            raise RuntimeError('No helper defined for WAVES, unable to create any form')
+            raise RuntimeError(
+                'Wrong form processor, unable to create any form (%s)' % waves.settings.WAVES_FORM_PROCESSOR)
 
     def _create_copy_paste_field(self, service_input):
         # service_input.mandatory = False # Field is validated in clean process

@@ -1,25 +1,31 @@
 from __future__ import unicode_literals
+
 import environ
+import warnings
 from os.path import join, exists
-from django.core.urlresolvers import reverse_lazy
 from django.conf import settings
+from environ.environ import ImproperlyConfigured
 
 # check if environ has been setup in Django settings.py or initialize an new one
 env = getattr(settings, 'env', environ.Env())
 env_file_name = getattr(settings, 'WAVES_ENV_FILE', 'waves.env')
-if not env.bool('WAVES_ENV_LOADED', False):
-    # default waves folder structure
+# default waves folder structure
+if env_file_name.startswith('/'):
+    # Absolute path is provided
+    def_env_file = env_file_name
+else:
+    # relative path from this file
     root = environ.Path(__file__) - 3
     def_env_file = join(str(root.path('config')), env_file_name)
-    # waves is a dependency for another Django project
-    opt_env_file = join(settings.BASE_DIR, env_file_name)
-    if exists(def_env_file):
-        environ.Env.read_env(str(def_env_file))
-    elif exists(opt_env_file):
-        environ.Env.read_env(str(opt_env_file))
-    else:
-        raise RuntimeError(
-            'NO WAVES environment found (should be placed either in %s or %s)' % (def_env_file, opt_env_file))
+# waves is a dependency for another Django project
+opt_env_file = join(settings.BASE_DIR, env_file_name)
+if exists(def_env_file):
+    environ.Env.read_env(str(def_env_file))
+elif exists(opt_env_file):
+    environ.Env.read_env(str(opt_env_file))
+else:
+    raise RuntimeError(
+        'NO WAVES environment found (should be placed either in %s or %s)' % (def_env_file, opt_env_file))
 
 
 def get_setting(var, cast, default=environ.Env.NOTSET, set_value=False):
@@ -41,12 +47,14 @@ def get_setting(var, cast, default=environ.Env.NOTSET, set_value=False):
         Any: the setting final value
     """
     # try to get value from settings, then from env, and finally return default
-    env_value = env.get_value(var, cast, default=default)
-    setting_value = getattr(settings, var, env_value)
+    setting_value = getattr(settings, var, env.get_value(var, cast, default=default))
+    # print 'var', var, 'setting_value', setting_value, 'set_value', set_value
     if set_value is True:
         setattr(settings, var, setting_value)
     elif set_value:
-        setattr(settings, set_value, setting_value)
+        if getattr(settings, set_value, None) is None:
+            # Do not override if already specified in settings
+            setattr(settings, set_value, setting_value)
     return setting_value
 
 
@@ -56,13 +64,12 @@ def get_setting(var, cast, default=environ.Env.NOTSET, set_value=False):
 # --------------------------------------------------------
 # ----------        OPTIONAL PARAMETERS       ------------
 # --------------------------------------------------------
-WAVES_DEBUG = get_setting('WAVES_DEBUG', bool, default=False, set_value='DEBUG')
 # REGISTRATION
 WAVES_REGISTRATION_ALLOWED = get_setting('REGISTRATION_ALLOWED', bool, default=True)
 WAVES_ACCOUNT_ACTIVATION_DAYS = get_setting('ACCOUNT_ACTIVATION_DAYS', int, default=7, set_value=True)
 WAVES_REGISTRATION_SALT = get_setting('REGISTRATION_SALT', str, set_value=True)
 
-WAVES_BOOTSTRAP_THEME = get_setting('WAVES_BOOTSTRAP_THEME', str, default='darkly', set_value='BOOTSTRAP_THEME')
+WAVES_BOOTSTRAP_THEME = get_setting('WAVES_BOOTSTRAP_THEME', str, default='flatly', set_value='BOOTSTRAP_THEME')
 # ---- WEB APP ----
 # ---- Titles
 WAVES_APP_NAME = get_setting('WAVES_APP_NAME', str, default='WAVES')
@@ -79,11 +86,8 @@ else:
     WAVES_ADMIN_TITLE = get_setting('WAVES_ADMIN_TITLE', str, default='WAVES Administration',
                                     set_value='ADMIN_TITLE')
 
-# ---- Base waves log dir
-# WAVES_LOG_ROOT=your-specific-path
 # ---- Form processor (services form generation)
 WAVES_FORM_PROCESSOR = get_setting('WAVES_FORM_PROCESSOR', str, default='crispy')
-# ---- Form css template pack
 WAVES_TEMPLATE_PACK = get_setting('WAVES_TEMPLATE_PACK', str, default='bootstrap3', set_value='CRISPY_TEMPLATE_PACK')
 
 # ---- EMAILS ----
@@ -103,11 +107,11 @@ WAVES_SAMPLE_DIR = get_setting('WAVES_SAMPLE_DIR', str, default=str(join(setting
 # - Max uploaded fil size (default is 20Mo)
 WAVES_UPLOAD_MAX_SIZE = get_setting('WAVES_UPLOAD_MAX_SIZE', int, 20 * 1024 * 1024)
 # - Jobs max retry before abort running
-JOBS_MAX_RETRY = get_setting('JOBS_MAX_RETRY', int, 5)
-# ---- LOGGING ----
-WAVES_LOG_ROOT = get_setting('WAVES_LOG_ROOT', str, default=join(str(settings.ROOT_DIR), 'logs'))
+WAVES_JOBS_MAX_RETRY = get_setting('WAVES_JOBS_MAX_RETRY', int, 5)
 
 # ---- CRON ----
+# ---- LOGGING ----
+WAVES_CRON_LOG_ROOT = get_setting('LOG_ROOT', str, default=join(str(settings.ROOT_DIR), 'logs'))
 # -- Job queue timing (default each 5 minutes)
 WAVES_QUEUE_CRON = get_setting('WAVES_QUEUE_CRON', str, default='*/5 * * * *')
 # -- Purge old job timing (default each day at 00h01)
@@ -116,7 +120,7 @@ WAVES_PURGE_CRON = get_setting('WAVES_PURGE_CRON', str, default='1 0 * * *')
 WAVES_CRON_TAB_COMMAND_PREFIX = get_setting('CRONTAB_COMMAND_PREFIX', str, default='')
 # -- Any script or command suffix to activate after each cron job
 WAVES_CRON_TAB_COMMAND_SUFFIX = get_setting('CRONTAB_COMMAND_SUFFIX', str,
-                                            default='>> %s' % str(join(WAVES_LOG_ROOT, 'cron.log')))
+                                            default='>> %s' % str(join(WAVES_CRON_LOG_ROOT, 'cron.log')))
 # -- Number of days to keep anonymous jobs in database / on disk
 WAVES_KEEP_ANONYMOUS_JOBS = get_setting('WAVES_KEEP_ANONYMOUS_JOBS', int, default=30)
 # -- Number of days to keep registered user's jobs in database / on disk
@@ -162,26 +166,16 @@ if not getattr(settings, 'CRONJOBS', False):
     settings.CRONJOBS = WAVES_QUEUE_CRON_TAB
 else:
     settings.CRONJOBS += WAVES_QUEUE_CRON_TAB
-############################
-# Waves dependencies setup #
-############################
-# ---- DJANGO base parameter overrides
-# -- Static waves files check
-static_waves_dir = join(settings.BASE_DIR, 'waves', 'static')
-if static_waves_dir not in settings.STATICFILES_DIRS:
-    # Adds if not present static waves dir to STATICFILES_DIRS
-    settings.STATICFILES_DIRS += [static_waves_dir]
-WAVES_ALLOWED_HOSTS = get_setting('WAVES_ALLOWED_HOST', list, set_value='ALLOWED_HOSTS')
+######################################
+# Waves dependencies mandatory setup #
+######################################
+# ---- DEPENDENCIES parameter overrides
 # ---- CRONTAB (https://github.com/kraiz/django-crontab)
 if 'django_crontab' in settings.INSTALLED_APPS:
     settings.CRONTAB_LOCK_JOBS = True
     # TODO manage case when another crontab is already setup in settings (do not override other crontab's elements!)
     settings.CRONTAB_COMMAND_PREFIX = WAVES_CRON_TAB_COMMAND_PREFIX
     settings.CRONTAB_COMMAND_SUFFIX = WAVES_CRON_TAB_COMMAND_SUFFIX
-# ---- Grappelli backoffice layout
-if 'grappelli' in settings.INSTALLED_APPS:
-    # TODO overrides grappelli parameters ?
-    pass
 # ---- Django REST Framework configuration updates
 if 'rest_framework' in settings.INSTALLED_APPS:
     # Update authentication classes for Rest API with dedicated Waves one
@@ -193,7 +187,5 @@ if 'rest_framework' in settings.INSTALLED_APPS:
         current_auths = set(api_settings.DEFAULT_AUTHENTICATION_CLASSES)
         current_auths.update([waves.api.authentication.auth.WavesAPI_KeyAuthBackend])
         api_settings.DEFAULT_AUTHENTICATION_CLASSES = tuple(current_auths)
-
-# TODO override ALLOWED_HOSTS ?
 if settings.DEBUG:
     print "loaded settings from waves"

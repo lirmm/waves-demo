@@ -115,8 +115,7 @@ STATIC_ROOT = join(dirname(BASE_DIR), 'staticfiles')
 # BOOTSTRAP_THEME = 'darkly'
 
 # Crispy Configuration
-CRISPY_TEMPLATE_PACK = 'trucmuche'
-# WAVES_ENV_FILE = 'waves333.env'
+# CRISPY_TEMPLATE_PACK = 'bootstrap3'
 # Authentication Settings
 AUTH_USER_MODEL = 'authtools.User'
 
@@ -127,7 +126,7 @@ THUMBNAIL_MEDIA_ROOT = MEDIA_ROOT
 # Two step registration configuration
 
 # GRAPPELLI configuration
-# GRAPPELLI_ADMIN_TITLE = 'WAVES Services Administration'
+# GRAPPELLI_ADMIN_TITLE = 'This is my new site Administration'
 
 # Django countries configuration
 COUNTRIES_FIRST = [
@@ -182,7 +181,13 @@ DEBUG = env.bool('DEBUG', default=False)
 THUMBNAIL_DEBUG = DEBUG
 TEMPLATES[0]['OPTIONS'].update({'debug': DEBUG})
 # LOG FILE ROOT
-WAVES_LOG_ROOT = env.str('WAVES_LOG_ROOT', default=ROOT_DIR + '/logs')
-
-if DEBUG:
-    print "loaded settings from base"
+LOG_ROOT = ROOT_DIR + '/logs'
+# ---- LOGGING ----
+# -- Base root
+ROOT_LOG_LEVEL='ERROR'
+# -- Django framework
+DJANGO_LOG_LEVEL='WARNING'
+# -- Cron execution
+CRON_LOG_LEVEL='WARNING'
+# -- Waves app
+WAVES_LOG_LEVEL='WARNING'

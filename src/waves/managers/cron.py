@@ -48,7 +48,7 @@ def treat_queue_jobs():
             except Exception as e:
                 logger.error("Error Job %s (runner:%s-state:%s): %s", job, runner, job.get_status_display(), e.message)
                 job.nb_retry += 1
-                if job.nb_retry >= waves.settings.JOBS_MAX_RETRY:
+                if job.nb_retry >= waves.settings.WAVES_JOBS_MAX_RETRY:
                     job.status = const.JOB_CANCELLED
                     job.message = 'Job Automatically Cancelled (max retry reached) \n%s' % e.message
             finally:

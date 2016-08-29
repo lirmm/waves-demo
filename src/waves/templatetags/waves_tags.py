@@ -23,3 +23,4 @@ def get_app_verbose_name():
 @register.simple_tag
 def get_app_name():
     return waves.settings.WAVES_APP_NAME
+

@@ -3,30 +3,30 @@
     ServerName waves.com
     ServerAdmin webmaster@waves.com
 
-    DocumentRoot /data/http/www/waves
+    DocumentRoot [ABSOLUTE_PATH_TO_WAVES_INSTALL_DIR]
 
-    <Directory /data/http/www/waves/src/>
+    <Directory [ABSOLUTE_PATH_TO_WAVES_INSTALL_DIR]/src/>
       Options +Indexes
       Require all granted
     </Directory>
 
-    <Directory /data/http/www/waves/staticfiles>
+    <Directory [ABSOLUTE_PATH_TO_WAVES_INSTALL_DIR]/staticfiles>
       Options +Indexes
       Require all granted
     </Directory>
 
-    <Directory /data/http/www/waves/media>
+    <Directory [ABSOLUTE_PATH_TO_WAVES_INSTALL_DIR]/media>
       Options +Indexes
       Require all granted
     </Directory>
 
     SetEnv DJANGO_SETTINGS_MODULE waves_services.settings.production
 
-    WSGIDaemonProcess waves_services python-path=/data/http/www/waves/.venv/src:/data/http/www/waves/.venv/lib/python2.7/site-packages:/data/http/www/waves/src
+    WSGIDaemonProcess waves_services python-path=[ABSOLUTE_PATH_TO_WAVES_INSTALL_DIR]/.venv/src:[ABSOLUTE_PATH_TO_WAVES_INSTALL_DIR]/.venv/lib/python2.7/site-packages:[ABSOLUTE_PATH_TO_WAVES_INSTALL_DIR]/src
     WSGIProcessGroup waves_services
-    WSGIScriptAlias / /data/http/www/waves/src/waves_services/wsgi.py
+    WSGIScriptAlias / [ABSOLUTE_PATH_TO_WAVES_INSTALL_DIR]/src/waves_services/wsgi.py
 
-    <Directory /data/http/www/waves/src/waves_services>
+    <Directory [ABSOLUTE_PATH_TO_WAVES_INSTALL_DIR]/src/waves_services>
         Options FollowSymLinks Indexes
         <Files wsgi.py>
 	        Require all granted
@@ -38,6 +38,6 @@
     <Location /media>
       SetHandler None
     </Location>
-    Alias /media /data/http/www/waves/media
-    Alias /static /data/http/www/waves/staticfiles
+    Alias /media [ABSOLUTE_PATH_TO_WAVES_INSTALL_DIR]/media
+    Alias /static [ABSOLUTE_PATH_TO_WAVES_INSTALL_DIR]/staticfiles
 </VirtualHost>
