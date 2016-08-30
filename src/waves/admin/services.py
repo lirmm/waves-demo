@@ -9,19 +9,11 @@ from grappelli.forms import GrappelliSortableHiddenMixin
 from mptt.admin import MPTTModelAdmin
 
 import waves.const
-from waves.admin.base import TinyMCEAdmin
+from base import WavesTabbedModelAdmin
 from waves.forms.admin.services import ServiceMetaForm, ServiceOutputForm, ServiceRunnerParamForm, ServiceForm, \
     ServiceCategoryForm, ServiceInputForm, RelatedInputForm, ServiceInputSampleForm
 from waves.models import ServiceMeta, ServiceOutput, ServiceInput, RelatedInput, \
     Service, ServiceRunnerParam, ServiceCategory, Runner, ServiceExitCode, ServiceInputSample
-
-if 'tabbed_admin' in settings.INSTALLED_APPS:
-    from tabbed_admin import TabbedModelAdmin
-    admin_template = 'tabbed_change_form.html'
-else:
-    class TabbedModelAdmin(admin.ModelAdmin):
-        pass
-    admin_template = 'change_form.html'
 
 
 class ServiceMetaInline(GrappelliSortableHiddenMixin, admin.TabularInline):
@@ -155,11 +147,8 @@ duplicate_in_mass.short_description = "Duplicate selected services"
 mark_public.short_description = "Mark Services as Public"
 
 
-class ServiceAdmin(nested_admin.NestedModelAdmin, TabbedModelAdmin, TinyMCEAdmin):
-    class Media:
-        css = {
-            'all': ('tabbed_admin/css/tabbed_admin.css',)
-        }
+class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
+
     actions = [duplicate_in_mass, mark_public]
 
     inlines = (
@@ -170,7 +159,7 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, TabbedModelAdmin, TinyMCEAdmin
         ServiceExitCodeInline,
         ServiceSampleInline,
     )
-    change_form_template = 'admin/waves/service/' + admin_template
+    # change_form_template = 'admin/waves/service/' + admin_template
     form = ServiceForm
     filter_horizontal = ['restricted_client']
     readonly_fields = ['created', 'updated']

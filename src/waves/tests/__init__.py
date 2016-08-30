@@ -12,9 +12,9 @@ import waves.settings
 from waves.models import Service
 
 logger = logging.getLogger(__name__)
-waves.settings.WAVES_SAMPLE_DIR = str(os.path.join(settings.ROOT_DIR, 'test_data', 'sample'))
-waves.settings.WAVES_JOB_DIR = str(os.path.join(settings.ROOT_DIR, 'test_data', 'jobs'))
-waves.settings.WAVES_DATA_ROOT = str(os.path.join(settings.ROOT_DIR, 'test_data'))
+waves.settings.WAVES_DATA_ROOT = str(os.path.join(settings.BASE_DIR, 'waves', 'tests', 'data'))
+waves.settings.WAVES_SAMPLE_DIR = str(os.path.join(settings.BASE_DIR, 'waves', 'tests', 'data', 'sample'))
+waves.settings.WAVES_JOB_DIR = str(os.path.join(settings.BASE_DIR, 'waves', 'tests', 'data', 'jobs'))
 
 
 @override_settings(
