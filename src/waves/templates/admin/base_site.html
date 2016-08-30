@@ -2,8 +2,9 @@
 {% load i18n waves_tags admin_static %}
 
 {% block admin_title %}
+    this is my style !
     <div id="grp-admin-brand">
-        <img src="{% static 'site/logos/waves.png' %}" width="40px" id="#navbar-logo" style="float:left;"/>
+        <img src="{% static 'waves/logos/waves.png' %}" width="40px" id="#navbar-logo" style="float:left;"/>
         <h1 id="grp-admin-title">
             <span>
                 {% if grappelli_admin_title %} {{ grappelli_admin_title }} {% else %} {% get_admin_title %}{% endif %}
@@ -14,17 +15,13 @@
 
 {% block extrastyle %}
     {{ block.super }}
-    <link href="{% static 'site/css/main.css' %}" rel="stylesheet">
     <link href="{% static 'waves/waves.css' %}" rel="stylesheet">
 {% endblock extrastyle %}
 
 {% block extrahead %}
-    <link rel="shortcut icon" type="image/png" href="{% static 'site/ico/favicon.png' %}"/>
+    <link rel="shortcut icon" type="image/png" href="{% static 'waves/ico/favicon.png' %}"/>
 {% endblock %}
 
 {% block nav-global %}{{ block.super }}{% endblock %}
 
-{% block footer %}
-    {{ block.super }}
-    <div id="popup_modal"></div>
-{% endblock %}
+}

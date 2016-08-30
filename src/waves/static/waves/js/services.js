@@ -1,39 +1,71 @@
 /**
- * Javascript Library used in WAVES generated forms
- * @Author: Marc Chakiachvili
- * @License: MIT
- * @Version: 1.0
+ * Created by marc on 25/11/15.
+ * Functions library for atgc service platform back-office
  */
 
-/**
- * Serviceform class constructor, used as
- * @constructor
- */
-var ServiceForm = function(form){
-    this.form = form;
-    console.log('Form is ' + this.form + ' length' + this.form.elements.length);
-};
+(function ($) {
+    $(document).ready(function () {
+        $('.btn-file :file').on('fileselect', function (event, numFiles, label) {
 
-/**
- *
- * @param source
- * @param condition
- * @param target
- */
-ServiceForm.prototype.conditionnal = function(source, target){
-    source.onselect = function(){
-        console.log('on select called');
-    }
-};
+            var input = $(this).parents('.input-group').find(':text'),
+                log = numFiles > 1 ? numFiles + ' files selected' : label;
 
-/**
- * Attach a sample to a Form Element (mainly FileInputs)
- * @param source Form Element to attach sample radio button
- * @param sample Sample descriptor (mainly server side file)
- */
-ServiceForm.prototype.sample = function(source, sample){
-    sample.onclick = function(){
-        console.log('Sample is clicked');
-    };
-};
+            if (input.length) {
+                input.val(log);
+            } else {
+                if (log) alert(log);
+            }
+
+        });
+        // $('.has-popover').popover({'trigger': 'hover'});
+        $('.js-popup-link').click(function (e) {
+            console.log('Clicked on js-popup-link');
+            e.preventDefault();
+            $('#popup_modal').dialog({
+                modal: true,
+                position: {my: 'top', at: 'top+100', of: window},
+                minWidth: 400,
+                resizable: true,
+                title: this.title,
+            }).dialog('open').load(this.href)
+        });
+        $('#launch_import').click(function () {
+            console.log("Click called ! ");
+            $('#form-modal-body').load('/launch_import/', function () {
+                $('#form-modal').modal('toggle');
+                formAjaxSubmit('#form-modal-body form', '#form-modal');
+            });
+        });
+        $(document).on('change', '.btn-file :file', function () {
+            var input = $(this),
+                numFiles = input.get(0).files ? input.get(0).files.length : 1,
+                label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+            input.trigger('fileselect', [numFiles, label]);
+        });
+        var formAjaxSubmit = function (form, modal) {
+            $(form).submit(function (e) {
+                window.console.log("Submit called for this form");
+                e.preventDefault();
+                $.ajax({
+                    type: $(this).attr('method'),
+                    url: $(this).attr('action'),
+                    data: $(this).serialize(),
+                    success: function (xhr, ajaxOptions, thrownError) {
+                        if ($(xhr).find('.has-error').length > 0) {
+                            window.console.log('has-error ');// + $(xhr).find('.has-error').length);
+                            $(modal).find('.modal-body').html(xhr);
+                            formAjaxSubmit(form, modal);
+                        } else {
+                            window.console.log('simply toggle ');
+                            $(modal).modal('toggle');
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                    }
+                });
+            });
+        }
+    })
+})(django.jQuery);
+
 

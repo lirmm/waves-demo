@@ -150,7 +150,6 @@ mark_public.short_description = "Mark Services as Public"
 class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
 
     actions = [duplicate_in_mass, mark_public]
-
     inlines = (
         ServiceRunnerParamInLine,
         ServiceInputInline,
@@ -159,7 +158,7 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
         ServiceExitCodeInline,
         ServiceSampleInline,
     )
-    # change_form_template = 'admin/waves/service/' + admin_template
+    change_form_template = 'admin/waves/service/' + WavesTabbedModelAdmin.admin_template
     form = ServiceForm
     filter_horizontal = ['restricted_client']
     readonly_fields = ['created', 'updated']

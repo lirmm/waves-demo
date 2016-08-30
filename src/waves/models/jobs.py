@@ -24,6 +24,16 @@ RunJobInfo = namedtuple("RunJobInfo",
                            wasAborted exitStatus resourceUsage""")
 
 
+# File size allowed to display online
+def allow_display_online(file_name):
+    display_file_online = 1024 * 1024 * 1
+    try:
+        return os.path.getsize(file_name) <= display_file_online
+    except os.error:
+        return False
+    return False
+
+
 class Job(TimeStampable, SlugAble):
     """
     Store current jobs created by the platform
@@ -358,9 +368,8 @@ class JobInput(OrderAble, SlugAble):
     def get_label_for_choice(self):
         return self.srv_input.get_value_for_choice(self.value)
 
-
-def file_path(instance, filename):
-    return instance.file_path
+    def display_online(self):
+        return allow_display_online(self.file_path)
 
 
 class JobOutput(OrderAble, SlugAble):
@@ -417,6 +426,9 @@ class JobOutput(OrderAble, SlugAble):
 
     def get_absolute_url(self):
         return reverse('waves:job_output', kwargs={'slug': self.slug})
+
+    def display_online(self):
+        return allow_display_online(self.file_path)
 
 
 class JobHistory(models.Model):
