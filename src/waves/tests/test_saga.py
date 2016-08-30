@@ -10,7 +10,7 @@ from django.conf import settings
 
 import waves.const
 import waves.tests.utils.shell_util as test_util
-from waves.tests.test_runner import TestBaseJobRunner, Service, sample_job, sample_runner_model
+from waves.tests.test_runner import TestBaseJobRunner, Service, sample_job
 from waves.runners import ShellJobRunner, SshUserPassJobRunner, SGEJobRunner
 from waves.models import Job, JobInput, JobOutput
 from waves.runners.ssh import SGEOverSSHRunner

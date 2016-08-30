@@ -5,7 +5,6 @@ from django.contrib import messages
 from django.contrib.admin import TabularInline
 
 import waves.const
-from waves.admin.base import TinyMCEAdmin
 from waves.forms.admin import RunnerParamForm, RunnerForm
 from waves.models import RunnerParam, Runner
 
@@ -27,7 +26,7 @@ class RunnerParamInline(TabularInline):
         return False
 
 
-class RunnerAdmin(TinyMCEAdmin):
+class RunnerAdmin(admin.ModelAdmin):
     model = Runner
     form = RunnerForm
     inlines = (

@@ -72,13 +72,12 @@ Desktop.ini
 /test_data/jobs/
 /media/profile
 /src/waves.sample.sav.sqlite3
-/db/waves.sqlite3
-/src/waves.tmp
-/src/waves.sav.sqlite3
 /config/waves_uwsgi.ini
 /.venv/
 /config/waves.apache.conf
 /db/waves.sav.sqlite3
 /staticfiles/
-
-/src/waves_services/settings/production.py
+local.env
+/src/data/
+/src/waves/tests/data/jobs/
+/src/waves/config/waves.env

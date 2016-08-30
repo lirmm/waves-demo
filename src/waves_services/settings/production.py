@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from .base import *             # NOQA
 import logging.config
-ALLOWED_HOSTS = []
 # Cache the templates in memory for speed-up
 loaders = [
     ('django.template.loaders.cached.Loader', [

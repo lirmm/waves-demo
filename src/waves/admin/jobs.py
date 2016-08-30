@@ -2,19 +2,10 @@ from __future__ import unicode_literals
 
 from django.contrib import admin, messages
 from django.contrib.admin import TabularInline
-from django.conf import settings
 import waves.const as const
 from waves.forms.admin import JobInputForm, JobOutputForm, JobForm
 from waves.models import JobInput, JobOutput, JobHistory, Job
-
-# Disable 'strong dependency to 'django-tabbed-admin'
-if 'tabbed_admin' in settings.INSTALLED_APPS:
-    from tabbed_admin import TabbedModelAdmin
-else:
-    from django.contrib.admin import ModelAdmin
-
-    class TabbedModelAdmin(ModelAdmin):
-        pass
+from base import WavesTabbedModelAdmin
 
 
 class JobInputInline(TabularInline):
@@ -80,11 +71,7 @@ def mark_rerun(modeladmin, request, queryset):
 mark_rerun.short_description = "Re-run jobs"
 
 
-class JobAdmin(TabbedModelAdmin):
-    class Media:
-        css = {
-            'all': ('tabbed_admin/css/tabbed_admin.css',)
-        }
+class JobAdmin(WavesTabbedModelAdmin):
     model = Job
     form = JobForm
     inlines = [
@@ -104,7 +91,6 @@ class JobAdmin(TabbedModelAdmin):
 
     # grappelli list filter
     change_list_template = "admin/change_list_filter_sidebar.html"
-    change_form_template = 'admin/waves/job/change_form.html'
     readonly_fields = ('slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on')
 
     """

@@ -1,14 +1,22 @@
 from __future__ import unicode_literals
 
-from .base import * # NOQA
-
+import sys
 import logging.config
-DEBUG = True
+from .base import *
+
+# DEBUG
+THUMBNAIL_DEBUG = DEBUG
+TEMPLATES[0]['OPTIONS'].update({'debug': DEBUG})
+
+# Turn off debug while imported by Celery with a workaround
+# See http://stackoverflow.com/a/4806384
+if "celery" in sys.argv[0]:
+    DEBUG = False
 # Django Debug Toolbar
 INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
-# vars().update(env.email(backend='django.core.mail.backends.smtp.EmailBackend'))
+
+
 LOGGING_CONFIG = None
-# logging.config.fileConfig('/home/marc/Documents/sources/waves/config/logging/development.conf')
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
@@ -26,12 +34,7 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
-        'queue_log_file': {
-            'class': 'logging.FileHandler',
-            'filename': join(LOG_ROOT, 'spool.log'),
-            'formatter': 'verbose',
-        },
-        'waves_log_file': {
+        'log_file': {
             'class': 'logging.FileHandler',
             'filename': join(LOG_ROOT, 'waves.log'),
             'formatter': 'verbose',
@@ -39,36 +42,20 @@ LOGGING = {
     },
     'loggers': {
         'root': {
-            'handlers': ['console'],
+            'handlers': ['console', 'log_file'],
             'propagate': True,
             'level': 'ERROR',
         },
         'django': {
-            'handlers': ['console'],
-            'propagate': True,
-            'level': 'WARNING',
-        },
-        'radical.saga': {
-            'handlers': ['console'],
+            'handlers': ['console', 'log_file'],
             'propagate': True,
             'level': 'WARNING',
         },
         'waves': {
-            'handlers': ['console'],
+            'handlers': ['console', 'log_file'],
             'level': 'DEBUG',
             'propagate': True,
         },
-        'waves.models.jobs': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-        'django_crontab': {
-            'handlers': ['console'],
-            'level': env.str('CRON_LOG_LEVEL', default='INFO')
-        },
-
     }
 }
 logging.config.dictConfig(LOGGING)
-if DEBUG:
-    print "loaded settings from dev"

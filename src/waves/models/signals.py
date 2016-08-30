@@ -16,9 +16,6 @@ import waves.const
 import waves.settings
 from waves.models import Job, JobHistory, Service
 from waves.models.profiles import APIProfile, profile_directory
-if settings.DEBUG:
-    print "Signals loaded..."
-
 logger = logging.getLogger(__name__)
 
 

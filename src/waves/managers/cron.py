@@ -3,12 +3,12 @@ import logging.config
 import time
 import datetime
 from itertools import chain
+from waves.models import JobAdminHistory
 import waves.const as const
 import waves.settings
 from waves.models import Job
 
-__all__ = ['treat_queue_jobs', 'prepare_new_jobs', 'launch_prepared_jobs', 'update_running_jobs']
-
+__all__ = ['treat_queue_jobs', 'purge_old_jobs']
 logger = logging.getLogger(__name__)
 
 
@@ -17,11 +17,11 @@ def treat_queue_jobs():
     Very very simple daemon to monitor jobs
     """
     logger.info("Queue job launched at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
-    jobs = Job.objects.filter(status__lt=const.JOB_TERMINATED)
-    # here to be sure it's cached until another process need it :-)
-    nb_jobs = jobs.count()
-    while nb_jobs > 0:
-        logger.info("Starting queue process with %i(s) unfinished jobs", nb_jobs)
+    while True:
+        jobs = Job.objects.filter(status__lt=const.JOB_TERMINATED)
+        if jobs.count() == 0:
+            break
+        logger.info("Starting queue process with %i(s) unfinished jobs", jobs.count())
         for job in jobs:
             runner = job.runner
             logger.debug('[Runner]-------\n%s\n----------------', runner.dump_config())
@@ -47,19 +47,19 @@ def treat_queue_jobs():
                     logger.debug("[RunningJobStatus] %s (runner:%s)", job.get_status_display(), runner)
             except Exception as e:
                 logger.error("Error Job %s (runner:%s-state:%s): %s", job, runner, job.get_status_display(), e.message)
+                job.job_history.add(JobAdminHistory.objects.create(job=job, status=const.JOB_ERROR, message=e.message))
                 job.nb_retry += 1
                 if job.nb_retry >= waves.settings.WAVES_JOBS_MAX_RETRY:
                     job.status = const.JOB_CANCELLED
                     job.message = 'Job Automatically Cancelled (max retry reached) \n%s' % e.message
+                break
             finally:
+                logger.info("Queue job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
                 job.save()
                 job.check_send_mail()
                 runner.disconnect()
-        time.sleep(5)
-        # recalculate pending jobs
-        jobs = Job.objects.filter(status__lt=const.JOB_TERMINATED)
-        nb_jobs = jobs.count()
-    logger.info("Queue job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
+        logger.info('go to sleep for 10 seconds')
+        time.sleep(10)
 
 
 def purge_old_jobs():

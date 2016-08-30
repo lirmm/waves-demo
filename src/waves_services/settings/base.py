@@ -1,23 +1,19 @@
 from __future__ import unicode_literals
 import environ
 from os.path import dirname, join, exists
-from django.core.urlresolvers import reverse_lazy
 
-env = environ.Env()
-root = environ.Path(__file__) - 4
 
-ROOT_DIR = str(root.path())
-BASE_DIR = str(root.path('src'))
-MEDIA_ROOT = str(root.path('media'))
-MEDIA_URL = '/media/'
-# Use Django templates using the new Django 1.8 TEMPLATES settings
+BASE_DIR = dirname(dirname(dirname(__file__)))
+STATICFILES_DIRS = [join(BASE_DIR, 'static')]
+STATIC_URL = '/static/'
+MEDIA_ROOT = join(BASE_DIR, 'media')
+MEDIA_URL = "/media/"
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             join(BASE_DIR, 'templates'),
-            # insert more TEMPLATE_DIRS here
-            # join(BASE_DIR, 'waves', 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -30,15 +26,33 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
-                'waves.utils.context_theme_processor.css_theme',
+                # 'waves.utils.context_theme_processor.css_theme',
             ],
         },
     },
 ]
 
+# Django main environment file (issued from local.env)
+env = environ.Env()
+# Ideally move env file should be outside the git repo
+# i.e. BASE_DIR.parent.parent
+env_file = join(dirname(__file__), 'local.env')
+if exists(env_file):
+    environ.Env.read_env(str(env_file))
 # SECURITY WARNING: keep the secret key used in production secret!
 # Raises ImproperlyConfigured exception if SECRET_KEY not in os.environ
-SECRET_KEY = env.str('SECRET_KEY', "You-should-consider-setting-a-secret-key")
+SECRET_KEY = env.str('SECRET_KEY')
+# DATABASE configuration
+DATABASES = {
+    'default': env.db(default='sqlite:///' + BASE_DIR + '/waves/db/waves.sample.sqlite3'),
+}
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+
+# Django countries configuration
+COUNTRIES_FIRST = env.list('COUNTRIES_FIRST', default=['FR','GB','US','DE'])
+# DJANGO DEBUG global
+DEBUG = env.bool('DEBUG', default=False)
+
 
 # Application definition
 INSTALLED_APPS = (
@@ -84,11 +98,6 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'waves_services.urls'
 
-# DATABASE configuration
-DATABASES = {
-    'default': env.db(default='sqlite:///' + ROOT_DIR + '/db/waves.sample.sqlite3'),
-}
-
 WSGI_APPLICATION = 'waves_services.wsgi.application'
 
 LANGUAGE_CODE = 'en-gb'
@@ -101,40 +110,12 @@ USE_L10N = True
 
 USE_TZ = True
 
-STATICFILES_DIRS = [
-    join(BASE_DIR, 'static'),
-    # join(BASE_DIR, 'waves', 'static')
-]
-STATIC_URL = '/static/'
-STATIC_ROOT = join(dirname(BASE_DIR), 'staticfiles')
-
-################################################
-#    --------- WAVES CONFIGURATION ---------   #
-################################################
-# Bootstrap theme default
-# BOOTSTRAP_THEME = 'darkly'
-
-# Crispy Configuration
-# CRISPY_TEMPLATE_PACK = 'bootstrap3'
 # Authentication Settings
 AUTH_USER_MODEL = 'authtools.User'
 
 # Thumbnails configuration
 THUMBNAIL_EXTENSION = 'png'  # Or any extn for your thumbnails
 THUMBNAIL_MEDIA_ROOT = MEDIA_ROOT
-
-# Two step registration configuration
-
-# GRAPPELLI configuration
-# GRAPPELLI_ADMIN_TITLE = 'This is my new site Administration'
-
-# Django countries configuration
-COUNTRIES_FIRST = [
-    'FR',
-    'GB',
-    'US',
-    'DE'
-]
 
 # DRF Configuration
 REST_FRAMEWORK = {
@@ -145,7 +126,6 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'waves.api.authentication.auth.WavesAPI_KeyAuthBackend',
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
@@ -168,17 +148,15 @@ REST_FRAMEWORK = {
 FILE_UPLOAD_HANDLERS = [
     "django.core.files.uploadhandler.TemporaryFileUploadHandler"
 ]
-FILE_UPLOAD_MAX_MEMORY_SIZE = 0
+# FILE_UPLOAD_MAX_MEMORY_SIZE = 0
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 774
+FILE_UPLOAD_PERMISSIONS = 774
 
 # Default Site id
 SITE_ID = 1
-# TODO add recaptcha for registration
 
 # Tabbed Admin configuration
 TABBED_ADMIN_USE_JQUERY_UI = False
-# DEBUG
-DEBUG = env.bool('DEBUG', default=False)
-THUMBNAIL_DEBUG = DEBUG
-TEMPLATES[0]['OPTIONS'].update({'debug': DEBUG})
 # LOG FILE ROOT
-LOG_ROOT = ROOT_DIR + '/logs'
+LOG_ROOT = dirname(BASE_DIR) + '/logs'
+THUMBNAIL_EXTENSION = 'png'
