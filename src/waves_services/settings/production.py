@@ -44,7 +44,7 @@ LOGGING = {
             'handlers': ['waves_log_file'],
             'level': 'WARNING',
         },
-        'saga': {
+        'radical.saga': {
             'handlers': ['waves_log_file'],
             'level': 'WARNING',
         },

@@ -52,7 +52,9 @@ REGISTRATION_SALT = env.str('REGISTRATION_SALT')
 COUNTRIES_FIRST = env.list('COUNTRIES_FIRST', default=['FR','GB','US','DE'])
 # DJANGO DEBUG global
 DEBUG = env.bool('DEBUG', default=False)
-
+# LOG FILE ROOT
+LOG_ROOT = env.str('LOG_ROOT', default=dirname(BASE_DIR) + '/logs')
+WAVES_ENV_FILE = env.str('WAVES_ENV_FILE', default=join(BASE_DIR, 'waves', 'config', 'waves.env'))
 
 # Application definition
 INSTALLED_APPS = (
@@ -157,6 +159,4 @@ SITE_ID = 1
 
 # Tabbed Admin configuration
 TABBED_ADMIN_USE_JQUERY_UI = False
-# LOG FILE ROOT
-LOG_ROOT = dirname(BASE_DIR) + '/logs'
 THUMBNAIL_EXTENSION = 'png'

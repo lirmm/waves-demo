@@ -71,14 +71,14 @@ Desktop.ini
 /data
 /test_data/jobs/
 /media/profile
-/src/waves.sample.sav.sqlite3
+waves.sample.sav.sqlite3
 /config/waves_uwsgi.ini
 /.venv/
-/config/waves.apache.conf
+waves.apache.conf
 /db/waves.sav.sqlite3
 /staticfiles/
 local.env
 /src/data/
 /src/waves/tests/data/jobs/
-/src/waves/config/waves.env
+waves.env
 default_profile.png.*
