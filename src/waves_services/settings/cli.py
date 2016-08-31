@@ -23,15 +23,15 @@ LOGGING = {
     'loggers': {
         'root': {
             'handlers': ['console'],
-            'level': 'WARNING',
+            'level': ROOT_LOG_LEVEL,
         },
         'waves': {
             'handlers': ['console'],
-            'level': "INFO",
+            'level': WAVES_LOG_LEVEL,
         },
         'radical.saga': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': SAGA_LOG_LEVEL,
         },
 
     }

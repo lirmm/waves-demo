@@ -38,19 +38,19 @@ LOGGING = {
         'root': {
             'handlers': ['waves_log_file'],
             'propagate': False,
-            'level': 'WARNING',
+            'level': ROOT_LOG_LEVEL,
         },
         'django': {
             'handlers': ['waves_log_file'],
-            'level': 'WARNING',
+            'level': ROOT_LOG_LEVEL,
         },
         'radical.saga': {
             'handlers': ['waves_log_file'],
-            'level': 'WARNING',
+            'level': SAGA_LOG_LEVEL,
         },
         'waves': {
             'handlers': ['waves_log_file'],
-            'level': 'WARNING',
+            'level': WAVES_LOG_LEVEL,
         }
     }
 }

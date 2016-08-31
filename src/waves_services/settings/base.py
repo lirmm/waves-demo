@@ -56,6 +56,10 @@ DEBUG = env.bool('DEBUG', default=False)
 LOG_ROOT = env.str('LOG_ROOT', default=dirname(BASE_DIR) + '/logs')
 WAVES_ENV_FILE = env.str('WAVES_ENV_FILE', default=join(BASE_DIR, 'waves', 'config', 'waves.env'))
 STATIC_ROOT = env.str('STATIC_ROOT', default=join(dirname(BASE_DIR), 'staticfiles'))
+ROOT_LOG_LEVEL = env.str('ROOT_LOG_LEVEL', default='ERROR')
+WAVES_LOG_LEVEL = env.str('WAVES_LOG_LEVEL', default=ROOT_LOG_LEVEL)
+CRON_LOG_LEVEL = env.str('CRON_LOG_LEVEL', default=ROOT_LOG_LEVEL)
+SAGA_LOG_LEVEL = env.str('SAGA_LOG_LEVEL', default=ROOT_LOG_LEVEL)
 
 # Application definition
 INSTALLED_APPS = (

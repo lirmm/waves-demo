@@ -39,19 +39,19 @@ LOGGING = {
     'loggers': {
         'root': {
             'handlers': ['log_file'],
-            'level': 'WARNING',
+            'level': ROOT_LOG_LEVEL,
         },
         'waves': {
-            'level': "INFO",
+            'level': WAVES_LOG_LEVEL,
             'handlers': ['log_file'],
             'propagate': True
         },
         'django_crontab': {
-            'level': 'INFO',
+            'level': CRON_LOG_LEVEL,
             'handlers': ['log_file'],
         },
         'radical.saga': {
-            'level': 'INFO',
+            'level': SAGA_LOG_LEVEL,
             'handlers': ['log_file'],
         },
 

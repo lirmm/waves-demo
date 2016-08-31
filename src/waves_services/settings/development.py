@@ -34,25 +34,20 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
-        'log_file': {
-            'class': 'logging.FileHandler',
-            'filename': join(LOG_ROOT, 'waves.log'),
-            'formatter': 'verbose',
-        },
     },
     'loggers': {
         'root': {
-            'handlers': ['console', 'log_file'],
+            'handlers': ['console'],
             'propagate': True,
             'level': 'ERROR',
         },
         'django': {
-            'handlers': ['console', 'log_file'],
+            'handlers': ['console'],
             'propagate': True,
             'level': 'WARNING',
         },
         'waves': {
-            'handlers': ['console', 'log_file'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
         },
