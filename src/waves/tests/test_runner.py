@@ -1,19 +1,16 @@
 from __future__ import unicode_literals
 
-import logging
 import time
 import os
-import unittest
+import logging
 from django.utils.timezone import localtime
-
-
+from django.conf import settings
 import waves.const
 from waves.exceptions import *
 from waves.tests import WavesBaseTestCase
 from waves.runners import JobRunner
-from waves.models import Service, Runner, Job, RunnerParam, JobInput, JobOutput
+from waves.models import Service, Runner, Job, RunnerParam
 import waves.settings
-
 logger = logging.getLogger(__name__)
 
 __all__ = ['TestBaseJobRunner', 'sample_runner_model']
@@ -68,8 +65,9 @@ class TestBaseJobRunner(WavesBaseTestCase):
     def tearDown(self):
         super(TestBaseJobRunner, self).tearDown()
         if self.job:
-            self.job.delete_job_dirs()
-            pass
+            if not settings.DEBUG:
+                self.job.delete_job_dirs()
+                pass
 
     def testConnect(self):
         if self.__module__ != 'waves.tests.test_runner':

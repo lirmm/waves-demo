@@ -96,6 +96,10 @@ class Job(TimeStampable, SlugAble):
         os.chmod(self.working_dir, 0775)
         os.chmod(self.input_dir, 0775)
         os.chmod(self.output_dir, 0775)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Job working dir %s (created %s)", self.working_dir, os.path.exists(self.working_dir))
+            logger.debug("Job input dir %s (created %s)", self.input_dir, os.path.exists(self.working_dir))
+            logger.debug('Job output dir %s (created %s)', self.output_dir, os.path.exists(self.working_dir))
 
     def delete_job_dirs(self):
         import shutil
@@ -124,16 +128,21 @@ class Job(TimeStampable, SlugAble):
         return existing
 
     @property
+    def output_files(self):
+        all_files = self.job_outputs.all()
+        return all_files
+
+    @property
     def input_params(self):
         return self.job_inputs.exclude(srv_input__type=const.TYPE_FILE)
 
     @property
     def input_dir(self):
-        return os.path.join(self.working_dir, 'inputs/')
+        return self.working_dir
 
     @property
     def output_dir(self):
-        return os.path.join(self.working_dir, 'outputs/')
+        return self.working_dir
 
     @property
     def working_dir(self):
@@ -258,6 +267,10 @@ class Job(TimeStampable, SlugAble):
         self.job_outputs.add(out1)
         logger.debug('Created default outputs: [%s, %s]', out, out1)
 
+    @property
+    def public_history(self):
+        return self.job_history.filter(is_admin=False, message__isnull=False)
+
 
 class JobInput(OrderAble, SlugAble):
     class Meta:
@@ -305,9 +318,7 @@ class JobInput(OrderAble, SlugAble):
     @property
     def validated_value(self):
         if self.type == const.TYPE_FILE:
-            # return self.file_path
-            # FIXME related path is hardcoded
-            return 'inputs/' + self.value
+            return os.path.join(self.job.input_dir, self.value)
         elif self.type == const.TYPE_BOOLEAN:
             return bool(self.value)
         elif self.type == const.TYPE_TEXT:
@@ -333,12 +344,13 @@ class JobInput(OrderAble, SlugAble):
     @property
     def command_line_element(self, forced_value=None):
         value = self.validated_value if forced_value is None else forced_value
-        try:
+        """try:
             if self.srv_input and self.srv_input.to_output.exists():
                 # related service input is a output 'name' parameter
                 value = os.path.join('outputs', value)
         except ObjectDoesNotExist:
             pass
+        """
         if self.param_type == const.OPT_TYPE_VALUATED:
             return '--%s=%s' % (self.name, value)
         elif self.param_type == const.OPT_TYPE_SIMPLE:
@@ -368,6 +380,7 @@ class JobInput(OrderAble, SlugAble):
     def get_label_for_choice(self):
         return self.srv_input.get_value_for_choice(self.value)
 
+    @property
     def display_online(self):
         return allow_display_online(self.file_path)
 
@@ -427,6 +440,7 @@ class JobOutput(OrderAble, SlugAble):
     def get_absolute_url(self):
         return reverse('waves:job_output', kwargs={'slug': self.slug})
 
+    @property
     def display_online(self):
         return allow_display_online(self.file_path)
 
@@ -457,11 +471,19 @@ class JobHistory(models.Model):
         return '%s:%s:%s' % (self.message, self.get_status_display(), self.job)
 
 
+class JobAdminHistoryManager(models.Manager):
+    def get_queryset(self):
+        return super(JobAdminHistoryManager, self).get_queryset().filter(is_admin=True)
+
+    def create(self, **kwargs):
+        kwargs.update({'is_admin': True})
+        return super(JobAdminHistoryManager, self).create(**kwargs)
+
+
 class JobAdminHistory(JobHistory):
     class Meta:
         proxy = True
-
-    id_admin = True
+    objects = JobAdminHistoryManager()
 
 
 eav.register(Job, JobEavConfig)

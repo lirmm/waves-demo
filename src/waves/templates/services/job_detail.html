@@ -18,8 +18,8 @@
                                 </h3>
                                 <p class="text">
                                     <em>
-                                    Created on {{ job.created }} <br/>
-                                    Last update {{ job.updated }}
+                                        Created on {{ job.created }} <br/>
+                                        Last update {{ job.updated }}
                                     </em>
                                 </p>
                             </div>
@@ -94,16 +94,13 @@
                                                     <dd class="input_output">
                                                         {{ job_output.value|default:'Not available' }}
                                                         <div class="pull-right">
-                                                            {% if job.results_available and job_output.value %}
-                                                                <a href="{% url 'waves:job_output' job_output.slug %}">See
-                                                                    online</a>
-                                                                &nbsp;|&nbsp;
-                                                                <a href="{% url 'waves:job_output' job_output.slug %}?export=1">Download
-                                                                    File <i
-                                                                            class="glyphicon glyphicon-download-alt"></i></a>
-                                                            {% else %}
-                                                                <i>Not available yet</i>
+                                                            {% if job_output.display_online %}
+                                                            <a href="{% url 'waves:job_output' job_output.slug %}">See
+                                                                online</a>
+                                                            &nbsp;|&nbsp;
                                                             {% endif %}
+                                                            <a href="{% url 'waves:job_output' job_output.slug %}?export=1">Download
+                                                                File <i class="glyphicon glyphicon-download-alt"></i></a>
                                                         </div>
                                                     </dd>
                                                     {% empty %}
@@ -147,7 +144,7 @@
                         </div>
                         <div class="panel-body">
                             <div class="panel-group" id="panel-job-{{ job.slug }}">
-                                {% for history in job.job_history.all %}
+                                {% for history in job.public_history %}
                                     <div class="panel panel-default">
                                         <div class="panel-heading">
                                             <a class="panel-title collapsed" data-toggle="collapse"

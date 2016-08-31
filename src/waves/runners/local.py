@@ -107,14 +107,22 @@ class ShellJobRunner(JobRunner):
         job.remote_job_id = new_job.id
 
     def _cancel_job(self, job):
-        """Jobs cannot be cancelled for Galaxy runners
         """
-        the_job = self._connector.get_job(job.remote_job_id)
-        the_job.cancel()
+        Jobs Cancel if connector is available
+        """
+        try:
+            the_job = self._connector.get_job(str(job.remote_job_id))
+            the_job.cancel()
+        except saga.SagaException as exc:
+            logger.warning('Remote cancel job error:\n%s: %s' % (exc.__class__.__name__, str(exc)))
 
     def _job_status(self, job):
-        the_job = self._connector.get_job(job.remote_job_id)
-        return the_job.state
+        try:
+            the_job = self._connector.get_job(str(job.remote_job_id))
+            return the_job.state
+        except saga.SagaException as exc:
+            logger.warning('Remote job status error:\n%s: %s' % (exc.__class__.__name__, str(exc)))
+            return waves.const.JOB_UNDEFINED
 
     def _job_results(self, job):
         # TODO check exit code from saga

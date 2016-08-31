@@ -14,6 +14,7 @@ from waves.tests.test_runner import TestBaseJobRunner, Service, sample_job
 from waves.runners import ShellJobRunner, SshUserPassJobRunner, SGEJobRunner
 from waves.models import Job, JobInput, JobOutput
 from waves.runners.ssh import SGEOverSSHRunner
+from waves.managers.servicejobs import ServiceJobManager
 import waves.settings
 
 logger = logging.getLogger(__name__)
@@ -99,10 +100,9 @@ class SAGARunnerTestCase(TestBaseJobRunner):
         jobs_params = self._loadServiceJobsParams(api_name='physic_ist')
         self.runner.command = 'physic_ist'
         for submitted_input in jobs_params:
-            self.job = Service.objects.create_new_job(service=self.service, submitted_inputs=submitted_input)
+            self.job = ServiceJobManager.create_new_job(service=self.service, submitted_inputs=submitted_input)
             logger.debug('Job command line %s', self.job.command_line)
             self.assertTrue(self.runJobWorkflow())
-            # self.job.delete()
 
     @test_util.skip_unless_tool('services/hello_world.sh')
     def testCancelJob(self):

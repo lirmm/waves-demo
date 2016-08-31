@@ -128,7 +128,7 @@ class JobRunner(object):
         except Exception as exc:
             job.status = waves.const.JOB_ERROR
             raise JobRunException('Run job error: %s: %s' %
-                                  (exc.__class__.__name__, str(exc)))
+                                  (exc.__class__.__name__, str(exc)), job=job)
         finally:
             job.save()
         return job.remote_job_id
@@ -142,14 +142,18 @@ class JobRunner(object):
         if job.status not in dict(self._state_allow_cancel):
             raise JobInconsistentStateError(job.get_status_display(), self._state_allow_cancel, 'Cancel not allowed')
         try:
+            if not self.connected:
+                self.connect()
+            if not self._ready():
+                raise RunnerNotReady()
             self._cancel_job(job)
             job.status = waves.const.JOB_CANCELLED
             logger.info('Job %s cancelled ', job.slug)
         except Exception as exc:
-            logger.warn('Cancel job %s not applied to runner %s', job.pk, job.service.run_on)
+            logger.error('Cancel job %s not applied to runner %s', job.pk, job.service.run_on)
             job.message = 'Could not cancel job'
             raise JobRunException('Cancel job error:\n%s: %s' %
-                                  (exc.__class__.__name__, str(exc)))
+                                  (exc.__class__.__name__, str(exc)), job=job)
         finally:
             job.save()
         return job.status

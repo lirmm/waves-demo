@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import saga
 import waves.settings
 from waves.runners.local import ShellJobRunner
 import logging

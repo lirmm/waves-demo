@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
+# TODO move exceptions classes into dedicated files
 from __future__ import unicode_literals
+
 import logging
 import sys
 
-# TODO move exceptions classes into dedicated files
 __all__ = ['RunnerException', 'RunnerNotInitialized', 'RunnerNotReady', 'RunnerConnectionError',
            'JobException', 'JobInconsistentStateError', 'JobMissingMandatoryParam', 'JobPrepareException',
            'JobRunException', 'JobSubmissionException', 'JobCreateException', 'RunnerUnexpectedInitParam']
-logger = logging.getLogger(__name__)
 if sys.version_info[0] < 3:
     __all__ = [n.encode('ascii') for n in __all__]
+logger = logging.getLogger(__name__)
 
 
 class WavesException(Exception):
@@ -99,9 +100,4 @@ class JobInconsistentStateError(JobRunException):
 
 class JobPrepareException(JobRunException):
     """Preparation process errors"""
-    pass
-
-
-class JobRunException(JobRunException, Exception):
-    """Run process errors"""
     pass

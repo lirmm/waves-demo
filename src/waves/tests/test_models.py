@@ -6,7 +6,7 @@ import logging
 from django.test import TestCase
 from django.utils.module_loading import import_string
 
-from waves.models import Job, Service, Runner
+from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory
 import waves.const
 
 logger = logging.getLogger(__name__)
@@ -63,3 +63,11 @@ class TestJobs(TestCase):
         job.delete()
         self.assertFalse(os.path.isdir(job.working_dir))
         logger.debug('Job directories has been deleted')
+
+    def test_job_history(self):
+        job = Job.objects.create(service=Service.objects.create(name='Sample Service'))
+        admin_hist = JobAdminHistory.objects.create(job=job, message="Test Admin message", status=job.status)
+        job.job_history.add(admin_hist)
+        job.job_history.add(JobHistory.objects.create(job=job, message="Test public message", status=job.status))
+        self.assertEqual(job.job_history.count(), 3)
+        self.assertEqual(job.public_history.count(), 2)

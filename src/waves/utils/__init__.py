@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import logging
 
-__all__ = ['log_func_details']
+__all__ = ['log_func_details', 'normalize_output', 'set_api_name']
 
 logger = logging.getLogger(__name__)
 
@@ -19,12 +19,12 @@ def log_func_details(func):
     return decorate
 
 
-def normalize(value):
+def normalize_output(value):
     import inflection
     import re
-    temp_name = re.sub(r'\W+', '_', value)
-    return inflection.underscore(temp_name)
+    value = re.sub(r'[^\w\.]+', '_', value)
+    return inflection.underscore(value)
 
 
 def set_api_name(value):
-    return normalize(value)
+    return normalize_output(value)

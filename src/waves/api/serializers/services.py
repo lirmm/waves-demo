@@ -7,6 +7,7 @@ from django.contrib.sites.models import Site
 
 from dynamic import DynamicFieldsModelSerializer
 from waves.models import ServiceInput, ServiceOutput, ServiceMeta, Service, RelatedInput, Job
+from waves.managers.servicejobs import ServiceJobManager
 
 
 class InputSerializer(DynamicFieldsModelSerializer):
@@ -121,8 +122,8 @@ class ServiceJobSerializer(serializers.ModelSerializer):
         except KeyError:
             ass_email = None
             pass
-        self.instance = Service.objects.create_new_job(service=validated_data['service'],
-                                                       email_to=ass_email,
-                                                       submitted_inputs=self.initial_data,
-                                                       user=client)
+        self.instance = ServiceJobManager.create_new_job(service=validated_data['service'],
+                                                         email_to=ass_email,
+                                                         submitted_inputs=self.initial_data,
+                                                         user=client)
         return self.instance

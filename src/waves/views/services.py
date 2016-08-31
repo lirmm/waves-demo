@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 import logging
 
 from django.core.urlresolvers import reverse
-from django.shortcuts import get_object_or_404
 from django.views import generic
 from django.db.models import Prefetch
 from django.contrib import messages
@@ -13,6 +12,7 @@ from waves.forms.services import ServiceJobForm
 from waves.exceptions import JobException
 from waves.models import ServiceCategory, Service
 from waves.views.jobs import logger
+from waves.managers.servicejobs import ServiceJobManager
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +115,7 @@ class JobSubmissionView(ServiceDetailView, generic.FormView):
             ass_email = self.request.user.email
         user = self.request.user if self.request.user.is_authenticated() else None
         try:
-            self.job = Service.objects.create_new_job(service=self.object,
+            self.job = ServiceJobManager.create_new_job(service=self.object,
                                                       email_to=ass_email,
                                                       submitted_inputs=form.cleaned_data,
                                                       user=user)

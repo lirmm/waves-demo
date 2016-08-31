@@ -14,15 +14,15 @@ class JobInputInline(TabularInline):
     extra = 0
     suit_classes = 'suit-tab suit-tab-inputs'
     exclude = ('order',)
-    readonly_fields = ('name', 'value','srv_input')
+    readonly_fields = ('name', 'value', 'srv_input', 'file_path')
     can_delete = False
     ordering = ('order',)
-    fields = ('srv_input', 'name', 'value', )
+    fields = ('srv_input', 'name', 'value', 'file_path')
 
     def has_add_permission(self, request):
         return False
 
-    def get_srv_input(self, obj):
+    def srv_input(self, obj):
         return obj.srv_input.label
 
 
@@ -32,9 +32,9 @@ class JobOutputInline(TabularInline):
     extra = 0
     suit_classes = 'suit-tab suit-tab-outputs'
     can_delete = False
-    readonly_fields = ('name', 'value',)
+    readonly_fields = ('name', 'value', 'file_path')
     ordering = ('order',)
-    fields = ('name', 'value')
+    fields = ('name', 'value', 'file_path')
     # classes = ('grp-collapse grp-closed',)
 
     def has_add_permission(self, request):
@@ -48,6 +48,7 @@ class JobHistoryInline(TabularInline):
     verbose_name_plural = "Job history"
 
     readonly_fields = ('status', 'timestamp', 'message')
+    fields = ('status', 'timestamp', 'message')
     can_delete = False
     extra = 0
 
@@ -93,7 +94,8 @@ class JobAdmin(WavesTabbedModelAdmin):
     change_list_template = "admin/change_list_filter_sidebar.html"
     change_form_template = 'admin/waves/job/' + WavesTabbedModelAdmin.admin_template
 
-    readonly_fields = ('slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on')
+    readonly_fields = ('title', 'slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on',
+                       'command_line')
 
     """
     fieldsets = [
@@ -105,7 +107,8 @@ class JobAdmin(WavesTabbedModelAdmin):
     """
     tab_overview = (
         (None, {
-            'fields': ['service', 'status', 'created', 'updated', 'client', 'email_to', 'slug', 'get_run_on']
+            'fields': ['title', 'service', 'status', 'created', 'updated', 'client', 'email_to', 'slug', 'get_run_on',
+                       'command_line']
         }),
     )
     tab_history = (JobHistoryInline,)
@@ -113,9 +116,9 @@ class JobAdmin(WavesTabbedModelAdmin):
     tab_outputs = (JobOutputInline,)
     tabs = [
         ('General', tab_overview),
-        ('Job History', tab_history),
-        ('Service Inputs', tab_inputs),
-        ('Services outputs', tab_outputs),
+        ('History', tab_history),
+        ('Inputs', tab_inputs),
+        ('Outputs', tab_outputs),
     ]
 
     def get_list_filter(self, request):

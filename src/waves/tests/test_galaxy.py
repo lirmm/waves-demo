@@ -3,14 +3,13 @@ import logging
 import time
 import os
 import bioblend
-import uuid
 import utils.galaxy_util as test_util
 import waves.const as const
+import waves.settings
 from django.test import override_settings
 from waves.tests.test_runner import TestBaseJobRunner
 from waves.models import Runner, Service, Job, JobOutput, JobInput
 from waves.runners.galaxy import GalaxyJobRunner, GalaxyWorkFlowRunner
-import waves.settings
 
 logger = logging.getLogger(__name__)
 

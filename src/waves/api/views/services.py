@@ -8,6 +8,7 @@ from rest_framework.decorators import detail_route, list_route
 from waves.models import Service, ServiceInput, Job
 from waves.exceptions import JobException
 from waves.api.serializers import InputSerializer, ServiceSerializer, ServiceJobSerializer, JobSerializer
+from waves.managers.servicejobs import ServiceJobManager
 from . import WavesBaseView
 
 import logging
@@ -73,11 +74,11 @@ class ServiceViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):
                 # serializer = ServiceJobSerializer(many=False, context={'request': request},data=request.data)
                 serializer = self.get_serializer(context={'request': request},
                                                  fields=('inputs',))
-                serializer.run_validation(data=submitted_data,)
-                job = Service.objects.create_new_job(service=service,
-                                                     email_to=ass_email,
-                                                     submitted_inputs=request.data,
-                                                     user=request.user)
+                serializer.run_validation(data=submitted_data, )
+                job = ServiceJobManager.create_new_job(service=service,
+                                                       email_to=ass_email,
+                                                       submitted_inputs=request.data,
+                                                       user=request.user)
                 serializer = JobSerializer(job,
                                            many=False,
                                            context={'request': request},

@@ -5,6 +5,7 @@ import os
 from django.views import generic
 from django.http import HttpResponse
 from django.utils.encoding import smart_str
+from django.http import Http404
 
 from wsgiref.util import FileWrapper
 
@@ -18,11 +19,17 @@ class DownloadFileView(generic.DetailView):
     def __init__(self, **kwargs):
         super(DownloadFileView, self).__init__(**kwargs)
 
+    def get_object(self, queryset=None):
+        object = super(DownloadFileView, self).get_object(queryset)
+        if not os.path.isfile(object.file_path):
+            raise Http404('File does not exists')
+        return object
+
     def render_to_response(self, context, **response_kwargs):
         """
             Creates a response with file asked, otherwise returns displayed file as 'Text'
             template response.
-            """
+        """
         # Sniff if we need to return a CSV export
         if 'export' in self.request.GET:
             wrapper = FileWrapper(file(self.file_path))
@@ -50,12 +57,12 @@ class DownloadFileView(generic.DetailView):
 
     @property
     def file_description(self):
-        return ""
+        raise NotImplementedError('file_description function must be defined')
 
     @property
     def file_name(self):
-        return "Fake.txt"
+        raise NotImplementedError('file_name function must be defined')
 
     @property
     def file_path(self):
-        return "/dev/null"
+        raise NotImplementedError('file_path function must be defined')
