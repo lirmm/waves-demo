@@ -19,8 +19,6 @@ def treat_queue_jobs():
     logger.info("Queue job launched at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
     while True:
         jobs = Job.objects.filter(status__lt=const.JOB_TERMINATED)
-        if jobs.count() == 0:
-            break
         logger.info("Starting queue process with %i(s) unfinished jobs", jobs.count())
         for job in jobs:
             runner = job.runner

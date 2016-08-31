@@ -147,10 +147,10 @@ if 'django_crontab' in settings.INSTALLED_APPS:
     # -- Purge old job timing (default each day at 00h01)
     WAVES_PURGE_CRON = get_setting('WAVES_PURGE_CRON', str, default='1 0 * * *')
     # -- Any script or setup to activate before each cron job
-    WAVES_CRON_TAB_PREFIX = get_setting('WAVES_CRONTAB_COMMAND_PREFIX', str, default='',
+    WAVES_CRONTAB_COMMAND_PREFIX = get_setting('WAVES_CRONTAB_COMMAND_PREFIX', str, default='',
                                         override='CRONTAB_COMMAND_PREFIX')
     # -- Any script or command suffix to activate after each cron job
-    WAVES_CRON_TAB_SUFFIX = get_setting('WAVES_CRONTAB_COMMAND_SUFFIX', str,
+    WAVES_CRONTAB_COMMAND_SUFFIX = get_setting('WAVES_CRONTAB_COMMAND_SUFFIX', str,
                                         default='2>&1',
                                         override='CRONTAB_COMMAND_SUFFIX')
     # -- Number of days to keep anonymous jobs in database / on disk
