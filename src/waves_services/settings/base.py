@@ -4,9 +4,6 @@ from os.path import dirname, join, exists
 
 
 BASE_DIR = dirname(dirname(dirname(__file__)))
-STATICFILES_DIRS = [
-    join(BASE_DIR, 'static'),
-]
 STATIC_URL = '/static/'
 
 MEDIA_ROOT = join(BASE_DIR, 'media')
