@@ -47,7 +47,7 @@ DATABASES = {
     'default': env.db(default='sqlite:///' + BASE_DIR + '/waves/db/waves.sample.sqlite3'),
 }
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
-
+REGISTRATION_SALT = env.str('REGISTRATION_SALT')
 # Django countries configuration
 COUNTRIES_FIRST = env.list('COUNTRIES_FIRST', default=['FR','GB','US','DE'])
 # DJANGO DEBUG global

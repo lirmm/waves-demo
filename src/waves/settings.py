@@ -52,8 +52,6 @@ WAVES_REGISTRATION_ALLOWED = get_setting('WAVES_REGISTRATION_ALLOWED', bool, def
                                          override='REGISTRATION_ALLOWED')
 WAVES_ACCOUNT_ACTIVATION_DAYS = get_setting('WAVES_ACCOUNT_ACTIVATION_DAYS', int, default=7,
                                             override='ACCOUNT_ACTIVATION_DAYS')
-WAVES_REGISTRATION_SALT = get_setting('WAVES_REGISTRATION_SALT', str, override='REGISTRATION_SALT')
-
 WAVES_BOOTSTRAP_THEME = get_setting('WAVES_BOOTSTRAP_THEME', str, default='flatly', override='BOOTSTRAP_THEME')
 # ---- WEB APP ----
 # ---- Titles
