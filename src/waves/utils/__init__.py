@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import logging
-
+from django.contrib.sites.models import Site
 __all__ = ['log_func_details', 'normalize_output', 'set_api_name']
 
 logger = logging.getLogger(__name__)
@@ -28,3 +28,7 @@ def normalize_output(value):
 
 def set_api_name(value):
     return normalize_output(value)
+
+
+def get_complete_absolute_url(absolute_url):
+    return 'http://%s%s' % (Site.objects.get_current().domain, absolute_url)

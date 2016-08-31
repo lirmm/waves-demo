@@ -10,7 +10,7 @@ from rest_framework import serializers
 from dynamic import DynamicFieldsModelSerializer
 from waves.api.serializers.services import ServiceSerializer, InputSerializer
 from waves.models import Service, JobHistory, JobInput, Job, JobOutput
-
+from waves.utils import get_complete_absolute_url
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
@@ -77,13 +77,19 @@ class JobInputDetailSerializer(serializers.HyperlinkedModelSerializer):
 class JobOutputSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobOutput
-        fields = ('name', 'value', 'file_content')
+        fields = ('name', 'download_url')
+
+    download_url = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_download_url(obj):
+        return get_complete_absolute_url("%s?export=1" % reverse('waves:job_api_output', kwargs={'slug': obj.slug}))
 
 
 class JobOutputDetailSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Job
-        fields = ('url', 'status', 'job_outputs')
+        fields = ('url', 'status', 'output_files_exists')
         extra_kwargs = {
             'url': {'view_name': 'waves:waves-jobs-detail', 'lookup_field': 'slug'}
         }
@@ -93,7 +99,7 @@ class JobOutputDetailSerializer(serializers.HyperlinkedModelSerializer):
     def get_status(obj):
         return obj.get_status_display()
 
-    job_outputs = JobOutputSerializer(many=True, read_only=True)
+    output_files_exists = JobOutputSerializer(many=True, read_only=True, )
 
 
 class JobSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsModelSerializer):
@@ -115,10 +121,6 @@ class JobSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsModelSe
                                                   lookup_field='api_name',
                                                   queryset=Service.objects.all(),
                                                   required=True)
-    # job_history = JobHistorySerializer(many=True, read_only=True)
-    # job_outputs = serializers.StringRelatedField(many=True, read_only=True)
-    # job_inputs = JobInputSerializer(many=True, read_only=False, fields=('name', 'label', 'value'))
-
     history = serializers.SerializerMethodField()
     outputs = serializers.SerializerMethodField()
     inputs = serializers.SerializerMethodField()

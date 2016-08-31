@@ -6,6 +6,7 @@ from rest_framework import routers
 # API VIEWS
 from waves.api.views import categories, jobs, services
 from rest_framework_jwt.views import obtain_jwt_token
+from waves.views.jobs import JobOutputView
 
 # API router setup
 router = routers.DefaultRouter()
@@ -25,4 +26,5 @@ urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^token-auth/', obtain_jwt_token),
     url(r'^docs/', include('rest_framework_docs.urls')),
+    url(r'^jobs/outputs/(?P<slug>[\w-]+)/$', JobOutputView.as_view(), name="job_api_output"),
 ]

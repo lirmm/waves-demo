@@ -99,7 +99,7 @@
                                                                 online</a>
                                                             &nbsp;|&nbsp;
                                                             {% endif %}
-                                                            <a href="{% url 'waves:job_output' job_output.slug %}?export=1">Download
+                                                            <a href="{{ job_output.download_url }}">Download
                                                                 File <i class="glyphicon glyphicon-download-alt"></i></a>
                                                         </div>
                                                     </dd>

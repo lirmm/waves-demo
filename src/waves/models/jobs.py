@@ -441,6 +441,10 @@ class JobOutput(OrderAble, SlugAble):
         return reverse('waves:job_output', kwargs={'slug': self.slug})
 
     @property
+    def download_url(self):
+        return "%s?export=1" % self.get_absolute_url()
+
+    @property
     def display_online(self):
         return allow_display_online(self.file_path)
 
