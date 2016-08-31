@@ -151,7 +151,7 @@ if 'django_crontab' in settings.INSTALLED_APPS:
                                         override='CRONTAB_COMMAND_PREFIX')
     # -- Any script or command suffix to activate after each cron job
     WAVES_CRON_TAB_SUFFIX = get_setting('WAVES_CRONTAB_COMMAND_SUFFIX', str,
-                                        default='>> %s' % str(join(WAVES_LOG_ROOT, 'cron.log')),
+                                        default='2>&1',
                                         override='CRONTAB_COMMAND_SUFFIX')
     # -- Number of days to keep anonymous jobs in database / on disk
     WAVES_KEEP_ANONYMOUS_JOBS = get_setting('WAVES_KEEP_ANONYMOUS_JOBS', int, default=30)

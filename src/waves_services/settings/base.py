@@ -4,8 +4,11 @@ from os.path import dirname, join, exists
 
 
 BASE_DIR = dirname(dirname(dirname(__file__)))
-STATICFILES_DIRS = [join(BASE_DIR, 'static')]
+STATICFILES_DIRS = [
+    join(BASE_DIR, 'static'),
+]
 STATIC_URL = '/static/'
+
 MEDIA_ROOT = join(BASE_DIR, 'media')
 MEDIA_URL = "/media/"
 
@@ -55,6 +58,7 @@ DEBUG = env.bool('DEBUG', default=False)
 # LOG FILE ROOT
 LOG_ROOT = env.str('LOG_ROOT', default=dirname(BASE_DIR) + '/logs')
 WAVES_ENV_FILE = env.str('WAVES_ENV_FILE', default=join(BASE_DIR, 'waves', 'config', 'waves.env'))
+STATIC_ROOT = env.str('STATIC_ROOT', default=join(dirname(BASE_DIR), 'staticfiles'))
 
 # Application definition
 INSTALLED_APPS = (
@@ -150,9 +154,9 @@ REST_FRAMEWORK = {
 FILE_UPLOAD_HANDLERS = [
     "django.core.files.uploadhandler.TemporaryFileUploadHandler"
 ]
-# FILE_UPLOAD_MAX_MEMORY_SIZE = 0
-FILE_UPLOAD_DIRECTORY_PERMISSIONS = 774
-FILE_UPLOAD_PERMISSIONS = 774
+# FILE_UPLOAD_MAX_MEMORY_SIZE = 0FILE_UPLOAD_DIRECTORY_PERMISSIONS
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
+FILE_UPLOAD_PERMISSIONS = 0o775
 
 # Default Site id
 SITE_ID = 1
