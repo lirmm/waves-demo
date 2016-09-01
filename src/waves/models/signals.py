@@ -14,7 +14,7 @@ from ipware.ip import get_real_ip
 
 import waves.const
 import waves.settings
-from waves.models import Job, JobHistory, Service
+from waves.models import Job, JobHistory, Service, ServiceInputSample, ServiceInput
 from waves.models.profiles import APIProfile, profile_directory
 logger = logging.getLogger(__name__)
 
@@ -50,6 +50,18 @@ def job_delete_handler(sender, instance, **kwargs):
 def service_input_files_delete(sender, instance, **kwargs):
     if os.path.exists(os.path.join(waves.settings.WAVES_SAMPLE_DIR, instance.api_name)):
         shutil.rmtree(os.path.join(waves.settings.WAVES_SAMPLE_DIR, instance.api_name))
+
+
+@receiver(post_delete, sender=ServiceInputSample)
+def service_sample_file_delete(sender, instance, **kwargs):
+    instance.file.delete()
+
+
+@receiver(post_delete, sender=ServiceInput)
+def service_input_delete(sender, instance, **kwargs):
+    if instance.input_samples.count() > 0:
+        for sample in instance.input_samples.all():
+            sample.file.delete()
 
 
 @receiver(post_save, sender=Service)

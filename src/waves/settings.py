@@ -86,7 +86,7 @@ WAVES_DATA_ROOT = get_setting('WAVES_DATA_ROOT', str, default=str(join(settings.
 # - Jobs working dir (default is relative to WAVES_DATA_ROOT
 WAVES_JOB_DIR = get_setting('WAVES_JOB_DIR', str, default=str(join(WAVES_DATA_ROOT, 'jobs')))
 # - Uploaded services sample data dir (default is relative to media root)
-WAVES_SAMPLE_DIR = get_setting('WAVES_SAMPLE_DIR', str, default=str(join(settings.MEDIA_ROOT, 'sample')))
+WAVES_SAMPLE_DIR = get_setting('WAVES_SAMPLE_DIR', str, default=str(join(WAVES_DATA_ROOT, 'sample')))
 # - Max uploaded fil size (default is 20Mo)
 WAVES_UPLOAD_MAX_SIZE = get_setting('WAVES_UPLOAD_MAX_SIZE', int, 20 * 1024 * 1024, override='')
 # - Jobs max retry before abort running
