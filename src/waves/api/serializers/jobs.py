@@ -87,8 +87,6 @@ class JobInputDetailSerializer(serializers.HyperlinkedModelSerializer):
     def get_status(obj):
         return obj.get_status_display()
 
-    # job_inputs = JobInputSerializer(many=True, read_only=True)
-
 
 class JobOutputSerializer(serializers.ModelSerializer):
     class Meta:

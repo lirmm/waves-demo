@@ -388,7 +388,7 @@ class Service(TimeStampable, DescribeAble):
     @property
     def url_js(self):
         from django.contrib.staticfiles.storage import staticfiles_storage
-        return staticfiles_storage.url('waves/js/service.js')
+        return staticfiles_storage.url('waves/js/services.js')
 
     @property
     def url_css(self):
