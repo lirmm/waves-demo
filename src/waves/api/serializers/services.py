@@ -8,6 +8,8 @@ from django.contrib.sites.models import Site
 from dynamic import DynamicFieldsModelSerializer
 from waves.models import ServiceInput, ServiceOutput, ServiceMeta, Service, RelatedInput, Job
 from waves.managers.servicejobs import ServiceJobManager
+from waves.api.serializers.base import WavesModelSerializer
+import waves.settings
 
 
 class InputSerializer(DynamicFieldsModelSerializer):
@@ -76,7 +78,7 @@ class ServiceSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsMod
     class Meta:
         model = Service
         fields = ('url', 'category', 'name', 'version', 'created', 'short_description',
-                  'jobs', 'inputs', 'metas')
+                  'form', 'jobs', 'inputs', 'metas')
         lookup_field = 'api_name'
         extra_kwargs = {
             'url': {'view_name': 'waves:waves-services-detail', 'lookup_field': 'api_name'},
@@ -92,10 +94,15 @@ class ServiceSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsMod
                                                    view_name='waves:waves-services-category-detail',
                                                    lookup_field='name')
     jobs = serializers.SerializerMethodField()
+    form = serializers.SerializerMethodField()
 
     def get_jobs(self, obj):
         return 'http://%s%s' % (
             Site.objects.get_current().domain, reverse('waves:waves-services-jobs', kwargs={'api_name': obj.api_name}))
+
+    def get_form(self, obj):
+        return 'http://%s%s' % (
+            Site.objects.get_current().domain, reverse('waves:waves-services-form', kwargs={'api_name': obj.api_name}))
 
 
 class ServiceJobSerializer(serializers.ModelSerializer):
@@ -127,3 +134,33 @@ class ServiceJobSerializer(serializers.ModelSerializer):
                                                          submitted_inputs=self.initial_data,
                                                          user=client)
         return self.instance
+
+
+class ServiceFormSerializer(WavesModelSerializer):
+    class Meta:
+        model = Service
+        fields = ('api_name', 'name', 'short_description', 'js', 'css', 'template_pack', 'post_uri', 'form')
+    js = serializers.SerializerMethodField(source='url_js')
+    css = serializers.SerializerMethodField()
+    form = serializers.SerializerMethodField()
+    post_uri = serializers.SerializerMethodField()
+    template_pack = serializers.SerializerMethodField()
+
+    def get_template_pack(self, obj):
+        return waves.settings.WAVES_TEMPLATE_PACK
+
+    def get_css(self, obj):
+        return self.get_fully_qualified_url(obj.url_js)
+
+    def get_js(self, obj):
+        return self.get_fully_qualified_url(obj.url_css)
+
+    def get_form(self, obj):
+        from waves.forms.services import ServiceJobForm
+        from django.template import RequestContext
+        import re
+        form = ServiceJobForm(instance=self.instance)
+        return re.sub(r'\s\s+', '', form.helper.render_layout(form, context=RequestContext(self.context['request'])))
+
+    def get_post_uri(self, obj):
+        return self.get_fully_qualified_url(reverse('waves:waves-services-jobs', kwargs={'api_name': obj.api_name}))

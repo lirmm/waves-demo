@@ -7,7 +7,8 @@ from rest_framework.decorators import detail_route, list_route
 
 from waves.models import Service, ServiceInput, Job
 from waves.exceptions import JobException
-from waves.api.serializers import InputSerializer, ServiceSerializer, ServiceJobSerializer, JobSerializer
+from waves.api.serializers import InputSerializer, ServiceSerializer, ServiceJobSerializer, JobSerializer, \
+    ServiceFormSerializer
 from waves.managers.servicejobs import ServiceJobManager
 from . import WavesBaseView
 
@@ -71,7 +72,6 @@ class ServiceViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):
                     'client': request.user.pk,
                     'inputs': request.data
                 }
-                # serializer = ServiceJobSerializer(many=False, context={'request': request},data=request.data)
                 serializer = self.get_serializer(context={'request': request},
                                                  fields=('inputs',))
                 serializer.run_validation(data=submitted_data, )
@@ -89,7 +89,7 @@ class ServiceViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):
                 return Response({'error': e.message}, status=status.HTTP_400_BAD_REQUEST)
         else:
             # RETRIEVE A SERVICE JOB
-            queryset = Service.objects.get_public_services()
+            queryset = Service.objects.get_public_services(request.user)
             service_tool = get_object_or_404(queryset, api_name=api_name)
             queryset_jobs = Job.objects.get_service_job(user=request.user, service=service_tool)
             serializer = JobSerializer(queryset_jobs,
@@ -97,6 +97,15 @@ class ServiceViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):
                                        context={'request': request},
                                        fields=('url', 'created', 'status', 'service'))
             return Response(serializer.data)
+
+    @detail_route(methods=['get'], url_path="form")
+    def service_form(self, request, api_name=None):
+        queryset = Service.objects.get_public_services(request.user)
+        service_tool = get_object_or_404(queryset, api_name=api_name)
+        serializer = ServiceFormSerializer(many=False,
+                                           context={'request': request},
+                                           instance=service_tool)
+        return Response(serializer.data)
 
 
 class ServiceJobViewSet(WavesBaseView):

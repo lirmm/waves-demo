@@ -65,7 +65,7 @@ class ServiceJobForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         form_tag = kwargs.pop('form_tag', True)
-        user = kwargs.pop('user')
+        user = kwargs.pop('user', None)
         # TODO add re- captcha for unauthenticated user
         # https://www.marcofucci.com/blog/integrating-recaptcha-with-django/
         # and https://github.com/praekelt/django-recaptcha

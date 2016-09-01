@@ -385,6 +385,16 @@ class Service(TimeStampable, DescribeAble):
     def sample_dir(self):
         return os.path.join(waves.settings.WAVES_SAMPLE_DIR, self.api_name)
 
+    @property
+    def url_js(self):
+        from django.contrib.staticfiles.storage import staticfiles_storage
+        return staticfiles_storage.url('waves/js/service.js')
+
+    @property
+    def url_css(self):
+        from django.contrib.staticfiles.storage import staticfiles_storage
+        return staticfiles_storage.url('waves/css/forms.css')
+
 
 class BaseInput(PolymorphicModel, DescribeAble, TimeStampable, OrderAble):
     class Meta:
