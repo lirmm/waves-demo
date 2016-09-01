@@ -6,13 +6,14 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views import generic
 
+from base import WavesBaseContextMixin
 from waves.models import Job, JobOutput, JobInput
 from waves.views.files import DownloadFileView
 
 logger = logging.getLogger(__name__)
 
 
-class JobView(generic.DetailView):
+class JobView(generic.DetailView, WavesBaseContextMixin):
     model = Job
     slug_field = 'slug'
     template_name = 'services/job_detail.html'
@@ -22,7 +23,7 @@ class JobView(generic.DetailView):
         return super(JobView, self).dispatch(request, *args, **kwargs)
 
 
-class JobListView(generic.ListView):
+class JobListView(generic.ListView, WavesBaseContextMixin):
     model = Job
     template_name = 'services/job_list.html'
     context_object_name = 'job_list'

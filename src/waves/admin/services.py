@@ -36,7 +36,7 @@ class ServiceOutputInline(GrappelliSortableHiddenMixin, admin.TabularInline):
     classes = ('grp-collapse grp-open',)
     sortable_field_name = "order"
     is_nested = False
-    fields = ['name', 'from_input', 'short_description', 'description', 'may_be_empty', 'order']
+    fields = ['name', 'from_input', 'from_input_pattern', 'short_description', 'may_be_empty', 'order']
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == 'from_input':

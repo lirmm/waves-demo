@@ -3,5 +3,4 @@ from .runners import RunnerAdmin, RunnerParamInline
 from .services import ServiceMetaInline, RelatedInputInline, ServiceAdmin, \
     ServiceCategoryAdmin, ServiceExitCodeInline
 from .profiles import NewUserAdmin
-from django.conf import settings
-
+from .site import WavesSiteAdmin

@@ -13,7 +13,7 @@ from waves.exceptions import JobException
 from waves.models import ServiceCategory, Service
 from waves.views.jobs import logger
 from waves.managers.servicejobs import ServiceJobManager
-
+from base import WavesBaseContextMixin
 logger = logging.getLogger(__name__)
 
 
@@ -28,7 +28,7 @@ def get_context_meta_service(context, service):
         context['service_' + meta_type].append(service_meta)
 
 
-class ServiceDetailView(generic.DetailView):
+class ServiceDetailView(generic.DetailView, WavesBaseContextMixin):
     model = Service
     template_name = 'services/service_details.html'
     context_object_name = 'service'
@@ -47,7 +47,7 @@ class ServiceDetailView(generic.DetailView):
         return obj
 
 
-class CategoryDetailView(generic.DetailView):
+class CategoryDetailView(generic.DetailView, WavesBaseContextMixin,):
     context_object_name = 'category'
     model = ServiceCategory
     template_name = 'services/category_details.html'
@@ -62,7 +62,7 @@ class CategoryDetailView(generic.DetailView):
         )
 
 
-class CategoryListView(generic.ListView):
+class CategoryListView(generic.ListView, WavesBaseContextMixin):
     template_name = "services/categories_list.html"
     model = ServiceCategory
     context_object_name = 'online_categories'
@@ -76,7 +76,7 @@ class CategoryListView(generic.ListView):
         )
 
 
-class JobSubmissionView(ServiceDetailView, generic.FormView):
+class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMixin):
     template_name = 'services/service_form.html'
 
     form_class = ServiceJobForm

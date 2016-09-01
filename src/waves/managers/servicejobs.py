@@ -9,7 +9,7 @@ from django.db.models import Q
 import waves.const
 from waves.exceptions import JobMissingMandatoryParam
 from waves.models import ServiceInputSample
-from waves.utils import normalize_output
+from waves.utils import normalize_value
 logger = logging.getLogger(__name__)
 
 
@@ -23,7 +23,7 @@ class ServiceJobManager(object):
                           value=str(submitted_input))
         try:
             if service_input.to_output.exists():
-                input_dict['value'] = normalize_output(input_dict['value'])
+                input_dict['value'] = normalize_value(input_dict['value'])
         except ObjectDoesNotExist:
             pass
         if service_input.type == waves.const.TYPE_FILE:
@@ -99,8 +99,21 @@ class ServiceJobManager(object):
                 job.job_outputs.add(JobOutput.objects.create(**output_dict))
             else:
                 # issued from a input value
-                output_dict.update(dict(value=normalize_output(submitted_inputs.get(service_output.from_input.name,
-                                                                                    service_output.from_input.default)),
+                if service_output.from_input.type != waves.const.TYPE_FILE:
+                    value_to_normalize = submitted_inputs.get(service_output.from_input.name, service_output.from_input.default)
+                else:
+                    file_field = submitted_inputs.get(service_output.from_input.name, None)
+                    if file_field is not None:
+                        value_to_normalize = file_field.name
+                    else:
+                        logger.warn('Unable to retrieve file name from input %s', service_output.from_input.name)
+                        value_to_normalize = service_output.from_input.name
+                input_value = normalize_value(value_to_normalize)
+                if service_output.from_input_pattern is not None:
+                    formatted_value = service_output.from_input_pattern % input_value
+                    logger.debug('base input value %s, formatted to %s', input_value, formatted_value)
+                    input_value = formatted_value
+                output_dict.update(dict(value=input_value,
                                         may_be_empty=service_output.may_be_empty))
                 job.job_outputs.add(JobOutput.objects.create(**output_dict))
         logger.debug('Job %s created with %i inputs', job.slug, job.job_inputs.count())

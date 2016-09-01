@@ -1,13 +1,11 @@
 from __future__ import unicode_literals
+
 from django.db import models
-from django.core.files.storage import FileSystemStorage
-import waves.settings
+from waves.models.storage import waves_storage
 
 
 def service_sample_directory(instance, filename):
     return 'sample/{0}/{1}'.format(instance.service.api_name, filename)
-
-sample_store = FileSystemStorage(location=waves.settings.WAVES_SAMPLE_DIR)
 
 
 class ServiceInputSample(models.Model):
@@ -17,7 +15,7 @@ class ServiceInputSample(models.Model):
         unique_together = ('name', 'input', 'service')
 
     name = models.CharField('Name', max_length=200, null=False)
-    file = models.FileField('File', upload_to=service_sample_directory, storage=sample_store, null=True,
+    file = models.FileField('File', upload_to=service_sample_directory, storage=waves_storage, null=True,
                             blank=True)
     input = models.ForeignKey('BaseInput', on_delete=models.CASCADE, related_name='input_samples',
                               help_text='Associated input')

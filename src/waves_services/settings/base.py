@@ -84,8 +84,8 @@ INSTALLED_APPS = (
     'crispy_forms',
     'easy_thumbnails',
     'mail_templated',
-    'waves.apps.WavesApp',
     'rest_framework',
+    'waves.apps.WavesApp',
     'corsheaders',
     'rest_framework_docs',
     # WAVES optional dependencies

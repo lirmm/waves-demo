@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import environ
 from os.path import join
-from django.conf import settings
+from django.conf import settings, LazySettings
 
 # check if environ has been setup in Django settings.py or initialize an new one
 env = getattr(settings, 'env', environ.Env())
@@ -148,11 +148,11 @@ if 'django_crontab' in settings.INSTALLED_APPS:
     WAVES_PURGE_CRON = get_setting('WAVES_PURGE_CRON', str, default='1 0 * * *')
     # -- Any script or setup to activate before each cron job
     WAVES_CRONTAB_COMMAND_PREFIX = get_setting('WAVES_CRONTAB_COMMAND_PREFIX', str, default='',
-                                        override='CRONTAB_COMMAND_PREFIX')
+                                               override='CRONTAB_COMMAND_PREFIX')
     # -- Any script or command suffix to activate after each cron job
     WAVES_CRONTAB_COMMAND_SUFFIX = get_setting('WAVES_CRONTAB_COMMAND_SUFFIX', str,
-                                        default='2>&1',
-                                        override='CRONTAB_COMMAND_SUFFIX')
+                                               default='2>&1',
+                                               override='CRONTAB_COMMAND_SUFFIX')
     # -- Number of days to keep anonymous jobs in database / on disk
     WAVES_KEEP_ANONYMOUS_JOBS = get_setting('WAVES_KEEP_ANONYMOUS_JOBS', int, default=30)
     # -- Number of days to keep registered user's jobs in database / on disk
@@ -169,17 +169,18 @@ if 'django_crontab' in settings.INSTALLED_APPS:
     settings.CRONTAB_LOCK_JOBS = True
     settings.CRONTAB_DJANGO_SETTINGS_MODULE = 'waves_services.settings.cron'
 
-
 # ---- Django REST Framework configuration updates
 if 'rest_framework' in settings.INSTALLED_APPS:
     # Update authentication classes for Rest API with dedicated Waves one
     # For others parameters see 'http://www.django-rest-framework.org/api-guide/settings/'
-    from rest_framework.settings import api_settings
-    import waves.api.authentication.auth
-
-    if waves.api.authentication.auth.WavesAPI_KeyAuthBackend not in api_settings.DEFAULT_AUTHENTICATION_CLASSES:
-        current_auths = set(api_settings.DEFAULT_AUTHENTICATION_CLASSES)
-        current_auths.update([waves.api.authentication.auth.WavesAPI_KeyAuthBackend])
-        api_settings.DEFAULT_AUTHENTICATION_CLASSES = tuple(current_auths)
-
-
+    rest_framework_conf = getattr(settings, 'REST_FRAMEWORK', None)
+    if rest_framework_conf is not None:
+        authentication_classes = rest_framework_conf.get('DEFAULT_AUTHENTICATION_CLASSES', None)
+        if authentication_classes is not None \
+                and 'waves.api.authentication.auth.WavesAPI_KeyAuthBackend' not in authentication_classes:
+            current_auths = set(authentication_classes)
+            current_auths.update(['waves.api.authentication.auth.WavesAPI_KeyAuthBackend'])
+            settings.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = tuple(current_auths)
+            # from rest_framework.settings import reload_api_settings
+            # Might not be useful to reload configuration, so commented
+            # reload_api_settings(setting=settings.REST_FRAMEWORK, value='DEFAULT_AUTHENTICATION_CLASSES')

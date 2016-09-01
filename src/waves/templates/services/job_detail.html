@@ -65,14 +65,16 @@
                                         <div class="panel-body">
                                             <dl>
                                                 {% for job_input in job.input_params.all %}
-                                                    <dt>"{{ job_input.label }}" set to</dt>
-                                                    <dd class="input_output">
+                                                    <div>
+                                                    <dt style="display:inline-block">"{{ job_input.label }}":</dt>
+                                                    <dd style="display:inline-block" class="input_output">
                                                         {% if job_input.type == 'select' %}
                                                             {{ job_input.get_label_for_choice }}
                                                         {% else %}
                                                             {{ job_input.value }}
                                                         {% endif %}
                                                     </dd>
+                                                    </div>
                                                 {% endfor %}
                                             </dl>
                                         </div>
@@ -90,8 +92,12 @@
                                         <div class="panel-body">
                                             <dl>
                                                 {% for job_output in job.output_files_exists %}
-                                                    <dt>{{ job_output.name }}</dt>
+                                                    <dt>{{ job_output.name }}
+                                                    </dt>
                                                     <dd class="input_output">
+                                                        {% if  job_output.srv_output.short_description %}
+                                                        ({{ job_output.srv_output.short_description|stringformat:"(%s)<br/>" }})<br/>
+                                                        {% endif %}
                                                         {{ job_output.value|default:'Not available' }}
                                                         <div class="pull-right">
                                                             {% if job_output.display_online %}
@@ -102,6 +108,9 @@
                                                             <a href="{{ job_output.download_url }}">Download
                                                                 File <i class="glyphicon glyphicon-download-alt"></i></a>
                                                         </div>
+                                                        {% if not forloop.last %}
+                                                        <hr/>
+                                                        {% endif %}
                                                     </dd>
                                                     {% empty %}
                                                     <dt>Not available for now, please wait job completion</dt>

@@ -13,7 +13,8 @@
     <title>{% block title %} :: {% include "_brandname.html" %} :: {% endblock %}</title>
 
     <!-- Bootstrap core CSS -->
-    {% bootstrap_styles theme=BOOTSTRAP_CSS_THEME type='css' %}
+    {% bootstrap_styles theme=css_theme type='css' %}
+
     <!-- Custom styles for this site -->
     {% block styles %}
         <link href="{% static 'waves/css/main.css' %}" rel="stylesheet"/>

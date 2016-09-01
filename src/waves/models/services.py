@@ -590,10 +590,11 @@ class ServiceOutput(TimeStampable, OrderAble, DescribeAble):
                                    null=True,
                                    blank=True,
                                    related_name='to_output',
-                                   help_text='Output is valued from an input',
-                                   primary_key=False)
+                                   help_text='Output is valued from an input')
     ext = models.CharField('File extension', max_length=5, null=False, default=".txt")
     may_be_empty = models.BooleanField('May be empty', default=True)
+    from_input_pattern = models.CharField('Apply format', max_length=100, null=True,
+                                          help_text="Format related input value ('%s' is the related value)")
 
     def __str__(self):
         if self.from_input:
@@ -604,6 +605,11 @@ class ServiceOutput(TimeStampable, OrderAble, DescribeAble):
         if not self.from_input:
             self.may_be_empty = False
         super(ServiceOutput, self).save(*args, **kwargs)
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.from_input_pattern and self.from_input is None:
+            raise ValidationError('If you set a pattern, please select a related input')
 
 
 class ServiceMeta(OrderAble, DescribeAble):

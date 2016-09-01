@@ -19,7 +19,7 @@ def log_func_details(func):
     return decorate
 
 
-def normalize_output(value):
+def normalize_value(value):
     import inflection
     import re
     value = re.sub(r'[^\w\.]+', '_', value)
@@ -27,7 +27,7 @@ def normalize_output(value):
 
 
 def set_api_name(value):
-    return normalize_output(value)
+    return normalize_value(value)
 
 
 def get_complete_absolute_url(absolute_url):

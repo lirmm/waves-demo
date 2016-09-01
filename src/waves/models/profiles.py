@@ -1,9 +1,11 @@
 from __future__ import unicode_literals
+
 from django.conf import settings
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django_countries.fields import CountryField
 from waves.models.base import SlugAble
+from waves.models.storage import waves_storage
 import logging
 logger = logging.getLogger(__name__)
 
@@ -22,6 +24,7 @@ class APIProfile(SlugAble):
                                 on_delete=models.CASCADE)
     picture = models.ImageField('Profile picture',
                                 upload_to=profile_directory,
+                                storage=waves_storage,
                                 null=True,
                                 blank=True,
                                 help_text='Users\'s avatar')
