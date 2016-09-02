@@ -161,11 +161,13 @@
                                                href="#panel-element-{{ history.id }}">{{ history.get_status_display }}
                                                 - {{ history.timestamp }}</a>
                                         </div>
+                                        {% if history.message %}
                                         <div id="panel-element-{{ history.id }}" class="panel-collapse collapse">
                                             <div class="panel-footer">
                                                 {{ history.message|default:'No message' }}
                                             </div>
                                         </div>
+                                        {% endif %}
                                     </div>
                                 {% endfor %}
                             </div>

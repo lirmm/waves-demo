@@ -269,7 +269,7 @@ class Job(TimeStampable, SlugAble):
 
     @property
     def public_history(self):
-        return self.job_history.filter(is_admin=False, message__isnull=False)
+        return self.job_history.filter(is_admin=False)
 
 
 class JobInput(OrderAble, SlugAble):
