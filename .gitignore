@@ -71,7 +71,7 @@ Desktop.ini
 /data
 /test_data/jobs/
 /media/profile
-waves.sample.sav.sqlite3
+*.sav.sqlite3
 /config/waves_uwsgi.ini
 /.venv/
 waves.apache.conf

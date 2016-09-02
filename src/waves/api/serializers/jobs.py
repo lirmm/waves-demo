@@ -104,7 +104,7 @@ class JobOutputSerializer(serializers.ModelSerializer):
             to_repr[normalize_value(output.name)] = {
                 "label": output.name,
                 "download_uri": get_complete_absolute_url(
-                    "%s?export=1" % reverse('waves:job_api_output', kwargs={'slug': output.job.slug}))
+                    "%s?export=1" % reverse('waves:job_api_output', kwargs={'slug': output.slug}))
             }
         return to_repr
 
