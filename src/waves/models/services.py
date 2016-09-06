@@ -672,7 +672,7 @@ class ServiceMeta(OrderAble, DescribeAble):
     class Meta:
         db_table = 'waves_service_meta'
         verbose_name = 'Service Meta information'
-        unique_together = ('type', 'title', 'value')
+        unique_together = ('type', 'title', 'order')
 
     type = models.CharField('Meta type', max_length=100, choices=waves.const.SERVICE_META)
     title = models.CharField('Meta title', max_length=255, blank=True, null=True)

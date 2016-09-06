@@ -60,7 +60,6 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
         fast_me = tool_client.list(name='FastME')
         self.assertTrue(len(fast_me) > 0)
         self.service = self._import_tool_from_service(fast_me[0].id)
-        print self.service.runner.init_params
         # TODO remove this (moved in testFastMe function)
         self.job = Job.objects.create(service=self.service, title="TestFastMe Galaxy")
         self.job.job_inputs.add(JobInput.objects.create(job=self.job, name="input_data", type=waves.const.TYPE_FILE,

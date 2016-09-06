@@ -336,7 +336,6 @@ class JobInput(OrderAble, SlugAble):
             raise ValueError("No type specified for input")
 
     def clean(self):
-        print "in clean method ! ", self.name
         if self.srv_input.mandatory and not self.srv_input.default and not self.value:
             raise ValidationError('Input %(input) is mandatory', params={'input': self.srv_input.label})
         super(JobInput, self).clean()

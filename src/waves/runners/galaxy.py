@@ -151,7 +151,6 @@ class GalaxyJobRunner(JobRunner):
         """
         try:
             history = self._connector.histories.get(job.eav.galaxy_history_id)
-            print self._connector.tools.__class__
             galaxy_tool = self._connector.tools.get(id_=self.remote_tool_id)
             logger.debug('Galaxy tool connector %s', galaxy_tool)
             if galaxy_tool:

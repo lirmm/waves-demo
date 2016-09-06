@@ -338,9 +338,9 @@ input[readonly] {
 }
 
 .tab-content.panel-body {
-    border-right:1px solid lightgray;
-    border-left:1px solid lightgray;
-    border-bottom:1px solid lightgray;
+    border-right:1px solid #ecf0f1;
+    border-left:1px solid #ecf0f1;
+    border-bottom:1px solid #ecf0f1;
 }
 div[id^="tab_pane_"] {
     margin-bottom: 5px;

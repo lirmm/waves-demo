@@ -106,11 +106,9 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
 
     def get_form_kwargs(self):
         kwargs = super(JobSubmissionView, self).get_form_kwargs()
-        print self.selected_submission
         extra_kwargs = {
             'submission': self.selected_submission,
             'instance': self.object,
-            'user': self.request.user
         }
         extra_kwargs.update(kwargs)
         return extra_kwargs
@@ -122,7 +120,6 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
         self.user = self.request.user
         self.object = self.get_object()
         self.selected_submission = request.POST.get('submission', None)
-        print self.selected_submission
         return super(JobSubmissionView, self).post(request, *args, **kwargs)
 
     def form_valid(self, form):

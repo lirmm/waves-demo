@@ -162,18 +162,6 @@ class ServiceJobSerializer(serializers.ModelSerializer):
         model = Job
         fields = ('client', 'service')
 
-    def validate(self, attrs):
-        print 'validate call', attrs
-        return super(ServiceJobSerializer, self).validate(attrs)
-
-    def run_validation(self, data=empty):
-        print "run validation", data
-        return super(ServiceJobSerializer, self).run_validation(data)
-
-    def is_valid(self, raise_exception=False):
-        print 'validation data ', self.initial_data
-        return super(ServiceJobSerializer, self).is_valid(raise_exception)
-
     def create(self, validated_data):
         client = validated_data.pop('client')
         try:

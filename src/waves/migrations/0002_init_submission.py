@@ -26,7 +26,8 @@ def setup_default_submission(apps, schema_editor):
                                                       available_online=True,
                                                       available_api=True,
                                                       default=True,
-                                                      service=serv)
+                                                      service=serv,
+                                                      api_name="default")
         for inp in BaseInput.objects.filter(service_id=serv.id):
             inp.service = submission
             inp.save()
