@@ -21,7 +21,6 @@ build
 
 # SQLite3 database files:
 *.db
-src/waves.tmp.sqlite3
 *.sqlite
 *.coverage
 
@@ -75,7 +74,6 @@ Desktop.ini
 /config/waves_uwsgi.ini
 /.venv/
 waves.apache.conf
-/db/waves.sav.sqlite3
 /staticfiles/
 local.env
 /src/data/

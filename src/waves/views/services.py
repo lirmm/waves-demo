@@ -14,6 +14,7 @@ from waves.models import ServiceCategory, Service
 from waves.views.jobs import logger
 from waves.managers.servicejobs import ServiceJobManager
 from base import WavesBaseContextMixin
+
 logger = logging.getLogger(__name__)
 
 
@@ -38,6 +39,7 @@ class ServiceDetailView(generic.DetailView, WavesBaseContextMixin):
     def get_context_data(self, **kwargs):
         context = super(ServiceDetailView, self).get_context_data(**kwargs)
         get_context_meta_service(context, self.object)
+        context['categories'] = ServiceCategory.objects.all()
         return context
 
     def get_object(self, queryset=None):
@@ -47,7 +49,7 @@ class ServiceDetailView(generic.DetailView, WavesBaseContextMixin):
         return obj
 
 
-class CategoryDetailView(generic.DetailView, WavesBaseContextMixin,):
+class CategoryDetailView(generic.DetailView, WavesBaseContextMixin, ):
     context_object_name = 'category'
     model = ServiceCategory
     template_name = 'services/category_details.html'
@@ -80,25 +82,38 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
     template_name = 'services/service_form.html'
 
     form_class = ServiceJobForm
-    queryset = Service.objects.all().prefetch_related("service_inputs")
+    queryset = Service.objects.all().prefetch_related("submissions")
 
     def __init__(self, *args, **kwargs):
         super(JobSubmissionView, self).__init__(*args, **kwargs)
         self.job = None
         self.object = None
         self.user = None
+        self.selected_submission = None
+
+    def get_form(self, form_class=None):
+        return super(JobSubmissionView, self).get_form(form_class)
+
+    def get_context_data(self, **kwargs):
+        context = super(JobSubmissionView, self).get_context_data(**kwargs)
+        context['selected_submission'] = self.selected_submission
+        return context
 
     def get(self, request, *args, **kwargs):
         self.user = self.request.user
+        self.selected_submission = self.request.GET.get('submission', 'default')
         return super(JobSubmissionView, self).get(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super(JobSubmissionView, self).get_form_kwargs()
-        kwargs.update({
+        print self.selected_submission
+        extra_kwargs = {
+            'submission': self.selected_submission,
             'instance': self.object,
             'user': self.request.user
-        })
-        return kwargs
+        }
+        extra_kwargs.update(kwargs)
+        return extra_kwargs
 
     def get_success_url(self):
         return reverse('waves:job_details', kwargs={'slug': self.job.slug})
@@ -106,6 +121,8 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
     def post(self, request, *args, **kwargs):
         self.user = self.request.user
         self.object = self.get_object()
+        self.selected_submission = request.POST.get('submission', None)
+        print self.selected_submission
         return super(JobSubmissionView, self).post(request, *args, **kwargs)
 
     def form_valid(self, form):
@@ -116,9 +133,9 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
         user = self.request.user if self.request.user.is_authenticated() else None
         try:
             self.job = ServiceJobManager.create_new_job(service=self.object,
-                                                      email_to=ass_email,
-                                                      submitted_inputs=form.cleaned_data,
-                                                      user=user)
+                                                        email_to=ass_email,
+                                                        submitted_inputs=form.cleaned_data,
+                                                        user=user)
             messages.success(
                 self.request,
                 "Job successfully submitted"

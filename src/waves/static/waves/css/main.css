@@ -115,6 +115,7 @@ body > .navbar-transparent {
 /* About page styling */
 #sec1 {
     padding-top: 50px;
+    min-height: 100px;
 }
 
 /* Profile page styling */
@@ -219,10 +220,9 @@ input[readonly] {
 
 #navbar-logo {
     box-shadow: 2px 2px 5px #888888;
-    width:50px;
+    width: 50px;
 
 }
-
 
 @media (min-width: 768px) {
     .modal-dialog {
@@ -249,15 +249,56 @@ input[readonly] {
 }
 
 /* 404, 500 Styles */
-#fof{display:block; width:100%; margin:100px 0; line-height:1.6em; text-align:center;}
-#fof .hgroup{text-transform:uppercase;}
-#fof .hgroup h1{margin-bottom:25px; font-size:80px;}
-#fof .hgroup h1 span{display:inline-block; margin-left:5px; padding:2px; border:1px solid #CCCCCC; overflow:hidden;}
-#fof .hgroup h1 span strong{display:inline-block; padding:0 20px 20px; border:1px solid #CCCCCC; font-weight:normal;}
-#fof .hgroup h2{font-size:60px;}
-#fof .hgroup h2 span{display:block; font-size:30px;}
-#fof p{margin:25px 0 0 0; padding:0; font-size:16px;}
-#fof p:first-child{margin-top:0;}
+#fof {
+    display: block;
+    width: 100%;
+    margin: 100px 0;
+    line-height: 1.6em;
+    text-align: center;
+}
+
+#fof .hgroup {
+    text-transform: uppercase;
+}
+
+#fof .hgroup h1 {
+    margin-bottom: 25px;
+    font-size: 80px;
+}
+
+#fof .hgroup h1 span {
+    display: inline-block;
+    margin-left: 5px;
+    padding: 2px;
+    border: 1px solid #CCCCCC;
+    overflow: hidden;
+}
+
+#fof .hgroup h1 span strong {
+    display: inline-block;
+    padding: 0 20px 20px;
+    border: 1px solid #CCCCCC;
+    font-weight: normal;
+}
+
+#fof .hgroup h2 {
+    font-size: 60px;
+}
+
+#fof .hgroup h2 span {
+    display: block;
+    font-size: 30px;
+}
+
+#fof p {
+    margin: 25px 0 0 0;
+    padding: 0;
+    font-size: 16px;
+}
+
+#fof p:first-child {
+    margin-top: 0;
+}
 
 .file_content {
     max-height: 600px;
@@ -267,4 +308,40 @@ input[readonly] {
 
 .file_content pre {
     white-space: pre-line;
+}
+
+/* make sidebar nav vertical */
+@media (min-width: 768px) {
+    .sidebar-nav .navbar .navbar-collapse {
+        padding: 0;
+        max-height: none;
+        padding-bottom: 15px;
+    }
+
+    .sidebar-nav .navbar ul {
+        float: none;
+    }
+
+    .sidebar-nav .navbar ul:not {
+        display: block;
+    }
+
+    .sidebar-nav .navbar li {
+        float: none;
+        display: block;
+    }
+
+    .sidebar-nav .navbar li a {
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+}
+
+.tab-content.panel-body {
+    border-right:1px solid lightgray;
+    border-left:1px solid lightgray;
+    border-bottom:1px solid lightgray;
+}
+div[id^="tab_pane_"] {
+    margin-bottom: 5px;
 }

@@ -2,10 +2,10 @@ from __future__ import unicode_literals
 import copy
 from django import forms
 from django.utils.module_loading import import_string
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db.models import Q
 
-from waves.models import Service, ServiceInput
+from waves.models import Service, ServiceSubmission, ServiceInput
 from waves.utils.validators import ServiceInputValidator
 import waves.const
 import waves.settings
@@ -20,10 +20,11 @@ class ServiceJobForm(forms.ModelForm):
 
     class Meta:
         model = Service
-        fields = ['title', 'email']
+        fields = ['title', 'email', 'submission']
 
     title = forms.CharField(label="Name your analysis", required=False)
     email = forms.EmailField(label="Mail me results", required=False)
+    submission = forms.CharField(widget=forms.HiddenInput())
 
     @staticmethod
     def get_helper(**kwargs):
@@ -65,17 +66,23 @@ class ServiceJobForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         form_tag = kwargs.pop('form_tag', True)
+        submission = kwargs.pop('submission', None)
         user = kwargs.pop('user', None)
         # TODO add re- captcha for unauthenticated user
         # https://www.marcofucci.com/blog/integrating-recaptcha-with-django/
         # and https://github.com/praekelt/django-recaptcha
         super(ServiceJobForm, self).__init__(*args, **kwargs)
+        print self.fields
         self.helper = self.get_helper(form_tag=form_tag)
         # dynamically add fields according to service parameters
-        # TODO refacto due to polymorphism
-        self.list_inputs = list(self.instance.service_inputs.filter(Q(instance_of=ServiceInput), editable=True))
+        try:
+            submission_obj = ServiceSubmission.objects.get(service=self.instance, api_name=submission)
+        except ObjectDoesNotExist:
+            submission_obj = ServiceSubmission.objects.get(service=self.instance, default=True)
+        self.list_inputs = list(submission_obj.service_inputs.filter(Q(instance_of=ServiceInput), editable=True))
         self.helper.init_layout()
         self.fields['title'].initial = '%s job' % self.instance.name
+        self.fields['submission'].initial = submission_obj.api_name
         extra_fields = []
         for service_input in self.list_inputs:
             if service_input.type == waves.const.TYPE_FILE and not service_input.multiple:

@@ -111,8 +111,9 @@ class JobTests(WavesAPITestCase):
             # for each servicetool retrieve inputs
             self.assertIsNotNone(servicetool['url'])
             detail = self.client.get(servicetool['url'], data=self._dataUser())
-            logger.debug('Details data: %s', detail)
+            # logger.debug('Details data: %s', detail)
             tool_data = detail.data
+            self.assertTrue(tool_data.has_key('inputs'))
             i = 0
             input_datas = {}
             for job_input in tool_data['inputs']:

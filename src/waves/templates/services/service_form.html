@@ -12,21 +12,34 @@
 {% endblock scripts %}
 
 {% block service_body %}
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <a href="{% url 'waves:service_details' service.id %}">
-                <h3 class="panel-title">{{ service.name }} online submission</h3>
-            </a>
-        </div>
-        <div class="panel-body">
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <a href="{% url 'waves:service_details' service.id %}">
+            <h3 class="panel-title">{{ service.name }} online submission</h3>
+        </a>
+    </div>
+    <div class="panel-body">
+        {% if service.submissions_web.count > 1 %}
+        <ul class="nav nav-tabs">
+            {% for possible_submission in service.submissions_web.all %}
+            <li role="presentation" class="{% if selected_submission == possible_submission.api_name %}active{% endif %}">
+                <a href="{% url 'waves:job_submission' service.id %}?submission={{ possible_submission.api_name }}">
+                    {{ possible_submission.label }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <div class="tab-pane-active" id="panel-form-service">
             {% crispy form %}
         </div>
-        <div class="panel-footer">
+    </div>
+    <div class="panel-footer">
             <span class="text-left">
                 <a href="{% url 'waves:service_details' service.id %}">Back to service page</a>
             </span>
-        </div>
     </div>
+</div>
 {% endblock %}
 
 {% block job_submission %}

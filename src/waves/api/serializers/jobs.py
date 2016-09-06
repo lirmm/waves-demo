@@ -116,16 +116,17 @@ class JobOutputSerializer(serializers.ModelSerializer):
 class JobOutputDetailSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Job
-        fields = ('url', 'status', 'outputs')
+        fields = ('url', 'status_txt', 'status_code', 'outputs')
         extra_kwargs = {
             'url': {'view_name': 'waves:waves-jobs-detail', 'lookup_field': 'slug'}
         }
 
-    status = serializers.SerializerMethodField()
+    status_txt = serializers.SerializerMethodField()
+    status_code = serializers.IntegerField(source='status')
     outputs = JobOutputSerializer(read_only=True, source='output_files_exists')
 
     @staticmethod
-    def get_status(obj):
+    def get_status_txt(obj):
         return obj.get_status_display()
 
 

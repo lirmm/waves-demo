@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 import uuid
 from django.db import models
-
+from django.utils.html import strip_tags
 from django.conf import settings
 if 'ckeditor' not in settings.INSTALLED_APPS:
     class RichTextField(models.TextField):
@@ -10,7 +10,7 @@ else:
     # If ckeditor enabled, use RichTextField, if not, define simply TextField subclass
     from ckeditor.fields import RichTextField
 
-__all__ = ['TimeStampable', 'OrderAble', 'DescribeAble', 'SlugAble']
+__all__ = ['TimeStampable', 'OrderAble', 'DescribeAble', 'SlugAble', 'ApiAble']
 
 
 class TimeStampable(models.Model):
@@ -75,6 +75,14 @@ class SlugAble(models.Model):
     class Meta:
         abstract = True
 
-    slug = models.UUIDField(default=uuid.uuid1,
+    slug = models.UUIDField(default=uuid.uuid4,
                             blank=True,
                             editable=False)
+
+
+class ApiAble(models.Model):
+    class Meta:
+        abstract = True
+
+    api_name = models.CharField(max_length=100, null=True, blank=True,
+                                help_text='Api short code, must be unique')

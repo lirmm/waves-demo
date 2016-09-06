@@ -75,6 +75,8 @@
                                                         {% endif %}
                                                     </dd>
                                                     </div>
+                                                    {%  empty %}
+                                                    <dt><i>None provided</i></dt>
                                                 {% endfor %}
                                             </dl>
                                         </div>
@@ -113,7 +115,7 @@
                                                         {% endif %}
                                                     </dd>
                                                     {% empty %}
-                                                    <dt>Not available for now, please wait job completion</dt>
+                                                    <dt><i>Not available for now, please wait job completion</i></dt>
                                                 {% endfor %}
                                             </dl>
                                         </div>
@@ -177,8 +179,6 @@
                         <div class="panel-body text-right">
                             <a class="btn btn-primary" disabled="disabled"
                                href="{% url 'waves:job_submission' job.service.id %}">Create a copy</a>
-                            <a class="btn btn-primary" href="{% url 'waves:job_submission' job.service.id %}">Create
-                                new</a>
                         </div>
                     </div>
                 </div>

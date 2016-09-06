@@ -31,8 +31,6 @@ def job_save_handler(sender, instance, created, **kwargs):
         JobHistory.objects.create(job=instance, status=instance.status, message="Job Created", timestamp=timezone.now())
         # create job working dirs locally
         instance.make_job_dirs()
-        # initiate default non editable params
-        instance.create_non_editable_inputs()
         # initiate default outputs
         instance.create_default_outputs()
     if instance.has_changed_status():
@@ -77,16 +75,17 @@ def login_action(sender, user, **kwargs):
     Make action upon user login
     - Register user ip address
     """
-    logger.debug('Login action fired %s', user)
     request = kwargs.get('request')
     ip = get_real_ip(request)
     if ip is not None:
+        logger.debug('Login action fired %s [%s]', user, ip)
         user_prof = user.profile
         user_prof.ip = ip
         user_prof.save(update_fields=['ip'])
     else:
         ip = request.META.get('REMOTE_ADDR', None)
         if ip is not None:
+            logger.debug('Login action fired %s [%s]', user, ip)
             user_prof = user.profile
             user_prof.ip = ip
             user_prof.save(update_fields=['ip'])

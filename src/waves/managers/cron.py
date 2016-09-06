@@ -34,14 +34,14 @@ def treat_queue_jobs():
                     logger.info("[LaunchJob] %s (runner:%s)", job, runner)
                     runner.run_job(job)
                     job.nb_retry = 0
-                elif job.status == const.JOB_COMPLETED:
-                    runner.job_results(job)
-                    logger.info("[ResultJob] %s (runner:%s)", job, runner)
-                    runner.job_run_details(job)
-                    job.nb_retry = 0
                 else:
                     runner.job_status(job)
                     # job.nb_retry = 0
+                    if job.status == const.JOB_COMPLETED:
+                        runner.job_results(job)
+                        logger.info("[ResultJob] %s (runner:%s)", job, runner)
+                        runner.job_run_details(job)
+                        job.nb_retry = 0
                     logger.debug("[RunningJobStatus] %s (runner:%s)", job.get_status_display(), runner)
             except Exception as e:
                 logger.error("Error Job %s (runner:%s-state:%s): %s", job, runner, job.get_status_display(), e.message)

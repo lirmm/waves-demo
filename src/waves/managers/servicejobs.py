@@ -73,10 +73,17 @@ class ServiceJobManager(object):
             logger.debug('Received data :')
             for key in submitted_inputs:
                 logger.debug('Param %s: %s', key, submitted_inputs[key])
+        form_submission = submitted_inputs.get('submission', 'default')
+        if form_submission == 'default':
+            submission = service.default_submission
+        else:
+            submission = service.submissions.get(api_name=form_submission)
+
         job = Job.objects.create(service=service, email_to=email_to, client=user, title=job_title)
+        job.create_non_editable_inputs(submission)
         # First create inputs
         all_inputs = BaseInput.objects.filter(
-            (Q(name__in=submitted_inputs.keys()) | Q(mandatory=True)), editable=True, service=service)
+            (Q(name__in=submitted_inputs.keys()) | Q(mandatory=True)), editable=True, service=submission)
         for service_input in all_inputs:
             # Treat only non dependent inputs first
             incoming_input = submitted_inputs.get(service_input.name, None)

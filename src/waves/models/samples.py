@@ -15,8 +15,7 @@ class ServiceInputSample(models.Model):
         unique_together = ('name', 'input', 'service')
 
     name = models.CharField('Name', max_length=200, null=False)
-    file = models.FileField('File', upload_to=service_sample_directory, storage=waves_storage, null=True,
-                            blank=True)
+    file = models.FileField('File', upload_to=service_sample_directory, storage=waves_storage)
     input = models.ForeignKey('BaseInput', on_delete=models.CASCADE, related_name='input_samples',
                               help_text='Associated input')
     service = models.ForeignKey('Service', on_delete=models.CASCADE, related_name='services_sample', null=True)

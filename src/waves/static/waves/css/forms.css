@@ -5,3 +5,8 @@
 .hid_dep_parameter {
     display: none;
 }
+
+#panel-form-service{
+    padding-top: 2%;
+    padding-left: 7%;
+}

@@ -6,14 +6,28 @@ from django.forms import ModelForm, Textarea
 from django.core import validators
 from crispy_forms.layout import Layout, Div, Field, Button
 from crispy_forms.helper import FormHelper
+from django.core.exceptions import NON_FIELD_ERRORS
 
 from waves.commands import get_commands_impl_list
-from waves.models import ServiceMeta, ServiceInput, RelatedInput, ServiceOutput, \
-    ServiceCategory, Service, ServiceRunnerParam, ServiceInputSample
+from waves.models.services import *
+from waves.models.samples import ServiceInputSample
 import waves.const as const
 import waves.settings
 
-__all__ = ['ServiceForm', 'ServiceCategoryForm', 'ImportForm']
+__all__ = ['ServiceForm', 'ServiceCategoryForm', 'ImportForm', 'ServiceSubmissionForm', 'RelatedInputForm',
+           'ServiceInputSampleForm', 'ServiceMetaForm', 'ServiceRunnerParamForm', 'ServiceOutputForm',
+           'ServiceInputForm']
+
+
+class ServiceSubmissionForm(ModelForm):
+    class Meta:
+        model = ServiceSubmission
+        fields = '__all__'
+        error_messages = {
+            NON_FIELD_ERRORS: {
+                'unique_together': "Only one submission as 'default' for service",
+            }
+        }
 
 
 class ImportForm(forms.Form):
@@ -65,9 +79,7 @@ class ServiceMetaForm(forms.ModelForm):
         exclude = ['id']
         model = ServiceMeta
         fields = ['type', 'value', 'description', 'order']
-        widgets = {
-            'description': Textarea(attrs={'rows': 3, 'class': 'input-xlarge'}),
-        }
+    description = forms.CharField(widget=Textarea(attrs={'rows': 3, 'class': 'input-xlarge'}), required=False)
 
     def clean(self):
         try:
@@ -82,21 +94,19 @@ class ServiceMetaForm(forms.ModelForm):
 
 class ServiceInputBaseForm(forms.ModelForm):
     class Meta:
-        fields = ['label', 'param_type', 'name', 'type', 'editable', 'format', 'default', 'description',
-                  'display', 'multiple']
+        fields = ['label', 'param_type', 'name', 'type', 'display', 'editable', 'format', 'default', 'description',
+                  'multiple']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'span8'}),
             'label': forms.TextInput(attrs={'class': 'span8'}),
             'default': forms.TextInput(attrs={'class': 'span8'}),
             'type': forms.Select(attrs={'class': 'span8'}),
             'format': Textarea(attrs={'rows': 7, 'class': 'span8'}),
-            'description': Textarea(attrs={'rows': '2', 'class': 'span8'}),
         }
 
     def __init__(self, *args, **kwargs):
         super(ServiceInputBaseForm, self).__init__(*args, **kwargs)
-        if not self.instance.type == const.TYPE_LIST:
-            self.fields['display'].widget = forms.HiddenInput()
+        self.fields['display'].help_text = 'Only used for List Input'
 
 
 class ServiceInputForm(ServiceInputBaseForm):
@@ -171,7 +181,7 @@ class ServiceForm(forms.ModelForm):
 
     class Meta:
         model = Service
-        fields = ('__all__')
+        fields = '__all__'
         widgets = {
             'clazz': forms.Select(choices=get_commands_impl_list()),
         }

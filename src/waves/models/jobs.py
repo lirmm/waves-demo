@@ -236,14 +236,14 @@ class Job(TimeStampable, SlugAble):
     def results_file_available(self):
         return all(os.path.isfile(e.file_path) for e in self.job_outputs.filter(may_be_empty=False))
 
-    def create_non_editable_inputs(self):
+    def create_non_editable_inputs(self, service_submission):
         """
         Create non editable (== not submitted anywhere and used for run)
         Used in post_save signal
         Returns:
             None
         """
-        for service_input in self.service.service_inputs.filter(editable=False) \
+        for service_input in service_submission.service_inputs.filter(editable=False) \
                 .exclude(param_type=const.OPT_TYPE_NONE):
             # Create fake "submitted_inputs" with non editable ones with default value if not already set
             logger.debug('Created non editable job input: %s (%s, %s)', service_input.label,
@@ -453,7 +453,7 @@ class JobHistory(models.Model):
     class Meta:
         db_table = 'waves_job_history'
         ordering = ['-timestamp']
-        unique_together = ('job', 'timestamp')
+        unique_together = ('job', 'timestamp', 'status', 'is_admin')
 
     job = models.ForeignKey(Job,
                             related_name='job_history',

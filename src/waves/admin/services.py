@@ -10,10 +10,9 @@ from mptt.admin import MPTTModelAdmin
 
 import waves.const
 from base import WavesTabbedModelAdmin
-from waves.forms.admin.services import ServiceMetaForm, ServiceOutputForm, ServiceRunnerParamForm, ServiceForm, \
-    ServiceCategoryForm, ServiceInputForm, RelatedInputForm, ServiceInputSampleForm
+from waves.forms.admin.services import *
 from waves.models import ServiceMeta, ServiceOutput, ServiceInput, RelatedInput, \
-    Service, ServiceRunnerParam, ServiceCategory, Runner, ServiceExitCode, ServiceInputSample
+    Service, ServiceRunnerParam, ServiceCategory, Runner, ServiceExitCode, ServiceInputSample, ServiceSubmission
 
 
 class ServiceMetaInline(GrappelliSortableHiddenMixin, admin.TabularInline):
@@ -37,10 +36,11 @@ class ServiceOutputInline(GrappelliSortableHiddenMixin, admin.TabularInline):
     sortable_field_name = "order"
     is_nested = False
     fields = ['name', 'from_input', 'from_input_pattern', 'short_description', 'may_be_empty', 'order']
+    verbose_name_plural = "Service outputs ('from input' apply only to 'default' submission params)"
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == 'from_input':
-            kwargs['queryset'] = ServiceInput.objects.filter(service=request.current_obj)
+            kwargs['queryset'] = ServiceInput.objects.filter(service=request.current_obj.default_submission)
         return super(ServiceOutputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -79,13 +79,14 @@ class ServiceSampleInline(admin.TabularInline):
     extra = 0
     fk_name = 'service'
     is_nested = False
+    verbose_name_plural = "Service sample ('input' apply only to 'default' submission params)"
 
     def get_field_queryset(self, db, db_field, request):
         field_queryset = super(ServiceSampleInline, self).get_field_queryset(db, db_field, request)
         if db_field.name == 'input':
-            return ServiceInput.objects.filter(service=request.current_obj, type=waves.const.TYPE_FILE)
+            return ServiceInput.objects.filter(service=request.current_obj.default_submission, type=waves.const.TYPE_FILE)
         elif db_field.name == 'dependent_input':
-            return ServiceInput.objects.filter(service=request.current_obj).exclude(type=waves.const.TYPE_FILE)
+            return ServiceInput.objects.filter(service=request.current_obj.default_submission).exclude(type=waves.const.TYPE_FILE)
         return field_queryset
 
 
@@ -96,7 +97,7 @@ class RelatedInputInline(nested_admin.NestedStackedInline, StackedInline):
     sortable = 'order'
     fk_name = 'related_to'
     readonly_fields = ['baseinput_ptr']
-    sortable_excludes = ('order', )
+    sortable_excludes = ('order',)
 
     def has_add_permission(self, request):
         return True
@@ -133,7 +134,6 @@ def duplicate_in_mass(modeladmin, request, queryset):
 
 
 def mark_public(modeladmin, request, queryset):
-
     for srv in queryset.all():
         try:
             srv.status = waves.const.SRV_PUBLIC
@@ -147,12 +147,25 @@ duplicate_in_mass.short_description = "Duplicate selected services"
 mark_public.short_description = "Mark Services as Public"
 
 
-class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
+class ServiceSubmissionInline(GrappelliSortableHiddenMixin, nested_admin.NestedStackedInline):
+    model = ServiceSubmission
+    form = ServiceSubmissionForm
+    extra = 0
+    fk_name = 'service'
+    sortable = 'order'
+    sortable_field_name = "order"
+    classes = ('grp-collapse', 'grp-open')
+    fields = ['label', 'default', 'available_online', 'available_api', 'api_name', 'created', 'updated', "order"]
+    readonly_fields = ['api_name', 'created', 'updated']
+    inlines = [ServiceInputInline, ]
 
+
+class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
     actions = [duplicate_in_mass, mark_public]
     inlines = (
         ServiceRunnerParamInLine,
-        ServiceInputInline,
+        ServiceSubmissionInline,
+        # ServiceInputInline,
         ServiceOutputInline,
         ServiceMetaInline,
         ServiceExitCodeInline,
@@ -176,7 +189,8 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
         }),
     )
     tab_runner = (ServiceRunnerParamInLine,)
-    tab_inputs = (ServiceInputInline,)
+    # tab_inputs = (ServiceInputInline,)
+    tab_submission = (ServiceSubmissionInline, )
     tab_outputs = (
         (None, {
             'fields': ['partial']
@@ -190,7 +204,8 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
         ('Details', tab_details),
         ('Metas', tab_metas),
         ('Runner Params', tab_runner),
-        ('Service Inputs', tab_inputs),
+        # ('Service Inputs', tab_inputs),
+        ('Submissions params', tab_submission),
         ('Services outputs', tab_outputs),
         ('Services samples', tab_samples)
     ]

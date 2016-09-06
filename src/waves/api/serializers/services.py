@@ -4,18 +4,22 @@ from rest_framework import serializers
 from rest_framework.fields import empty
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
-
+from django.utils.html import strip_tags
 from dynamic import DynamicFieldsModelSerializer
-from waves.models import ServiceInput, ServiceOutput, ServiceMeta, Service, RelatedInput, Job
+from waves.models import ServiceInput, ServiceOutput, ServiceMeta, Service, RelatedInput, Job, ServiceSubmission
 from waves.managers.servicejobs import ServiceJobManager
 from waves.api.serializers.base import WavesModelSerializer
 import waves.settings
+
+__all__ = ['InputSerializer', 'InputSerializer', 'MetaSerializer', 'OutputSerializer', 'ServiceSerializer',
+           'ServiceFormSerializer', 'ServiceSubmissionSerializer', 'ServiceMetaSerializer']
 
 
 class InputSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = ServiceInput
-        fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'description', 'multiple')
+        fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'short_description',
+                  'multiple')
         extra_kwargs = {
             'url': {'view_name': 'waves:waves-services-detail', 'lookup_field': 'api_name'}
         }
@@ -52,7 +56,7 @@ class RelatedInputSerializer(InputSerializer):
 class ConditionalInputSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceInput
-        fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'description', 'multiple', 'when')
+        fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'short_description', 'description', 'multiple', 'when')
 
     when = RelatedInputSerializer(source='dependent_inputs', many=True, read_only=True)
 
@@ -73,36 +77,84 @@ class MetaSerializer(serializers.ModelSerializer):
         model = ServiceMeta
         fields = ('title', 'value', 'short_description', 'description')
 
+    def to_representation(self, instance):
+        to_repr = {}
+        for meta in instance.all():
+            to_repr[meta.type] = {
+                "type": meta.get_type_display(),
+                "title": meta.title,
+                "description": meta.short_description if meta.short_description is not None else strip_tags(
+                    meta.description),
+                "text": meta.value
+            }
+        return to_repr
+
+
+class ServiceMetaSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Service
+        fields = ('url', 'name', 'metas_info')
+        extra_kwargs = {
+            'url': {'view_name': 'waves:waves-services-detail', 'lookup_field': 'api_name'}
+        }
+
+    metas_info = MetaSerializer(read_only=True, source="all_metas")
+
+
+class ServiceSubmissionSerializer(DynamicFieldsModelSerializer, serializers.HyperlinkedRelatedField):
+    class Meta:
+        model = ServiceSubmission
+        fields = ('label', 'submission_uri', 'form', 'inputs')
+        extra_kwargs = {
+            'api_name': {'view_name': 'waves:waves-submission-detail', 'lookup_fields': {'api_name', 'api_name'}},
+        }
+
+    view_name = 'waves:waves-services-submissions'
+    submission_uri = serializers.SerializerMethodField()
+    inputs = InputSerializer(many=True, read_only=True, source="service_inputs")
+    form = serializers.SerializerMethodField()
+
+    def get_form(self, obj):
+        return 'http://%s%s' % (
+            Site.objects.get_current().domain, reverse('waves:waves-services-submissions-form',
+                                                       kwargs={'api_name': obj.api_name,
+                                                               'service': obj.service.api_name},))
+
+    def get_submission_uri(self, obj):
+        return 'http://%s%s' % (
+            Site.objects.get_current().domain,
+            reverse('waves:waves-services-submissions', kwargs={'service': obj.service.api_name,
+                                                                'api_name': obj.api_name}))
+
+    def get_queryset(self):
+        return ServiceSubmission.objects.filter(available_api=True)
+
 
 class ServiceSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsModelSerializer):
     class Meta:
         model = Service
         fields = ('url', 'category', 'name', 'version', 'created', 'short_description',
-                  'form', 'jobs', 'inputs', 'metas')
+                  'jobs', 'metas', 'submissions')
         lookup_field = 'api_name'
         extra_kwargs = {
             'url': {'view_name': 'waves:waves-services-detail', 'lookup_field': 'api_name'},
         }
 
-    metas = MetaSerializer(many=True,
-                           read_only=True)
-    inputs = InputSerializer(many=True,
-                             read_only=True,
-                             source='base_inputs')
     category = serializers.HyperlinkedRelatedField(many=False,
                                                    read_only=True,
                                                    view_name='waves:waves-services-category-detail',
                                                    lookup_field='name')
     jobs = serializers.SerializerMethodField()
-    form = serializers.SerializerMethodField()
+    metas = serializers.SerializerMethodField()
+    submissions = ServiceSubmissionSerializer(many=True, read_only=True)
 
     def get_jobs(self, obj):
         return 'http://%s%s' % (
             Site.objects.get_current().domain, reverse('waves:waves-services-jobs', kwargs={'api_name': obj.api_name}))
 
-    def get_form(self, obj):
+    def get_metas(self, obj):
         return 'http://%s%s' % (
-            Site.objects.get_current().domain, reverse('waves:waves-services-form', kwargs={'api_name': obj.api_name}))
+            Site.objects.get_current().domain, reverse('waves:waves-services-metas', kwargs={'api_name': obj.api_name}))
 
 
 class ServiceJobSerializer(serializers.ModelSerializer):
@@ -138,29 +190,37 @@ class ServiceJobSerializer(serializers.ModelSerializer):
 
 class ServiceFormSerializer(WavesModelSerializer):
     class Meta:
-        model = Service
-        fields = ('api_name', 'name', 'short_description', 'js', 'css', 'template_pack', 'post_uri', 'form')
+        model = ServiceSubmission
+        fields = ('label', 'service', 'js', 'css', 'template_pack', 'post_uri', 'form')
+
     js = serializers.SerializerMethodField(source='url_js')
     css = serializers.SerializerMethodField()
     form = serializers.SerializerMethodField()
     post_uri = serializers.SerializerMethodField()
     template_pack = serializers.SerializerMethodField()
+    service = serializers.SerializerMethodField()
 
     def get_template_pack(self, obj):
         return waves.settings.WAVES_TEMPLATE_PACK
 
     def get_css(self, obj):
-        return self.get_fully_qualified_url(obj.url_js)
+        return self.get_fully_qualified_url(obj.service.url_js)
 
     def get_js(self, obj):
-        return self.get_fully_qualified_url(obj.url_css)
+        return self.get_fully_qualified_url(obj.service.url_css)
 
     def get_form(self, obj):
         from waves.forms.services import ServiceJobForm
         from django.template import RequestContext
         import re
-        form = ServiceJobForm(instance=self.instance)
+        form = ServiceJobForm(instance=self.instance.service, submission=self.instance.api_name)
         return re.sub(r'\s\s+', '', form.helper.render_layout(form, context=RequestContext(self.context['request'])))
 
     def get_post_uri(self, obj):
-        return self.get_fully_qualified_url(reverse('waves:waves-services-jobs', kwargs={'api_name': obj.api_name}))
+        return self.get_fully_qualified_url(reverse('waves:waves-services-submissions',
+                                                    kwargs={'api_name': obj.api_name,
+                                                            'service': obj.service.api_name}))
+
+    def get_service(self, obj):
+        return self.get_fully_qualified_url(reverse('waves:waves-services-detail',
+                                                    kwargs={'api_name': obj.service.api_name}))

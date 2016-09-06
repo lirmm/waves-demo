@@ -6,15 +6,17 @@ from django import forms
 from django.db import models, transaction
 from mptt.models import MPTTModel, TreeForeignKey
 from polymorphic.models import PolymorphicModel
+from django.utils.html import strip_tags
 
 import waves.const
 import waves.managers.services as managers
 import waves.settings
 
-from waves.models.base import TimeStampable, DescribeAble, OrderAble
+from waves.models.base import *
 from waves.models.profiles import APIProfile
 from waves.models.runners import RunnerParam, Runner
 from waves.utils import set_api_name
+
 logger = logging.getLogger(__name__)
 
 
@@ -115,12 +117,12 @@ class ServiceRunnerParam(models.Model):
         super(ServiceRunnerParam, self).save(*args, **kwargs)
 
 
-class ServiceCategory(MPTTModel, OrderAble, DescribeAble):
+class ServiceCategory(MPTTModel, OrderAble, DescribeAble, ApiAble):
     class Meta:
         db_table = 'waves_service_category'
         verbose_name = 'Service\'s category'
         verbose_name_plural = 'Services\' categories'
-        unique_together = ('name',)
+        unique_together = (('name',), ('api_name',))
 
     class MPTTMeta:
         order_insertion_by = ['name']
@@ -135,7 +137,6 @@ class ServiceCategory(MPTTModel, OrderAble, DescribeAble):
                           null=True,
                           blank=True,
                           help_text='Category description reference')
-    api_name = models.CharField(max_length=100, unique=True, null=True, blank=True)
     parent = TreeForeignKey('self', null=True, blank=True, help_text='This is parent category',
                             related_name='children_category', db_index=True)
 
@@ -148,7 +149,7 @@ class ServiceCategory(MPTTModel, OrderAble, DescribeAble):
         return self.name
 
 
-class Service(TimeStampable, DescribeAble):
+class Service(TimeStampable, DescribeAble, ApiAble):
     """
     Represents a service on the platform
     """
@@ -165,22 +166,12 @@ class Service(TimeStampable, DescribeAble):
     name = models.CharField('Service name',
                             max_length=255,
                             help_text='Service displayed name')
-    api_name = models.CharField('Api name',
-                                max_length=50,
-                                unique=True,
-                                blank=True,
-                                help_text='Service API name (for urls)')
     version = models.CharField('Current version',
                                max_length=10,
                                null=True,
                                blank=True,
                                default='1.0',
                                help_text='Service displayed version')
-    run_on_version = models.CharField('Runner tool version',
-                                      max_length=15,
-                                      null=True,
-                                      blank=True,
-                                      help_text='Remote runner tool version')
     run_on = models.ForeignKey(Runner,
                                related_name='runs',
                                null=True,
@@ -214,12 +205,9 @@ class Service(TimeStampable, DescribeAble):
     api_on = models.BooleanField('Available on API',
                                  default=True,
                                  help_text='Service is available for api calls ?')
-
     email_on = models.BooleanField('Notify results to client',
                                    default=True,
                                    help_text='This service sends notification email')
-
-    # TODO CHANGE THIS TO LIST (Non dynamic, Dynamics, dynamics + redirect output to dir
     partial = models.BooleanField('Dynamic outputs',
                                   default=False,
                                   help_text='Set whether some service outputs are dynamic (not known in advance)')
@@ -395,6 +383,61 @@ class Service(TimeStampable, DescribeAble):
         from django.contrib.staticfiles.storage import staticfiles_storage
         return staticfiles_storage.url('waves/css/forms.css')
 
+    @property
+    def default_submission(self):
+        return self.submissions.get(default=True)
+
+    @property
+    def all_submission(self):
+        return self.submissions.all()
+
+    @property
+    def all_metas(self):
+        return self.metas.all()
+
+    @property
+    def default_submission_inputs(self):
+        return self.default_submission.service_inputs
+
+    @property
+    def submissions_web(self):
+        return self.submissions.filter(available_online=True)
+
+    @property
+    def submissions_api(self):
+        return self.submissions.filter(available_api=True)
+
+
+class ServiceSubmission(TimeStampable, OrderAble, SlugAble, ApiAble):
+    """
+       Represents a service submission parameter set for a service
+    """
+
+    class Meta:
+        db_table = 'waves_service_submission'
+        verbose_name = 'Submission version'
+        verbose_name_plural = 'Submission versions'
+        unique_together = (('service', 'default'), ('service', 'api_name'))
+        ordering = ('order',)
+
+    label = models.CharField('Submission label', max_length=255, null=True)
+    default = models.BooleanField('Default submission', default=True)
+    available_online = models.BooleanField('Available on Web', default=True)
+    available_api = models.BooleanField('Available on API', default=True)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, related_name='submissions')
+
+    def save(self, **kwargs):
+        if not self.label:
+            self.label = self.service.name
+        if not self.api_name:
+            self.api_name = set_api_name(self.label)
+        if self.default:
+            self.api_name = "default"
+        super(ServiceSubmission, self).save(**kwargs)
+
+    def __str__(self):
+        return self.label
+
 
 class BaseInput(PolymorphicModel, DescribeAble, TimeStampable, OrderAble):
     class Meta:
@@ -415,14 +458,20 @@ class BaseInput(PolymorphicModel, DescribeAble, TimeStampable, OrderAble):
                                         'For List: label|value ..."<br/>'
                                         'For Number(optional]: min|max<br/>'
                                         'For Boolean(optional): labelTrue|LabelFalse')
-    mandatory = models.BooleanField('Mandatory', default=False, help_text='Input needs a value to submit job')
-    multiple = models.BooleanField('Multiple', default=False, help_text='Input may be multiple values')
+    mandatory = models.BooleanField('Mandatory', default=False, help_text='Input needs is mandatory')
+    multiple = models.BooleanField('Multiple', default=False,
+                                   help_text='Input may be multiple - only used with File Inputs')
     editable = models.BooleanField('Submitted by user', default=True,
-                                   help_text='Input is displayed for job submission if checked')
+                                   help_text='Input is used for job submission')
     display = models.CharField('List display type', choices=waves.const.LIST_DISPLAY_TYPE, default='select',
                                max_length=100, null=True, blank=True,
                                help_text='Input list display mode (for type list only)')
-    service = models.ForeignKey(Service, related_name='service_inputs', on_delete=models.CASCADE)
+    service = models.ForeignKey(ServiceSubmission, related_name='service_inputs', on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        if not self.short_description:
+            self.short_description = strip_tags(self.description)
+        super(BaseInput, self).save(*args, **kwargs)
 
     def get_choices(self):
         choice_list = []
@@ -593,7 +642,7 @@ class ServiceOutput(TimeStampable, OrderAble, DescribeAble):
                                    help_text='Output is valued from an input')
     ext = models.CharField('File extension', max_length=5, null=False, default=".txt")
     may_be_empty = models.BooleanField('May be empty', default=True)
-    from_input_pattern = models.CharField('Apply format', max_length=100, null=True,
+    from_input_pattern = models.CharField('Apply format', max_length=100, null=True, blank=True,
                                           help_text="Format related input value ('%s' is the related value)")
 
     def __str__(self):
@@ -610,6 +659,8 @@ class ServiceOutput(TimeStampable, OrderAble, DescribeAble):
         from django.core.exceptions import ValidationError
         if self.from_input_pattern and self.from_input is None:
             raise ValidationError('If you set a pattern, please select a related input')
+        if not (self.from_input.mandatory or self.from_input.default):
+            raise ValidationError('Valuated output from non mandatory input is not allowed')
 
 
 class ServiceMeta(OrderAble, DescribeAble):

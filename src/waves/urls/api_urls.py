@@ -21,10 +21,13 @@ router.register(prefix=r'services',
 router.register(prefix=r'jobs',
                 viewset=jobs.JobViewSet,
                 base_name='waves-jobs')
-
+# print router.urls
 urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^token-auth/', obtain_jwt_token),
     url(r'^docs/', include('rest_framework_docs.urls')),
-    url(r'^jobs/outputs/(?P<slug>[\w-]+)/$', JobOutputView.as_view(), name="job_api_output"),
+    url(r'^services/(?P<service>[^/.]+)/submissions/(?P<api_name>[^/.]+)/$',
+        services.ServiceJobSubmissionView.as_view(), name='waves-services-submissions'),
+    url(r'^services/(?P<service>[^/.]+)/submissions/(?P<api_name>[^/.]+)/form/',
+        services.ServiceJobSubmissionViewForm.as_view(), name='waves-services-submissions-form')
 ]
