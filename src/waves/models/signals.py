@@ -14,7 +14,7 @@ from ipware.ip import get_real_ip
 
 import waves.const
 import waves.settings
-from waves.models import Job, JobHistory, Service, ServiceInputSample, ServiceInput
+from waves.models import Job, JobHistory, Service, ServiceInputSample, ServiceInput, ServiceSubmission
 from waves.models.profiles import APIProfile, profile_directory
 logger = logging.getLogger(__name__)
 
@@ -63,10 +63,12 @@ def service_input_delete(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Service)
-def service_create_media(sender, instance, created, **kwargs):
+def service_create_signal(sender, instance, created, **kwargs):
     sample_dir = os.path.join(waves.settings.WAVES_SAMPLE_DIR, instance.api_name)
     if created and not os.path.isdir(sample_dir):
         os.makedirs(sample_dir)
+        instance.submissions.add(ServiceSubmission.objects.create(service=instance,
+                                                                  label='default'))
 
 
 @receiver(user_logged_in)
@@ -101,10 +103,6 @@ def create_profile_handler(sender, instance, created, **kwargs):
         # User is activated, has registered for api services, and do not have any api_key
         instance.profile.api_key = uuid.uuid1()
         logger.debug("Update api_key for %s %s", instance, instance.profile.api_key)
-        try:
-            instance.groups.add(Group.objects.get(name=waves.const.WAVES_GROUP_API))
-        except Group.DoesNotExist:
-            pass
     if instance.is_active and not instance.profile.registered_for_api:
         instance.profile.api_key = None
     instance.profile.save()

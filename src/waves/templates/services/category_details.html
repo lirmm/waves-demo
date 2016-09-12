@@ -63,9 +63,7 @@
                                             </p>
                                             <a class="btn btn-default"
                                                href="{% url 'waves:service_details' service.id %}">Service page</a>
-                                            <a class="btn btn-primary"
-                                               href="{% url 'waves:job_submission' service.id %}">Online
-                                                execution</a>
+                                            {% online_exec_button service=service %}
                                         </div>
                                     </div>
                                 </div>

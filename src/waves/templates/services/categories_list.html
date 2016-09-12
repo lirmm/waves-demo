@@ -1,5 +1,5 @@
 {% extends "services/base.html" %}
-
+{%  load waves_tags %}
 {% block container %}
     <div id="sec1" class="text-page">
         <div class="container">
@@ -34,11 +34,9 @@
                                     Last update {{ service.updated }}
                                 </p>
                                 <div class="list-group-item-text text-right">
-
-                                    <a class="btn btn-default" href="{% url 'waves:job_submission' service.id %}">Online
-                                        execution</a>
-                                    <hr/>
+                                    {% online_exec_button service=service %}
                                 </div>
+                                <hr/>
                             </div>
                             {% if forloop.last %}
                                 <a class="list-group-item active" href="{% url 'waves:category_details' category.id %}">

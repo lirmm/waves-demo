@@ -3,22 +3,36 @@ from __future__ import unicode_literals
 import logging
 import json
 import os
-
+import sys
+from os.path import join, dirname, isfile, realpath
 
 from django.conf import settings
 from django.test import TestCase, override_settings
 from django.core.exceptions import ObjectDoesNotExist
 import waves.settings
 from waves.models import Service
+from utils import get_sample_dir
 
 logger = logging.getLogger(__name__)
-waves.settings.WAVES_DATA_ROOT = str(os.path.join(settings.BASE_DIR, 'waves', 'tests', 'data'))
-waves.settings.WAVES_SAMPLE_DIR = str(os.path.join(settings.BASE_DIR, 'waves', 'tests', 'data', 'sample'))
-waves.settings.WAVES_JOB_DIR = str(os.path.join(settings.BASE_DIR, 'waves', 'tests', 'data', 'jobs'))
+waves.settings.WAVES_DATA_ROOT = str(os.path.join(waves.settings.WAVES_TEST_DIR, 'data'))
+waves.settings.WAVES_SAMPLE_DIR = str(os.path.join(waves.settings.WAVES_TEST_DIR, 'data', 'sample'))
+waves.settings.WAVES_JOB_DIR = str(os.path.join(waves.settings.WAVES_TEST_DIR, 'data', 'jobs'))
+
+"""
+def copy_sample_dirs():
+    # copy all waves app data to destination WAVES_TEST_DIR
+    from shutil import copytree, Error
+    if not isfile(join(waves.settings.WAVES_DATA_ROOT, 'do_not_remove.txt')):
+        try:
+            print join(dirname('.'), 'data')
+            copytree(join(dirname(realpath(__file__)), 'data', 'sample'), waves.settings.WAVES_TEST_DIR)
+        except Error as e:
+            sys.exit("Unable to prepare data to run test.")
+"""
 
 
 @override_settings(
-    MEDIA_ROOT=os.path.join(settings.BASE_DIR, 'test_data')
+    MEDIA_ROOT=os.path.join(waves.settings.WAVES_TEST_DIR, 'data'),
 )
 class WavesBaseTestCase(TestCase):
     current_result = None
@@ -31,6 +45,7 @@ class WavesBaseTestCase(TestCase):
         logger.info('WAVES_DATA_ROOT: %s', waves.settings.WAVES_DATA_ROOT)
         logger.info('WAVES_JOB_DIR: %s', waves.settings.WAVES_JOB_DIR)
         logger.info('WAVES_SAMPLE_DIR: %s', waves.settings.WAVES_SAMPLE_DIR)
+        # copy_sample_dirs()
 
     def setUp(self):
         super(WavesBaseTestCase, self).setUp()
@@ -53,9 +68,9 @@ class WavesBaseTestCase(TestCase):
         try:
             self.service = Service.objects.get(api_name=api_name)
             logger.debug('Physic_IST service %s %s ', self.service.name, self.service.version)
-            logger.debug('settings ? %s %s', settings.MEDIA_ROOT, waves.settings.WAVES_SAMPLE_DIR)
-            logger.debug('Sample dir %s ', self.service.sample_dir)
-            with open(os.path.join(self.service.sample_dir, 'runs.json'), 'r') as run_params:
+            logger.debug('Sample dir %s ', get_sample_dir(), self.service.api_name)
+            with open(os.path.join(get_sample_dir(), self.service.api_name, 'runs.json'),
+                      'r') as run_params:
                 job_parameters = json.load(run_params)
             self.assertIsInstance(job_parameters, object)
 
@@ -64,7 +79,8 @@ class WavesBaseTestCase(TestCase):
                 submitted_input = {'title': job_params['title']}
                 # All files inputs
                 for key in job_params['inputs']:
-                    with open(os.path.join(self.service.sample_dir, job_params['inputs'][key])) as f:
+                    with open(os.path.join(get_sample_dir(), self.service.api_name,
+                                           job_params['inputs'][key])) as f:
                         submitted_input.update({key: f.read()})
                 for key in job_params['params']:
                     submitted_input.update({key: job_params['params'][key]})
@@ -73,4 +89,3 @@ class WavesBaseTestCase(TestCase):
             logger.error(e.message)
             self.skipTest("No physic_ist service available")
         return jobs_submitted_input
-

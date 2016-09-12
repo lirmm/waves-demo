@@ -10,11 +10,17 @@ if 'tabbed_admin' in settings.INSTALLED_APPS:
     class WavesTabbedModelAdmin(TabbedModelAdmin):
         class Media:
             css = {
-                'all': ('tabbed_admin/css/tabbed_admin.css',)
+                'screen': ('waves/css/tabbed_admin.css', )
             }
         admin_template = 'tabbed_change_form.html'
 
-
+        @property
+        def media(self):
+            """
+            Overrides media class to skip first parent media import
+            """
+            media = super(admin.ModelAdmin, self).media
+            return media
 else:
     class WavesTabbedModelAdmin(admin.ModelAdmin):
         admin_template = 'change_form.html'

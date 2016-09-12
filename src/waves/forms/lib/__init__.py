@@ -55,7 +55,7 @@ class BaseHelper(object):
     def set_layout(self, service_input):
         raise NotImplementedError()
 
-    def init_layout(self):
+    def init_layout(self, fields):
         pass
 
     def end_layout(self):

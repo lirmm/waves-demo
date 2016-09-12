@@ -41,10 +41,10 @@ class WavesAPITestCase(APITestCase, WavesBaseTestCase):
         self.admin_user.groups.add(self.group_admin)
         self.api_user = AuthModel.objects.create(email="api@waves.fr",
                                                  is_staff=False,
-                                                 is_superuser=False)
+                                                 is_superuser=False,
+                                                 is_active=True)
         self.api_user.profile.registered_for_api = True
         self.api_user.save()
-        self.api_user.groups.add(Group.objects.get(name=waves.const.WAVES_GROUP_API))
         self.users = {'api': self.api_user, 'admin': self.admin_user, 'root': self.super_user}
 
     def tearDown(self):
@@ -113,44 +113,46 @@ class JobTests(WavesAPITestCase):
             detail = self.client.get(servicetool['url'], data=self._dataUser())
             # logger.debug('Details data: %s', detail)
             tool_data = detail.data
-            self.assertTrue(tool_data.has_key('inputs'))
+            self.assertTrue('submissions' in tool_data)
             i = 0
             input_datas = {}
-            for job_input in tool_data['inputs']:
-                if job_input['type'] == waves.const.TYPE_FILE:
-                    i += 1
-                    input_data = _create_test_file(job_input['name'], i)
-                    # input_datas[job_input['name']] = input_data.name
-                    logger.debug('file input %s', input_data)
-                elif job_input['type'] == waves.const.TYPE_INTEGER:
-                    input_data = int(random.randint(0, 199))
-                    logger.debug('number input%s', input_data)
-                elif job_input['type'] == waves.const.TYPE_FLOAT:
-                    input_data = int(random.randint(0, 199))
-                    logger.debug('number input%s', input_data)
-                elif job_input['type'] == waves.const.TYPE_BOOLEAN:
-                    input_data = random.randrange(100) < 50
-                elif job_input['type'] == 'text':
-                    input_data = ''.join(random.sample(string.letters, 15))
-                    # input_datas[job_input['name']] = input_data
-                    logger.debug('text input %s', input_data)
-                else:
-                    input_data = ''.join(random.sample(string.letters, 15))
-                    logger.warn('default ???? %s %s', input_data, job_input['type'])
-                input_datas[job_input['name']] = input_data
+            submissions = tool_data.get('submissions')
+            for submission in submissions:
+                # print submission['label']
+                for job_input in submission['inputs']:
+                    if job_input['type'] == waves.const.TYPE_FILE:
+                        i += 1
+                        input_data = _create_test_file(job_input['name'], i)
+                        # input_datas[job_input['name']] = input_data.name
+                        logger.debug('file input %s', input_data)
+                    elif job_input['type'] == waves.const.TYPE_INTEGER:
+                        input_data = int(random.randint(0, 199))
+                        logger.debug('number input%s', input_data)
+                    elif job_input['type'] == waves.const.TYPE_FLOAT:
+                        input_data = int(random.randint(0, 199))
+                        logger.debug('number input%s', input_data)
+                    elif job_input['type'] == waves.const.TYPE_BOOLEAN:
+                        input_data = random.randrange(100) < 50
+                    elif job_input['type'] == 'text':
+                        input_data = ''.join(random.sample(string.letters, 15))
+                        # input_datas[job_input['name']] = input_data
+                        logger.debug('text input %s', input_data)
+                    else:
+                        input_data = ''.join(random.sample(string.letters, 15))
+                        logger.warn('default ???? %s %s', input_data, job_input['type'])
+                    input_datas[job_input['name']] = input_data
 
-            logger.debug('Data posted %s', input_datas)
-            logger.debug('To => %s', servicetool['url'])
-            o = urlparse(servicetool['url'])
-            path = o.path.split('/')
-            response = self.client.post(reverse('waves:waves-services-jobs',
-                                                kwargs={'api_name': path[-2]}),
-                                        data=self._dataUser(initial=input_datas),
-                                        format='multipart')
-            logger.debug(response)
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-            job = Job.objects.all().order_by('-created').first()
-            logger.debug(job)
+                logger.debug('Data posted %s', input_datas)
+                logger.debug('To => %s', submission['submission_uri'])
+                o = urlparse(servicetool['url'])
+                path = o.path.split('/')
+                response = self.client.post(submission['submission_uri'],
+                                            data=self._dataUser(initial=input_datas),
+                                            format='multipart')
+                logger.debug(response)
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+                job = Job.objects.all().order_by('-created').first()
+                logger.debug(job)
 
     def test_update_job(self):
         pass

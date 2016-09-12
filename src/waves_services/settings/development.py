@@ -38,18 +38,17 @@ LOGGING = {
     'loggers': {
         'root': {
             'handlers': ['console'],
-            'propagate': True,
             'level': 'ERROR',
         },
         'django': {
             'handlers': ['console'],
-            'propagate': True,
+            'propagate': False,
             'level': 'WARNING',
         },
         'waves': {
             'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': True,
+            'propagate': False,
         },
     }
 }

@@ -36,3 +36,9 @@ def categories_menu(current):
 def register_for_api_button(context, service):
     return {'user': context['user'],
             'api_on': service.api_on}
+
+
+@register.inclusion_tag('services/_online_execution.html', takes_context=True)
+def online_exec_button(context, service):
+    return {'available_for_submission': service.available_for_user(context['user']),
+            'service': service}

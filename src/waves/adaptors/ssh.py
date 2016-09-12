@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 
 import saga
-from local import ShellJobRunner
-from waves.runners.sge import SGEJobRunner
+from local import ShellJobAdaptor
+from waves.adaptors.sge import SGEJobAdaptor
 
 
-class SshJobRunner(ShellJobRunner):
+class SshJobAdaptor(ShellJobAdaptor):
     # TODO add implementation to change ssh port capability
     port = 22
     _protocol = 'ssh'
@@ -14,7 +14,7 @@ class SshJobRunner(ShellJobRunner):
 
     @property
     def init_params(self):
-        params = super(SshJobRunner, self).init_params
+        params = super(SshJobAdaptor, self).init_params
         params.update(dict(host=self.host,
                            port=self.port,
                            basedir=self.basedir))
@@ -25,15 +25,15 @@ class SshJobRunner(ShellJobRunner):
         return saga.Context('ssh')
 
     def _prepare_job(self, job):
-        super(SshJobRunner, self)._prepare_job(job)
+        super(SshJobAdaptor, self)._prepare_job(job)
         # TODO manage File transfer (uploads)
 
     def _job_results(self, job):
-        return super(SshJobRunner, self)._job_results(job)
+        return super(SshJobAdaptor, self)._job_results(job)
         # TODO manage File transfer (downloads)
 
 
-class SshKeyJobRunner(SshJobRunner):
+class SshKeyJobAdaptor(SshJobAdaptor):
     """
     SSH remote job control, over ssh, authenticated with private key and pass phrase
     """
@@ -43,7 +43,7 @@ class SshKeyJobRunner(SshJobRunner):
 
     @property
     def init_params(self):
-        params = super(SshKeyJobRunner, self).init_params
+        params = super(SshKeyJobAdaptor, self).init_params
         params.update(dict(private_key=self.private_key,
                            pass_phrase=self.pass_phrase,
                            public_key=self.public_key))
@@ -51,14 +51,14 @@ class SshKeyJobRunner(SshJobRunner):
 
     @property
     def context(self):
-        ctx = super(SshJobRunner, self).context
+        ctx = super(SshJobAdaptor, self).context
         ctx.user_cert = self.private_key
         ctx.user_key = self.public_key
         ctx.user_pass = self.pass_phrase
         return ctx
 
 
-class SshUserPassJobRunner(SshJobRunner):
+class SshUserPassJobAdaptor(SshJobAdaptor):
     """
     SSH remote job control, over ssh, authenticated with classic user_id and password credentials
     """
@@ -67,7 +67,7 @@ class SshUserPassJobRunner(SshJobRunner):
 
     @property
     def init_params(self):
-        params = super(SshUserPassJobRunner, self).init_params
+        params = super(SshUserPassJobAdaptor, self).init_params
         params.update(dict(user_id=self.user_id,
                            user_pass=self.user_pass))
         return params
@@ -80,13 +80,13 @@ class SshUserPassJobRunner(SshJobRunner):
         return ctx
 
 
-class SGEOverSSHRunner(SGEJobRunner, SshUserPassJobRunner):
+class SGEOverSSHAdaptor(SGEJobAdaptor, SshUserPassJobAdaptor):
     _protocol = 'sge+ssh'
 
     @property
     def init_params(self):
-        base = super(SGEJobRunner, self).init_params
-        base.update(super(SshJobRunner, self).init_params)
+        base = super(SGEJobAdaptor, self).init_params
+        base.update(super(SshJobAdaptor, self).init_params)
         return base
 
     def _job_description(self, job):
@@ -94,6 +94,6 @@ class SGEOverSSHRunner(SGEJobRunner, SshUserPassJobRunner):
         dir_name = 'sftp://' + self.host + "/$HOME/sge_runs/"
         work_dir = saga.filesystem.Directory(dir_name, saga.filesystem.READ,
                                                     self.session)
-        jd = super(SGEJobRunner, self)._job_description(job)
+        jd = super(SGEJobAdaptor, self)._job_description(job)
         jd.update(dict(queue=self.queue, working_directory='/$HOME/sge_runs/'))
         return jd

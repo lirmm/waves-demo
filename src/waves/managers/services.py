@@ -2,36 +2,52 @@ from __future__ import unicode_literals
 
 import logging
 from django.db import models
+from django.db.models import Q
 import waves.const
 from waves.exceptions import *
+
 logger = logging.getLogger(__name__)
 __all__ = ['ServiceManager', 'WebSiteMetaMngr', 'DocumentationMetaMngr', 'DownloadLinkMetaMngr', 'FeatureMetaMngr',
            'MiscellaneousMetaMngr', 'CitationMetaMngr', 'CommandLineMetaMngr']
 
 
 class ServiceManager(models.Manager):
-    def get_service_for_client(self, client):
-        """
 
-        Args:
-            client:
-
-        Returns:
-
-        """
-        return self.exclude(authorized_clients__in=[client.pk], status__lt=waves.const.SRV_TEST)
-
-    def get_public_services(self, user=None):
+    def get_services(self, user=None, for_api=None):
         """
         Returns:
         """
         if user is not None and (user.is_superuser or user.is_staff):
-            return self.all()
+            if user.is_superuser:
+                # Super user has access to 'all' services / submissions etc...
+                queryset = self.all()
+            elif user.is_staff:
+                # Staff user have access their own Services and to all 'Test / Restricted / Public' made by others
+                queryset = self.filter(
+                    Q(status=waves.const.SRV_DRAFT, created_by=user) |
+                    Q(status__in=(waves.const.SRV_TEST, waves.const.SRV_RESTRICTED, waves.const.SRV_PUBLIC))
+                )
+            else:
+                # Simply registered user have access only to "Public" and configured restricted access
+                queryset = self.filter(
+                    Q(status=waves.const.SRV_RESTRICTED, restricted_client__in=user) |
+                    Q(status=waves.const.SRV_PUBLIC)
+                )
+        # Non logged in user have only access to public services
         else:
-            return self.filter(status=waves.const.SRV_PUBLIC)
+            queryset = self.filter(status=waves.const.SRV_PUBLIC)
+        if for_api:
+            queryset.filter(api_on=True)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('Generated query set \n%s', queryset.query)
+            logger.debug('Should return this services:\n%s', queryset.all())
+        return queryset
 
-    def api_public(self):
-        return self.filter(api_on=True, status=waves.const.SRV_PUBLIC)
+    def get_api_services(self, user=None):
+        return self.get_services(user, for_api=True)
+
+    def get_web_services(self, user=None):
+        return self.get_services(user)
 
 
 class WebSiteMetaMngr(models.Manager):

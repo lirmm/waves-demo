@@ -1,23 +1,28 @@
 from __future__ import unicode_literals
+
 import logging
 import os
-
 from django import forms
+from django.conf import settings
 from django.db import models, transaction
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db.models import Q
 from mptt.models import MPTTModel, TreeForeignKey
 from polymorphic.models import PolymorphicModel
 from django.utils.html import strip_tags
-
+from smart_selects.db_fields import ChainedForeignKey
 import waves.const
 import waves.managers.services as managers
 import waves.settings
-
 from waves.models.base import *
 from waves.models.profiles import APIProfile
 from waves.models.runners import RunnerParam, Runner
 from waves.utils import set_api_name
 
 logger = logging.getLogger(__name__)
+__all__ = ['ServiceInputFormat', 'ServiceRunnerParam', 'ServiceCategory', 'Service', 'ServiceSubmission', 'BaseInput',
+           'ServiceInput', 'RelatedInput', 'ServiceExitCode', 'ServiceOutput', 'ServiceOutputFromInputSubmission',
+           'ServiceMeta']
 
 
 class ServiceInputFormat(object):
@@ -86,7 +91,7 @@ class ServiceInputFormat(object):
 class ServiceRunnerParam(models.Model):
     class Meta:
         db_table = 'waves_service_runner_param'
-        verbose_name = 'Service\'s runner init param'
+        verbose_name = 'Service\'s adaptor init param'
         unique_together = ('service', 'param')
 
     service = models.ForeignKey('Service',
@@ -98,7 +103,7 @@ class ServiceRunnerParam(models.Model):
                               null=False,
                               on_delete=models.CASCADE,
                               related_name='param_srv',
-                              help_text='Initial runner param')
+                              help_text='Initial adaptor param')
     value = models.CharField('Param value',
                              max_length=255,
                              null=True,
@@ -107,9 +112,6 @@ class ServiceRunnerParam(models.Model):
 
     def __str__(self):
         return str(self.param.name) + u'[' + str(self.value) + u']'
-
-    def clean(self):
-        super(ServiceRunnerParam, self).clean()
 
     def save(self, *args, **kwargs):
         if not self.value:
@@ -161,7 +163,8 @@ class Service(TimeStampable, DescribeAble, ApiAble):
         unique_together = ('api_name', 'version', 'status')
 
     # manager
-    objects = managers.ServiceManager()
+    objects = models.Manager()
+    retrieve = managers.ServiceManager()
     # fields
     name = models.CharField('Service name',
                             max_length=255,
@@ -212,6 +215,11 @@ class Service(TimeStampable, DescribeAble, ApiAble):
                                   default=False,
                                   help_text='Set whether some service outputs are dynamic (not known in advance)')
 
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+
+    def delete_runner_params(self):
+        return self.service_run_params.all().delete()
+
     def __str__(self):
         return "%s v(%s)" % (self.name, self.version)
 
@@ -223,13 +231,16 @@ class Service(TimeStampable, DescribeAble, ApiAble):
         super(Service, self).clean()
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        if not self.api_name:
+            self.set_api_name()
         super(Service, self).save(force_insert, force_update, using, update_fields)
         if self.run_on and self.service_run_params.count() != self.run_on.runner_params.count():
-            # initialize runner params with defaults
+            # initialize adaptor params with defaults
             self.set_default_params_4_runner(self.run_on)
 
     def set_api_name(self):
-        self.api_name = set_api_name(self.name + ' ' + self.version)
+        from django.template.defaultfilters import slugify
+        self.api_name = slugify(self.name + ' ' + self.version)
 
     def set_default_params_4_runner(self, run_on):
         for param in run_on.runner_params.all():
@@ -237,7 +248,7 @@ class Service(TimeStampable, DescribeAble, ApiAble):
 
     def run_params(self):
         """
-        Return a list of tuples representing current service runner init params
+        Return a list of tuples representing current service adaptor init params
         Returns:
             List of Tuple (param_name, param_service_value, runner_param_default)
         """
@@ -249,15 +260,15 @@ class Service(TimeStampable, DescribeAble, ApiAble):
 
     def import_service_params(self):
         """
-        Try to import service param configuration issued from runner
+        Try to import service param configuration issued from adaptor
         Returns:
             None
         """
         if not self.run_on:
-            raise ImportError(u'Unable to import if no runner is set')
+            raise ImportError(u'Unable to import if no adaptor is set')
 
     @property
-    def runner(self):
+    def adaptor(self):
         if self.run_on:
             from django.utils.module_loading import import_string
             job_runner = import_string(self.run_on.clazz)
@@ -284,7 +295,7 @@ class Service(TimeStampable, DescribeAble, ApiAble):
     @transaction.atomic
     def duplicate(self):
         from waves.models.samples import service_sample_directory
-        service_inputs = self.service_inputs.filter()
+        service_submission = self.submissions.all()
         service_outputs = self.service_outputs.all()
         service_metas = self.metas.all()
         service_exit_codes = self.service_exit_codes.all()
@@ -297,7 +308,7 @@ class Service(TimeStampable, DescribeAble, ApiAble):
         self.api_name += '_%i' % nb_copy
         self.status = waves.const.SRV_DRAFT
         self.save()
-        self.service_run_params.all().delete()
+        self.delete_runner_params()
         # Duplicate Runner params
         for srv_run_param in service_runner_params.all():
             logger.debug("class %s ", srv_run_param.__class__.__name__)
@@ -305,25 +316,28 @@ class Service(TimeStampable, DescribeAble, ApiAble):
             srv_run_param.service = self
             srv_run_param.save()
         # Duplicate Inputs
-        for srv_input in service_inputs:
-            logger.debug('Duplicate input %s ', srv_input)
-            dependents = None
-            srv_input.pk = None
-            srv_input.service = self
-            # srv_input.save()
-            self.service_inputs.add(srv_input)
-            if srv_input.dependent_inputs.count() > 0:
-                dependents = srv_input.dependent_inputs.all()
-                logger.debug('Duplicate dependents parameters ')
-                for dep_input in dependents:
-                    logger.debug('dep_input %s', dep_input)
-                    dep_input.pk = None
-                    dep_input.related_to = srv_input
-                    dep_input.service = self
-                    #       dep_input.save()
-                    self.service_inputs.add(dep_input)
-            else:
-                logger.debug("No Dependency")
+        for submission in service_submission:
+            submission.pk = None
+            submission.service = self
+            submission_inputs = submission.service_inputs.all()
+            submission.save()
+            for srv_input in submission_inputs:
+                logger.debug('Duplicate input %s ', srv_input)
+                srv_input.pk = None
+                srv_input.service = submission
+                # srv_input.save()
+                submission.service_inputs.add(srv_input)
+                if srv_input.dependent_inputs.count() > 0:
+                    dependents = srv_input.dependent_inputs.all()
+                    logger.debug('Duplicate dependents parameters ')
+                    for dep_input in dependents:
+                        logger.debug('dep_input %s', dep_input)
+                        dep_input.pk = None
+                        dep_input.related_to = srv_input
+                        dep_input.service = submission
+                        submission.service_inputs.add(dep_input)
+                else:
+                    logger.debug("No Dependency")
         # Duplicates outputs
         for srv_output in service_outputs:
             logger.debug('Duplicate output %s ', srv_output)
@@ -385,7 +399,10 @@ class Service(TimeStampable, DescribeAble, ApiAble):
 
     @property
     def default_submission(self):
-        return self.submissions.get(default=True)
+        try:
+            return self.submissions.get(default=True)
+        except ObjectDoesNotExist:
+            return None
 
     @property
     def all_submission(self):
@@ -407,6 +424,18 @@ class Service(TimeStampable, DescribeAble, ApiAble):
     def submissions_api(self):
         return self.submissions.filter(available_api=True)
 
+    @property
+    def available_for_submission(self):
+        return self.submissions.count() > 0 and self.run_on.available is True and \
+               self.status == waves.const.SRV_PUBLIC
+
+    def available_for_user(self, user):
+        # RULES to set if user can access submissions
+        return (self.status == waves.const.SRV_PUBLIC) or \
+               (self.status == waves.const.SRV_DRAFT and self.created_by == user) or \
+               (self.status == waves.const.SRV_RESTRICTED and user.is_staff) or \
+               user.is_superuser
+
 
 class ServiceSubmission(TimeStampable, OrderAble, SlugAble, ApiAble):
     """
@@ -417,11 +446,11 @@ class ServiceSubmission(TimeStampable, OrderAble, SlugAble, ApiAble):
         db_table = 'waves_service_submission'
         verbose_name = 'Submission version'
         verbose_name_plural = 'Submission versions'
-        unique_together = (('service', 'default'), ('service', 'api_name'))
+        unique_together = ('service', 'api_name')
         ordering = ('order',)
 
     label = models.CharField('Submission label', max_length=255, null=True)
-    default = models.BooleanField('Default submission', default=True)
+    default = models.BooleanField('Default submission', default=False)
     available_online = models.BooleanField('Available on Web', default=True)
     available_api = models.BooleanField('Available on API', default=True)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, related_name='submissions')
@@ -432,17 +461,49 @@ class ServiceSubmission(TimeStampable, OrderAble, SlugAble, ApiAble):
         if not self.api_name:
             self.api_name = set_api_name(self.label)
         if self.default:
-            self.api_name = "default"
+            # get any other 'default' submission and deactivate it
+            try:
+                sub_default = ServiceSubmission.objects.get(default=True, service=self.service)
+                sub_default.default = False
+                sub_default.save(update_fields=['default'])
+            except ObjectDoesNotExist:
+                pass
+        else:
+            # search for another default ? if not set, this one is the new default
+            try:
+                ServiceSubmission.objects.get(default=True, service=self.service)
+            except ObjectDoesNotExist:
+                self.default = True
         super(ServiceSubmission, self).save(**kwargs)
 
+    def delete(self, using=None, keep_parents=False):
+        if self.default:
+            try:
+                # if deleting a default, try to set first other submission to default
+                sub_defaults = ServiceSubmission.objects.filter(service=self.service)
+                if sub_defaults.count() > 0:
+                    sub_defaults[0].default = True
+                    sub_defaults[0].save()
+            except ObjectDoesNotExist:
+                pass
+        return super(ServiceSubmission, self).delete(using, keep_parents)
+
     def __str__(self):
+        if self.default:
+            return '%s (default)' % self.label
         return self.label
+
+    @property
+    def submitted_service_inputs(self):
+        return self.service_inputs.filter(editable=True).all()
 
 
 class BaseInput(PolymorphicModel, DescribeAble, TimeStampable, OrderAble):
     class Meta:
         db_table = 'waves_service_base_input'
         unique_together = ('label', 'name', 'default', 'service')
+
+    _base_manager = models.Manager()
 
     label = models.CharField('Label', max_length=100, blank=False, null=False, help_text='Input displayed label')
     name = models.CharField('Name', max_length=50, blank=False, null=False, help_text='Input runner\'s job param name')
@@ -635,20 +696,23 @@ class ServiceOutput(TimeStampable, OrderAble, DescribeAble):
                                 related_name='service_outputs',
                                 on_delete=models.CASCADE,
                                 help_text='Output associated service')
-    from_input = models.ForeignKey(BaseInput,
-                                   null=True,
-                                   blank=True,
-                                   related_name='to_output',
-                                   help_text='Output is valued from an input')
+    related_from_input = models.ForeignKey(BaseInput,
+                                           null=True,
+                                           blank=True,
+                                           related_name='to_output',
+                                           help_text='Output is valued from an input')
+    from_input = models.BooleanField(default=False, blank=True, help_text="Is valuated from an input value")
+    models.BooleanField(blank=True, default=False,
+                        help_text='Output is valued from an input')
     ext = models.CharField('File extension', max_length=5, null=False, default=".txt")
     may_be_empty = models.BooleanField('May be empty', default=True)
-    from_input_pattern = models.CharField('Apply format', max_length=100, null=True, blank=True,
-                                          help_text="Format related input value ('%s' is the related value)")
+    file_pattern = models.CharField('File name', max_length=100, null=True, blank=True,
+                                    help_text="Format related input value with '%s' if needed")
 
     def __str__(self):
         if self.from_input:
-            return 'from input "%s"' % self.from_input.label
-        return '%s (%s)' % (self.name, self.description)
+            return '"%s" (from input %s) ' % (self.name, self.file_pattern)
+        return '%s' % self.name
 
     def save(self, *args, **kwargs):
         if not self.from_input:
@@ -656,11 +720,40 @@ class ServiceOutput(TimeStampable, OrderAble, DescribeAble):
         super(ServiceOutput, self).save(*args, **kwargs)
 
     def clean(self):
-        from django.core.exceptions import ValidationError
-        if self.from_input_pattern and self.from_input is None:
-            raise ValidationError('If you set a pattern, please select a related input')
-        if not (self.from_input.mandatory or self.from_input.default):
-            raise ValidationError('Valuated output from non mandatory input is not allowed')
+        cleaned_data = super(ServiceOutput, self).clean()
+        if not self.from_input and not self.file_pattern:
+            raise ValidationError('If output is not issued from input, you must set a file name')
+        return cleaned_data
+
+
+class ServiceOutputFromInputSubmission(models.Model):
+    class Meta:
+        db_table = "waves_service_output_submission"
+        verbose_name = 'From Input'
+        # TODO see if possible or needed
+        # unique_together = ('srv_output', 'from_input')
+
+    srv_output = models.ForeignKey(ServiceOutput, related_name='from_input_submission', on_delete=models.CASCADE)
+    submission = models.ForeignKey(ServiceSubmission, related_name='service_outputs', on_delete=models.CASCADE)
+    srv_input = ChainedForeignKey(
+        BaseInput,
+        chained_field='submission',
+        chained_model_field='service',
+        show_all=False,
+        auto_choose=True,
+        null=True,
+        blank=True,
+        related_name='to_outputs',
+        help_text='Output is valued from an input',
+        limit_choices_to=Q(Q(type__in=(waves.const.TYPE_FILE, waves.const.TYPE_TEXT, waves.const.TYPE_LIST)),
+                           Q(mandatory=True) | Q(default__isnull=False))
+    )
+
+    def clean(self):
+
+        super(ServiceOutputFromInputSubmission, self).clean()
+        if self.srv_input and not (self.srv_input.mandatory or self.srv_input.default):
+            raise ValidationError('Valuated output from non mandatory input with no default is not allowed')
 
 
 class ServiceMeta(OrderAble, DescribeAble):
@@ -679,59 +772,3 @@ class ServiceMeta(OrderAble, DescribeAble):
     value = models.CharField('Meta value', max_length=500, blank=True, null=True)
     is_url = models.BooleanField('Is a url', editable=False, default=False)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='metas')
-
-
-class WebSiteMeta(ServiceMeta):
-    objects = managers.WebSiteMetaMngr()
-
-    class Meta:
-        proxy = True
-
-
-class DocumentationMeta(ServiceMeta):
-    objects = managers.DocumentationMetaMngr()
-
-    class Meta:
-        proxy = True
-
-
-class DownloadLinkMeta(ServiceMeta):
-    objects = managers.DownloadLinkMetaMngr()
-
-    class Meta:
-        proxy = True
-
-
-class FeatureMeta(ServiceMeta):
-    objects = managers.FeatureMetaMngr()
-
-    class Meta:
-        proxy = True
-
-
-class MiscellaneousMeta(ServiceMeta):
-    objects = managers.MiscellaneousMetaMngr()
-
-    class Meta:
-        proxy = True
-
-
-class RelatedPaperMeta(ServiceMeta):
-    objects = managers.RelatedPaperMetaMngr()
-
-    class Meta:
-        proxy = True
-
-
-class CitationMeta(ServiceMeta):
-    objects = managers.CitationMetaMngr()
-
-    class Meta:
-        proxy = True
-
-
-class CommandLineMeta(ServiceMeta):
-    objects = managers.CommandLineMetaMngr()
-
-    class Meta:
-        proxy = True

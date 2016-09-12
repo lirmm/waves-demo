@@ -6,7 +6,7 @@ import os
 import pickle
 import logging
 
-from waves.runners.runner import JobRunner
+from waves.adaptors.runner import JobRunnerAdaptor
 import waves.const
 
 __author__ = "Marc Chakiachvili <marc.chakiachvili@lirmm.fr>"
@@ -14,9 +14,9 @@ __author__ = "Marc Chakiachvili <marc.chakiachvili@lirmm.fr>"
 logger = logging.getLogger(__name__)
 
 
-class ShellJobRunner(JobRunner):
+class ShellJobAdaptor(JobRunnerAdaptor):
     """
-    Local script job runner, command line tools must be in path or specified as absolute path
+    Local script job adaptor, command line tools must be in path or specified as absolute path
 
     """
     command = None
@@ -26,7 +26,7 @@ class ShellJobRunner(JobRunner):
     _connector = None
 
     def __init__(self, **kwargs):
-        super(ShellJobRunner, self).__init__(**kwargs)
+        super(ShellJobAdaptor, self).__init__(**kwargs)
         self._environ = os.environ.copy()
         # current job Description
         self._jd = None

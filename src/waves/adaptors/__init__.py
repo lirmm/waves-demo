@@ -2,14 +2,14 @@ from __future__ import unicode_literals
 
 from collections import namedtuple
 
-from waves.runners.galaxy import GalaxyJobRunner, GalaxyWorkFlowRunner
-from waves.runners.runner import JobRunner
-from waves.runners.local import ShellJobRunner
-from waves.runners.sge import SGEJobRunner
-from waves.runners.ssh import SshJobRunner, SshKeyJobRunner, SshUserPassJobRunner, SGEOverSSHRunner
+from waves.adaptors.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor
+from waves.adaptors.runner import JobRunnerAdaptor
+from waves.adaptors.local import ShellJobAdaptor
+from waves.adaptors.sge import SGEJobAdaptor
+from waves.adaptors.ssh import SshJobAdaptor, SshKeyJobAdaptor, SshUserPassJobAdaptor, SGEOverSSHAdaptor
 
-__all__ = ['SGEJobRunner', 'GalaxyJobRunner', 'GalaxyWorkFlowRunner', 'ShellJobRunner', 'SshKeyJobRunner',
-           'SshUserPassJobRunner', 'SGEOverSSHRunner']
+__all__ = ['SGEJobAdaptor', 'GalaxyJobAdaptor', 'GalaxyWorkFlowAdaptor', 'ShellJobAdaptor', 'SshKeyJobAdaptor',
+           'SshUserPassJobAdaptor', 'SGEOverSSHAdaptor']
 
 
 def get_implementation():

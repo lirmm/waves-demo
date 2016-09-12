@@ -34,7 +34,7 @@ class RunnerAdmin(admin.ModelAdmin):
     )
 
     # fields = ('name', 'description', 'available', 'clazz')
-    list_display = ('name', 'clazz', 'available')
+    list_display = ('name', 'clazz', 'available', 'short_description')
     list_filter = ('clazz', 'available')
     fieldsets = [
         ('General', {
@@ -50,7 +50,7 @@ class RunnerAdmin(admin.ModelAdmin):
         if 'update_init_params' in form.changed_data and obj is not None:
             obj.runner_params.all().delete()
             messages.warning(request, 'Be aware that related service configuration has been deleted ! ')
-            for name, initial in obj.runner.init_params.items():
+            for name, initial in obj.adaptor.init_params.items():
                 param = RunnerParam.objects.update_or_create(defaults={'default': initial}, name=name, runner=obj)
             for service in obj.runs.all():
                 service.status = waves.const.SRV_TEST

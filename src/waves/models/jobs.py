@@ -6,7 +6,7 @@ from collections import namedtuple
 from django.conf import settings
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+
 from django.contrib.sites.models import Site
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
@@ -14,7 +14,7 @@ from django.core.exceptions import ValidationError
 import waves.const as const
 from waves.eav.config import JobEavConfig, JobInputEavConfig, JobOutputEavConfig
 from waves.managers.jobs import JobManager
-from waves.models import TimeStampable, SlugAble, OrderAble
+from waves.models import TimeStampable, SlugAble, OrderAble, UrlMixin
 import waves.settings
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ def allow_display_online(file_name):
     return False
 
 
-class Job(TimeStampable, SlugAble):
+class Job(TimeStampable, SlugAble, UrlMixin):
     """
     Store current jobs created by the platform
     """
@@ -63,10 +63,10 @@ class Job(TimeStampable, SlugAble):
                                  help_text='Notify results to this email')
 
     exit_code = models.IntegerField('Job system exit code', null=False, default=0,
-                                    help_text="Job exit code on relative runner")
+                                    help_text="Job exit code on relative adaptor")
     results_available = models.BooleanField('Results are available', default=False, editable=False)
 
-    remote_job_id = models.CharField('Remote Job ID (on runner)', max_length=255, editable=False, null=True)
+    remote_job_id = models.CharField('Remote Job ID (on adaptor)', max_length=255, editable=False, null=True)
     nb_retry = models.IntegerField('Nb Retry', editable=False, default=0)
 
     def __init__(self, *args, **kwargs):
@@ -149,8 +149,8 @@ class Job(TimeStampable, SlugAble):
         return os.path.join(waves.settings.WAVES_JOB_DIR, str(self.slug))
 
     @property
-    def runner(self):
-        return self.service.runner
+    def adaptor(self):
+        return self.service.adaptor
 
     def __str__(self):
         return '%s [%s][%s]' % (self.title, self.service.api_name, self.slug)
@@ -204,11 +204,12 @@ class Job(TimeStampable, SlugAble):
                         raise e
 
     def get_absolute_url(self):
+        from django.core.urlresolvers import reverse
         return reverse('waves:job_details', kwargs={'slug': self.slug})
 
     @property
     def link(self):
-        return '%s%s' % (Site.objects.get_current().domain, self.get_absolute_url())
+        return self.get_url()
 
     @property
     def details_available(self):
@@ -318,7 +319,7 @@ class JobInput(OrderAble, SlugAble):
     @property
     def validated_value(self):
         if self.type == const.TYPE_FILE:
-            return os.path.join(self.job.input_dir, self.value)
+            return self.file_path
         elif self.type == const.TYPE_BOOLEAN:
             return bool(self.value)
         elif self.type == const.TYPE_TEXT:
@@ -384,7 +385,7 @@ class JobInput(OrderAble, SlugAble):
         return allow_display_online(self.file_path)
 
 
-class JobOutput(OrderAble, SlugAble):
+class JobOutput(OrderAble, SlugAble, UrlMixin):
     class Meta:
         db_table = 'waves_job_output'
         unique_together = ('srv_output', 'job', 'value')
@@ -434,9 +435,10 @@ class JobOutput(OrderAble, SlugAble):
 
     @property
     def link(self):
-        return '%s%s' % (Site.objects.get_current().domain, self.get_absolute_url())
+        return self.get_url()
 
     def get_absolute_url(self):
+        from django.core.urlresolvers import reverse
         return reverse('waves:job_output', kwargs={'slug': self.slug})
 
     @property

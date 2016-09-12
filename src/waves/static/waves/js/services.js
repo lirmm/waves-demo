@@ -24,8 +24,9 @@
             $('#popup_modal').dialog({
                 modal: true,
                 position: {my: 'top', at: 'top+100', of: window},
-                minWidth: 400,
+                minWidth: 500,
                 resizable: true,
+                dialogClass: "tool_import_modal",
                 title: this.title,
             }).dialog('open').load(this.href)
         });
@@ -33,7 +34,6 @@
             console.log("Click called ! ");
             $('#form-modal-body').load('/launch_import/', function () {
                 $('#form-modal').modal('toggle');
-                formAjaxSubmit('#form-modal-body form', '#form-modal');
             });
         });
         $(document).on('change', '.btn-file :file', function () {
@@ -42,30 +42,7 @@
                 label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
             input.trigger('fileselect', [numFiles, label]);
         });
-        var formAjaxSubmit = function (form, modal) {
-            $(form).submit(function (e) {
-                window.console.log("Submit called for this form");
-                e.preventDefault();
-                $.ajax({
-                    type: $(this).attr('method'),
-                    url: $(this).attr('action'),
-                    data: $(this).serialize(),
-                    success: function (xhr, ajaxOptions, thrownError) {
-                        if ($(xhr).find('.has-error').length > 0) {
-                            window.console.log('has-error ');// + $(xhr).find('.has-error').length);
-                            $(modal).find('.modal-body').html(xhr);
-                            formAjaxSubmit(form, modal);
-                        } else {
-                            window.console.log('simply toggle ');
-                            $(modal).modal('toggle');
-                        }
-                    },
-                    error: function (xhr, ajaxOptions, thrownError) {
-                    }
-                });
-            });
-        }
     })
-})(django.jQuery);
+})(jQuery || django.jQuery);
 
 

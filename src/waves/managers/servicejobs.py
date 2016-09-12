@@ -53,7 +53,7 @@ class ServiceJobManager(object):
 
     @staticmethod
     @transaction.atomic
-    def create_new_job(service, submitted_inputs, email_to=None, user=None):
+    def create_new_job(submission, submitted_inputs, email_to=None, user=None):
         """
         Create a new job from service data and submitted params values
         Args:
@@ -73,13 +73,7 @@ class ServiceJobManager(object):
             logger.debug('Received data :')
             for key in submitted_inputs:
                 logger.debug('Param %s: %s', key, submitted_inputs[key])
-        form_submission = submitted_inputs.get('submission', 'default')
-        if form_submission == 'default':
-            submission = service.default_submission
-        else:
-            submission = service.submissions.get(api_name=form_submission)
-
-        job = Job.objects.create(service=service, email_to=email_to, client=user, title=job_title)
+        job = Job.objects.create(service=submission.service, email_to=email_to, client=user, title=job_title)
         job.create_non_editable_inputs(submission)
         # First create inputs
         all_inputs = BaseInput.objects.filter(
@@ -100,25 +94,27 @@ class ServiceJobManager(object):
                 for in_input in incoming_input:
                     ServiceJobManager._create_job_input(job, service_input, service_input.order, in_input)
         # create expected outputs
-        for service_output in service.service_outputs.all():
+        for service_output in submission.service.service_outputs.all():
             output_dict = dict(job=job, srv_output=service_output)
             if not service_output.from_input:
+                output_dict.update(value=service_output.file_pattern)
                 job.job_outputs.add(JobOutput.objects.create(**output_dict))
             else:
                 # issued from a input value
-                if service_output.from_input.type != waves.const.TYPE_FILE:
-                    value_to_normalize = submitted_inputs.get(service_output.from_input.name, service_output.from_input.default)
+                srv_submission_output = service_output.from_input_submission.get(submission=submission)
+                if srv_submission_output.srv_input.type != waves.const.TYPE_FILE:
+                    value_to_normalize = submitted_inputs.get(srv_submission_output.srv_input.name, None)
                 else:
-                    file_field = submitted_inputs.get(service_output.from_input.name, None)
+                    file_field = submitted_inputs.get(srv_submission_output.srv_input.name, None)
                     if file_field is not None:
                         value_to_normalize = file_field.name
                     else:
-                        logger.warn('Unable to retrieve file name from input %s', service_output.from_input.name)
-                        value_to_normalize = service_output.from_input.name
+                        logger.warn('Unable to retrieve file name from input %s', srv_submission_output.srv_input.name)
+                        value_to_normalize = srv_submission_output.srv_input.name
                 input_value = normalize_value(value_to_normalize)
-                if service_output.from_input_pattern is not None:
-                    formatted_value = service_output.from_input_pattern % input_value
-                    logger.debug('base input value %s, formatted to %s', input_value, formatted_value)
+                if service_output.file_pattern is not None:
+                    formatted_value = service_output.file_pattern % input_value
+                    logger.debug('Base input value %s, formatted to %s', input_value, formatted_value)
                     input_value = formatted_value
                 output_dict.update(dict(value=input_value,
                                         may_be_empty=service_output.may_be_empty))

@@ -8,20 +8,21 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class JobRunner(object):
+class JobRunnerAdaptor(object):
     """
-    Abstract JobRunner class, declare expected behaviour from any Waves's JobRunner
+    Abstract JobRunnerAdaptor class, declare expected behaviour from any Waves's JobRunnerAdaptor
     """
     _connector = None
     _parser = None
     _type_map = {}
     _states_map = {}
     _state_allow_cancel = (waves.const.STATUS_LIST[1:5])
+    importer_clazz = None
 
     def __init__(self, init_params={}, **kwargs):
         """
-        Initialize a runner
-        :return: a new JobRunner object
+        Initialize a adaptor
+        :return: a new JobRunnerAdaptor object
 
         """
         self._initialized = False
@@ -40,21 +41,12 @@ class JobRunner(object):
     def init_params(self):
         return dict()
 
-    def importer_clazz(self, service=None):
-        """
-        Get a service importer from this runner
-        Returns:
-            ToolRunnerImporter
-        """
-        from waves.runners.importer import ToolRunnerImporter
-        return ToolRunnerImporter(self, service)
-
     @property
     def connected(self):
         return self._connector is not None and self._connected is True
 
     def connect(self):
-        """Connect to runner
+        """Connect to adaptor
         :return: _connector reference or raise an ConnectionException
         """
         if self.connected:
@@ -74,7 +66,7 @@ class JobRunner(object):
 
     def disconnect(self):
         """
-        Shut down connection to runner. Called after job runner execution to disconnect from remote
+        Shut down connection to adaptor. Called after job adaptor execution to disconnect from remote
         :return: boolean or raise an ConnectionException
         """
         if not self.connected:
@@ -135,7 +127,7 @@ class JobRunner(object):
 
     def cancel_job(self, job):
         """
-        Cancel a running job on runner class
+        Cancel a running job on adaptor class
         :param job:
         :return:
         """
@@ -150,7 +142,7 @@ class JobRunner(object):
             job.status = waves.const.JOB_CANCELLED
             logger.info('Job %s cancelled ', job.slug)
         except Exception as exc:
-            logger.error('Cancel job %s not applied to runner %s', job.pk, job.service.run_on)
+            logger.error('Cancel job %s not applied to adaptor %s', job.pk, job.service.run_on)
             job.message = 'Could not cancel job'
             raise JobRunException('Cancel job error:\n%s: %s' %
                                   (exc.__class__.__name__, str(exc)), job=job)
@@ -170,7 +162,7 @@ class JobRunner(object):
             if not self.connected:
                 self.connect()
             if not self._ready():
-                raise RunnerNotReady('%s runner not ready : \nInit_param:%s\nConnector:%s - initialized:%s' % (
+                raise RunnerNotReady('%s adaptor not ready : \nInit_param:%s\nConnector:%s - initialized:%s' % (
                     self.__class__.__name__, self.init_params, self._connector, self._initialized))
             job.status = self.__map_status(self._job_status(job))
             if job.status == waves.const.JOB_COMPLETED:
@@ -259,7 +251,7 @@ class JobRunner(object):
 
     def _dump_config(self):
         """
-        Dump current JobRunner implementation configuration
+        Dump current JobRunnerAdaptor implementation configuration
         Returns:
             <str>
         """
@@ -273,3 +265,15 @@ class JobRunner(object):
 
     def _ready(self):
         return self._initialized
+
+    def importer(self, for_service=None):
+        from django.utils.module_loading import import_string
+        if self.importer_clazz:
+            print "importerclazz", self.importer_clazz
+            importer = import_string(self.importer_clazz)
+            if for_service:
+                return importer(self, service=for_service)
+            else:
+                return importer(self)
+        else:
+            raise NotImplementedError

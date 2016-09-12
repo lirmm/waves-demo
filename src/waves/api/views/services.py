@@ -4,10 +4,9 @@ from rest_framework import viewsets, permissions, generics
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import detail_route, list_route
-
 from waves.models import Service, ServiceInput, Job, ServiceSubmission
 from waves.exceptions import JobException
-from waves.api.serializers import InputSerializer, ServiceSerializer, MetaSerializer, ServiceJobSerializer, \
+from waves.api.serializers import InputSerializer, ServiceSerializer, MetaSerializer, \
     JobSerializer, ServiceFormSerializer, ServiceMetaSerializer, ServiceSubmissionSerializer
 from waves.managers.servicejobs import ServiceJobManager
 from . import WavesBaseView
@@ -37,10 +36,10 @@ class ServiceViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):
     lookup_field = 'api_name'
 
     def get_queryset(self):
-        return Service.objects.get_public_services()
+        return Service.retrieve.get_api_services(user=self.request.user)
 
     def list(self, request):
-        queryset = Service.objects.get_public_services()
+        queryset = Service.retrieve.get_api_services(user=request.user)
         serializer = ServiceSerializer(queryset, many=True, context={'request': request},
                                        fields=('url', 'name', 'short_description', 'version', 'created', 'updated',
                                                'category', 'jobs')
@@ -48,59 +47,26 @@ class ServiceViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):
         return Response(serializer.data)
 
     def retrieve(self, request, api_name=None):
-        queryset = Service.objects.get_public_services()
+        queryset = Service.retrieve.get_api_services(user=request.user)
         service_tool = get_object_or_404(queryset, api_name=api_name)
         serializer = ServiceSerializer(service_tool, context={'request': request})
         return Response(serializer.data)
 
     @detail_route(methods=['get'], url_path='jobs')
     def service_job(self, request, api_name=None):
-        if request.POST:
-            # CREATE A NEW JOB
-            if logger.isEnabledFor(logging.DEBUG):
-                for param in request.data:
-                    logger.debug('param key ' + param)
-                    logger.debug(request.data[param])
-                logger.debug('Request Data %s', request.data)
-            queryset = Service.objects.get_public_services()
-            service = get_object_or_404(queryset, api_name=api_name)
-            ass_email = request.data.pop('email', None)
-            try:
-                request.data.pop('api_key')
-                submitted_data = {
-                    'service': service.pk,
-                    'client': request.user.pk,
-                    'inputs': request.data
-                }
-                serializer = self.get_serializer(context={'request': request},
-                                                 fields=('inputs',))
-                serializer.run_validation(data=submitted_data, )
-                job = ServiceJobManager.create_new_job(service=service,
-                                                       email_to=ass_email,
-                                                       submitted_inputs=request.data,
-                                                       user=request.user)
-                serializer = JobSerializer(job,
-                                           many=False,
-                                           context={'request': request},
-                                           fields=('slug', 'url', 'created', 'status',))
-                return Response(serializer.data, status=201)
-            except JobException as e:
-                logger.fatal("Create Error %s", e.message)
-                return Response({'error': e.message}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            # RETRIEVE A SERVICE JOB
-            queryset = Service.objects.get_public_services(request.user)
-            service_tool = get_object_or_404(queryset, api_name=api_name)
-            queryset_jobs = Job.objects.get_service_job(user=request.user, service=service_tool)
-            serializer = JobSerializer(queryset_jobs,
-                                       many=True,
-                                       context={'request': request},
-                                       fields=('url', 'created', 'status', 'service'))
-            return Response(serializer.data)
+        # RETRIEVE A SERVICE JOB
+        queryset = Service.retrieve.get_api_services(request.user)
+        service_tool = get_object_or_404(queryset, api_name=api_name)
+        queryset_jobs = Job.objects.get_service_job(user=request.user, service=service_tool)
+        serializer = JobSerializer(queryset_jobs,
+                                   many=True,
+                                   context={'request': request},
+                                   fields=('url', 'created', 'status', 'service'))
+        return Response(serializer.data)
 
     @detail_route(methods=['get'], url_path="metas")
     def service_metas(self, request, api_name=None):
-        queryset = Service.objects.get_public_services(request.user)
+        queryset = Service.retrieve.get_api_services(request.user)
         service = get_object_or_404(queryset, api_name=api_name)
         serializer = ServiceMetaSerializer(service,
                                            many=False,
@@ -109,7 +75,7 @@ class ServiceViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):
 
     @detail_route(methods=['get'], url_path="form")
     def service_form(self, request, api_name=None):
-        queryset = Service.objects.get_public_services(request.user)
+        queryset = Service.retrieve.get_api_services(request.user)
         service_tool = get_object_or_404(queryset, api_name=api_name)
         serializer = ServiceFormSerializer(many=False,
                                            context={'request': request},
@@ -127,7 +93,8 @@ class MultipleFieldLookupMixin(object):
         return get_object_or_404(queryset, **filter)  # Lookup the object
 
 
-class ServiceJobSubmissionView(MultipleFieldLookupMixin, generics.RetrieveAPIView, WavesBaseView):
+class ServiceJobSubmissionView(MultipleFieldLookupMixin, generics.RetrieveAPIView, generics.CreateAPIView,
+                               WavesBaseView):
     queryset = ServiceSubmission.objects.all()
     serializer_class = ServiceSubmissionSerializer
     lookup_fields = ('service', 'api_name')
@@ -140,6 +107,43 @@ class ServiceJobSubmissionView(MultipleFieldLookupMixin, generics.RetrieveAPIVie
 
     def get_object(self):
         return get_object_or_404(self.get_queryset())
+
+    def post(self, request, *args, **kwargs):
+        # CREATE A NEW JOB
+        # print kwargs
+        if logger.isEnabledFor(logging.DEBUG):
+            for param in request.data:
+                logger.debug('param key ' + param)
+                logger.debug(request.data[param])
+            logger.debug('Request Data %s', request.data)
+        service = Service.objects.get(api_name=kwargs['service'])
+        # print 'object', self.get_object().__class__
+        queryset = ServiceSubmission.objects.get(api_name=kwargs['api_name'],
+                                                 service=service)
+        service_submission = self.get_object()
+        ass_email = request.data.pop('email', None)
+        try:
+            request.data.pop('api_key')
+            submitted_data = {
+                'submission': service_submission,
+                'client': request.user.pk,
+                'inputs': request.data
+            }
+            serializer = self.get_serializer(context={'request': request},
+                                             fields=('inputs',))
+            serializer.run_validation(data=submitted_data, )
+            job = ServiceJobManager.create_new_job(submission=service_submission,
+                                                   email_to=ass_email,
+                                                   submitted_inputs=request.data,
+                                                   user=request.user)
+            serializer = JobSerializer(job,
+                                       many=False,
+                                       context={'request': request},
+                                       fields=('slug', 'url', 'created', 'status',))
+            return Response(serializer.data, status=201)
+        except JobException as e:
+            logger.fatal("Create Error %s", e.message)
+            return Response({'error': e.message}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ServiceJobSubmissionViewForm(ServiceJobSubmissionView):

@@ -8,22 +8,29 @@ from bioblend.galaxy.objects import galaxy_instance as galaxy
 
 import waves.const
 import waves.settings
-from waves.runners.importer import ToolRunnerImporter
-from waves.models.services import ServiceInputFormat
-from waves.models import RelatedInput, ServiceOutput, ServiceInput, Service
+from waves.exceptions import *
+from waves.adaptors.importer import ToolRunnerImporter
+from waves.models.services import ServiceInputFormat, RelatedInput, ServiceOutput, ServiceInput, Service, \
+    ServiceOutputFromInputSubmission
 
 logger = logging.getLogger(__name__)
 
 
 class GalaxyToolImporter(ToolRunnerImporter):
-    def __init__(self, runner_model, service=None):
-        super(GalaxyToolImporter, self).__init__(runner_model, service)
-        self._tool_client = bioblend.galaxy.objects.client.ObjToolClient(self._runner.connect())
+    def __init__(self, runner, service=None):
+        super(GalaxyToolImporter, self).__init__(runner, service)
 
-    def list_all_remote_services(self):
-        tool_list = self._tool_client.list()
-        tool_list.sort(key=lambda tool: tool.name, reverse=False)
-        return [(g.id, g.name) for g in tool_list]
+    def connect(self):
+        print "connect", self._adaptor.__class__
+        self._tool_client = bioblend.galaxy.objects.client.ObjToolClient(self._adaptor.connect())
+
+    def _list_all_remote_services(self):
+        try:
+            tool_list = self._tool_client.list()
+            tool_list.sort(key=lambda tool: tool.name, reverse=False)
+            return [(g.id, g.name) for g in tool_list]
+        except ConnectionError as e:
+            raise RunnerConnectionError(e.message, 'Connection Error:\n')
 
     def _update_remote_tool_id(self, remote_tool_id):
         param_service = self._service.runner_params.get(name='remote_tool_id');
@@ -38,6 +45,7 @@ class GalaxyToolImporter(ToolRunnerImporter):
         self._service.short_description = self._get_input_value(details.wrapped, 'description',
                                                                 self._service.short_description)
         self._service.name = details.name + ' (Import From Galaxy)'
+        self._submission.label = details.name + ' (Import From Galaxy)'
         self._service.status = waves.const.SRV_DRAFT
         self._service.version = details.version
         self._service.set_api_name()
@@ -47,6 +55,7 @@ class GalaxyToolImporter(ToolRunnerImporter):
             self._service.api_name += '_%i' % existing_service.count()
             logger.debug('Setting api_name to %s', self._service.api_name)
         self._update_remote_tool_id(details.id)
+        self._submission.save()
         self._service.save()
 
     def _list_remote_inputs(self, tool_id):
@@ -79,7 +88,7 @@ class GalaxyToolImporter(ToolRunnerImporter):
             elif 'repeat' in tool_input:
                 service_input = ServiceInput(name=tool_input['name'],
                                              label=self._get_input_value(tool_input, 'label', tool_input['name']),
-                                             service=self._service,
+                                             service=self._submission,
                                              multiple=True,
                                              default=self._get_input_value(tool_input, 'value', ''))
                 service_input = self._import_param(tool_input, service_input)
@@ -89,13 +98,12 @@ class GalaxyToolImporter(ToolRunnerImporter):
             elif 'expand' not in tool_input:
                 service_input = ServiceInput(name=tool_input['name'],
                                              label=self._get_input_value(tool_input, 'label', tool_input['name']),
-                                             service=self._service,
+                                             service=self._submission,
                                              default=self._get_input_value(tool_input, 'value', ''))
                 service_input = self._import_param(tool_input, service_input)
                 if service_input is not None:
                     service_input.save()
                     service_inputs.append(service_input)
-                    # service_inputs.extend(self._import_conditional_input(tool_input['test_param']))
         if logger.isEnabledFor(logging.DEBUG):
             for service_input in service_inputs:
                 logger.debug('****' + service_input.label + ' - ' + service_input.name + '****')
@@ -114,7 +122,7 @@ class GalaxyToolImporter(ToolRunnerImporter):
     def _import_param(self, tool_input, service_input):
         try:
             logger.debug('---------------')
-            service_input.type = self._runner.map_type(tool_input['type'])
+            service_input.type = self._adaptor.map_type(tool_input['type'])
             logger.debug('name ' + tool_input['name'])
             service_input.mandatory = self._get_input_value(tool_input, 'optional', 'True') is False
             logger.debug('mandatory ' + str(service_input.mandatory))
@@ -149,7 +157,7 @@ class GalaxyToolImporter(ToolRunnerImporter):
                                        label=self._get_input_value(tool_input['test_param'], 'label',
                                                                    tool_input['name']),
                                        type=waves.const.TYPE_LIST,
-                                       service=self._service)
+                                       service=self._submission)
             conditional = self._import_param(tool_input['test_param'], conditional)
             logger.debug('Test param %s', tool_input['test_param'])
             conditional.save()
@@ -161,7 +169,7 @@ class GalaxyToolImporter(ToolRunnerImporter):
                     when_service_input = RelatedInput(name=when_input['name'],
                                                       label=self._get_input_value(when_input, 'label',
                                                                                   when_input['name']),
-                                                      service=self._service,
+                                                      service=self._submission,
                                                       related_to=conditional,
                                                       mandatory=False,
                                                       when_value=when_value)
@@ -215,21 +223,30 @@ class GalaxyToolImporter(ToolRunnerImporter):
         index = 0
         for tool_output in outputs:
             logger.debug(tool_output.keys())
-            service_output = ServiceOutput(name=tool_output['name'])
+            service_output = ServiceOutput(name=tool_output['name'], service=self._service)
             service_output.order = index
             service_output.description = self._get_input_value(tool_input=tool_output,
                                                                field='label',
                                                                default=tool_output['name'])
             if service_output.description.startswith('$'):
-                from django.core.exceptions import ObjectDoesNotExist
+                from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
                 try:
                     input_related_name = service_output.description[2:-1]
-                    service_output.from_input = ServiceInput.objects.get(name=input_related_name,
-                                                                         service=self._service)
+                    service_output.from_input = True
+                    related_input = ServiceInput.objects.get(name=input_related_name,
+                                                             service=self._submission)
+                    submission_related_output = ServiceOutputFromInputSubmission(
+                        submission=self._submission,
+                        srv_input=related_input
+                    )
+                    service_output.from_input_submission.add(submission_related_output, bulk=True)
                     service_output.description = "Issued from input '%s'" % input_related_name
                 except ObjectDoesNotExist:
                     logger.warn('Did not found related input by name ' + service_output.description)
-            service_output.service = self._service
+                except MultipleObjectsReturned:
+                    logger.warn('Did not found related input by name ' + service_output.description)
+                except Exception as e:
+                    logger.warn('Other Exception %s', e)
             service_output.save()
             service_outputs.append(service_output)
             index += 1
@@ -240,9 +257,9 @@ class GalaxyToolImporter(ToolRunnerImporter):
 
 
 class GalaxyWorkFlowImporter(GalaxyToolImporter):
-    def __init__(self, runner_model, service=None):
-        super(GalaxyWorkFlowImporter, self).__init__(runner_model, service)
-        self._tool_client = bioblend.galaxy.objects.client.ObjWorkflowClient(self._runner.connect())
+    def __init__(self, runner, service=None):
+        super(GalaxyWorkFlowImporter, self).__init__(runner, service)
+        self._tool_client = bioblend.galaxy.objects.client.ObjWorkflowClient(self._adaptor.connect())
         self.workflow = None
         self.workflow_full_description = None
 

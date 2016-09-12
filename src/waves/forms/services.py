@@ -12,19 +12,45 @@ import waves.settings
 
 
 # TODO refactoring for the copy_paste field associated with FileInput (override formfield template ?)
-class ServiceJobForm(forms.ModelForm):
-    """
-    Service Job Submission form
-    Allows to create a new job from a service instance
-    """
+class ServiceForm(forms.ModelForm):
+    pass
 
+class ServiceSubmissionForm(forms.ModelForm):
     class Meta:
-        model = Service
-        fields = ['title', 'email', 'submission']
+        model = ServiceSubmission
+        fields = ['title', 'email', 'slug']
 
-    title = forms.CharField(label="Name your analysis", required=False)
+    slug = forms.CharField(widget=forms.HiddenInput())
+    title = forms.CharField(label="Name your analysis", required=True)
     email = forms.EmailField(label="Mail me results", required=False)
-    submission = forms.CharField(widget=forms.HiddenInput())
+
+    def __init__(self, *args, **kwargs):
+        parent_form = kwargs.pop('parent')
+        super(ServiceSubmissionForm, self).__init__(*args, **kwargs)
+        # print 'Is Bound', self.is_bound
+        self.helper = self.get_helper(form_tag=True)
+        self.helper.init_layout(fields=('title', 'email', 'slug'))
+        self.fields['title'].initial = 'my %s job' % self.instance.service.name
+        self.fields['slug'].initial = str(self.instance.slug)
+        self.list_inputs = list(self.instance.service_inputs.filter(Q(instance_of=ServiceInput), editable=True))
+        extra_fields = []
+        for service_input in self.list_inputs:
+            if service_input.type == waves.const.TYPE_FILE and not service_input.multiple:
+                extra_fields.append(self._create_copy_paste_field(service_input))
+                extra_fields.extend(self._create_sample_fields(service_input))
+
+            self.helper.set_field(service_input, self)
+            self.helper.set_layout(service_input, self)
+            for dependent_input in service_input.dependent_inputs.filter(editable=True):
+                # conditional parameters must not be required to use classic django form validation process
+                dependent_input.required = False
+                if dependent_input.type == waves.const.TYPE_FILE and not dependent_input.multiple:
+                    extra_fields.append(self._create_copy_paste_field(dependent_input))
+                self.helper.set_field(dependent_input, self)
+                self.helper.set_layout(dependent_input, self)
+                # extra_fields.append(dependent_input)
+        self.list_inputs.extend(extra_fields)
+        self.helper.end_layout()
 
     @staticmethod
     def get_helper(**kwargs):
@@ -64,51 +90,21 @@ class ServiceJobForm(forms.ModelForm):
                 self.fields[sample_field.name].initial = False
         return extra_fields
 
-    def __init__(self, *args, **kwargs):
-        form_tag = kwargs.pop('form_tag', True)
-        submission = kwargs.pop('submission', None)
-        # TODO add re- captcha for unauthenticated user
-        # https://www.marcofucci.com/blog/integrating-recaptcha-with-django/
-        # and https://github.com/praekelt/django-recaptcha
-        super(ServiceJobForm, self).__init__(*args, **kwargs)
-        self.helper = self.get_helper(form_tag=form_tag)
-        # dynamically add fields according to service parameters
-        try:
-            submission_obj = ServiceSubmission.objects.get(service=self.instance, api_name=submission)
-        except ObjectDoesNotExist:
-            submission_obj = ServiceSubmission.objects.get(service=self.instance, default=True)
-        self.list_inputs = list(submission_obj.service_inputs.filter(Q(instance_of=ServiceInput), editable=True))
-        self.helper.init_layout()
-        self.fields['title'].initial = '%s job' % self.instance.name
-        self.fields['submission'].initial = submission_obj.api_name
-        extra_fields = []
-        for service_input in self.list_inputs:
-            if service_input.type == waves.const.TYPE_FILE and not service_input.multiple:
-                extra_fields.append(self._create_copy_paste_field(service_input))
-                extra_fields.extend(self._create_sample_fields(service_input))
-
-            self.helper.set_field(service_input, self)
-            self.helper.set_layout(service_input, self)
-            for dependent_input in service_input.dependent_inputs.filter(editable=True):
-                # conditional parameters must not be required to use classic django form validation process
-                dependent_input.required = False
-                if dependent_input.type == waves.const.TYPE_FILE and not dependent_input.multiple:
-                    extra_fields.append(self._create_copy_paste_field(dependent_input))
-                self.helper.set_field(dependent_input, self)
-                self.helper.set_layout(dependent_input, self)
-                # extra_fields.append(dependent_input)
-        self.list_inputs.extend(extra_fields)
-        self.helper.end_layout()
-
     def clean(self):
-        cleaned_data = super(ServiceJobForm, self).clean()
+        # print "in clean"
+        cleaned_data = super(ServiceSubmissionForm, self).clean()
+        print cleaned_data
         validator = ServiceInputValidator()
         for data in copy.copy(cleaned_data):
+            print "data", data
+
             srv_input = next((x for x in self.list_inputs if x.name == data), None)
             sample_selected = False
+            print "srv_input ", srv_input
             if srv_input:
                 # posted data correspond to a expected input for service
                 posted_data = cleaned_data.get(srv_input.name)
+                print 'posted ', posted_data
                 if srv_input.type == waves.const.TYPE_FILE:
                     if srv_input.input_samples.count() > 0:
                         for input_sample in srv_input.input_samples.all():
@@ -138,5 +134,6 @@ class ServiceJobForm(forms.ModelForm):
                     validator.validate_input(srv_input, posted_data, self)
         return cleaned_data
 
-    def save(self, commit=True):
-        return super(ServiceJobForm, self).save(commit)
+    def is_valid(self):
+        return super(ServiceSubmissionForm, self).is_valid()
+

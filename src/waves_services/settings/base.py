@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 import environ
+import sys
 from os.path import dirname, join, exists
 
 
@@ -13,7 +14,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            join(BASE_DIR, 'templates'),
+            join(BASE_DIR, 'waves', 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -46,6 +47,8 @@ SECRET_KEY = env.str('SECRET_KEY')
 DATABASES = {
     'default': env.db(default='sqlite:///' + BASE_DIR + '/waves/db/waves.sample.sqlite3'),
 }
+if 'test' in sys.argv:
+    DATABASES['default'] = {'ENGINE': 'django.db.backends.sqlite3'}
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 REGISTRATION_SALT = env.str('REGISTRATION_SALT')
 # Django countries configuration
@@ -66,6 +69,7 @@ INSTALLED_APPS = (
     'polymorphic',
     'django.contrib.contenttypes',
     'django.contrib.auth',
+    'jquery_ui',
     'authtools',
     'tabbed_admin',
     'grappelli',
@@ -76,6 +80,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     # WAVES required dependencies
     # 'django-log-file-viewer',
+    'smart_selects',
     'mptt',
     'eav',
     'nested_admin',

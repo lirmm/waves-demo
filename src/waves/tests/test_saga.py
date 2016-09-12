@@ -11,10 +11,11 @@ from django.conf import settings
 import waves.const
 import waves.tests.utils.shell_util as test_util
 from waves.tests.test_runner import TestBaseJobRunner, Service, sample_job
-from waves.runners import ShellJobRunner, SshUserPassJobRunner, SGEJobRunner
+from waves.adaptors import ShellJobAdaptor, SshUserPassJobAdaptor, SGEJobAdaptor
 from waves.models import Job, JobInput, JobOutput
-from waves.runners.ssh import SGEOverSSHRunner
+from waves.adaptors.ssh import SGEOverSSHAdaptor
 from waves.managers.servicejobs import ServiceJobManager
+from waves.tests.utils import get_sample_dir
 import waves.settings
 
 logger = logging.getLogger(__name__)
@@ -23,9 +24,9 @@ logger = logging.getLogger(__name__)
 class SAGARunnerTestCase(TestBaseJobRunner):
     def setUp(self):
         try:
-            getattr(self, 'runner')
+            getattr(self, 'adaptor')
         except AttributeError:
-            self.runner = ShellJobRunner()
+            self.runner = ShellJobAdaptor()
         super(SAGARunnerTestCase, self).setUp()
 
     def _testBasicSagaLocalJob(self):
@@ -126,7 +127,7 @@ class SAGARunnerTestCase(TestBaseJobRunner):
         self.runner.command = 'cp'
         self.job = sample_job(self.service)
         self.job.job_inputs.add(JobInput.objects.create(job=self.job, srv_input=None,
-                                                        value=os.path.join(waves.settings.WAVES_SAMPLE_DIR,
+                                                        value=os.path.join(get_sample_dir(),
                                                                            'sample_tree.nhx')))
         self.job.job_inputs.add(JobInput.objects.create(job=self.job, srv_input=None,
                                                         value=self.job.output_dir))
@@ -141,7 +142,7 @@ class SAGARunnerTestCase(TestBaseJobRunner):
         self.runner.command = 'fastme'
         JobInput.objects.create(job=self.job, name="input_data", type=waves.const.TYPE_FILE,
                                 param_type=waves.const.OPT_TYPE_VALUATED,
-                                value=os.path.join(settings.WAVES_SAMPLE_DIR, 'fast_me', 'nucleic.phy'))
+                                value=os.path.join(get_sample_dir(), 'fast_me', 'nucleic.phy'))
         JobInput.objects.create(job=self.job, name="dna", type=waves.const.TYPE_TEXT,
                                 param_type=waves.const.OPT_TYPE_VALUATED,
                                 value='J')
@@ -167,9 +168,9 @@ class SAGARunnerTestCase(TestBaseJobRunner):
 class SshRunnerTestCase(SAGARunnerTestCase):
     def setUp(self):
         try:
-            self.runner = SshUserPassJobRunner(init_params=dict(user_id=waves.settings.WAVES_TEST_SSH_USER_ID,
-                                                                user_pass=waves.settings.WAVES_TEST_SSH_USER_PASS,
-                                                                host=waves.settings.WAVES_TEST_SSH_HOST))
+            self.runner = SshUserPassJobAdaptor(init_params=dict(user_id=waves.settings.WAVES_TEST_SSH_USER_ID,
+                                                                 user_pass=waves.settings.WAVES_TEST_SSH_USER_PASS,
+                                                                 host=waves.settings.WAVES_TEST_SSH_HOST))
         except KeyError:
             self.skipTest("Missing one or more SSH_TEST_* environment variable")
         super(SshRunnerTestCase, self).setUp()
@@ -178,7 +179,7 @@ class SshRunnerTestCase(SAGARunnerTestCase):
 @test_util.skip_unless_sge()
 class SgeRunnerTestCase(SAGARunnerTestCase):
     def setUp(self):
-        self.runner = SGEJobRunner(init_params=dict(queue='mainqueue'))
+        self.runner = SGEJobAdaptor(init_params=dict(queue='mainqueue'))
         super(SgeRunnerTestCase, self).setUp()
 
     @test_util.skip_unless_tool('physic_ist')
@@ -190,7 +191,7 @@ class SgeRunnerTestCase(SAGARunnerTestCase):
 @skip('Not Yet implemented')
 class SgeSshRunnerTestCase(SAGARunnerTestCase):
     def setUp(self):
-        self.runner = SGEOverSSHRunner(init_params=dict(host='lamarck',
-                                                        user_id='lefort',
-                                                        user_pass='lrdj_@81'))
+        self.runner = SGEOverSSHAdaptor(init_params=dict(host='lamarck',
+                                                         user_id='lefort',
+                                                         user_pass='lrdj_@81'))
         super(SgeSshRunnerTestCase, self).setUp()

@@ -4,11 +4,12 @@ from django.db import models
 from waves.eav.config import RunnerEavConfig
 from waves.models.base import DescribeAble
 from django.utils.module_loading import import_string
+__all__ = ['Runner', 'RunnerParam']
 
 
 class Runner(DescribeAble):
     """
-    Represents a generic job runner meta information (resolved at runtime via clazz attribute)
+    Represents a generic job adaptor meta information (resolved at runtime via clazz attribute)
     """
     class Meta:
         ordering = ['name']
@@ -39,34 +40,28 @@ class Runner(DescribeAble):
         super(Runner, self).save(force_insert, force_update, using, update_fields)
         if len(self.runner_params.all()) == 0 and self.clazz:
             # first save, no param set, initialize them with current runners param from class
-            for name, initial in self.runner.init_params.items():
+            for name, initial in self.adaptor.init_params.items():
                 RunnerParam.objects.create(name=name, default=initial, runner=self)
-        # Disable all related services upon change on runner
+        # Disable all related services upon change on adaptor
         if not self.available:
             for service in self.runs.all():
                 service.available = False
-                service.service_run_params.all().delete()
+                service.delete_runner_params()
                 service.save()
 
     @property
-    def runner(self):
+    def adaptor(self):
         if self.clazz:
             job_runner = import_string(self.clazz)
             return job_runner(init_params=self.default_run_params())
         return None
 
     def importer(self, for_service=None):
-        if self.clazz:
-            importer = import_string(self.runner.importer_clazz())
-            if for_service:
-                return importer(self, service=for_service)
-            else:
-                return importer(self)
-        return None
+        return self.adaptor.importer(for_service)
 
     def default_run_params(self):
         """
-        Return a list of tuples representing current service runner init params
+        Return a list of tuples representing current service adaptor init params
         Returns:
             List of Tuple (param_name, param_service_value, runner_param_default)
         """

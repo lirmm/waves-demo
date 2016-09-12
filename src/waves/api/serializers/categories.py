@@ -13,19 +13,18 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ServiceCategory
         fields = ('url', 'name', 'short_description', 'tools')
-        lookup_field = 'name'
+        lookup_field = 'api_name'
         extra_kwargs = {
-            'url': {'view_name': 'waves:waves-services-category-detail', 'lookup_field': 'name'}
+            'url': {'view_name': 'waves:waves-services-category-detail', 'lookup_field': 'api_name'}
         }
         depth = 1
 
     tools = serializers.SerializerMethodField('get_active_tools')
 
     def get_active_tools(self, category):
-        tool_queryset = Service.objects.filter(category=category,
-                                               status=const.SRV_PUBLIC)
+        tool_queryset = Service.retrieve.get_api_services().filter(category=category)
         serializer = ServiceSerializer(instance=tool_queryset,
                                        many=True,
                                        context=self.context,
-                                       fields=('url', 'name', 'short_description', 'version'))
+                                       fields=('name', 'version', 'url', ))
         return serializer.data

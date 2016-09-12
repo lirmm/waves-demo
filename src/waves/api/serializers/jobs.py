@@ -4,8 +4,8 @@ import logging
 
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
-from django.contrib.sites.models import Site
 from rest_framework import serializers
+from rest_framework.reverse import reverse as reverse_drf
 
 from dynamic import DynamicFieldsModelSerializer
 from waves.api.serializers.services import ServiceSerializer, InputSerializer
@@ -103,14 +103,13 @@ class JobOutputSerializer(serializers.ModelSerializer):
         for output in instance:
             to_repr[normalize_value(output.name)] = {
                 "label": output.name,
-                "download_uri": get_complete_absolute_url(
-                    "%s?export=1" % reverse('waves:job_api_output', kwargs={'slug': output.slug}))
+                "download_uri": self.get_download_url(output)
             }
         return to_repr
 
-    @staticmethod
-    def get_download_url(obj):
-        return get_complete_absolute_url("%s?export=1" % reverse('waves:job_api_output', kwargs={'slug': obj.slug}))
+    def get_download_url(self, obj):
+        return "%s?export=1" % reverse_drf(viewname='waves:job-api-output', request=self.context['request'],
+                                           kwargs={'slug': obj.slug})
 
 
 class JobOutputDetailSerializer(serializers.HyperlinkedModelSerializer):
@@ -156,16 +155,16 @@ class JobSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsModelSe
     inputs = serializers.SerializerMethodField()
 
     def get_history(self, obj):
-        return 'http://%s%s' % (
-            Site.objects.get_current().domain, reverse('waves:waves-jobs-history', kwargs={'slug': obj.slug}))
+        return reverse_drf(viewname='waves:waves-jobs-history', request=self.context['request'],
+                           kwargs={'slug': obj.slug})
 
     def get_outputs(self, obj):
-        return 'http://%s%s' % (
-            Site.objects.get_current().domain, reverse('waves:waves-jobs-outputs', kwargs={'slug': obj.slug}))
+        return reverse_drf(viewname='waves:waves-jobs-outputs', request=self.context['request'],
+                           kwargs={'slug': obj.slug})
 
     def get_inputs(self, obj):
-        return 'http://%s%s' % (
-            Site.objects.get_current().domain, reverse('waves:waves-jobs-inputs', kwargs={'slug': obj.slug}))
+        return reverse_drf(viewname='waves:waves-jobs-inputs', request=self.context['request'],
+                           kwargs={'slug': obj.slug})
 
     @staticmethod
     def get_status_txt(job):

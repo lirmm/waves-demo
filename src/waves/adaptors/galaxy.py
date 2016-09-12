@@ -15,19 +15,19 @@ from django.core.exceptions import ObjectDoesNotExist
 import waves.const
 from waves.exceptions import RunnerConnectionError, RunnerNotReady
 from waves.models import JobOutput
-from waves.runners.runner import JobRunner
+from waves.adaptors.runner import JobRunnerAdaptor
 import waves.settings
 logger = logging.getLogger(__name__)
 
 
-class GalaxyRunnerConnectionError(RunnerConnectionError):
+class GalaxyAdaptorConnectionError(RunnerConnectionError):
     def __init__(self, e):
         error_data = json.loads(e.body)
         message = '{} [{}]'.format(e.message, error_data['err_msg'])
-        super(GalaxyRunnerConnectionError, self).__init__(reason=message)
+        super(GalaxyAdaptorConnectionError, self).__init__(reason=message)
 
 
-class GalaxyJobRunner(JobRunner):
+class GalaxyJobAdaptor(JobRunnerAdaptor):
     """
     Expected parameters to init call (dictionary):
     - host : the ip address where Galaxy is set up (default: http://localhost)
@@ -36,14 +36,15 @@ class GalaxyJobRunner(JobRunner):
     - library_dir: remote library dir, where to place files in order to create galaxy histories
     """
 
-    host = getattr(waves.settings, 'WAVES_GALAXY_URL', None)
-    port = getattr(waves.settings, 'WAVES_GALAXY_PORT', None)
-    app_key = getattr(waves.settings, 'WAVES_GALAXY_API_KEY', None)
+    host = waves.settings.WAVES_GALAXY_URL
+    port = waves.settings.WAVES_GALAXY_PORT
+    app_key = waves.settings.WAVES_GALAXY_API_KEY
     library_dir = ""
     remote_tool_id = None
+    importer_clazz = 'waves.adaptors.importer.galaxy.GalaxyToolImporter'
 
     def __init__(self, **kwargs):
-        super(GalaxyJobRunner, self).__init__(**kwargs)
+        super(GalaxyJobAdaptor, self).__init__(**kwargs)
         self._states_map = dict(
             new=waves.const.JOB_RUNNING,
             queued=waves.const.JOB_QUEUED,
@@ -71,9 +72,6 @@ class GalaxyJobRunner(JobRunner):
                     app_key=self.app_key,
                     library_dir=self.library_dir,
                     remote_tool_id=self.remote_tool_id)
-
-    def importer_clazz(self):
-        return 'waves.runners.importer.galaxy.GalaxyToolImporter'
 
     def _connect(self):
         self._connector = bioblend.galaxy.objects.GalaxyInstance(url=self.complete_url,
@@ -132,7 +130,7 @@ class GalaxyJobRunner(JobRunner):
             job.message = e.message
             raise
         except bioblend.galaxy.client.ConnectionError as e:
-            exc = GalaxyRunnerConnectionError(e)
+            exc = GalaxyAdaptorConnectionError(e)
             job.message = exc.message
             raise exc
         except IOError as e:
@@ -208,7 +206,7 @@ class GalaxyJobRunner(JobRunner):
             job.message = 'Connexion error for run %s:%s', (e.message, e.body)
             raise
         except requests.exceptions.RequestException as e:
-            job.message = 'Request to runner error for run %s ', e.message
+            job.message = 'Request to adaptor error for run %s ', e.message
             raise
 
     def _cancel_job(self, job):
@@ -247,15 +245,15 @@ class GalaxyJobRunner(JobRunner):
         return ':'.join([self.host, self.port])
 
     def _dump_config(self):
-        dump = ""
+        dump = self.complete_url
         if self._connected:
-            dump = 'Connect to galaxy setup %s' % self._connector.gi.config
+            dump += 'Connect to galaxy setup %s' % self._connector.gi.config
         return dump
 
 
-class GalaxyWorkFlowRunner(GalaxyJobRunner):
+class GalaxyWorkFlowAdaptor(GalaxyJobAdaptor):
     def importer_clazz(self):
-        return 'waves.runners.importer.galaxy.GalaxyWorkFlowImporter'
+        return 'waves.adaptors.importer.galaxy.GalaxyWorkFlowImporter'
 
     def _run_job(self, job):
         """

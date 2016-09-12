@@ -1,0 +1,9 @@
+#tabs {
+    min-height:100px;
+    overflow: hidden;
+}
+
+.ui-widget-header {
+    background: transparent;
+    border: none;
+}

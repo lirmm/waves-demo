@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
 
-from .runner import JobRunner, JobRunException
+from .runner import JobRunnerAdaptor, JobRunException
 
 
-class SagaJobRunner(JobRunner):
+class SagaJobAdaptor(JobRunnerAdaptor):
     """
     This class is intended to parametrize easily protocols for underlying saga services calls
 
@@ -12,7 +12,7 @@ class SagaJobRunner(JobRunner):
 
     @property
     def init_params(self):
-        base = super(SagaJobRunner, self).init_params
+        base = super(SagaJobAdaptor, self).init_params
         return base
 
     @property

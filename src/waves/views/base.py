@@ -35,5 +35,9 @@ class AboutPage(generic.TemplateView, WavesBaseContextMixin):
     template_name = "about.html"
 
 
+class HTML403(generic.TemplateView, WavesBaseContextMixin):
+    template_name = "403.html"
+
+
 
 

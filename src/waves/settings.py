@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import environ
-from os.path import join
+from os.path import join, dirname
 from django.conf import settings, LazySettings
 
 # check if environ has been setup in Django settings.py or initialize an new one
@@ -94,7 +94,7 @@ WAVES_JOBS_MAX_RETRY = get_setting('WAVES_JOBS_MAX_RETRY', int, 5)
 
 # ---- CRON ----
 # ---- LOGGING ----
-WAVES_LOG_ROOT = get_setting('WAVES_LOG_ROOT', str, default=join(str(settings.BASE_DIR), 'logs'), override='LOG_ROOT')
+WAVES_LOG_ROOT = get_setting('WAVES_LOG_ROOT', str, default=join(dirname(settings.BASE_DIR), 'logs'), override='LOG_ROOT')
 
 # -- Galaxy server
 # Any default galaxy server (in case you manage only one :-))
@@ -113,6 +113,7 @@ WAVES_SSH_PASS_KEY = get_setting('WAVES_SSH_PASS_KEY', str, default='your-ssh-us
 
 # ---- TESTS PARAMETERS ----
 # -- Adaptors
+WAVES_TEST_DIR = get_setting('WAVES_TEST_DIR', str, default=join(dirname(settings.BASE_DIR) + '/tests/'))
 # - Galaxy
 WAVES_TEST_GALAXY_URL = get_setting('WAVES_TEST_GALAXY_URL', str, default='your-galaxy-test-host')
 WAVES_TEST_GALAXY_API_KEY = get_setting('WAVES_TEST_GALAXY_API_KEY', str, default='your-galaxy-test-api-key')

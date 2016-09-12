@@ -59,7 +59,6 @@ WAVES backOffice dedicated css
     z-index: 10000;
     overflow: auto;
     width: 126px; /* width of the spinner gif */
-    height: 22px; /*hight of the spinner gif +2px to fix IE8 issue */
 }
 
 #form_import .form-actions {
@@ -76,11 +75,10 @@ WAVES backOffice dedicated css
     min-height: 250px;
 }
 
-.ui-widget-header {
-    background: transparent;
-    border: none;
+.selector .selector-filter input[type="text"]{
+    width: auto !important;
+    min-width:80%
 }
-
 input[type=text] {
     width: auto;
     min-width: 178px;
@@ -113,3 +111,12 @@ span.success{
     width:75% !important
 }
 
+#id_tool_list {
+    width:90%;
+    overflow-y:auto;
+    overflow-x:hidden;
+}
+.tool_import_modal{
+    background: whitesmoke;
+
+}

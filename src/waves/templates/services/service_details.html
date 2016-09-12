@@ -38,12 +38,7 @@
                             {% block job_submission_bottom %}
                                 {% register_for_api_button service=service %}
                                 <p class="text-right">
-                                    {% if service.run_on.available %}
-                                        <a class="btn btn-primary" href="{% url 'waves:job_submission' service.id %}">
-                                            Online execution</a>
-                                    {% else %}
-                                        <i>Job submission is not available at the moment</i>
-                                    {% endif %}
+                                    {% online_exec_button service=service %}
                                 </p>
                             {% endblock %}
                         </div>
@@ -70,6 +65,7 @@
                         {% endfor %}
                     </div>
                     {% block job_submission %}
+                        {% if service.available_for_submission %}
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h3 class="panel-title ">
@@ -77,18 +73,11 @@
                             </h3>
                         </div>
                         <div class="panel-body text-right">
-                        <!-- TODO Change this in tag templates for reuse everywhere -->
                             {% register_for_api_button service=service %}
-                            {% if service.run_on.available %}
-                                <a class="btn btn-primary" href="{% url 'waves:job_submission' service.id %}">
-                                    Online execution</a>
-                            {% else %}
-                                <div class="alert alert-info text-center">
-                                    <i>Submission is not available at the moment</i>
-                                </div>
-                            {% endif %}
+                            {% online_exec_button service=service %}
                         </div>
                     </div>
+                        {% endif %}
                     {% endblock %}
                 {% endblock service_cold %}
             </div>

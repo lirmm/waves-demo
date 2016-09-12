@@ -1,18 +1,22 @@
 from __future__ import unicode_literals
 
 import nested_admin
+
 from django.conf import settings
 from django.contrib import admin, messages
 from django.template.defaultfilters import truncatechars
 from django.contrib.admin import StackedInline
 from grappelli.forms import GrappelliSortableHiddenMixin
 from mptt.admin import MPTTModelAdmin
+from django.forms.models import BaseInlineFormSet
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 import waves.const
 from base import WavesTabbedModelAdmin
 from waves.forms.admin.services import *
-from waves.models import ServiceMeta, ServiceOutput, ServiceInput, RelatedInput, \
-    Service, ServiceRunnerParam, ServiceCategory, Runner, ServiceExitCode, ServiceInputSample, ServiceSubmission
+from waves.models.services import *
+from waves.models.runners import Runner
+from waves.models.samples import *
 
 
 class ServiceMetaInline(GrappelliSortableHiddenMixin, admin.TabularInline):
@@ -27,20 +31,66 @@ class ServiceMetaInline(GrappelliSortableHiddenMixin, admin.TabularInline):
     is_nested = False
 
 
-class ServiceOutputInline(GrappelliSortableHiddenMixin, admin.TabularInline):
+class ServiceOutputFromInputFormset(BaseInlineFormSet):
+    def clean(self):
+        try:
+            forms = [f for f in self.forms
+                     if f.cleaned_data
+                     and not f.cleaned_data.get('DELETE', False)]
+            if self.instance.file_pattern and self.instance.from_input:
+                if len(forms) < self.instance.service.submissions.count():
+                    raise ValidationError('You must setup an value for all possible submission')
+                elif len(forms) < self.instance.service.submissions.count():
+                    raise ValidationError('You can not provide more origin than possible submissions')
+                else:
+                    f_submission = set(f.instance.submission for f in forms)
+                    s_submission = set(s for s in self.instance.service.submissions.all())
+                    if not f_submission.__eq__(s_submission):
+                        raise ValidationError('Misconfiguration for origins, check your data')
+        except AttributeError:
+            pass
+
+
+class ServiceOutputFromInputInline(nested_admin.NestedTabularInline):
+    model = ServiceOutputFromInputSubmission
+    formset = ServiceOutputFromInputFormset
+    fields = ['submission', 'srv_input', ]
+    fk_name = 'srv_output'
+    verbose_name = "Valuated from"
+    verbose_name_plural = "Output is valuated from an input"
+    extra = 2
+
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name == 'submission' and request.current_obj is not None:
+            kwargs['queryset'] = ServiceSubmission.objects.filter(service=request.current_obj)
+        return super(ServiceOutputFromInputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_extra(self, request, obj=None, **kwargs):
+        if obj is not None:
+            return int(obj.service.submissions.count() - obj.from_input_submission.count())
+        else:
+            if request.current_obj:
+                return request.current_obj.submissions.count()
+        # By default we return only one extra (setup with only one available submission form)
+        return 1
+
+
+class ServiceOutputInline(GrappelliSortableHiddenMixin, nested_admin.NestedStackedInline, admin.TabularInline):
     model = ServiceOutput
     form = ServiceOutputForm
     sortable = 'order'
     extra = 0
     classes = ('grp-collapse grp-open',)
     sortable_field_name = "order"
-    is_nested = False
-    fields = ['name', 'from_input', 'from_input_pattern', 'short_description', 'may_be_empty', 'order']
-    verbose_name_plural = "Service outputs ('from input' apply only to 'default' submission params)"
+    fk_name = 'service'
+    fields = ['name', 'from_input', 'file_pattern', 'short_description', 'may_be_empty', 'order']
+    verbose_name_plural = "Service outputs ('from input' apply only to all submission params)"
+    inlines = [ServiceOutputFromInputInline, ]
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name == 'from_input':
-            kwargs['queryset'] = ServiceInput.objects.filter(service=request.current_obj.default_submission)
+        if db_field.name == 'from_input' and request.current_obj is not None:
+            kwargs['queryset'] = BaseInput.objects.filter(service=request.current_obj.default_submission,
+                                                          mandatory=True)
         return super(ServiceOutputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -49,7 +99,7 @@ class ServiceRunnerParamInLine(admin.TabularInline):
     form = ServiceRunnerParamForm
     fields = ['param', 'value']
     extra = 0
-    suit_classes = 'suit-tab suit-tab-runner'
+    suit_classes = 'suit-tab suit-tab-adaptor'
     can_delete = False
     readonly_fields = ['param']
     is_nested = False
@@ -83,10 +133,11 @@ class ServiceSampleInline(admin.TabularInline):
 
     def get_field_queryset(self, db, db_field, request):
         field_queryset = super(ServiceSampleInline, self).get_field_queryset(db, db_field, request)
-        if db_field.name == 'input':
-            return ServiceInput.objects.filter(service=request.current_obj.default_submission, type=waves.const.TYPE_FILE)
-        elif db_field.name == 'dependent_input':
-            return ServiceInput.objects.filter(service=request.current_obj.default_submission).exclude(type=waves.const.TYPE_FILE)
+        if request.current_obj is not None:
+            if db_field.name == 'input':
+                return ServiceInput.objects.filter(service=request.current_obj.default_submission, type=waves.const.TYPE_FILE)
+            elif db_field.name == 'dependent_input':
+                return ServiceInput.objects.filter(service=request.current_obj.default_submission).exclude(type=waves.const.TYPE_FILE)
         return field_queryset
 
 
@@ -111,7 +162,6 @@ class ServiceInputInline(GrappelliSortableHiddenMixin, nested_admin.NestedStacke
     fk_name = 'service'
     classes = ('grp-collapse', 'grp-open')
     inlines = [RelatedInputInline, ]
-    # readonly_fields = ['baseinput_ptr']
     sortable_field_name = "order"
 
 
@@ -156,7 +206,7 @@ class ServiceSubmissionInline(GrappelliSortableHiddenMixin, nested_admin.NestedS
     sortable_field_name = "order"
     classes = ('grp-collapse', 'grp-open')
     fields = ['label', 'default', 'available_online', 'available_api', 'api_name', 'created', 'updated', "order"]
-    readonly_fields = ['api_name', 'created', 'updated']
+    readonly_fields = ['created', 'updated']
     inlines = [ServiceInputInline, ]
 
 
@@ -175,7 +225,7 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
     form = ServiceForm
     filter_horizontal = ['restricted_client']
     readonly_fields = ['created', 'updated']
-    list_display = ('name', 'api_name', 'api_on', 'version', 'run_on', 'status')
+    list_display = ('name', 'api_name', 'api_on', 'version', 'run_on', 'status', 'created_by')
     list_filter = ('status', 'name', 'run_on')
     tab_overview = (
         (None, {
@@ -185,7 +235,8 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
     )
     tab_details = (
         (None, {
-            'fields': ['api_name', 'restricted_client', 'email_on', 'api_on', 'clazz', 'created', 'updated']
+            'fields': ['api_name', 'created_by', 'restricted_client', 'email_on', 'api_on', 'clazz', 'created',
+                       'updated']
         }),
     )
     tab_runner = (ServiceRunnerParamInLine,)
@@ -210,6 +261,16 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
         ('Services samples', tab_samples)
     ]
 
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super(ServiceAdmin, self).get_readonly_fields(request, obj)
+        if not request.user.is_superuser:
+            readonly_fields.append('created_by')
+            readonly_fields.append('api_name')
+            readonly_fields.append('clazz')
+            readonly_fields.append('clazz')
+            readonly_fields.append('version')
+        return readonly_fields
+
     def get_form(self, request, obj=None, **kwargs):
         request.current_obj = obj
         return super(ServiceAdmin, self).get_form(request, obj, **kwargs)
@@ -218,11 +279,13 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
         return super(ServiceAdmin, self).get_formsets(request, obj)
 
     def save_model(self, request, obj, form, change):
-        super(ServiceAdmin, self).save_model(request, obj, form, change)
+        if not obj.created_by:
+            obj.created_by = request.user
         if 'run_on' in form.changed_data and obj is not None:
             if obj.runner_params is not None:
                 obj.runner_params.through.objects.filter(service=obj).delete()
                 obj.set_default_params_4_runner(form.cleaned_data['run_on'])
+        super(ServiceAdmin, self).save_model(request, obj, form, change)
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == 'run_on':

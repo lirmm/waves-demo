@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 
 import waves.settings
-from waves.runners.local import ShellJobRunner
+from waves.adaptors.local import ShellJobAdaptor
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class SGEJobRunner(ShellJobRunner):
+class SGEJobAdaptor(ShellJobAdaptor):
     """
     Locally available SGE cluster
     """
@@ -16,12 +16,12 @@ class SGEJobRunner(ShellJobRunner):
 
     @property
     def init_params(self):
-        base = super(SGEJobRunner, self).init_params
+        base = super(SGEJobAdaptor, self).init_params
         base.update(dict(queue=self.queue))
         return base
 
     def _job_description(self, job):
-        jd = super(SGEJobRunner, self)._job_description(job)
+        jd = super(SGEJobAdaptor, self)._job_description(job)
         jd.update(dict(queue=self.queue))
         return jd
 

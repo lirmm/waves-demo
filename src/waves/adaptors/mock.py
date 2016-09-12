@@ -4,20 +4,20 @@ import logging
 
 import waves.const as const
 from waves.models import Job, JobInput, JobOutput
-from waves.runners import JobRunner
+from waves.adaptors import JobRunnerAdaptor
 
 logger = logging.getLogger(__name__)
 
 
-class MockJobRunner(JobRunner):
-    """ A mock service job runner, should be used only for testing purpose
+class MockJobAdaptor(JobRunnerAdaptor):
+    """ A mock service job adaptor, should be used only for testing purpose
     Author : Marc Chakiachvili
     Email: marc.chakiachvili@lirmm.fr
     Date : 2015, November
     """
 
     def __init__(self, **kwargs):
-        super(MockJobRunner, self).__init__(**kwargs)
+        super(MockJobAdaptor, self).__init__(**kwargs)
 
     def _connect(self):
         self._connected = True

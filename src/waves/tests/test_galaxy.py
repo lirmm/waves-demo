@@ -4,41 +4,42 @@ import time
 import os
 import bioblend
 import utils.galaxy_util as test_util
+from django.conf import settings
 import waves.const as const
 import waves.settings
 from django.test import override_settings
 from waves.tests.test_runner import TestBaseJobRunner
 from waves.models import Runner, Service, Job, JobOutput, JobInput
-from waves.runners.galaxy import GalaxyJobRunner, GalaxyWorkFlowRunner
+from waves.adaptors.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor
 
 logger = logging.getLogger(__name__)
+waves.settings.WAVES_GALAXY_URL = waves.settings.WAVES_TEST_GALAXY_URL
+waves.settings.WAVES_GALAXY_API_KEY = waves.settings.WAVES_TEST_GALAXY_API_KEY
+waves.settings.WAVES_GALAXY_PORT = waves.settings.WAVES_TEST_GALAXY_PORT
 
 
-@override_settings(
-    WAVES_GALAXY_URL=waves.settings.WAVES_TEST_GALAXY_URL,
-    WAVES_GALAXY_API_KEY=waves.settings.WAVES_TEST_GALAXY_API_KEY,
-    WAVES_GALAXY_PORT=waves.settings.WAVES_TEST_GALAXY_PORT,
-)
 @test_util.skip_unless_galaxy()
 class GalaxyRunnerTestCase(TestBaseJobRunner):
     # This is fixture:
-    # fields: {name: GalaxyTestRunner, clazz: waves.runners.GalaxyJobRunner}
+    # fields: {name: GalaxyTestRunner, clazz: waves.runners.GalaxyJobAdaptor}
     # model: waves.models.Runner
     # pk: 1
     # fixtures = ['users', 'test_services']
 
     def setUp(self):
-        self.runner = GalaxyJobRunner()
+        self.adaptor = GalaxyJobAdaptor(init_params={'host': waves.settings.WAVES_TEST_GALAXY_URL,
+                                                     'port': waves.settings.WAVES_TEST_GALAXY_PORT,
+                                                     'app_key': waves.settings.WAVES_TEST_GALAXY_API_KEY})
         super(GalaxyRunnerTestCase, self).setUp()
-        self.gi = bioblend.galaxy.objects.galaxy_instance.GalaxyInstance(url=self.runner.complete_url,
-                                                                         api_key=self.runner.app_key)
+        self.gi = bioblend.galaxy.objects.galaxy_instance.GalaxyInstance(url=self.adaptor.complete_url,
+                                                                         api_key=self.adaptor.app_key)
 
     @classmethod
     def setUpClass(cls):
         super(GalaxyRunnerTestCase, cls).setUpClass()
-        logger.info('WAVES_GALAXY_URL: %s', waves.settings.WAVES_TEST_GALAXY_URL)
-        logger.info('WAVES_GALAXY_API_KEY: %s', waves.settings.WAVES_TEST_GALAXY_API_KEY)
-        logger.info('WAVES_GALAXY_PORT: %s', waves.settings.WAVES_TEST_GALAXY_PORT)
+        logger.info('WAVES_GALAXY_URL: %s', waves.settings.WAVES_GALAXY_URL)
+        logger.info('WAVES_GALAXY_API_KEY: %s', waves.settings.WAVES_GALAXY_API_KEY)
+        logger.info('WAVES_GALAXY_PORT: %s', waves.settings.WAVES_GALAXY_PORT)
 
     def test_list_galaxy_tools(self):
         """
@@ -46,7 +47,8 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
         Returns:
 
         """
-        tools = self.runner_model.importer().list_all_remote_services()
+        print 'test', self.adaptor
+        tools = self.adaptor.importer().list_all_remote_services()
         logger.debug('Retrieved tools %s', tools)
         self.assertGreater(len(tools), 0)
 
@@ -64,11 +66,11 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
         self.job = Job.objects.create(service=self.service, title="TestFastMe Galaxy")
         self.job.job_inputs.add(JobInput.objects.create(job=self.job, name="input_data", type=waves.const.TYPE_FILE,
                                                         param_type=waves.const.OPT_TYPE_VALUATED,
-                                                        value=os.path.join(waves.settings.WAVES_SAMPLE_DIR, 'fast_me',
+                                                        value=os.path.join(settings.WAVES_TEST_SAMPLE_DIR, 'fast_me',
                                                                            'fastme-dna.txt')))
         self.job.job_inputs.add(JobInput.objects.create(job=self.job, name="dna", type=waves.const.TYPE_TEXT,
-                                param_type=waves.const.OPT_TYPE_VALUATED,
-                                value='J'))
+                                                        param_type=waves.const.OPT_TYPE_VALUATED,
+                                                        value='J'))
         output_tree = JobInput.objects.create(job=self.job, name="output_tree", type=waves.const.TYPE_TEXT,
                                               param_type=waves.const.OPT_TYPE_VALUATED,
                                               value='output_tree.txt')
@@ -80,11 +82,11 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
                                               value="output_info.txt")
         # associated outputs
         self.job.job_outputs.add(JobOutput.objects.create(job=self.job, name='Inferred tree file',
-                                 value=output_tree.value))
+                                                          value=output_tree.value))
         self.job.job_outputs.add(JobOutput.objects.create(job=self.job, name="Computed matrix",
-                                 value=output_matrix.value))
+                                                          value=output_matrix.value))
         self.job.job_outputs.add(JobOutput.objects.create(job=self.job, name="Output Info",
-                                 value=output_info.value))
+                                                          value=output_info.value))
         self.runJobWorkflow()
 
 
@@ -106,11 +108,11 @@ def test_job_retrieve(self):
 
 def test_galaxy(self):
     # TODO complete test
-    import waves.runners.galaxy
+    import waves.adaptors.galaxy
     try:
 
         all_galaxy_jobs = Job.objects \
-            .get_created_job(extra_filter={'service__run_on__clazz': 'waves.runners.GalaxyJobRunner'})
+            .get_created_job(extra_filter={'service__run_on__clazz': 'waves.adaptors.GalaxyJobAdaptor'})
 
         for job in all_galaxy_jobs:
             self.assertIsInstance(job, Job)
@@ -118,12 +120,12 @@ def test_galaxy(self):
 
             logger.debug(u'Job retrieved:' + str(job))
             service = job.service
-            runner = self.runner
+            runner = self.adaptor
             run_params = job.service.run_params()
             runner.remote_tool_id = run_params['remote_tool_id']
             logger.debug(u'Runner retrieved: %s %s ', runner, runner.init_params)
             logger.debug(runner._dump_config())
-            self.assertIsInstance(runner, waves.runners.galaxy.GalaxyJobRunner)
+            self.assertIsInstance(runner, waves.adaptors.galaxy.GalaxyJobAdaptor)
             runner.connect()
             self.assertTrue(runner._ready())
             runner.prepare_job(job)
@@ -163,7 +165,7 @@ def tearDown(self):
 @test_util.skip_unless_galaxy()
 class GalaxyWorkFlowRunnerTestCase(TestBaseJobRunner):
     def setUp(self):
-        self.runner = GalaxyWorkFlowRunner()
+        self.runner = GalaxyWorkFlowAdaptor()
         super(GalaxyWorkFlowRunnerTestCase, self).setUp()
         self.gi = bioblend.galaxy.objects.galaxy_instance.GalaxyInstance(url=self.runner.complete_url,
                                                                          api_key=self.runner.app_key)
@@ -180,7 +182,7 @@ class GalaxyWorkFlowRunnerTestCase(TestBaseJobRunner):
             importer.import_remote_service(remote_tool_id=remote_service[0])
 
     def test_update_existing_workflow(self):
-        service = Service.objects.filter(run_on__clazz='waves.runners.GalaxyWorkFlowRunner')
+        service = Service.objects.filter(run_on__clazz='waves.adaptors.GalaxyWorkFlowAdaptor')
         if service.count() == 0:
             self.fail('Unable to test update workflow, since there is none in db')
         for updated in service[0:1]:

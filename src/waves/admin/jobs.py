@@ -163,7 +163,7 @@ class JobAdmin(WavesTabbedModelAdmin):
         return obj.colored_status()
 
     def get_row_css(self, obj, index):
-        print 'in get row css'
+        # print 'in get row css'
         return obj.label_class
 
     get_colored_status.short_description = 'Status'
