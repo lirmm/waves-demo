@@ -95,30 +95,29 @@ class ServiceJobManager(object):
                     ServiceJobManager._create_job_input(job, service_input, service_input.order, in_input)
         # create expected outputs
         for service_output in submission.service.service_outputs.all():
-            output_dict = dict(job=job, srv_output=service_output)
-            if not service_output.from_input:
-                output_dict.update(value=service_output.file_pattern)
-                job.job_outputs.add(JobOutput.objects.create(**output_dict))
-            else:
+            output_dict = dict(job=job, srv_output=service_output,
+                               may_be_empty=service_output.may_be_empty)
+            if service_output.from_input:
                 # issued from a input value
                 srv_submission_output = service_output.from_input_submission.get(submission=submission)
-                if srv_submission_output.srv_input.type != waves.const.TYPE_FILE:
-                    value_to_normalize = submitted_inputs.get(srv_submission_output.srv_input.name, None)
-                else:
-                    file_field = submitted_inputs.get(srv_submission_output.srv_input.name, None)
-                    if file_field is not None:
-                        value_to_normalize = file_field.name
-                    else:
-                        logger.warn('Unable to retrieve file name from input %s', srv_submission_output.srv_input.name)
-                        value_to_normalize = srv_submission_output.srv_input.name
+                value_to_normalize = submitted_inputs.get(srv_submission_output.srv_input.name,
+                                                          srv_submission_output.srv_input.default)
+                if srv_submission_output.srv_input.type == waves.const.TYPE_FILE:
+                    value_to_normalize = value_to_normalize.name
                 input_value = normalize_value(value_to_normalize)
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug('srv_submission_output: %s', srv_submission_output.srv_input)
+                    logger.debug('value_to_normalize: %s', value_to_normalize)
+                    logger.debug('input_value %s', input_value)
                 if service_output.file_pattern is not None:
                     formatted_value = service_output.file_pattern % input_value
                     logger.debug('Base input value %s, formatted to %s', input_value, formatted_value)
-                    input_value = formatted_value
-                output_dict.update(dict(value=input_value,
-                                        may_be_empty=service_output.may_be_empty))
-                job.job_outputs.add(JobOutput.objects.create(**output_dict))
+                else:
+                    formatted_value = "%s" % input_value
+                output_dict.update(dict(value=formatted_value))
+            else:
+                output_dict.update(dict(value=service_output.file_pattern))
+            job.job_outputs.add(JobOutput.objects.create(**output_dict))
         logger.debug('Job %s created with %i inputs', job.slug, job.job_inputs.count())
         if logger.isEnabledFor(logging.DEBUG):
             # LOG full command line

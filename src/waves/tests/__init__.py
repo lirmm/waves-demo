@@ -18,18 +18,6 @@ waves.settings.WAVES_DATA_ROOT = str(os.path.join(waves.settings.WAVES_TEST_DIR,
 waves.settings.WAVES_SAMPLE_DIR = str(os.path.join(waves.settings.WAVES_TEST_DIR, 'data', 'sample'))
 waves.settings.WAVES_JOB_DIR = str(os.path.join(waves.settings.WAVES_TEST_DIR, 'data', 'jobs'))
 
-"""
-def copy_sample_dirs():
-    # copy all waves app data to destination WAVES_TEST_DIR
-    from shutil import copytree, Error
-    if not isfile(join(waves.settings.WAVES_DATA_ROOT, 'do_not_remove.txt')):
-        try:
-            print join(dirname('.'), 'data')
-            copytree(join(dirname(realpath(__file__)), 'data', 'sample'), waves.settings.WAVES_TEST_DIR)
-        except Error as e:
-            sys.exit("Unable to prepare data to run test.")
-"""
-
 
 @override_settings(
     MEDIA_ROOT=os.path.join(waves.settings.WAVES_TEST_DIR, 'data'),
@@ -68,7 +56,7 @@ class WavesBaseTestCase(TestCase):
         try:
             self.service = Service.objects.get(api_name=api_name)
             logger.debug('Physic_IST service %s %s ', self.service.name, self.service.version)
-            logger.debug('Sample dir %s ', get_sample_dir(), self.service.api_name)
+            logger.debug('Sample dir %s %s', get_sample_dir(), self.service.api_name)
             with open(os.path.join(get_sample_dir(), self.service.api_name, 'runs.json'),
                       'r') as run_params:
                 job_parameters = json.load(run_params)

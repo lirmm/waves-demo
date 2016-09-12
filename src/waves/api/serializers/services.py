@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import logging
 from rest_framework import serializers
 from rest_framework.fields import empty
 from django.utils.html import strip_tags
@@ -11,6 +12,7 @@ import waves.settings
 
 __all__ = ['InputSerializer', 'InputSerializer', 'MetaSerializer', 'OutputSerializer', 'ServiceSerializer',
            'ServiceFormSerializer', 'ServiceSubmissionSerializer', 'ServiceMetaSerializer']
+logger = logging.getLogger(__name__)
 
 
 class InputSerializer(DynamicFieldsModelSerializer):
@@ -137,7 +139,7 @@ class ServiceSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsMod
     class Meta:
         model = Service
         fields = ('url', 'category', 'name', 'version', 'created', 'short_description',
-                  'jobs', 'metas', 'submissions', )
+                  'default_submission_uri', 'jobs', 'metas', 'submissions')
         lookup_field = 'api_name'
         extra_kwargs = {
             'url': {'view_name': 'waves:waves-services-detail', 'lookup_field': 'api_name'},
@@ -149,7 +151,17 @@ class ServiceSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsMod
                                                    lookup_field='api_name')
     jobs = serializers.SerializerMethodField()
     metas = serializers.SerializerMethodField()
-    submissions = ServiceSubmissionSerializer(many=True, read_only=True, hidden=('service', ))
+    submissions = ServiceSubmissionSerializer(many=True, read_only=True, hidden=('service',))
+    default_submission_uri = serializers.SerializerMethodField()
+
+    def get_default_submission_uri(self, obj):
+        if obj.default_submission is not None:
+            return reverse_drf(viewname='waves:waves-services-submissions', request=self.context['request'],
+                               kwargs={'service': obj.api_name,
+                                       'api_name': obj.default_submission.api_name})
+        else:
+            logger.warning('Service %s has no default submission', obj)
+
 
     def get_jobs(self, obj):
         return reverse_drf(viewname='waves:waves-services-jobs', request=self.context['request'],

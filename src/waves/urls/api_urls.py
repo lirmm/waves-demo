@@ -21,7 +21,6 @@ router.register(prefix=r'services',
 router.register(prefix=r'jobs',
                 viewset=jobs.JobViewSet,
                 base_name='waves-jobs')
-print router.urls
 urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^token-auth/', obtain_jwt_token),
