@@ -78,6 +78,11 @@ class SignUpView(bracesviews.AnonymousRequiredMixin,
     def registration_allowed(self):
         return waves.settings.WAVES_REGISTRATION_ALLOWED
 
+    def get_email_context(self, activation_key):
+        context = super(SignUpView, self).get_email_context(activation_key)
+        context['brand_name'] = waves.settings.WAVES_APP_NAME
+        return context
+
 
 class PasswordChangeView(authviews.PasswordChangeView, WavesBaseContextMixin):
     form_class = PasswordChangeForm
