@@ -4,49 +4,65 @@ import logging
 
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
-from django.contrib.sites.models import Site
 from rest_framework import serializers
+from rest_framework.reverse import reverse as reverse_drf
 
 from dynamic import DynamicFieldsModelSerializer
 from waves.api.serializers.services import ServiceSerializer, InputSerializer
 from waves.models import Service, JobHistory, JobInput, Job, JobOutput
+from waves.utils import get_complete_absolute_url
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
+class StatusSerializer(serializers.Serializer):
+    status_code = serializers.IntegerField(source='status')
+    status_txt = serializers.SerializerMethodField()
+
+    def __init__(self, instance=None, **kwargs):
+        super(StatusSerializer, self).__init__(instance, **kwargs)
+        self.status_code = instance.status
+
+    @staticmethod
+    def get_status_txt(obj):
+        return obj.get_status_display()
+
+
 class JobHistorySerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = JobHistory
-        fields = ('status', 'timestamp', 'message')
+        fields = ('status_txt', 'status_code', 'timestamp', 'message')
 
-    status = serializers.SerializerMethodField()
+    status_txt = serializers.SerializerMethodField()
+    status_code = serializers.IntegerField(source='status')
 
     @staticmethod
-    def get_status(history):
+    def get_status_txt(history):
         return history.get_status_display()
 
 
 class JobHistoryDetailSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Job
-        fields = ('url', 'status', 'job_history')
+        fields = ('url', 'last_status', 'last_status_txt', 'job_history')
         extra_kwargs = {
             'url': {'view_name': 'waves:waves-jobs-detail', 'lookup_field': 'slug'}
         }
-    status = serializers.SerializerMethodField()
+
+    last_status = serializers.IntegerField(source='status')
+    last_status_txt = serializers.SerializerMethodField()
+    job_history = JobHistorySerializer(many=True, read_only=True)
 
     @staticmethod
-    def get_status(obj):
+    def get_last_status_txt(obj):
         return obj.get_status_display()
-
-    job_history = JobHistorySerializer(many=True, read_only=True)
 
 
 class JobInputSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = JobInput
-        fields = ('name', 'input', 'value' )
+        fields = ('name', 'input', 'value')
         depth = 1
 
     def __init__(self, *args, **kwargs):
@@ -61,80 +77,95 @@ class JobInputSerializer(DynamicFieldsModelSerializer):
 class JobInputDetailSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Job
-        fields = ('url', 'status', 'job_inputs')
+        fields = ('url', 'status', 'inputs')
         extra_kwargs = {
             'url': {'view_name': 'waves:waves-jobs-detail', 'lookup_field': 'slug'}
         }
+
     status = serializers.SerializerMethodField()
+    inputs = JobInputSerializer(source='job_inputs', many=True, read_only=True)
 
     @staticmethod
     def get_status(obj):
         return obj.get_status_display()
-
-    job_inputs = JobInputSerializer(many=True, read_only=True)
 
 
 class JobOutputSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobOutput
-        fields = ('name', 'value', 'file_content')
+        fields = ('name', 'download_url')
+
+    download_url = serializers.SerializerMethodField()
+
+    def to_representation(self, instance):
+        from waves.utils import normalize_value
+        to_repr = {}
+        for output in instance:
+            to_repr[normalize_value(output.name)] = {
+                "label": output.name,
+                "download_uri": self.get_download_url(output)
+            }
+        return to_repr
+
+    def get_download_url(self, obj):
+        return "%s?export=1" % reverse_drf(viewname='waves:job-api-output', request=self.context['request'],
+                                           kwargs={'slug': obj.slug})
 
 
 class JobOutputDetailSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Job
-        fields = ('url', 'status', 'job_outputs')
+        fields = ('url', 'status_txt', 'status_code', 'outputs')
         extra_kwargs = {
             'url': {'view_name': 'waves:waves-jobs-detail', 'lookup_field': 'slug'}
         }
-    status = serializers.SerializerMethodField()
+
+    status_txt = serializers.SerializerMethodField()
+    status_code = serializers.IntegerField(source='status')
+    outputs = JobOutputSerializer(read_only=True, source='output_files_exists')
 
     @staticmethod
-    def get_status(obj):
+    def get_status_txt(obj):
         return obj.get_status_display()
-
-    job_outputs = JobOutputSerializer(many=True, read_only=True)
 
 
 class JobSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsModelSerializer):
     class Meta:
         model = Job
-        fields = ('url', 'slug', 'status', 'created', 'updated', 'inputs', 'outputs',
+        fields = ('url', 'title', 'slug', 'status_code', 'status_txt', 'created', 'updated', 'inputs', 'outputs',
                   'history', 'client', 'service',)
-        readonly_fields = ('status', 'slug', 'client', 'service', 'created', 'updated', 'url', 'history')
+        readonly_fields = (
+            'status_code', 'status_txt', 'slug', 'client', 'service', 'created', 'updated', 'url', 'history')
         extra_kwargs = {
             'url': {'view_name': 'waves:waves-jobs-detail', 'lookup_field': 'slug'}
         }
         depth = 1
         lookup_field = 'slug'
 
-    status = serializers.SerializerMethodField()
+    status_txt = serializers.SerializerMethodField()
+    status_code = serializers.IntegerField(source='status')
     client = serializers.StringRelatedField(many=False, read_only=False)
     service = serializers.HyperlinkedRelatedField(many=False, read_only=False,
                                                   view_name='waves:waves-services-detail',
                                                   lookup_field='api_name',
                                                   queryset=Service.objects.all(),
                                                   required=True)
-    # job_history = JobHistorySerializer(many=True, read_only=True)
-    # job_outputs = serializers.StringRelatedField(many=True, read_only=True)
-    # job_inputs = JobInputSerializer(many=True, read_only=False, fields=('name', 'label', 'value'))
-
     history = serializers.SerializerMethodField()
     outputs = serializers.SerializerMethodField()
     inputs = serializers.SerializerMethodField()
 
     def get_history(self, obj):
-        return 'http://%s%s' % (
-            Site.objects.get_current().domain, reverse('waves:waves-jobs-history', kwargs={'slug': obj.slug}))
+        return reverse_drf(viewname='waves:waves-jobs-history', request=self.context['request'],
+                           kwargs={'slug': obj.slug})
 
     def get_outputs(self, obj):
-        return 'http://%s%s' % (
-            Site.objects.get_current().domain, reverse('waves:waves-jobs-outputs', kwargs={'slug': obj.slug}))
+        return reverse_drf(viewname='waves:waves-jobs-outputs', request=self.context['request'],
+                           kwargs={'slug': obj.slug})
 
     def get_inputs(self, obj):
-        return 'http://%s%s' % (
-            Site.objects.get_current().domain, reverse('waves:waves-jobs-inputs', kwargs={'slug': obj.slug}))
+        return reverse_drf(viewname='waves:waves-jobs-inputs', request=self.context['request'],
+                           kwargs={'slug': obj.slug})
 
     @staticmethod
-    def get_status(job):
+    def get_status_txt(job):
         return job.get_status_display()

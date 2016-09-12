@@ -3,7 +3,7 @@
 
 {% block admin_title %}
     <div id="grp-admin-brand">
-        <img src="{% static 'site/logos/waves.png' %}" width="40px" id="#navbar-logo" style="float:left;"/>
+        <img src="{% static 'waves/logos/waves.png' %}" width="40px" id="#navbar-logo" style="float:left;"/>
         <h1 id="grp-admin-title">
             <span>
                 {% if grappelli_admin_title %} {{ grappelli_admin_title }} {% else %} {% get_admin_title %}{% endif %}
@@ -12,19 +12,17 @@
     </div>
 {% endblock %}
 
-{% block extrastyle %}
+{% block stylesheets %}
     {{ block.super }}
-    <link href="{% static 'site/css/main.css' %}" rel="stylesheet">
-    <link href="{% static 'waves/waves.css' %}" rel="stylesheet">
+    <link href="{% static 'waves/css/waves.css' %}" rel="stylesheet">
+{% endblock stylesheets %}
+
+{%  block extrastyle %}
+    {{ block.super }}
+    <script type='text/javascript' src='{% static 'js/jquery-ui.js' %}'></script>
+    <link rel='stylesheet' type='text/css' href='{% static 'css/jquery-ui/pepper-grinder/jquery-ui.css' %}' />
 {% endblock extrastyle %}
 
 {% block extrahead %}
-    <link rel="shortcut icon" type="image/png" href="{% static 'site/ico/favicon.png' %}"/>
-{% endblock %}
-
-{% block nav-global %}{{ block.super }}{% endblock %}
-
-{% block footer %}
-    {{ block.super }}
-    <div id="popup_modal"></div>
+    <link rel="shortcut icon" type="image/png" href="{% static 'waves/ico/favicon.png' %}"/>
 {% endblock %}

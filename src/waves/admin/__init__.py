@@ -3,5 +3,4 @@ from .runners import RunnerAdmin, RunnerParamInline
 from .services import ServiceMetaInline, RelatedInputInline, ServiceAdmin, \
     ServiceCategoryAdmin, ServiceExitCodeInline
 from .profiles import NewUserAdmin
-
-
+from .site import WavesSiteAdmin

@@ -31,7 +31,5 @@ class ProfileTestCase(WavesBaseTestCase):
         u.profile.registered_for_api = True
         u.save()
         self.assertIsNotNone(u.profile.api_key)
-        api_group = Group.objects.get(name=waves.const.WAVES_GROUP_API)
-        self.assertIsNotNone(api_group)
-        self.assertIn(api_group, u.groups.all())
+
 

@@ -5,10 +5,11 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views import generic
 from waves.forms.profiles import UserForm, ProfileForm
 from django.contrib.auth import logout
+from base import WavesBaseContextMixin
 import waves.models
 
 
-class ShowProfile(LoginRequiredMixin, generic.TemplateView):
+class ShowProfile(LoginRequiredMixin, generic.TemplateView, WavesBaseContextMixin):
     template_name = "profiles/show_profile.html"
     http_method_names = ['get', 'post']
 
@@ -32,7 +33,7 @@ class ShowProfile(LoginRequiredMixin, generic.TemplateView):
         return redirect("home")
 
 
-class EditProfile(LoginRequiredMixin, generic.TemplateView):
+class EditProfile(LoginRequiredMixin, generic.TemplateView, WavesBaseContextMixin):
     template_name = "profiles/edit_profile.html"
     http_method_names = ['get', 'post']
 

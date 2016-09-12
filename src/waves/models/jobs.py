@@ -6,7 +6,7 @@ from collections import namedtuple
 from django.conf import settings
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+
 from django.contrib.sites.models import Site
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
@@ -14,7 +14,7 @@ from django.core.exceptions import ValidationError
 import waves.const as const
 from waves.eav.config import JobEavConfig, JobInputEavConfig, JobOutputEavConfig
 from waves.managers.jobs import JobManager
-from waves.models import TimeStampable, SlugAble, OrderAble
+from waves.models import TimeStampable, SlugAble, OrderAble, UrlMixin
 import waves.settings
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,17 @@ RunJobInfo = namedtuple("RunJobInfo",
                            wasAborted exitStatus resourceUsage""")
 
 
-class Job(TimeStampable, SlugAble):
+# File size allowed to display online
+def allow_display_online(file_name):
+    display_file_online = 1024 * 1024 * 1
+    try:
+        return os.path.getsize(file_name) <= display_file_online
+    except os.error:
+        return False
+    return False
+
+
+class Job(TimeStampable, SlugAble, UrlMixin):
     """
     Store current jobs created by the platform
     """
@@ -53,10 +63,10 @@ class Job(TimeStampable, SlugAble):
                                  help_text='Notify results to this email')
 
     exit_code = models.IntegerField('Job system exit code', null=False, default=0,
-                                    help_text="Job exit code on relative runner")
+                                    help_text="Job exit code on relative adaptor")
     results_available = models.BooleanField('Results are available', default=False, editable=False)
 
-    remote_job_id = models.CharField('Remote Job ID (on runner)', max_length=255, editable=False, null=True)
+    remote_job_id = models.CharField('Remote Job ID (on adaptor)', max_length=255, editable=False, null=True)
     nb_retry = models.IntegerField('Nb Retry', editable=False, default=0)
 
     def __init__(self, *args, **kwargs):
@@ -86,6 +96,10 @@ class Job(TimeStampable, SlugAble):
         os.chmod(self.working_dir, 0775)
         os.chmod(self.input_dir, 0775)
         os.chmod(self.output_dir, 0775)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Job working dir %s (created %s)", self.working_dir, os.path.exists(self.working_dir))
+            logger.debug("Job input dir %s (created %s)", self.input_dir, os.path.exists(self.working_dir))
+            logger.debug('Job output dir %s (created %s)', self.output_dir, os.path.exists(self.working_dir))
 
     def delete_job_dirs(self):
         import shutil
@@ -114,24 +128,29 @@ class Job(TimeStampable, SlugAble):
         return existing
 
     @property
+    def output_files(self):
+        all_files = self.job_outputs.all()
+        return all_files
+
+    @property
     def input_params(self):
         return self.job_inputs.exclude(srv_input__type=const.TYPE_FILE)
 
     @property
     def input_dir(self):
-        return os.path.join(self.working_dir, 'inputs/')
+        return self.working_dir
 
     @property
     def output_dir(self):
-        return os.path.join(self.working_dir, 'outputs/')
+        return self.working_dir
 
     @property
     def working_dir(self):
         return os.path.join(waves.settings.WAVES_JOB_DIR, str(self.slug))
 
     @property
-    def runner(self):
-        return self.service.runner
+    def adaptor(self):
+        return self.service.adaptor
 
     def __str__(self):
         return '%s [%s][%s]' % (self.title, self.service.api_name, self.slug)
@@ -185,11 +204,12 @@ class Job(TimeStampable, SlugAble):
                         raise e
 
     def get_absolute_url(self):
+        from django.core.urlresolvers import reverse
         return reverse('waves:job_details', kwargs={'slug': self.slug})
 
     @property
     def link(self):
-        return '%s%s' % (Site.objects.get_current().domain, self.get_absolute_url())
+        return self.get_url()
 
     @property
     def details_available(self):
@@ -217,14 +237,14 @@ class Job(TimeStampable, SlugAble):
     def results_file_available(self):
         return all(os.path.isfile(e.file_path) for e in self.job_outputs.filter(may_be_empty=False))
 
-    def create_non_editable_inputs(self):
+    def create_non_editable_inputs(self, service_submission):
         """
         Create non editable (== not submitted anywhere and used for run)
         Used in post_save signal
         Returns:
             None
         """
-        for service_input in self.service.service_inputs.filter(editable=False) \
+        for service_input in service_submission.service_inputs.filter(editable=False) \
                 .exclude(param_type=const.OPT_TYPE_NONE):
             # Create fake "submitted_inputs" with non editable ones with default value if not already set
             logger.debug('Created non editable job input: %s (%s, %s)', service_input.label,
@@ -247,6 +267,10 @@ class Job(TimeStampable, SlugAble):
         out1 = JobOutput.objects.create(**output_dict)
         self.job_outputs.add(out1)
         logger.debug('Created default outputs: [%s, %s]', out, out1)
+
+    @property
+    def public_history(self):
+        return self.job_history.filter(is_admin=False)
 
 
 class JobInput(OrderAble, SlugAble):
@@ -295,9 +319,7 @@ class JobInput(OrderAble, SlugAble):
     @property
     def validated_value(self):
         if self.type == const.TYPE_FILE:
-            # return self.file_path
-            # FIXME related path is hardcoded
-            return 'inputs/' + self.value
+            return self.file_path
         elif self.type == const.TYPE_BOOLEAN:
             return bool(self.value)
         elif self.type == const.TYPE_TEXT:
@@ -315,7 +337,6 @@ class JobInput(OrderAble, SlugAble):
             raise ValueError("No type specified for input")
 
     def clean(self):
-        print "in clean method ! ", self.name
         if self.srv_input.mandatory and not self.srv_input.default and not self.value:
             raise ValidationError('Input %(input) is mandatory', params={'input': self.srv_input.label})
         super(JobInput, self).clean()
@@ -323,12 +344,13 @@ class JobInput(OrderAble, SlugAble):
     @property
     def command_line_element(self, forced_value=None):
         value = self.validated_value if forced_value is None else forced_value
-        try:
+        """try:
             if self.srv_input and self.srv_input.to_output.exists():
                 # related service input is a output 'name' parameter
                 value = os.path.join('outputs', value)
         except ObjectDoesNotExist:
             pass
+        """
         if self.param_type == const.OPT_TYPE_VALUATED:
             return '--%s=%s' % (self.name, value)
         elif self.param_type == const.OPT_TYPE_SIMPLE:
@@ -358,12 +380,12 @@ class JobInput(OrderAble, SlugAble):
     def get_label_for_choice(self):
         return self.srv_input.get_value_for_choice(self.value)
 
+    @property
+    def display_online(self):
+        return allow_display_online(self.file_path)
 
-def file_path(instance, filename):
-    return instance.file_path
 
-
-class JobOutput(OrderAble, SlugAble):
+class JobOutput(OrderAble, SlugAble, UrlMixin):
     class Meta:
         db_table = 'waves_job_output'
         unique_together = ('srv_output', 'job', 'value')
@@ -413,17 +435,26 @@ class JobOutput(OrderAble, SlugAble):
 
     @property
     def link(self):
-        return '%s%s' % (Site.objects.get_current().domain, self.get_absolute_url())
+        return self.get_url()
 
     def get_absolute_url(self):
+        from django.core.urlresolvers import reverse
         return reverse('waves:job_output', kwargs={'slug': self.slug})
+
+    @property
+    def download_url(self):
+        return "%s?export=1" % self.get_absolute_url()
+
+    @property
+    def display_online(self):
+        return allow_display_online(self.file_path)
 
 
 class JobHistory(models.Model):
     class Meta:
         db_table = 'waves_job_history'
         ordering = ['-timestamp']
-        unique_together = ('job', 'timestamp')
+        unique_together = ('job', 'timestamp', 'status', 'is_admin')
 
     job = models.ForeignKey(Job,
                             related_name='job_history',
@@ -445,11 +476,19 @@ class JobHistory(models.Model):
         return '%s:%s:%s' % (self.message, self.get_status_display(), self.job)
 
 
+class JobAdminHistoryManager(models.Manager):
+    def get_queryset(self):
+        return super(JobAdminHistoryManager, self).get_queryset().filter(is_admin=True)
+
+    def create(self, **kwargs):
+        kwargs.update({'is_admin': True})
+        return super(JobAdminHistoryManager, self).create(**kwargs)
+
+
 class JobAdminHistory(JobHistory):
     class Meta:
         proxy = True
-
-    id_admin = True
+    objects = JobAdminHistoryManager()
 
 
 eav.register(Job, JobEavConfig)

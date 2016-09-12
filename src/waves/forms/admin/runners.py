@@ -10,7 +10,7 @@ __all__ = ['RunnerForm', 'RunnerParamForm']
 
 
 def get_runners_list():
-    from waves.runners import get_implementation
+    from waves.adaptors import get_implementation
     classes_list = [('', 'Select a implementation class...')]
     for class_name in get_implementation():
         clazz = import_string(class_name)

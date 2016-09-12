@@ -8,20 +8,15 @@
     <div class="panel-body">
 {% endif %}
 <blockquote>
-    {%  if meta.title %}
-    <p>{{ meta.title }}</p>
-    {% endif %}
     <small>
-        <cite>
-            {% if meta.is_url %}
-            <a href="{{ meta.value }}" target="_blank">{{ meta.value }}</a>
-                {%  else %}
-                {{ meta.value }} <br/>
-            {% endif %}
-            {% if meta.description %}
-                {{ meta.description }}
-            {% endif %}
-        </cite>
+        {% if meta.is_url %}
+            <a href="{{ meta.value }}" target="_blank">{{ meta.title }}</a>
+        {% else %}
+            {{ meta.value|safe }}
+        {% endif %}
+        {% if meta.description %}
+            <br/>{{ meta.description|safe }}
+        {% endif %}
     </small>
 </blockquote>
 {% if forloop.last %}

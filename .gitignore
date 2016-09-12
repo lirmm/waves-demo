@@ -21,7 +21,6 @@ build
 
 # SQLite3 database files:
 *.db
-src/waves.tmp.sqlite3
 *.sqlite
 *.coverage
 
@@ -71,14 +70,13 @@ Desktop.ini
 /data
 /test_data/jobs/
 /media/profile
-/src/waves.sample.sav.sqlite3
-/db/waves.sqlite3
-/src/waves.tmp
-/src/waves.sav.sqlite3
+*.sav.sqlite3
 /config/waves_uwsgi.ini
 /.venv/
-/config/waves.apache.conf
-/db/waves.sav.sqlite3
+waves.apache.conf
 /staticfiles/
-
-/src/waves_services/settings/production.py
+local.env
+/src/data/
+/src/waves/tests/data/jobs/
+waves.env
+default_profile.png.*

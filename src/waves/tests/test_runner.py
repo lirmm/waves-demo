@@ -1,29 +1,26 @@
 from __future__ import unicode_literals
 
-import logging
 import time
 import os
-import unittest
+import logging
 from django.utils.timezone import localtime
-
-
+from django.conf import settings
 import waves.const
 from waves.exceptions import *
 from waves.tests import WavesBaseTestCase
-from waves.runners import JobRunner
-from waves.models import Service, Runner, Job, RunnerParam, JobInput, JobOutput
+from waves.adaptors import JobRunnerAdaptor
+from waves.models import Service, Runner, Job, RunnerParam
 import waves.settings
-
 logger = logging.getLogger(__name__)
 
-__all__ = ['TestBaseJobRunner', 'sample_runner_model']
+__all__ = ['TestBaseJobRunner', 'sample_runner']
 
 
-def sample_runner_model(runner_impl):
+def sample_runner(runner_impl):
     """
-    Return a new runner model instance from runner class object
+    Return a new adaptor model instance from adaptor class object
     Args:
-        runner_impl: a JobRunner object
+        runner_impl: a JobRunnerAdaptor object
     Returns:
         Runner model instance
     """
@@ -57,10 +54,10 @@ class TestBaseJobRunner(WavesBaseTestCase):
         # Create sample data
         super(TestBaseJobRunner, self).setUp()
         try:
-            getattr(self, 'runner')
+            getattr(self, 'adaptor')
         except AttributeError:
-            self.runner = JobRunner()
-        self.runner_model = sample_runner_model(self.runner)
+            self.adaptor = JobRunnerAdaptor()
+        self.runner_model = sample_runner(self.adaptor)
         self.service = Service.objects.create(name="Sample Service", run_on=self.runner_model)
         self.job = None
         self._result = self.defaultTestResult()
@@ -68,15 +65,16 @@ class TestBaseJobRunner(WavesBaseTestCase):
     def tearDown(self):
         super(TestBaseJobRunner, self).tearDown()
         if self.job:
-            self.job.delete_job_dirs()
-            pass
+            if not settings.DEBUG:
+                self.job.delete_job_dirs()
+                pass
 
     def testConnect(self):
         if self.__module__ != 'waves.tests.test_runner':
             # Only run for sub classes
-            self.runner.connect()
-            self.assertTrue(self.runner.connected)
-            self.assertIsNotNone(self.runner._connector)
+            self.adaptor.connect()
+            self.assertTrue(self.adaptor.connected)
+            self.assertIsNotNone(self.adaptor._connector)
 
     def testJobStates(self):
         """
@@ -90,18 +88,18 @@ class TestBaseJobRunner(WavesBaseTestCase):
         logger.debug('Internal state %s, current %s', self.job._status, self.job.status)
         logger.debug('Test Prepare')
         with self.assertRaises(waves.exceptions.JobInconsistentStateError):
-            self.runner.prepare_job(self.job)
+            self.adaptor.prepare_job(self.job)
         self.assertEqual(self.job.status, waves.const.JOB_RUNNING)
         logger.debug('Internal state %s, current %s', self.job._status, self.job.status)
         logger.debug('Test Run')
         with self.assertRaises(waves.exceptions.JobInconsistentStateError):
-            self.runner.run_job(self.job)
+            self.adaptor.run_job(self.job)
         self.assertEqual(self.job.status, waves.const.JOB_RUNNING)
         logger.debug('Internal state %s, current %s', self.job._status, self.job.status)
         logger.debug('Test Cancel + inconsistent state')
         self.job.status = waves.const.JOB_COMPLETED
         with self.assertRaises(waves.exceptions.JobInconsistentStateError):
-            self.runner.cancel_job(self.job)
+            self.adaptor.cancel_job(self.job)
         logger.debug('Internal state %s, current %s', self.job._status, self.job.status)
         # status hasn't changed
         self.assertEqual(self.job.status, waves.const.JOB_COMPLETED)
@@ -114,13 +112,13 @@ class TestBaseJobRunner(WavesBaseTestCase):
             self.job = job
         logger.info('Starting workflow process for job %s', self.job.title)
         self.assertEqual(1, self.job.job_history.count())
-        self.runner.prepare_job(self.job)
+        self.adaptor.prepare_job(self.job)
         self.assertEqual(self.job.status, waves.const.JOB_PREPARED)
-        remote_job_id = self.runner.run_job(self.job)
+        remote_job_id = self.adaptor.run_job(self.job)
         logger.debug('Remote Job ID %s', remote_job_id)
         self.assertEqual(self.job.status, waves.const.JOB_QUEUED)
         for ix in range(100):
-            job_state = self.runner.job_status(self.job)
+            job_state = self.adaptor.job_status(self.job)
             logger.info(u'Current job state (%i) : %s ', ix, self.job.get_status_display())
             if job_state >= waves.const.JOB_COMPLETED:
                 logger.info('Job state ended to %s ', self.job.get_status_display())
@@ -129,7 +127,7 @@ class TestBaseJobRunner(WavesBaseTestCase):
                 time.sleep(3)
         self.assertIn(self.job.status, (waves.const.JOB_COMPLETED, waves.const.JOB_TERMINATED))
         # Get job run details
-        self.runner.job_run_details(self.job)
+        self.adaptor.job_run_details(self.job)
         history = self.job.job_history.first()
         logger.debug("History timestamp %s", localtime(history.timestamp))
         logger.debug("Job status timestamp %s", self.job.status_time)
@@ -150,4 +148,4 @@ class TestBaseJobRunner(WavesBaseTestCase):
 
     def testExtraUnexpectedParameter(self):
         with self.assertRaises(RunnerUnexpectedInitParam):
-            self.runner = JobRunner(init_params=dict(unexpected_param='unexpected value'))
+            self.adaptor = JobRunnerAdaptor(init_params=dict(unexpected_param='unexpected value'))

@@ -53,4 +53,4 @@ class RunnerEavConfig(WavesEavConfig):
 
     @classmethod
     def get_attributes(cls):
-        return Attribute.objects.filter(type='runner')
+        return Attribute.objects.filter(type='adaptor')

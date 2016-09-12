@@ -66,9 +66,9 @@ STATUS_LIST = [
 
 # only accessed by creator
 SRV_DRAFT = 0
-# restricted to _staff flagged members
+# restricted to staff
 SRV_TEST = 1
-# restricted to staff + authorized user from list
+# restricted to logged in users with
 SRV_RESTRICTED = 2
 # publicly available
 SRV_PUBLIC = 3

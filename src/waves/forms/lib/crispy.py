@@ -106,12 +106,20 @@ class FormHelper(BaseFormHelper, BaseHelper):
                 input_field
             )
 
-    def init_layout(self):
-        self.layout = Layout(
+    def init_layout(self, fields):
+        l_fields = []
+        for field in fields:
+            l_fields.append(Field(field))
+
+        self.layout = Layout()
+        self.layout.extend(l_fields)
+        """self.layout = Layout(
             Field('title'),
             Field('email', ),
             HTML('<HR/>')
         )
+        """
+        return self.layout
 
     def end_layout(self):
         self.layout.extend([

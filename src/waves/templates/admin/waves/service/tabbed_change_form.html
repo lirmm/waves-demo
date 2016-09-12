@@ -1,7 +1,54 @@
 {% extends "tabbed_admin/change_form.html" %}
 {% load i18n admin_modify admin_urls tabbed_admin_tags admin_static waves_tags %}
-{% block hea %}
-    <!-- Tabbed Admin Change -->
+{% block content %}
     {{ block.super }}
 {% endblock %}
-{% include 'admin/waves/service/base_change_form.html' %}
+{% block object-tools-items %}
+    <li>
+        <a type="button" href="{% url 'waves:service_duplicate' original.pk %}"
+           target="_self"
+           title="Duplicate"
+           class="btn btn-high btn-info"
+           id="duplicate_service">
+            Duplicate
+        </a>
+    </li>
+    <li>
+        <a type="button" href="{% url 'waves:service_details' original.pk %}"
+           target="_blank"
+           title="View online"
+           class="btn btn-high btn-info"
+           id="view_service">
+            View online
+        </a>
+    </li>
+    {% if original.run_on %}
+        <li>
+            <a type="button" href="{% url 'waves:service_import_form' original.pk %}"
+               target="_blank"
+               title="Import from adapter"
+               class="js-popup-link btn btn-high btn-info"
+               data-toggle="modal"
+               data-target="#form-modal"
+               id="launch_import">
+                Import from adapter
+            </a>
+        </li>
+    {% endif %}
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static 'waves/js/services.js' %}"></script>
+{% endblock %}
+{% block footer %}
+    {{ block.super }}
+    <div id="popup_modal"></div>
+    <div id="dialog-confirm" title="Empty the recycle bin?" style="display: none">
+        <p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>
+            Almost all current service configuration (submissions/inputs/outputs/exitcode etc.) will be lost.
+            <br/>
+            Are you sure?</p>
+    </div>
+{% endblock %}
+

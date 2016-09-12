@@ -14,11 +14,8 @@ from ipware.ip import get_real_ip
 
 import waves.const
 import waves.settings
-from waves.models import Job, JobHistory, Service
+from waves.models import Job, JobHistory, Service, ServiceInputSample, ServiceInput, ServiceSubmission
 from waves.models.profiles import APIProfile, profile_directory
-if settings.DEBUG:
-    print "Signals loaded..."
-
 logger = logging.getLogger(__name__)
 
 
@@ -34,8 +31,6 @@ def job_save_handler(sender, instance, created, **kwargs):
         JobHistory.objects.create(job=instance, status=instance.status, message="Job Created", timestamp=timezone.now())
         # create job working dirs locally
         instance.make_job_dirs()
-        # initiate default non editable params
-        instance.create_non_editable_inputs()
         # initiate default outputs
         instance.create_default_outputs()
     if instance.has_changed_status():
@@ -55,11 +50,25 @@ def service_input_files_delete(sender, instance, **kwargs):
         shutil.rmtree(os.path.join(waves.settings.WAVES_SAMPLE_DIR, instance.api_name))
 
 
+@receiver(post_delete, sender=ServiceInputSample)
+def service_sample_file_delete(sender, instance, **kwargs):
+    instance.file.delete()
+
+
+@receiver(post_delete, sender=ServiceInput)
+def service_input_delete(sender, instance, **kwargs):
+    if instance.input_samples.count() > 0:
+        for sample in instance.input_samples.all():
+            sample.file.delete()
+
+
 @receiver(post_save, sender=Service)
-def service_create_media(sender, instance, created, **kwargs):
+def service_create_signal(sender, instance, created, **kwargs):
     sample_dir = os.path.join(waves.settings.WAVES_SAMPLE_DIR, instance.api_name)
     if created and not os.path.isdir(sample_dir):
         os.makedirs(sample_dir)
+        instance.submissions.add(ServiceSubmission.objects.create(service=instance,
+                                                                  label='default'))
 
 
 @receiver(user_logged_in)
@@ -68,16 +77,17 @@ def login_action(sender, user, **kwargs):
     Make action upon user login
     - Register user ip address
     """
-    logger.debug('Login action fired %s', user)
     request = kwargs.get('request')
     ip = get_real_ip(request)
     if ip is not None:
+        logger.debug('Login action fired %s [%s]', user, ip)
         user_prof = user.profile
         user_prof.ip = ip
         user_prof.save(update_fields=['ip'])
     else:
         ip = request.META.get('REMOTE_ADDR', None)
         if ip is not None:
+            logger.debug('Login action fired %s [%s]', user, ip)
             user_prof = user.profile
             user_prof.ip = ip
             user_prof.save(update_fields=['ip'])
@@ -93,10 +103,6 @@ def create_profile_handler(sender, instance, created, **kwargs):
         # User is activated, has registered for api services, and do not have any api_key
         instance.profile.api_key = uuid.uuid1()
         logger.debug("Update api_key for %s %s", instance, instance.profile.api_key)
-        try:
-            instance.groups.add(Group.objects.get(name=waves.const.WAVES_GROUP_API))
-        except Group.DoesNotExist:
-            pass
     if instance.is_active and not instance.profile.registered_for_api:
         instance.profile.api_key = None
     instance.profile.save()

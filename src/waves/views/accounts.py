@@ -12,14 +12,14 @@ from django.core.urlresolvers import reverse_lazy
 from django.views import generic
 
 from registration.backends.hmac.views import RegistrationView, ActivationView as BaseActivationView
-
+from base import WavesBaseContextMixin
 from waves.forms.accounts import *
 import waves.settings
 User = get_user_model()
 
 
 class LoginView(bracesviews.AnonymousRequiredMixin,
-                authviews.LoginView):
+                authviews.LoginView, WavesBaseContextMixin):
     template_name = "accounts/login.html"
     form_class = LoginForm
 
@@ -33,7 +33,7 @@ class LoginView(bracesviews.AnonymousRequiredMixin,
         return redirect
 
 
-class LogoutView(authviews.LogoutView):
+class LogoutView(authviews.LogoutView, WavesBaseContextMixin):
     url = reverse_lazy('waves:home')
 
     def get(self, *args, **kwargs):
@@ -46,7 +46,8 @@ class LogoutView(authviews.LogoutView):
 class SignUpView(bracesviews.AnonymousRequiredMixin,
                  bracesviews.FormValidMessageMixin,
                  generic.CreateView,
-                 RegistrationView):
+                 RegistrationView,
+                 WavesBaseContextMixin):
     form_class = SignupForm
     model = User
     template_name = 'accounts/signup.html'
@@ -78,7 +79,7 @@ class SignUpView(bracesviews.AnonymousRequiredMixin,
         return waves.settings.WAVES_REGISTRATION_ALLOWED
 
 
-class PasswordChangeView(authviews.PasswordChangeView):
+class PasswordChangeView(authviews.PasswordChangeView, WavesBaseContextMixin):
     form_class = PasswordChangeForm
     template_name = 'accounts/password_change.html'
     success_url = reverse_lazy('waves:home')
@@ -91,7 +92,7 @@ class PasswordChangeView(authviews.PasswordChangeView):
         return super(PasswordChangeView, self).form_valid(form)
 
 
-class PasswordResetView(authviews.PasswordResetView):
+class PasswordResetView(authviews.PasswordResetView, WavesBaseContextMixin):
     form_class = PasswordResetForm
     template_name = 'accounts/password_reset.html'
     success_url = reverse_lazy('waves:password-reset-done')
@@ -99,16 +100,16 @@ class PasswordResetView(authviews.PasswordResetView):
     email_template_name = 'accounts/emails/password_reset_email.html'
 
 
-class PasswordResetDoneView(authviews.PasswordResetDoneView):
+class PasswordResetDoneView(authviews.PasswordResetDoneView, WavesBaseContextMixin):
     template_name = 'accounts/password_reset_done.html'
 
 
-class PasswordResetConfirmView(authviews.PasswordResetConfirmAndLoginView):
+class PasswordResetConfirmView(authviews.PasswordResetConfirmAndLoginView, WavesBaseContextMixin):
     template_name = 'accounts/password_reset_confirm.html'
     form_class = SetPasswordForm
 
 
-class ActivationView(BaseActivationView):
+class ActivationView(BaseActivationView, WavesBaseContextMixin):
     template_name = 'accounts/activate.html'
 
     @transaction.atomic

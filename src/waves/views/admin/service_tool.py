@@ -8,9 +8,11 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import FormView, View
 from django.db import DatabaseError
-
+from crispy_forms.utils import render_crispy_form
+from django.core.exceptions import ValidationError
 from waves.forms.admin import ImportForm
 from waves.models import Service
+from waves.exceptions import *
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +24,13 @@ class ServiceParamImportView(FormView):
     # success_url = '/admin/import/tools/2'
     success_message = "Data successfully imported"
     service = None
+    importer = None
+    tool_list = ()
 
     def get_context_data(self, **kwargs):
+        print 'get context'
         context = super(ServiceParamImportView, self).get_context_data(**kwargs)
-        context['service_id'] = self.service.id
+        context['service_id'] = self.service.pk
         return context
 
     def get_success_url(self):
@@ -38,60 +43,61 @@ class ServiceParamImportView(FormView):
         return super(ServiceParamImportView, self).form_invalid(form)
 
     def get(self, request, *args, **kwargs):
+        print "get ", kwargs
         try:
             self.service = Service.objects.get(id=kwargs['service_id'])
-            # importer = self.service.run_on.importer()
-            # self.initial = {'tool_list': importer.list_all_remote_services()}
+            self.importer = self.service.run_on.importer(for_service=self.service)
+            self.tool_list = self.importer.list_all_remote_services()
         except NotImplementedError as e:
             logger.info('Not Implemented error')
             messages.warning(request,
-                             message='This runner cannot import service')
-            # self.initial = {'tool_list': (), 'service_id': kwargs['service_id']}
+                             message='This adaptor cannot import service')
         except Exception as e:
-            messages.add_message(request,
-                                 level=messages.ERROR,
-                                 message=e.message)
-            # self.initial = {'tool_list': (), 'service_id': kwargs['service_id']}
+            logger.info('Other exception %s ', e)
+            messages.error(request,
+                           message=e.message)
         return super(ServiceParamImportView, self).get(request, *args, **kwargs)
 
     def get_form_kwargs(self):
-        importer = self.service.run_on.importer(for_service=self.service)
-        initial = {
-            'tool_list': importer.list_all_remote_services(),
+        kwargs = super(ServiceParamImportView, self).get_form_kwargs()
+        extra_kwargs = {
+           'tool_list': self.tool_list,
         }
-        return initial
+        extra_kwargs.update(kwargs)
+        return extra_kwargs
 
     def post(self, request, *args, **kwargs):
         self.service = Service.objects.get(id=kwargs['service_id'])
         logger.debug('Service %s:%s', self.service.pk, self.service)
-        importer = self.service.run_on.importer(for_service=self.service)
-        # self.initial = {'tool_list': importer.list_all_remote_services(),'service_id': self.service.pk}
-        form = ImportForm(self.request.POST, tool_list=importer.list_all_remote_services())
+        self.importer = self.service.run_on.importer(for_service=self.service)
+        self.tool_list = self.importer.list_all_remote_services()
+        form = self.get_form()
         if request.is_ajax():
             if form.is_valid():
                 logger.warning('Form is valid')
                 try:
-                    importer.import_remote_service(request.POST['tool_list'])
+                    self.importer.import_remote_service(request.POST['tool_list'])
                     data = {
                         'url_redirect': reverse('admin:waves_service_change',
                                                 args=[self.service.id])
                     }
                     messages.add_message(request, level=messages.SUCCESS, message='Parameters successfully imported')
-
+                    redirect(reverse('admin:waves_service_change', args=[self.service.id]))
                     return JsonResponse(data, status=200)
                 except Exception as e:
-                    logger.error('Exception in import ' + e.message)
-                    messages.add_message(request, level=messages.ERROR, message="Error: " + e.message)
-                    redirect(reverse('admin:waves_service_change', args=[self.service.id]))
+                    logger.error('Exception in import %s ', e)
+                    form.add_error(None, ValidationError(message="Unexpected error: %s" % e))
+                    form_html = render_crispy_form(form)
+                    return JsonResponse({'form_html': form_html}, status=500)
             else:
                 logger.warning('Form is Invalid')
-                return JsonResponse(form.errors, status=400)
+                form_html = render_crispy_form(form)
+                return JsonResponse({'form_html': form_html}, status=400)
         else:
             logger.error("This form is supposed to be called in ajax")
 
 
 class ServiceDuplicateView(View):
-
     def get(self, request, *args, **kwargs):
         try:
             service = get_object_or_404(Service, id=kwargs['service_id'])
@@ -102,4 +108,3 @@ class ServiceDuplicateView(View):
         except DatabaseError as e:
             messages.add_message(request, level=messages.WARNING, message="Error occurred during copy: %s " % e.message)
             return redirect(reverse('admin:waves_service_change', args=[kwargs['service_id']]))
-

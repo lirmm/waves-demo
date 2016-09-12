@@ -38,11 +38,14 @@ class JobOutputForm(ReadOnlyForm):
             'value': forms.Textarea(attrs={'rows': 2, 'class': 'span12'})
         }
 
+    def get_file_path(self, object):
+        return object.file_path
+
 
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
-        fields = ['service', 'status', 'client', 'email_to']
+        fields = ['title', 'service', 'status', 'client', 'email_to']
         widgets = {
             'service': widgets.Select(attrs={'disabled': 'disabled'}),
             'client': widgets.Select(attrs={'disabled': 'disabled'})

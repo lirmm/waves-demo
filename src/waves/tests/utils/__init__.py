@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import waves.settings
+from os.path import join, dirname, isfile, realpath
 
 
 def assertion_tracker(func):
@@ -18,4 +19,4 @@ def assertion_tracker(func):
 
 
 def get_sample_dir():
-    return waves.settings.WAVES_DATA_ROOT
+    return join(dirname(dirname(realpath(__file__))), 'data', 'sample')

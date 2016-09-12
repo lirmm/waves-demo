@@ -6,13 +6,14 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views import generic
 
+from base import WavesBaseContextMixin
 from waves.models import Job, JobOutput, JobInput
 from waves.views.files import DownloadFileView
 
 logger = logging.getLogger(__name__)
 
 
-class JobView(generic.DetailView):
+class JobView(generic.DetailView, WavesBaseContextMixin):
     model = Job
     slug_field = 'slug'
     template_name = 'services/job_detail.html'
@@ -22,10 +23,11 @@ class JobView(generic.DetailView):
         return super(JobView, self).dispatch(request, *args, **kwargs)
 
 
-class JobListView(generic.ListView):
+class JobListView(generic.ListView, WavesBaseContextMixin):
     model = Job
     template_name = 'services/job_list.html'
     context_object_name = 'job_list'
+    paginate_by = 10
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
@@ -33,6 +35,11 @@ class JobListView(generic.ListView):
 
     def get_queryset(self):
         return Job.objects.get_user_job(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super(JobListView, self).get_context_data(**kwargs)
+        context['user'] = self.request.user
+        return context
 
 
 class JobFileView(DownloadFileView):
@@ -48,7 +55,7 @@ class JobFileView(DownloadFileView):
 
     @property
     def return_link(self):
-        return self.object.job.get_absolute_url()
+        return self.object.job.get_url()
 
 
 class JobOutputView(JobFileView):

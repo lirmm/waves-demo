@@ -13,4 +13,10 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):
     """
     queryset = ServiceCategory.objects.all()
     serializer_class = CategorySerializer
-    lookup_field = 'name'
+    lookup_field = 'api_name'
+
+    def list(self, request, *args, **kwargs):
+        return super(CategoryViewSet, self).list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        return super(CategoryViewSet, self).retrieve(request, *args, **kwargs)

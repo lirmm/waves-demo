@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
 import logging
-
-__all__ = ['log_func_details']
+from django.contrib.sites.models import Site
+__all__ = ['log_func_details', 'normalize_output', 'set_api_name']
 
 logger = logging.getLogger(__name__)
 
@@ -19,12 +19,16 @@ def log_func_details(func):
     return decorate
 
 
-def normalize(value):
+def normalize_value(value):
     import inflection
     import re
-    temp_name = re.sub(r'\W+', '_', value)
-    return inflection.underscore(temp_name)
+    value = re.sub(r'[^\w\.]+', '_', value)
+    return inflection.underscore(value)
 
 
 def set_api_name(value):
-    return normalize(value)
+    return normalize_value(value)
+
+
+def get_complete_absolute_url(absolute_url):
+    return 'http://%s%s' % (Site.objects.get_current().domain, absolute_url)

@@ -33,7 +33,7 @@ class JobViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Destro
         serializer = JobSerializer(queryset,
                                    many=True,
                                    context={'request': request},
-                                   fields=('url', 'created', 'status', 'service'))
+                                   fields=('url', 'slug', 'title', 'created', 'status', 'service', 'client'))
         return Response(serializer.data)
 
     def retrieve(self, request, slug=None, *args, **kwargs):
