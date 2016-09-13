@@ -6,6 +6,7 @@ from django.views import generic
 
 import waves.settings
 from waves.models import WavesSite
+__all__ = ['WavesBaseContextMixin', 'HomePage', 'AboutPage', 'HTML403', 'RestServices']
 
 
 def css_theme(request):
@@ -38,6 +39,9 @@ class AboutPage(generic.TemplateView, WavesBaseContextMixin):
 class HTML403(generic.TemplateView, WavesBaseContextMixin):
     template_name = "403.html"
 
+
+class RestServices(generic.TemplateView, WavesBaseContextMixin):
+    template_name = "rest/rest_api.html"
 
 
 

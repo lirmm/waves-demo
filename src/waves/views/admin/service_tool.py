@@ -43,7 +43,7 @@ class ServiceParamImportView(FormView):
         return super(ServiceParamImportView, self).form_invalid(form)
 
     def get(self, request, *args, **kwargs):
-        print "get ", kwargs
+        # print "get ", kwargs
         try:
             self.service = Service.objects.get(id=kwargs['service_id'])
             self.importer = self.service.run_on.importer(for_service=self.service)

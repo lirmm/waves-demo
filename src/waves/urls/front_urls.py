@@ -16,5 +16,5 @@ urlpatterns = [
     url(r'^jobs/(?P<slug>[\w-]+)/$', JobView.as_view(), name="job_details"),
     url(r'^jobs/inputs/(?P<slug>[\w-]+)/$', JobInputView.as_view(), name="job_input"),
     url(r'^jobs/outputs/(?P<slug>[\w-]+)/$', JobOutputView.as_view(), name="job_output"),
-    url(r'^rest-services/$', TemplateView.as_view(template_name='rest/rest_api.html'), name='rest_services'),
+    url(r'^rest-services/$', RestServices.as_view(), name='rest_services'),
 ]

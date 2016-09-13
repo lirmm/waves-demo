@@ -38,6 +38,7 @@ class ServiceJobManager(object):
                 # Manage sample data
                 input_sample = ServiceInputSample.objects.get(pk=submitted_input)
                 filename = path.join(job.input_dir, path.basename(input_sample.file.name))
+                print "filename sample ", filename, input_sample.file.name
                 input_dict['value'] = path.basename(input_sample.file.name)
                 with open(filename, 'wb+') as uploaded_file:
                     for chunk in input_sample.file.chunks():
@@ -58,7 +59,7 @@ class ServiceJobManager(object):
         Create a new job from service data and submitted params values
         Args:
             submitted_inputs: Dictionary { param_name:param_value }
-            service: Service - related service
+            submission: Service - related service submission
             email_to: email results to
             user: associated user (may be None)
         Returns:

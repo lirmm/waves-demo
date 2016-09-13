@@ -223,7 +223,8 @@ class GalaxyToolImporter(ToolRunnerImporter):
         index = 0
         for tool_output in outputs:
             logger.debug(tool_output.keys())
-            service_output = ServiceOutput(name=tool_output['name'], service=self._service)
+            service_output = ServiceOutput(name=tool_output['name'], service=self._service,
+                                           file_pattern=tool_output['name'])
             service_output.order = index
             service_output.description = self._get_input_value(tool_input=tool_output,
                                                                field='label',
