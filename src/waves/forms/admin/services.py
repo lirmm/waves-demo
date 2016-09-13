@@ -243,7 +243,7 @@ class ServiceRunnerParamForm(ModelForm):
     def clean(self):
         cleaned_data = super(ServiceRunnerParamForm, self).clean()
         if not cleaned_data['value'] and self.instance.param.default is None:
-            raise ValidationError('%s field need a value !' % self.instance.param.name)
+            raise ValidationError('%s needs a value !' % self.instance.param.name)
         return cleaned_data
 
 

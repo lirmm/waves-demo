@@ -2,8 +2,11 @@
     min-height:100px;
     overflow: hidden;
 }
+.ui-state-default a.errortab {
+    background-color: #bf3030;
+    color: white
+}
 
-.ui-widget-header {
-    background: transparent;
-    border: none;
+.ui-tabs .ui-tabs-panel {
+    overflow: hidden
 }

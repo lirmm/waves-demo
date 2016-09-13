@@ -84,7 +84,7 @@ class ServiceOutputInline(GrappelliSortableHiddenMixin, nested_admin.NestedStack
     sortable_field_name = "order"
     fk_name = 'service'
     fields = ['name', 'from_input', 'file_pattern', 'short_description', 'may_be_empty', 'order']
-    verbose_name_plural = "Service outputs ('from input' apply only to all submission params)"
+    verbose_name_plural = "Service outputs"
     inlines = [ServiceOutputFromInputInline, ]
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
@@ -243,9 +243,9 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
     # tab_inputs = (ServiceInputInline,)
     tab_submission = (ServiceSubmissionInline, )
     tab_outputs = (
-        (None, {
-            'fields': ['partial']
-        }),
+        # (None, {
+        #     'fields': ['partial']
+        # }),
         ServiceOutputInline,
         ServiceExitCodeInline)
     tab_metas = (ServiceMetaInline,)
@@ -265,8 +265,8 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
         readonly_fields = super(ServiceAdmin, self).get_readonly_fields(request, obj)
         if not request.user.is_superuser:
             readonly_fields.append('created_by')
+        if obj is not None and obj.created_by != request.user:
             readonly_fields.append('api_name')
-            readonly_fields.append('clazz')
             readonly_fields.append('clazz')
             readonly_fields.append('version')
         return readonly_fields
@@ -281,6 +281,8 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
     def save_model(self, request, obj, form, change):
         if not obj.created_by:
             obj.created_by = request.user
+        if obj.submissions.count() == 0:
+            obj.create_default_submission()
         if 'run_on' in form.changed_data and obj is not None:
             if obj.runner_params is not None:
                 obj.runner_params.through.objects.filter(service=obj).delete()
@@ -294,12 +296,6 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
 
 
 class ServiceCategoryAdmin(GrappelliSortableHiddenMixin, MPTTModelAdmin):
-    class Media:
-        js = [
-            '/static/grappelli/tinymce/jscripts/tiny_mce/tiny_mce.js',
-            '/static/waves/js/tinymce.js',
-        ]
-
     form = ServiceCategoryForm
     list_display = ('name', 'parent', 'api_name', 'short', 'ref')
     sortable_field_name = 'order'

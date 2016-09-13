@@ -436,6 +436,11 @@ class Service(TimeStampable, DescribeAble, ApiAble):
                (self.status == waves.const.SRV_RESTRICTED and user.is_staff) or \
                user.is_superuser
 
+    def create_default_submission(self):
+        self.submissions.add(ServiceSubmission.objects.create(label='default %s' % self.name,
+                                                              default=True,
+                                                              service=self))
+
 
 class ServiceSubmission(TimeStampable, OrderAble, SlugAble, ApiAble):
     """

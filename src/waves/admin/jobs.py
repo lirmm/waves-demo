@@ -93,7 +93,7 @@ class JobAdmin(WavesTabbedModelAdmin):
     # grappelli list filter
     change_list_template = "admin/change_list_filter_sidebar.html"
     change_form_template = 'admin/waves/job/' + WavesTabbedModelAdmin.admin_template
-
+    # change_list_filter_template = "admin/filter_listing.html"
     readonly_fields = ('title', 'slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on',
                        'command_line')
 

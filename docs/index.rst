@@ -1,26 +1,19 @@
-#####
-WAVES
-#####
+.. Read the Docs Template documentation master file, created by
+   sphinx-quickstart on Tue Aug 26 14:19:49 2014.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
 
+Welcome to WAVES's documentation!
+==================================================
 
-Introduction
-=================================
-
-Waves is intended to :
--  Easily present/manage/publish bioinformatic tools over such platform as
-   Galaxy server, DRMAA compliant cluster, Direct script execution, API
-   calls to other services...
--  Easily integrate these tools in a frontend based on Bootstrap3, use the `cms plugin` to include your job submission
-   forms into your favorite CMS (Django-CMS or Mezzanine or via REST Call inside any other CMS)
--  Enable a RESTApi to provide your service to other platforms, follow, manage remote RESTful API accesses.
-
-Installation
-============
+Contents:
 
 .. toctree::
    :maxdepth: 2
+   :glob:
 
-   :ref:`install`
+   *
+
 
 
 Indices and tables
@@ -29,5 +22,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
 
