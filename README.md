@@ -14,17 +14,16 @@ Features
 * Create and manage bioinformatic tools execution over such platform as
 Galaxy server, DRMAA compliant cluster, Direct script execution,
 API calls to other services...
-* Presents these tools in a frontend based on Bootstrap3 and some 
-AngularJS
-* Follow and manage remote RESTful API access to your platform.
+* Easily presents these tools in a nice frontend based on Bootstrap3 
+* Follow and manage remote REST API access to your service platform
 
 Documentation
 -------------
 More Documentation can be found on :
-http://waves-webapp.readthedocs.org/en/latest/
+http://waves-webapp.readthedocs.org/
 
 Project home page:
-https://gite.lirmm.fr/waves/waves-webapp
+https://github.com/lirmm/mab/waves/
 
 
 License

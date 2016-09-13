@@ -1,34 +1,42 @@
-RAVEN services - Bioinformatic services web application
+WAVES services - Bioinformatic services web application
 =======================================================
 
-Authors
--------
-
--  Marc Chakiachvili (LIRMM - UMR 5506 CNRS / UM - France)
--  Floréal Cabanettes (LIRMM - UMR 5506 CNRS / UM - France)
--  Vincent Lefort (LIRMM - UMR 5506 CNRS / UM - France)
--  Anne-Muriel Arigon Chiffoleau (LIRMM - UMR 5506 CNRS / UM - France)
--  Vincent Berry (LIRMM - UMR 5506 CNRS / UM - France)
+WAVES stands for Web Application for Versatile and Easy online bioinformatic Services.
+It is aimed to help you easily present, publish and give access on the web of any bioinformatic tools developed in your
+teams.
+Based on Python and Django framework, it is easy to maintain and make evolve for your specific requirements.
 
 Features
 --------
 
--  Create and manage bioinformatic tools execution over such platform as
-   Galaxy server, DRMAA compliant cluster, Direct script execution, API
-   calls to other services...
--  Presents these tools in a frontend based on Bootstrap3 and some
-   AngularJS
--  Follow and manage remote RESTful API access to your platform.
+- Create and manage you services execution over platform such as Galaxy, DRMAA clusters (SGE), Direct script execution,
+API calls to other service, remote calls to other platforms via ssh, etc.
+- Easily presents these tools in a nice frontend based on Bootstrap3
+- Follow and manage remote REST API access to your service platform
+- Manage user's access to your services
 
-Documentation
--------------
+Installation
+------------
 
-More Documentation can be found on :
-http://waves-bioinformatics.readthedocs.org/en/latest/
+- WAVES web app comply to standard reusable project layout for Django. You can use it as a stand alone platform.
+- Simply clone or download sources, follow the few configurations steps, and her you are, you can put your tools online !
+- See "Details Installation" for more info.
 
-Project home page: https://sourcesup.renater.fr/projects/waves/
+Contribute
+----------
+
+- Issue Tracker: https://github.com/lirmm/mab/waves/issues
+- Source Code: https://github.com/lirmm/mab/waves/
+
+Support
+-------
+
+If you are having issues, please let us know.
+We have a mailing list located at: waves-webapp@googlegroups.com
+
 
 License
 -------
 
-GPL licensed.
+The project is licensed under the GNU GPLv3 license.
+
