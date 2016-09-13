@@ -80,3 +80,4 @@ local.env
 /src/waves/tests/data/jobs/
 waves.env
 default_profile.png.*
+/docs/_build/

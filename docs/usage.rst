@@ -1,13 +1,13 @@
 Quick Start Installation process
 ================================
 
-1. RAVEN needs to be installed within a django project, see Django
+1. WAVES needs to be installed within a django project, see Django
    framework documentation if needed.
 
-2. Install waves package with pip (strongly recommended to do so in a
+2. Install waves package from git (strongly recommended to do so in a
    dedicated virtualenv):
 
-   ``pip install waves``
+   pip install -e git:/gite.lirmm.fr/waves/waves-webapp
 
 3. Add "waves" to your INSTALLED\_APPS settings::
 

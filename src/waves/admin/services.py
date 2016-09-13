@@ -149,12 +149,16 @@ class RelatedInputInline(nested_admin.NestedStackedInline, StackedInline):
     fk_name = 'related_to'
     readonly_fields = ['baseinput_ptr']
     sortable_excludes = ('order',)
+    verbose_name = 'Related Input'
+    verbose_name_plural = "Related Inputs"
 
     def has_add_permission(self, request):
         return True
 
 
 class ServiceInputInline(GrappelliSortableHiddenMixin, nested_admin.NestedStackedInline):
+    # TODO use new PolymorphicInlines classes provided with django-polymorphic 1.0
+    # from polymorphic.admin import PolymorphicInlineSupportMixin, StackedPolymorphicInline
     model = ServiceInput
     form = ServiceInputForm
     sortable = 'order'
@@ -163,6 +167,12 @@ class ServiceInputInline(GrappelliSortableHiddenMixin, nested_admin.NestedStacke
     classes = ('grp-collapse', 'grp-open')
     inlines = [RelatedInputInline, ]
     sortable_field_name = "order"
+    verbose_name = 'Input'
+    verbose_name_plural = "Inputs"
+
+    def get_queryset(self, request):
+        qs = super(ServiceInputInline, self).get_queryset(request)
+        return qs.instance_of(ServiceInput)
 
 
 class ServiceExitCodeInline(admin.TabularInline):

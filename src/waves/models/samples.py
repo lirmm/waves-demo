@@ -19,7 +19,7 @@ class ServiceInputSample(models.Model):
     input = models.ForeignKey('BaseInput', on_delete=models.CASCADE, related_name='input_samples',
                               help_text='Associated input')
     service = models.ForeignKey('Service', on_delete=models.CASCADE, related_name='services_sample', null=True)
-    dependent_input = models.ForeignKey('ServiceInput',
+    dependent_input = models.ForeignKey('BaseInput',
                                         on_delete=models.SET_NULL, null=True, blank=True,
                                         help_text='Dependent on another input value')
     when_value = models.CharField('Depending on input value', max_length=255, null=True, blank=True,

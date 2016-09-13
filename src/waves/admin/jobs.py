@@ -45,7 +45,8 @@ class JobHistoryInline(TabularInline):
     model = JobHistory
     suit_classes = 'suit-tab suit-tab-history'
     # classes = ('grp-collapse grp-closed',)
-    verbose_name_plural = "Job history"
+    verbose_name = 'Job History'
+    verbose_name_plural = "Job history events"
 
     readonly_fields = ('status', 'timestamp', 'message')
     fields = ('status', 'timestamp', 'message')

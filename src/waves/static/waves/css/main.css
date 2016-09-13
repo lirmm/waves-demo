@@ -33,11 +33,6 @@ body > .navbar-transparent {
     margin-right: 0;
 }
 
-.navbar-nav > li > a.profile-menu {
-    padding-top: 10px;
-    padding-bottom: 10px;
-}
-
 .navbar-nav > .btn {
     margin-top: 10px;
     margin-right: 1.7em;
