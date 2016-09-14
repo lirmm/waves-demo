@@ -435,7 +435,7 @@ class Service(TimeStampable, DescribeAble, ApiAble):
                (self.status == waves.const.SRV_DRAFT and self.created_by == user) or \
                (self.status == waves.const.SRV_TEST and user.is_staff) or \
                (self.status == waves.const.SRV_RESTRICTED and (
-               user in self.restricted_client.all() or user.is_staff)) or \
+               user.profile in self.restricted_client.all() or user.is_staff)) or \
                user.is_superuser
 
     def create_default_submission(self):

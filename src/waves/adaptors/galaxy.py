@@ -17,6 +17,7 @@ from waves.exceptions import RunnerConnectionError, RunnerNotReady
 from waves.models import JobOutput
 from waves.adaptors.runner import JobRunnerAdaptor
 import waves.settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -74,9 +75,12 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
                     remote_tool_id=self.remote_tool_id)
 
     def _connect(self):
-        self._connector = bioblend.galaxy.objects.GalaxyInstance(url=self.complete_url,
-                                                                 api_key=self.app_key)
-        self._connected = True
+        try:
+            self._connector = bioblend.galaxy.objects.GalaxyInstance(url=self.complete_url,
+                                                                     api_key=self.app_key)
+            self._connected = True
+        except ConnectionError as exc:
+            raise GalaxyAdaptorConnectionError(exc)
 
     def _disconnect(self):
         self._connector = None
@@ -230,7 +234,7 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
                                                                   job_output.file_path,
                                                                   use_default_filename=False)
                 logger.debug("Saving output to " + job_output.file_path)
-                job_output.save()
+                # job_output.save()
             return True
         return False
 
