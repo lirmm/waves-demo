@@ -28,8 +28,6 @@ class ShellJobAdaptor(JobRunnerAdaptor):
     def __init__(self, **kwargs):
         super(ShellJobAdaptor, self).__init__(**kwargs)
         self._environ = os.environ.copy()
-        # current job Description
-        self._jd = None
         # current job service
         # self._connector = saga.job.Service(self.saga_host)
         self._states_map = {
@@ -72,9 +70,10 @@ class ShellJobAdaptor(JobRunnerAdaptor):
 
     def _load_job_description(self, job):
         jd_dict = super(ShellJobAdaptor, self)._load_job_description(job)
-        self._jd = saga.job.Description()
+        jd = saga.job.Description()
         for key in jd_dict.keys():
-            setattr(self._jd, key, jd_dict[key])
+            setattr(jd, key, jd_dict[key])
+        return jd
 
     @property
     def init_params(self):
