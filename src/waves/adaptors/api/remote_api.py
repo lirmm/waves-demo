@@ -8,11 +8,13 @@ class RemoteApiAdaptor(JobRunnerAdaptor):
     host = None
     port = None
     app_key = None
-    url_path = None
+    api_base_path = None
+    api_endpoint = None
 
     @property
     def init_params(self):
         return dict(host=self.host,
                     port=self.port,
+                    api_base_path=self.api_base_path,
                     app_key=self.app_key,
-                    url_path=self.url_path)
+                    api_endpoint=self.api_endpoint)
