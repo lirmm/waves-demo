@@ -6,10 +6,11 @@ from waves.adaptors.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor
 from waves.adaptors.runner import JobRunnerAdaptor
 from waves.adaptors.local import ShellJobAdaptor
 from waves.adaptors.sge import SGEJobAdaptor
+from waves.adaptors.api.compphy import CompPhyApiAdaptor
 from waves.adaptors.ssh import SshJobAdaptor, SshKeyJobAdaptor, SshUserPassJobAdaptor, SGEOverSSHAdaptor
 
-__all__ = ['SGEJobAdaptor', 'GalaxyJobAdaptor', 'GalaxyWorkFlowAdaptor', 'ShellJobAdaptor', 'SshKeyJobAdaptor',
-           'SshUserPassJobAdaptor', 'SGEOverSSHAdaptor']
+__all__ = ['SGEJobAdaptor', 'GalaxyJobAdaptor', 'GalaxyWorkFlowAdaptor', 'ShellJobAdaptor',
+           'CompPhyApiAdaptor']
 
 
 def get_implementation():

@@ -1,16 +1,13 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import logging
-
 from django.contrib.auth import get_user_model
-from django.core.urlresolvers import reverse
 from rest_framework import serializers
 from rest_framework.reverse import reverse as reverse_drf
 
 from dynamic import DynamicFieldsModelSerializer
-from waves.api.serializers.services import ServiceSerializer, InputSerializer
 from waves.models import Service, JobHistory, JobInput, Job, JobOutput
-from waves.utils import get_complete_absolute_url
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -93,9 +90,18 @@ class JobInputDetailSerializer(serializers.HyperlinkedModelSerializer):
 class JobOutputSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobOutput
-        fields = ('name', 'download_url')
+        fields = ('name', 'download_url', 'content')
 
     download_url = serializers.SerializerMethodField()
+    # content = serializers.SerializerMethodField()
+
+    def file_get_content(self, instance):
+        from os.path import getsize
+        if getsize(instance.file_path) < 500:
+            with open(instance.file_path) as fp:
+                file_content = fp.read()
+            return file_content.decode('utf-8')
+        return "Content length exceeded, please download"
 
     def to_representation(self, instance):
         from waves.utils import normalize_value
@@ -103,7 +109,8 @@ class JobOutputSerializer(serializers.ModelSerializer):
         for output in instance:
             to_repr[normalize_value(output.name)] = {
                 "label": output.name,
-                "download_uri": self.get_download_url(output)
+                "download_uri": self.get_download_url(output),
+                "content": self.file_get_content(output)
             }
         return to_repr
 

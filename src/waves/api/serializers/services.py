@@ -162,7 +162,6 @@ class ServiceSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsMod
         else:
             logger.warning('Service %s has no default submission', obj)
 
-
     def get_jobs(self, obj):
         return reverse_drf(viewname='waves:waves-services-jobs', request=self.context['request'],
                            kwargs={'api_name': obj.api_name})
@@ -188,16 +187,16 @@ class ServiceFormSerializer(WavesModelSerializer):
         return waves.settings.WAVES_TEMPLATE_PACK
 
     def get_css(self, obj):
-        return self.get_fully_qualified_url(obj.service.url_js)
+        return self.context['request'].build_absolute_uri(obj.service.url_js)
 
     def get_js(self, obj):
-        return self.get_fully_qualified_url(obj.service.url_css)
+        return self.context['request'].build_absolute_uri(obj.service.url_css)
 
     def get_form(self, obj):
-        from waves.forms.services import ServiceForm
+        from waves.forms.services import ServiceSubmissionForm
         from django.template import RequestContext
         import re
-        form = ServiceForm(instance=self.instance.service, submission=self.instance.api_name)
+        form = ServiceSubmissionForm(instance=self.instance, parent=self.instance.service)
         return re.sub(r'\s\s+', '', form.helper.render_layout(form, context=RequestContext(self.context['request'])))
 
     def get_post_uri(self, obj):

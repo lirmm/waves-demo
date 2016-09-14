@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from waves.models.storage import waves_storage
+from waves.models.base import OrderAble
 
 
 def service_sample_directory(instance, filename):
@@ -19,10 +20,13 @@ class ServiceInputSample(models.Model):
     input = models.ForeignKey('BaseInput', on_delete=models.CASCADE, related_name='input_samples',
                               help_text='Associated input')
     service = models.ForeignKey('Service', on_delete=models.CASCADE, related_name='services_sample', null=True)
-    dependent_input = models.ForeignKey('BaseInput',
-                                        on_delete=models.SET_NULL, null=True, blank=True,
-                                        help_text='Dependent on another input value')
-    when_value = models.CharField('Depending on input value', max_length=255, null=True, blank=True,
-                                  help_text='For dependency, related value')
 
+
+class ServiceSampleDependentsInput(OrderAble):
+    class Meta:
+        db_table = 'waves_sample_dependent_input'
+
+    sample = models.ForeignKey(ServiceInputSample, on_delete=models.CASCADE)
+    dependent_input = models.ForeignKey('BaseInput', on_delete=models.CASCADE)
+    set_value = models.CharField('When sample selected, set value to ', max_length=200, null=False, blank=False)
 

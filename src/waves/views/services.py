@@ -34,7 +34,7 @@ class ServiceDetailView(generic.DetailView, WavesBaseContextMixin):
     model = Service
     template_name = 'services/service_details.html'
     context_object_name = 'service'
-    # queryset = Service.objects.all().prefetch_related("metas").prefetch_related('submissions')
+    queryset = Service.objects.all().prefetch_related("metas").prefetch_related('submissions')
     object = None
 
     def get_context_data(self, **kwargs):
@@ -44,15 +44,11 @@ class ServiceDetailView(generic.DetailView, WavesBaseContextMixin):
         return context
 
     def get_object(self, queryset=None):
-        print 'in get object', queryset
-        if queryset is None:
-            queryset = Service.retrieve.get_web_services(user=self.request.user).prefetch_related("metas"). \
-                prefetch_related('submissions')
-        print queryset, self.request.user
         obj = super(ServiceDetailView, self).get_object(queryset)
+        self.object = obj
         if not obj.available_for_user(self.request.user):
-            logger.info('unauthorized access to JobSubmission')
-            redirect(reverse('waves:unauthorized'))
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied()
         return obj
 
 

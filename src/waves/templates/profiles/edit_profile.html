@@ -3,7 +3,9 @@
 {% load staticfiles crispy_forms_tags thumbnail %}
 
 {% block title %}{{ block.super }}Profile{% endblock %}
-
+{% block navbar-left %}
+    {% include "_navbar.html" %}
+{% endblock %}
 <!-- Benefits of the Django application -->
 {% block container %}
     <div class="container profile-head">

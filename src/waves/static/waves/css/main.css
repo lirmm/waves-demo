@@ -38,10 +38,6 @@ body > .navbar-transparent {
     margin-right: 1.7em;
 }
 
-.navbar-nav > li > a {
-    font-size: 16px;
-}
-
 .navbar-brand {
     font-weight: bold;
 }
@@ -53,9 +49,9 @@ body > .navbar-transparent {
 
 .btn {
     background-image: none;
-    -webkit-box-shadow: 0px 1px 0px #ddd;
-    -moz-box-shadow: 0px 1px 0px #ddd;
-    box-shadow: 0px 1px 0px #ddd;
+    /*-webkit-box-shadow: 0px 1px 0px #ddd;
+    -moz-box-shadow: 0px 1px 0px #ddd;*/
+    /*box-shadow: 0px 1px 0px #ddd;*/
 }
 
 /* Home page styling */
@@ -204,7 +200,7 @@ input[readonly] {
 
 .messages {
     width: 50%;
-    margin-top: 55px;
+    margin-top: 75px;
     margin-left: auto;
     margin-right: auto;
     z-index: 500;

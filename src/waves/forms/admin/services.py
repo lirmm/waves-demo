@@ -167,7 +167,7 @@ class RelatedInputForm(ServiceInputBaseForm):
 class ServiceInputSampleForm(forms.ModelForm):
     class Meta:
         model = ServiceInputSample
-        fields = ['name', 'input', 'file', 'dependent_input', 'when_value']
+        fields = ['name', 'input', 'file']
 
 
 class ServiceOutputForm(forms.ModelForm):
