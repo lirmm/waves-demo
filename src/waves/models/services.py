@@ -433,7 +433,9 @@ class Service(TimeStampable, DescribeAble, ApiAble):
         # RULES to set if user can access submissions
         return (self.status == waves.const.SRV_PUBLIC) or \
                (self.status == waves.const.SRV_DRAFT and self.created_by == user) or \
-               (self.status == waves.const.SRV_RESTRICTED and user.is_staff) or \
+               (self.status == waves.const.SRV_TEST and user.is_staff) or \
+               (self.status == waves.const.SRV_RESTRICTED and (
+               user in self.restricted_client.all() or user.is_staff)) or \
                user.is_superuser
 
     def create_default_submission(self):
@@ -755,7 +757,6 @@ class ServiceOutputFromInputSubmission(models.Model):
     )
 
     def clean(self):
-
         super(ServiceOutputFromInputSubmission, self).clean()
         if self.srv_input and not (self.srv_input.mandatory or self.srv_input.default):
             raise ValidationError('Valuated output from non mandatory input with no default is not allowed')
