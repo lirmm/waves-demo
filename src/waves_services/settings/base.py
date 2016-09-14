@@ -47,8 +47,10 @@ SECRET_KEY = env.str('SECRET_KEY')
 DATABASES = {
     'default': env.db(default='sqlite:///' + BASE_DIR + '/waves/db/waves.sample.sqlite3'),
 }
+
 if 'test' in sys.argv:
-    DATABASES['default'] = {'ENGINE': 'django.db.backends.sqlite3'}
+    DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
+print DATABASES['default']
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 REGISTRATION_SALT = env.str('REGISTRATION_SALT')
 # Django countries configuration
