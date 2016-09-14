@@ -266,6 +266,19 @@ class JobRunnerAdaptor(object):
     def _ready(self):
         return self._initialized
 
+    def _dump_job_description(self, job, job_description):
+        import pickle
+        import os
+        with open(os.path.join(job.working_dir, 'job_description.p'), 'w+') as fp:
+            pickle.dump(job_description, fp)
+
+    def _load_job_description(self, job):
+        import pickle
+        import os
+        with open(os.path.join(job.working_dir, 'job_description.p'), 'r') as fp:
+            jd_dict = pickle.load(fp)
+        return jd_dict
+
     def importer(self, for_service=None):
         from django.utils.module_loading import import_string
         if self.importer_clazz:
