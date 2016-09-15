@@ -82,9 +82,10 @@ WAVES_SERVICES_EMAIL = get_setting('WAVES_SERVICES_EMAIL', str, default='waves@a
 
 # ---- WAVES WORKING DIRS ----
 # - Base dir for uploaded data and job results
-WAVES_DATA_ROOT = get_setting('WAVES_DATA_ROOT', str, default=str(join(settings.BASE_DIR, 'data')))
+WAVES_DATA_ROOT = get_setting('WAVES_DATA_ROOT', str, default=str(join(dirname(settings.BASE_DIR), 'data')))
 # - Jobs working dir (default is relative to WAVES_DATA_ROOT
 WAVES_JOB_DIR = get_setting('WAVES_JOB_DIR', str, default=str(join(WAVES_DATA_ROOT, 'jobs')))
+
 # - Uploaded services sample data dir (default is relative to media root)
 WAVES_SAMPLE_DIR = get_setting('WAVES_SAMPLE_DIR', str, default=str(join(WAVES_DATA_ROOT, 'sample')))
 # - Max uploaded fil size (default is 20Mo)
