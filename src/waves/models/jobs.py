@@ -23,6 +23,9 @@ RunJobInfo = namedtuple("RunJobInfo",
                         """jobId hasExited hasSignal terminatedSignal hasCoreDump
                            wasAborted exitStatus resourceUsage""")
 
+__all__ = ['allow_display_online', 'Job', 'JobInput', 'JobOutput', 'JobHistory', 'JobAdminHistory',
+           'JobAdminHistoryManager']
+
 
 # File size allowed to display online
 def allow_display_online(file_name):
@@ -488,6 +491,7 @@ class JobAdminHistoryManager(models.Manager):
 class JobAdminHistory(JobHistory):
     class Meta:
         proxy = True
+
     objects = JobAdminHistoryManager()
 
 

@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import logging
 import sys
 
-__all__ = ['RunnerException', 'RunnerNotInitialized', 'RunnerNotReady', 'RunnerConnectionError',
+__all__ = ['WavesException', 'RunnerException', 'RunnerNotInitialized', 'RunnerNotReady', 'RunnerConnectionError',
            'JobException', 'JobInconsistentStateError', 'JobMissingMandatoryParam', 'JobPrepareException',
            'JobRunException', 'JobSubmissionException', 'JobCreateException', 'RunnerUnexpectedInitParam']
 if sys.version_info[0] < 3:

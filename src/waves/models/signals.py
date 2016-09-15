@@ -14,7 +14,9 @@ from ipware.ip import get_real_ip
 
 import waves.const
 import waves.settings
-from waves.models import Job, JobHistory, Service, ServiceInputSample, ServiceInput, ServiceSubmission
+from waves.models.jobs import Job, JobHistory
+from waves.models.samples import ServiceInputSample
+from waves.models.services import *
 from waves.models.profiles import APIProfile, profile_directory
 logger = logging.getLogger(__name__)
 

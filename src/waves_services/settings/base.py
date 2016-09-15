@@ -50,7 +50,7 @@ DATABASES = {
 
 if 'test' in sys.argv:
     DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
-print DATABASES['default']
+
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 REGISTRATION_SALT = env.str('REGISTRATION_SALT')
 # Django countries configuration
@@ -61,6 +61,7 @@ DEBUG = env.bool('DEBUG', default=False)
 LOG_ROOT = env.str('LOG_ROOT', default=dirname(BASE_DIR) + '/logs')
 WAVES_ENV_FILE = env.str('WAVES_ENV_FILE', default=join(BASE_DIR, 'waves', 'config', 'waves.env'))
 STATIC_ROOT = env.str('STATIC_ROOT', default=join(dirname(BASE_DIR), 'staticfiles'))
+print STATIC_ROOT
 ROOT_LOG_LEVEL = env.str('ROOT_LOG_LEVEL', default='ERROR')
 WAVES_LOG_LEVEL = env.str('WAVES_LOG_LEVEL', default=ROOT_LOG_LEVEL)
 CRON_LOG_LEVEL = env.str('CRON_LOG_LEVEL', default=ROOT_LOG_LEVEL)
@@ -68,20 +69,20 @@ SAGA_LOG_LEVEL = env.str('SAGA_LOG_LEVEL', default=ROOT_LOG_LEVEL)
 
 # Application definition
 INSTALLED_APPS = (
-    'polymorphic',
     'django.contrib.contenttypes',
     'django.contrib.auth',
-    'jquery_ui',
     'authtools',
-    'tabbed_admin',
     'grappelli',
     'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'jquery_ui',
+    'tabbed_admin',
     # WAVES required dependencies
     # 'django-log-file-viewer',
+    'polymorphic',
     'smart_selects',
     'mptt',
     'eav',
@@ -109,6 +110,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+
+
 
 ROOT_URLCONF = 'waves_services.urls'
 

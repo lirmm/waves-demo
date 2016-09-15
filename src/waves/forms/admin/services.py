@@ -25,7 +25,12 @@ class ServiceOutputFromInputSubmissionForm(ModelForm):
 
     # srv_input = AutoCompleteSelectField('related_input', required=True, help_text="Select related submission input")
     def clean(self):
-        return super(ServiceOutputFromInputSubmissionForm, self).clean()
+        cleaned_data = super(ServiceOutputFromInputSubmissionForm, self).clean()
+        print "cleaned_data:", cleaned_data['srv_input'], cleaned_data['srv_input'].mandatory
+        print "Current instance", self.instance, self.instance.submission
+        print self.data
+        # print "In form : srv_input ", self.instance.srv_input, ", mandatory ", self.instance.srv_input.mandatory, ', default ', self.instance.srv_input.default
+        return cleaned_data
 
 
 class ServiceSubmissionForm(ModelForm):
@@ -146,8 +151,7 @@ class RelatedInputForm(ServiceInputBaseForm):
         widgets = ServiceInputBaseForm.Meta.widgets
 
     def save(self, commit=True):
-        # self.cleaned_data['service_id'] = self.instance.related_to.service.pk
-        # self.instance.service = self.instance.related_to.service
+        self.instance.service = self.instance.related_to.service
         return super(RelatedInputForm, self).save(commit)
 
     def __init__(self, *args, **kwargs):
@@ -199,7 +203,6 @@ class ServiceOutputForm(forms.ModelForm):
                 'If output is valuated from an input, please configure related input for each submission')
 
 
-
 class ServiceForm(forms.ModelForm):
     """
     Service form parameters
@@ -228,7 +231,6 @@ class ServiceForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(ServiceForm, self).clean()
-        # TODO validate that for each submission setup, each 'valuated from input' output is set up accordingly
         return cleaned_data
 
 

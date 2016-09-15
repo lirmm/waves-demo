@@ -97,6 +97,7 @@ class JobRunnerAdaptor(object):
                 self.connect()
             self._prepare_job(job)
             job.status = waves.const.JOB_PREPARED
+            job.nb_retry = 0
             logger.info('Job %s prepared', job.slug)
         except WavesException as exc:
             job.nb_retry += 1
@@ -125,6 +126,7 @@ class JobRunnerAdaptor(object):
                 raise RunnerNotReady()
             self._run_job(job)
             job.status = waves.const.JOB_QUEUED
+            job.nb_retry = 0
             logger.info('Job %s queued', job.slug)
         except WavesException as exc:
             job.nb_retry += 1
@@ -157,6 +159,7 @@ class JobRunnerAdaptor(object):
                 raise RunnerNotReady()
             self._cancel_job(job)
             job.status = waves.const.JOB_CANCELLED
+            job.nb_retry = 0
             logger.info('Job %s cancelled ', job.slug)
         except WavesException as exc:
             job.nb_retry += 1
@@ -192,6 +195,7 @@ class JobRunnerAdaptor(object):
             job.status = self.__map_status(self._job_status(job))
             if job.status == waves.const.JOB_COMPLETED:
                 self.job_results(job)
+            job.nb_retry = 0
         except WavesException as exc:
             job.nb_retry += 1
             JobAdminHistory.objects.create(job=job, message=exc.message, status=job.status)
@@ -221,6 +225,7 @@ class JobRunnerAdaptor(object):
             if not job.results_available:
                 # actually retrieve outputs
                 job.results_available = self._job_results(job)
+                job.nb_retry = 0
             else:
                 # TODO do something with results ?
                 pass
@@ -253,6 +258,7 @@ class JobRunnerAdaptor(object):
         try:
             self._job_run_details(job)
             job.status = waves.const.JOB_TERMINATED
+            job.nb_retry = 0
         except WavesException as exc:
             job.nb_retry += 1
             JobAdminHistory.objects.create(job=job, message=exc.message, status=job.status)
