@@ -5,34 +5,7 @@
     {{ block.super }}
 {% endblock %}
 {% block object-tools-items %}
-    <li>
-        <a type="button" href="#TOBEDONE"
-           target="_self"
-           title="Duplicate"
-           class="btn btn-high btn-info"
-           id="duplicate_service">
-            Duplicate Job
-        </a>
-    </li>
-    <li>
-        <a type="button" href="{% url 'waves:job_details' original.slug %}"
-           target="_blank"
-           title="View online"
-           class="btn btn-high btn-info"
-           id="view_service">
-            View online
-        </a>
-    </li>
-    <li>
-        <a type="button"
-           onclick="javascript:if (confirm('Are you sure?')) window.location.href='{% url 'waves:job_cancel' original.pk %}'; "
-           target="_self"
-           title="Cancel Job"
-           class="btn btn-high btn-warning grp-button grp-delete-link"
-           id="duplicate_service">
-            Cancel this job
-        </a>
-    </li>
+    {% include 'admin/waves/job/_object_tools_items.html' %}
 {% endblock %}
 {% block submit_buttons_bottom %}
     <footer class="grp-module grp-submit-row grp-fixed-footer">

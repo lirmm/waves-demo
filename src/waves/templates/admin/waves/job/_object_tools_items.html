@@ -1,0 +1,26 @@
+<li>
+    <a type="button" href="{% url 'admin:waves_service_change' original.service.id %}"
+       title="View online"
+       class="btn btn-high btn-info"
+       id="view_service">
+        View service
+    </a>
+</li>
+<li>
+    <a type="button" href="{% url 'waves:job_details' original.slug %}"
+       title="View online"
+       class="btn btn-high btn-info"
+       id="view_online">
+        View online
+    </a>
+</li>
+<li>
+    <a type="button"
+       onclick="javascript:if (confirm('Are you sure?')) window.location.href='{% url 'waves:job_cancel' original.pk %}'; "
+       target="_self"
+       title="Cancel Job"
+       class="btn btn-high btn-warning grp-button grp-delete-link"
+       id="cancel_service">
+        Cancel this job
+    </a>
+</li>

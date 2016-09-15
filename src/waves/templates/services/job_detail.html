@@ -174,13 +174,24 @@
                     </div>
                     <div class="panel panel-default">
                         <div class="panel-body text-right">
-                            {% if user.is_staff %}
-                                <a class="btn btn-default" href="{% url 'admin:waves_job_change' job.id %}">Admin</a>
-                            {% endif %}
                             <a class="btn btn-primary" href="{% url 'waves:service_details' job.service.id %}">Back to service</a>
                             {% online_exec_button service=job.service label="New job"%}
                         </div>
                     </div>
+                    {% if user.is_staff %}
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title ">
+                                    <span class="text-primary">Admin</span>
+                                </h3>
+                            </div>
+                            <div class="panel-body text-right">
+                                <a class="btn btn-default" href="{% url 'admin:waves_job_change' job.id %}">Edit job</a>
+                                <a class="btn btn-default"
+                                    href="{% url 'admin:waves_service_change' job.service.id %}">Edit Service</a>
+                            </div>
+                        </div>
+                        {% endif %}
                 </div>
             </div>
         </div>
