@@ -456,7 +456,7 @@ class JobOutput(OrderAble, SlugAble, UrlMixin):
 class JobHistory(models.Model):
     class Meta:
         db_table = 'waves_job_history'
-        ordering = ['-timestamp']
+        ordering = ['-timestamp', '-status']
         unique_together = ('job', 'timestamp', 'status', 'is_admin')
 
     job = models.ForeignKey(Job,
