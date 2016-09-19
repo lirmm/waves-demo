@@ -13,7 +13,7 @@ if not env.bool('WAVES_ENV_LOADED', False):
     environ.Env.read_env(str(env_file_name))
 
 
-def get_setting(var, cast, default=environ.Env.NOTSET, override=False):
+def get_setting(var, cast, default=environ.Env.NOTSET, override=True):
     """
     Get setting var value from possible locations:
     - check in Django base settings.py
@@ -102,7 +102,7 @@ WAVES_LOG_ROOT = get_setting('WAVES_LOG_ROOT', str, default=join(dirname(setting
 # -- Galaxy server
 # Any default galaxy server (in case you manage only one :-))
 WAVES_GALAXY_URL = get_setting('WAVES_GALAXY_URL', str, default='http://127.0.0.1')
-WAVES_GALAXY_API_KEY = get_setting('WAVES_GALAXY_API_KEY', str, default='mock-api-key')
+WAVES_GALAXY_API_KEY = get_setting('WAVES_GALAXY_API_KEY', str, default='your-galaxy-default-api-key')
 WAVES_GALAXY_PORT = get_setting('WAVES_GALAXY_PORT', str, default='8080')
 # -- SGE cluster
 WAVES_SGE_CELL = get_setting('WAVES_SGE_CELL', str, default='all.q')

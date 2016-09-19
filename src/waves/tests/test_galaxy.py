@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 
 
 @override_settings(
-    WAVES_GALAXY_URL=waves.settings.WAVES_TEST_GALAXY_URL,
-    WAVES_GALAXY_API_KEY=waves.settings.WAVES_TEST_GALAXY_API_KEY,
-    WAVES_GALAXY_PORT=waves.settings.WAVES_TEST_GALAXY_PORT,
+    WAVES_GALAXY_URL=settings.WAVES_TEST_GALAXY_URL,
+    WAVES_GALAXY_API_KEY=settings.WAVES_TEST_GALAXY_API_KEY,
+    WAVES_GALAXY_PORT=settings.WAVES_TEST_GALAXY_PORT,
 )
 @test_util.skip_unless_galaxy()
 class GalaxyRunnerTestCase(TestBaseJobRunner):
@@ -29,9 +29,9 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
     # fixtures = ['users', 'test_services']
 
     def setUp(self):
-        self.adaptor = GalaxyJobAdaptor(init_params={'host': waves.settings.WAVES_TEST_GALAXY_URL,
-                                                     'port': waves.settings.WAVES_TEST_GALAXY_PORT,
-                                                     'app_key': waves.settings.WAVES_TEST_GALAXY_API_KEY})
+        self.adaptor = GalaxyJobAdaptor(init_params={'host': settings.WAVES_TEST_GALAXY_URL,
+                                                     'port': settings.WAVES_TEST_GALAXY_PORT,
+                                                     'app_key': settings.WAVES_TEST_GALAXY_API_KEY})
         super(GalaxyRunnerTestCase, self).setUp()
         self.gi = bioblend.galaxy.objects.galaxy_instance.GalaxyInstance(url=self.adaptor.complete_url,
                                                                          api_key=self.adaptor.app_key)

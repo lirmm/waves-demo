@@ -37,9 +37,9 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
     - library_dir: remote library dir, where to place files in order to create galaxy histories
     """
 
-    host = waves.settings.WAVES_GALAXY_URL
-    port = waves.settings.WAVES_GALAXY_PORT
-    app_key = waves.settings.WAVES_GALAXY_API_KEY
+    host = settings.WAVES_GALAXY_URL
+    port = settings.WAVES_GALAXY_PORT
+    app_key = settings.WAVES_GALAXY_API_KEY
     library_dir = ""
     remote_tool_id = None
     importer_clazz = 'waves.adaptors.importer.galaxy.GalaxyToolImporter'
