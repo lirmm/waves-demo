@@ -24,37 +24,30 @@ def treat_queue_jobs():
             runner = job.adaptor
             logger.debug('[Runner]-------\n%s\n----------------', runner.dump_config())
             try:
+                job.check_send_mail()
                 logger.info("Launching Job %s (adaptor:%s)", job, runner)
                 if job.status == const.JOB_CREATED:
-                    job.check_send_mail()
                     runner.prepare_job(job=job)
-                    job.nb_retry = 0
                     logger.info("[PrepareJob] %s (adaptor:%s)", job, runner)
                 elif job.status == const.JOB_PREPARED:
                     logger.info("[LaunchJob] %s (adaptor:%s)", job, runner)
                     runner.run_job(job)
-                    job.nb_retry = 0
                 else:
                     runner.job_status(job)
-                    # job.nb_retry = 0
                     if job.status == const.JOB_COMPLETED:
                         runner.job_results(job)
                         logger.info("[ResultJob] %s (adaptor:%s)", job, runner)
                         runner.job_run_details(job)
-                        job.nb_retry = 0
                     logger.debug("[RunningJobStatus] %s (adaptor:%s)", job.get_status_display(), runner)
             except Exception as e:
                 logger.error("Error Job %s (adaptor:%s-state:%s): %s", job, runner, job.get_status_display(), e.message)
-                job.job_history.add(JobAdminHistory.objects.create(job=job, status=const.JOB_ERROR, message=e.message))
-                job.nb_retry += 1
                 if job.nb_retry >= waves.settings.WAVES_JOBS_MAX_RETRY:
-                    job.status = const.JOB_CANCELLED
-                    job.message = 'Job Automatically Cancelled (max retry reached) \n%s' % e.message
+                    job.status = const.JOB_ERROR
+                    job.message = 'Job cancelled (to many errors) \n%s' % e.message
                 break
             finally:
                 logger.info("Queue job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
                 job.save()
-                job.check_send_mail()
                 runner.disconnect()
         logger.info('go to sleep for 10 seconds')
         time.sleep(10)

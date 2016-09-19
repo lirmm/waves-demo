@@ -14,7 +14,9 @@ from ipware.ip import get_real_ip
 
 import waves.const
 import waves.settings
-from waves.models import Job, JobHistory, Service, ServiceInputSample, ServiceInput, ServiceSubmission
+from waves.models.jobs import Job, JobHistory
+from waves.models.samples import ServiceInputSample
+from waves.models.services import *
 from waves.models.profiles import APIProfile, profile_directory
 logger = logging.getLogger(__name__)
 
@@ -46,8 +48,8 @@ def job_delete_handler(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Service)
 def service_input_files_delete(sender, instance, **kwargs):
-    if os.path.exists(os.path.join(waves.settings.WAVES_SAMPLE_DIR, instance.api_name)):
-        shutil.rmtree(os.path.join(waves.settings.WAVES_SAMPLE_DIR, instance.api_name))
+    if os.path.exists(os.path.join(settings.WAVES_SAMPLE_DIR, instance.api_name)):
+        shutil.rmtree(os.path.join(settings.WAVES_SAMPLE_DIR, instance.api_name))
 
 
 @receiver(post_delete, sender=ServiceInputSample)
@@ -64,7 +66,7 @@ def service_input_delete(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Service)
 def service_create_signal(sender, instance, created, **kwargs):
-    sample_dir = os.path.join(waves.settings.WAVES_SAMPLE_DIR, instance.api_name)
+    sample_dir = os.path.join(settings.WAVES_SAMPLE_DIR, instance.api_name)
     if created and not os.path.isdir(sample_dir):
         os.makedirs(sample_dir)
         instance.submissions.add(ServiceSubmission.objects.create(service=instance,

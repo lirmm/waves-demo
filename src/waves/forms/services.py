@@ -25,7 +25,7 @@ class ServiceSubmissionForm(forms.ModelForm):
     email = forms.EmailField(label="Mail me results", required=False)
 
     def __init__(self, *args, **kwargs):
-        parent_form = kwargs.pop('parent')
+        parent_form = kwargs.pop('parent', None)
         super(ServiceSubmissionForm, self).__init__(*args, **kwargs)
         # print 'Is Bound', self.is_bound
         self.helper = self.get_helper(form_tag=True)
@@ -93,18 +93,18 @@ class ServiceSubmissionForm(forms.ModelForm):
     def clean(self):
         # print "in clean"
         cleaned_data = super(ServiceSubmissionForm, self).clean()
-        print cleaned_data
+        # print cleaned_data
         validator = ServiceInputValidator()
         for data in copy.copy(cleaned_data):
-            print "data", data
+            # print "data", data
 
             srv_input = next((x for x in self.list_inputs if x.name == data), None)
             sample_selected = False
-            print "srv_input ", srv_input
+            # print "srv_input ", srv_input
             if srv_input:
                 # posted data correspond to a expected input for service
                 posted_data = cleaned_data.get(srv_input.name)
-                print 'posted ', posted_data
+                # print 'posted ', posted_data
                 if srv_input.type == waves.const.TYPE_FILE:
                     if srv_input.input_samples.count() > 0:
                         for input_sample in srv_input.input_samples.all():

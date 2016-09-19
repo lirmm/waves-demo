@@ -28,7 +28,7 @@ class ServiceParamImportView(FormView):
     tool_list = ()
 
     def get_context_data(self, **kwargs):
-        print 'get context'
+        # print 'get context'
         context = super(ServiceParamImportView, self).get_context_data(**kwargs)
         context['service_id'] = self.service.pk
         return context

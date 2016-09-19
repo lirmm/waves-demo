@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import saga
 import os
 
-import pickle
+
 import logging
 
 from waves.adaptors.runner import JobRunnerAdaptor
@@ -28,8 +28,6 @@ class ShellJobAdaptor(JobRunnerAdaptor):
     def __init__(self, **kwargs):
         super(ShellJobAdaptor, self).__init__(**kwargs)
         self._environ = os.environ.copy()
-        # current job Description
-        self._jd = None
         # current job service
         # self._connector = saga.job.Service(self.saga_host)
         self._states_map = {
@@ -62,18 +60,6 @@ class ShellJobAdaptor(JobRunnerAdaptor):
         self._connector = saga.job.Service(str(self.saga_host), session=self.session)
         self._connected = self._connector is not None
 
-    def __load_job_description(self, job):
-        with open(os.path.join(job.working_dir, 'job_description.p'), 'r') as fp:
-            jd_dict = pickle.load(fp)
-        self._jd = saga.job.Description()
-        for key in jd_dict.keys():
-            setattr(self._jd, key, jd_dict[key])
-        return self._jd
-
-    def __dump_job_description(self, job, job_description):
-        with open(os.path.join(job.working_dir, 'job_description.p'), 'w+') as fp:
-            pickle.dump(job_description, fp)
-
     def _job_description(self, job):
         return dict(working_directory=job.working_dir,
                     executable=self.command,
@@ -81,6 +67,13 @@ class ShellJobAdaptor(JobRunnerAdaptor):
                     output=os.path.join(job.output_dir, job.stdout),
                     error=os.path.join(job.output_dir, job.stderr)
                     )
+
+    def _load_job_description(self, job):
+        jd_dict = super(ShellJobAdaptor, self)._load_job_description(job)
+        jd = saga.job.Description()
+        for key in jd_dict.keys():
+            setattr(jd, key, jd_dict[key])
+        return jd
 
     @property
     def init_params(self):
@@ -92,7 +85,7 @@ class ShellJobAdaptor(JobRunnerAdaptor):
         self._connected = False
 
     def _prepare_job(self, job):
-        self.__dump_job_description(job, self._job_description(job))
+        self._dump_job_description(job, self._job_description(job))
 
     def _run_job(self, job):
         """
@@ -100,7 +93,7 @@ class ShellJobAdaptor(JobRunnerAdaptor):
         Args:
             job:
         """
-        jd = self.__load_job_description(job)
+        jd = self._load_job_description(job)
         logger.debug('JobInfo %s %s', jd, jd.__class__.__name__)
         new_job = self._connector.create_job(jd)
         new_job.run()

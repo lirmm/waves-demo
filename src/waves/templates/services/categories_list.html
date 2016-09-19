@@ -1,5 +1,5 @@
 {% extends "services/base.html" %}
-{%  load waves_tags %}
+{% load waves_tags %}
 {% block container %}
     <div id="sec1" class="text-page">
         <div class="container">
@@ -28,7 +28,19 @@
                                         {{ service.name }} - {{ service.version }}
                                     </a>
                                 </h4>
-                                <p class="list-group-item-text">{{ service.short_description }}</p>
+                                {% if user.is_staff %}
+                                    <hr/>
+                                    <p class="list-group-item-text">
+                                        Created by: {{ service.created_by.name }}<br/>
+                                        Current Status: {{ service.get_status_display }}
+                                    <p class="text-right">
+                                        <a class="btn btn-default" href="{% url 'admin:waves_service_change' service.id %}">Admin</a>
+                                    </p>
+                                    <hr/>
+                                    </p>
+                                {% endif %}
+                                <p class="list-group-item-text">
+                                    {{ service.short_description|default:service.description|truncatechars:200 }}</p>
                                 <p class="text-right">
                                     Released {{ service.created }}<br/>
                                     Last update {{ service.updated }}

@@ -47,8 +47,10 @@ SECRET_KEY = env.str('SECRET_KEY')
 DATABASES = {
     'default': env.db(default='sqlite:///' + BASE_DIR + '/waves/db/waves.sample.sqlite3'),
 }
+
 if 'test' in sys.argv:
-    DATABASES['default'] = {'ENGINE': 'django.db.backends.sqlite3'}
+    DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
+
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 REGISTRATION_SALT = env.str('REGISTRATION_SALT')
 # Django countries configuration
@@ -66,20 +68,20 @@ SAGA_LOG_LEVEL = env.str('SAGA_LOG_LEVEL', default=ROOT_LOG_LEVEL)
 
 # Application definition
 INSTALLED_APPS = (
-    'polymorphic',
     'django.contrib.contenttypes',
     'django.contrib.auth',
-    'jquery_ui',
     'authtools',
-    'tabbed_admin',
     'grappelli',
     'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'jquery_ui',
+    'tabbed_admin',
     # WAVES required dependencies
     # 'django-log-file-viewer',
+    'polymorphic',
     'smart_selects',
     'mptt',
     'eav',
@@ -107,6 +109,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+
+
 
 ROOT_URLCONF = 'waves_services.urls'
 

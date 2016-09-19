@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import logging
 import sys
 
-__all__ = ['RunnerException', 'RunnerNotInitialized', 'RunnerNotReady', 'RunnerConnectionError',
+__all__ = ['WavesException', 'RunnerException', 'RunnerNotInitialized', 'RunnerNotReady', 'RunnerConnectionError',
            'JobException', 'JobInconsistentStateError', 'JobMissingMandatoryParam', 'JobPrepareException',
            'JobRunException', 'JobSubmissionException', 'JobCreateException', 'RunnerUnexpectedInitParam']
 if sys.version_info[0] < 3:
@@ -59,9 +59,6 @@ class JobException(WavesException):
     """
     def __init__(self, message, job=None):
         super(JobException, self).__init__(message)
-        if job is not None:
-            from waves.models.jobs import JobAdminHistory
-            JobAdminHistory.objects.create(job=job, message=self.message, status=job.status)
 
 
 class JobRunException(JobException):

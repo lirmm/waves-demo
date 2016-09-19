@@ -19,7 +19,6 @@
         });
         // $('.has-popover').popover({'trigger': 'hover'});
         $('.js-popup-link').click(function (e) {
-            console.log('Clicked on js-popup-link');
             e.preventDefault();
             $('#popup_modal').dialog({
                 modal: true,
@@ -31,7 +30,6 @@
             }).dialog('open').load(this.href)
         });
         $('#launch_import').click(function () {
-            console.log("Click called ! ");
             $('#form-modal-body').load('/launch_import/', function () {
                 $('#form-modal').modal('toggle');
             });

@@ -17,7 +17,7 @@ class ServiceManager(models.Manager):
         """
         Returns:
         """
-        if user is not None and (user.is_superuser or user.is_staff):
+        if user is not None:
             if user.is_superuser:
                 # Super user has access to 'all' services / submissions etc...
                 queryset = self.all()
@@ -30,7 +30,7 @@ class ServiceManager(models.Manager):
             else:
                 # Simply registered user have access only to "Public" and configured restricted access
                 queryset = self.filter(
-                    Q(status=waves.const.SRV_RESTRICTED, restricted_client__in=user) |
+                    Q(status=waves.const.SRV_RESTRICTED, restricted_client__in=(user.profile,)) |
                     Q(status=waves.const.SRV_PUBLIC)
                 )
         # Non logged in user have only access to public services

@@ -372,8 +372,8 @@ class Service(TimeStampable, DescribeAble, ApiAble):
             destination = service_sample_directory(srv_sample, os.path.basename(srv_sample.file.name))
 
             logger.debug('copy from %s to %s : %s ', srv_sample.file.path,
-                         waves.settings.WAVES_SAMPLE_DIR + '/' + self.api_name, destination)
-            shutil.copy(srv_sample.file.path, waves.settings.WAVES_SAMPLE_DIR + '/' + self.api_name)
+                         settings.WAVES_SAMPLE_DIR + '/' + self.api_name, destination)
+            shutil.copy(srv_sample.file.path, settings.WAVES_SAMPLE_DIR + '/' + self.api_name)
             srv_sample.file = destination
             srv_sample.input = ServiceInput.objects.get(name=srv_sample.input.name, service__pk=old_pk)
             if srv_sample.dependent_input:
@@ -385,7 +385,7 @@ class Service(TimeStampable, DescribeAble, ApiAble):
 
     @property
     def sample_dir(self):
-        return os.path.join(waves.settings.WAVES_SAMPLE_DIR, self.api_name)
+        return os.path.join(settings.WAVES_SAMPLE_DIR, self.api_name)
 
     @property
     def url_js(self):
@@ -433,7 +433,9 @@ class Service(TimeStampable, DescribeAble, ApiAble):
         # RULES to set if user can access submissions
         return (self.status == waves.const.SRV_PUBLIC) or \
                (self.status == waves.const.SRV_DRAFT and self.created_by == user) or \
-               (self.status == waves.const.SRV_RESTRICTED and user.is_staff) or \
+               (self.status == waves.const.SRV_TEST and user.is_staff) or \
+               (self.status == waves.const.SRV_RESTRICTED and (
+               user.profile in self.restricted_client.all() or user.is_staff)) or \
                user.is_superuser
 
     def create_default_submission(self):
@@ -755,7 +757,6 @@ class ServiceOutputFromInputSubmission(models.Model):
     )
 
     def clean(self):
-
         super(ServiceOutputFromInputSubmission, self).clean()
         if self.srv_input and not (self.srv_input.mandatory or self.srv_input.default):
             raise ValidationError('Valuated output from non mandatory input with no default is not allowed')

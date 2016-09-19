@@ -14,7 +14,8 @@ if "celery" in sys.argv[0]:
     DEBUG = False
 # Django Debug Toolbar
 INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
-
+DEBUG404 = True
+ALLOWED_HOSTS = ['*'] # it works but not secure, so use
 
 LOGGING_CONFIG = None
 LOGGING = {

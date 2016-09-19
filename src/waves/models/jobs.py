@@ -23,6 +23,9 @@ RunJobInfo = namedtuple("RunJobInfo",
                         """jobId hasExited hasSignal terminatedSignal hasCoreDump
                            wasAborted exitStatus resourceUsage""")
 
+__all__ = ['allow_display_online', 'Job', 'JobInput', 'JobOutput', 'JobHistory', 'JobAdminHistory',
+           'JobAdminHistoryManager']
+
 
 # File size allowed to display online
 def allow_display_online(file_name):
@@ -146,7 +149,7 @@ class Job(TimeStampable, SlugAble, UrlMixin):
 
     @property
     def working_dir(self):
-        return os.path.join(waves.settings.WAVES_JOB_DIR, str(self.slug))
+        return os.path.join(settings.WAVES_JOB_DIR, str(self.slug))
 
     @property
     def adaptor(self):
@@ -453,7 +456,7 @@ class JobOutput(OrderAble, SlugAble, UrlMixin):
 class JobHistory(models.Model):
     class Meta:
         db_table = 'waves_job_history'
-        ordering = ['-timestamp']
+        ordering = ['-timestamp', '-status']
         unique_together = ('job', 'timestamp', 'status', 'is_admin')
 
     job = models.ForeignKey(Job,
@@ -488,6 +491,7 @@ class JobAdminHistoryManager(models.Manager):
 class JobAdminHistory(JobHistory):
     class Meta:
         proxy = True
+
     objects = JobAdminHistoryManager()
 
 

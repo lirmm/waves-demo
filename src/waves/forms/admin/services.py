@@ -25,7 +25,12 @@ class ServiceOutputFromInputSubmissionForm(ModelForm):
 
     # srv_input = AutoCompleteSelectField('related_input', required=True, help_text="Select related submission input")
     def clean(self):
-        return super(ServiceOutputFromInputSubmissionForm, self).clean()
+        cleaned_data = super(ServiceOutputFromInputSubmissionForm, self).clean()
+        # print "cleaned_data:", cleaned_data['srv_input'], cleaned_data['srv_input'].mandatory
+        # print "Current instance", self.instance, self.instance.submission
+        # print self.data
+        # print "In form : srv_input ", self.instance.srv_input, ", mandatory ", self.instance.srv_input.mandatory, ', default ', self.instance.srv_input.default
+        return cleaned_data
 
 
 class ServiceSubmissionForm(ModelForm):
@@ -146,8 +151,7 @@ class RelatedInputForm(ServiceInputBaseForm):
         widgets = ServiceInputBaseForm.Meta.widgets
 
     def save(self, commit=True):
-        # self.cleaned_data['service_id'] = self.instance.related_to.service.pk
-        # self.instance.service = self.instance.related_to.service
+        self.instance.service = self.instance.related_to.service
         return super(RelatedInputForm, self).save(commit)
 
     def __init__(self, *args, **kwargs):
@@ -167,7 +171,7 @@ class RelatedInputForm(ServiceInputBaseForm):
 class ServiceInputSampleForm(forms.ModelForm):
     class Meta:
         model = ServiceInputSample
-        fields = ['name', 'input', 'file', 'dependent_input', 'when_value']
+        fields = ['name', 'input', 'file']
 
 
 class ServiceOutputForm(forms.ModelForm):
@@ -187,17 +191,16 @@ class ServiceOutputForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(ServiceOutputForm, self).clean()
         return cleaned_data
-        print self.cleaned_data
+        # print self.cleaned_data
         count_related_input = self.instance.from_input_submission.count()
         submission_count = self.instance.service.submissions.count()
 
-        print "comparing ", count_related_input, submission_count
+        # print "comparing ", count_related_input, submission_count
         if self.instance.from_input and count_related_input < submission_count:
             raise ValidationError('If you set a pattern, please configure related input for each submission')
         if 0 < count_related_input < submission_count:
             raise ValidationError(
                 'If output is valuated from an input, please configure related input for each submission')
-
 
 
 class ServiceForm(forms.ModelForm):
@@ -228,7 +231,6 @@ class ServiceForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(ServiceForm, self).clean()
-        # TODO validate that for each submission setup, each 'valuated from input' output is set up accordingly
         return cleaned_data
 
 

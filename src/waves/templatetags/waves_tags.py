@@ -39,6 +39,7 @@ def register_for_api_button(context, service):
 
 
 @register.inclusion_tag('services/_online_execution.html', takes_context=True)
-def online_exec_button(context, service):
+def online_exec_button(context, service, label=None):
     return {'available_for_submission': service.available_for_user(context['user']),
+            'label': label,
             'service': service}

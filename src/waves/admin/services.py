@@ -37,6 +37,7 @@ class ServiceOutputFromInputFormset(BaseInlineFormSet):
             forms = [f for f in self.forms
                      if f.cleaned_data
                      and not f.cleaned_data.get('DELETE', False)]
+            # print "cleandformset ", self.instance.srv_input, ", mandatory ", self.instance.srv_input.mandatory, ', default ', self.instance.srv_input.default
             if self.instance.file_pattern and self.instance.from_input:
                 if len(forms) < self.instance.service.submissions.count():
                     raise ValidationError('You must setup an value for all possible submission')
@@ -53,6 +54,7 @@ class ServiceOutputFromInputFormset(BaseInlineFormSet):
 
 class ServiceOutputFromInputInline(nested_admin.NestedTabularInline):
     model = ServiceOutputFromInputSubmission
+    form = ServiceOutputFromInputSubmissionForm
     formset = ServiceOutputFromInputFormset
     fields = ['submission', 'srv_input', ]
     fk_name = 'srv_output'
@@ -123,13 +125,23 @@ class ServiceRunnerParamInLine(admin.TabularInline):
         return request.current_obj is not None
 
 
-class ServiceSampleInline(admin.TabularInline):
+class ServiceSampleDependentInputInline(GrappelliSortableHiddenMixin, admin.TabularInline):
+    model = ServiceSampleDependentsInput
+    fk_name = 'sample'
+    extra = 0
+    sortable_field_name = "order"
+
+
+class ServiceSampleInline(nested_admin.NestedTabularInline):
     model = ServiceInputSample
     form = ServiceInputSampleForm
     extra = 0
     fk_name = 'service'
     is_nested = False
     verbose_name_plural = "Service sample ('input' apply only to 'default' submission params)"
+    inlines = [
+        ServiceSampleDependentInputInline
+    ]
 
     def get_field_queryset(self, db, db_field, request):
         field_queryset = super(ServiceSampleInline, self).get_field_queryset(db, db_field, request)
@@ -291,13 +303,13 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
     def save_model(self, request, obj, form, change):
         if not obj.created_by:
             obj.created_by = request.user
-        if obj.submissions.count() == 0:
-            obj.create_default_submission()
+        super(ServiceAdmin, self).save_model(request, obj, form, change)
         if 'run_on' in form.changed_data and obj is not None:
             if obj.runner_params is not None:
                 obj.runner_params.through.objects.filter(service=obj).delete()
                 obj.set_default_params_4_runner(form.cleaned_data['run_on'])
-        super(ServiceAdmin, self).save_model(request, obj, form, change)
+        if obj.submissions.count() == 0:
+            obj.create_default_submission()
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == 'run_on':

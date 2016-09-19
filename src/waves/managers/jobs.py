@@ -12,13 +12,10 @@ class JobManager(models.Manager):
         return self.all().values()
 
     def get_user_job(self, user):
-        # TODO manage authorizations
-        try:
-            admin_group = Group.objects.get(name=waves.const.WAVES_GROUP_ADMIN)
-        except Group.DoesNotExist:
-            admin_group = None
-        if user.is_superuser or admin_group in user.groups.all():
+        if user.is_superuser:
             return self.all()
+        if user.is_staff:
+            return self.filter(Q(service__created_by=user) | Q(client=user) | Q(email_to=user.email))
         # return self.filter(Q(client=user) | Q(email_to=user.email))
         return self.filter(client=user)
 

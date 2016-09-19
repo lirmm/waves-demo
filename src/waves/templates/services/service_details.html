@@ -65,18 +65,31 @@
                         {% endfor %}
                     </div>
                     {% block job_submission %}
-                        {% if service.available_for_submission %}
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title ">
-                                <span class="text-primary">Online execution</span>
-                            </h3>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title ">
+                                    <span class="text-primary">Online execution</span>
+                                </h3>
+                            </div>
+                            <div class="panel-body text-right">
+                                {% register_for_api_button service=service %}
+                                {% online_exec_button service=service %}
+                            </div>
                         </div>
-                        <div class="panel-body text-right">
-                            {% register_for_api_button service=service %}
-                            {% online_exec_button service=service %}
+                        {% if user.is_staff %}
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title ">
+                                    <span class="text-primary">Admin</span>
+                                </h3>
+                            </div>
+                            <div class="panel-body text-right">
+                                <a class="btn btn-default"
+                                    href="{% url 'admin:waves_service_change' service.id %}">Edit Service</a>
+                                <a class="btn btn-default"
+                                    href="{% url 'admin:waves_job_changelist' %}?service__id__exact={{ service.id }}">View jobs</a>
+                            </div>
                         </div>
-                    </div>
                         {% endif %}
                     {% endblock %}
                 {% endblock service_cold %}

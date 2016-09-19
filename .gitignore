@@ -81,3 +81,4 @@ local.env
 waves.env
 default_profile.png.*
 /docs/_build/
+/tests/data/

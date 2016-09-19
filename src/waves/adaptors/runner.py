@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 import waves.const
 from waves.exceptions import *
 from waves.models import Job
+from waves.models.jobs import JobAdminHistory
 
 import logging
 
@@ -56,7 +57,7 @@ class JobRunnerAdaptor(object):
             try:
                 self._connect()
             except Exception as exc:
-                logger.fatal(self.dump_config())
+                logger.error(self.dump_config())
                 self._connected = False
                 raise RunnerConnectionError(str(exc), 'Connect')
             finally:
@@ -96,7 +97,16 @@ class JobRunnerAdaptor(object):
                 self.connect()
             self._prepare_job(job)
             job.status = waves.const.JOB_PREPARED
+            job.nb_retry = 0
             logger.info('Job %s prepared', job.slug)
+        except WavesException as exc:
+            job.nb_retry += 1
+            JobAdminHistory.objects.create(job=job, message=exc.message, status=job.status)
+            raise JobPrepareException('Prepare error:[%s] %s' %
+                                      (exc.__class__.__name__, str(exc)))
+        except NotImplementedError as exc:
+            job.status = waves.const.JOB_ERROR
+            job.message = "Current runner do not implements required method '_prepare_job()'"
         except Exception as exc:
             job.status = waves.const.JOB_ERROR
             raise JobPrepareException('Prepare error:[%s] %s' %
@@ -116,7 +126,16 @@ class JobRunnerAdaptor(object):
                 raise RunnerNotReady()
             self._run_job(job)
             job.status = waves.const.JOB_QUEUED
+            job.nb_retry = 0
             logger.info('Job %s queued', job.slug)
+        except WavesException as exc:
+            job.nb_retry += 1
+            JobAdminHistory.objects.create(job=job, message=exc.message, status=job.status)
+            raise JobRunException('Run error:[%s] %s' %
+                                  (exc.__class__.__name__, str(exc)))
+        except NotImplementedError as exc:
+            job.status = waves.const.JOB_ERROR
+            job.message = "Current runner do not implements required method '_run_job()'"
         except Exception as exc:
             job.status = waves.const.JOB_ERROR
             raise JobRunException('Run job error: %s: %s' %
@@ -140,7 +159,16 @@ class JobRunnerAdaptor(object):
                 raise RunnerNotReady()
             self._cancel_job(job)
             job.status = waves.const.JOB_CANCELLED
+            job.nb_retry = 0
             logger.info('Job %s cancelled ', job.slug)
+        except WavesException as exc:
+            job.nb_retry += 1
+            JobAdminHistory.objects.create(job=job, message=exc.message, status=job.status)
+            raise JobException('Cancel error:[%s] %s' %
+                               (exc.__class__.__name__, str(exc)))
+        except NotImplementedError as exc:
+            job.status = waves.const.JOB_ERROR
+            job.message = "Current runner do not implements required method '_cancel_job()'"
         except Exception as exc:
             logger.error('Cancel job %s not applied to adaptor %s', job.pk, job.service.run_on)
             job.message = 'Could not cancel job'
@@ -167,6 +195,15 @@ class JobRunnerAdaptor(object):
             job.status = self.__map_status(self._job_status(job))
             if job.status == waves.const.JOB_COMPLETED:
                 self.job_results(job)
+            job.nb_retry = 0
+        except WavesException as exc:
+            job.nb_retry += 1
+            JobAdminHistory.objects.create(job=job, message=exc.message, status=job.status)
+            raise JobException('Retrieve status error:[%s] %s' %
+                               (exc.__class__.__name__, str(exc)))
+        except NotImplementedError:
+            job.status = waves.const.JOB_ERROR
+            job.message = "Current runner do not implements required method '_job_status()'"
         except Exception as exc:
             job.status = waves.const.JOB_ERROR
             raise JobRunException('Run job error:\n%s: %s' %
@@ -188,11 +225,25 @@ class JobRunnerAdaptor(object):
             if not job.results_available:
                 # actually retrieve outputs
                 job.results_available = self._job_results(job)
+                job.nb_retry = 0
             else:
                 # TODO do something with results ?
                 pass
-        except JobException as e:
+        except JobException:
+            job.nb_retry += 1
             job.status = waves.const.JOB_UNDEFINED
+        except WavesException as exc:
+            job.nb_retry += 1
+            JobAdminHistory.objects.create(job=job, message=exc.message, status=job.status)
+            raise JobException('Cancel error:[%s] %s' %
+                               (exc.__class__.__name__, str(exc)))
+        except NotImplementedError:
+            job.status = waves.const.JOB_ERROR
+            job.message = "Current runner do not implements required method '_job_results()'"
+        except Exception as exc:
+            job.status = waves.const.JOB_ERROR
+            raise JobRunException('Job status error:\n%s: %s' %
+                                  (exc.__class__.__name__, str(exc)))
         finally:
             if job.results_available:
                 job.status = waves.const.JOB_TERMINATED
@@ -206,11 +257,21 @@ class JobRunnerAdaptor(object):
         details = None
         try:
             self._job_run_details(job)
+            job.status = waves.const.JOB_TERMINATED
+            job.nb_retry = 0
+        except WavesException as exc:
+            job.nb_retry += 1
+            JobAdminHistory.objects.create(job=job, message=exc.message, status=job.status)
+            raise JobException('RunDetails error:[%s] %s' %
+                               (exc.__class__.__name__, str(exc)))
+        except NotImplementedError:
+            job.status = waves.const.JOB_ERROR
+            job.message = "Current runner do not implements required method '_job_run_details()'"
         except Exception as exc:
+            job.status = waves.const.JOB_ERROR
             job.message('Error retrieving job details:\n%s:%s' %
                         (exc.__class__.__name__, str(exc)))
         finally:
-            job.status = waves.const.JOB_TERMINATED
             job.save()
         return details
 
@@ -266,10 +327,23 @@ class JobRunnerAdaptor(object):
     def _ready(self):
         return self._initialized
 
+    def _dump_job_description(self, job, job_description):
+        import pickle
+        import os
+        with open(os.path.join(job.working_dir, 'job_description.p'), 'w+') as fp:
+            pickle.dump(job_description, fp)
+
+    def _load_job_description(self, job):
+        import pickle
+        import os
+        with open(os.path.join(job.working_dir, 'job_description.p'), 'r') as fp:
+            jd_dict = pickle.load(fp)
+        return jd_dict
+
     def importer(self, for_service=None):
         from django.utils.module_loading import import_string
         if self.importer_clazz:
-            print "importerclazz", self.importer_clazz
+            # print "importerclazz", self.importer_clazz
             importer = import_string(self.importer_clazz)
             if for_service:
                 return importer(self, service=for_service)

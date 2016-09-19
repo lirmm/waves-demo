@@ -13,11 +13,13 @@ from waves.models import Runner, Service, Job, JobOutput, JobInput
 from waves.adaptors.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor
 
 logger = logging.getLogger(__name__)
-waves.settings.WAVES_GALAXY_URL = waves.settings.WAVES_TEST_GALAXY_URL
-waves.settings.WAVES_GALAXY_API_KEY = waves.settings.WAVES_TEST_GALAXY_API_KEY
-waves.settings.WAVES_GALAXY_PORT = waves.settings.WAVES_TEST_GALAXY_PORT
 
 
+@override_settings(
+    WAVES_GALAXY_URL=waves.settings.WAVES_TEST_GALAXY_URL,
+    WAVES_GALAXY_API_KEY=waves.settings.WAVES_TEST_GALAXY_API_KEY,
+    WAVES_GALAXY_PORT=waves.settings.WAVES_TEST_GALAXY_PORT,
+)
 @test_util.skip_unless_galaxy()
 class GalaxyRunnerTestCase(TestBaseJobRunner):
     # This is fixture:
@@ -40,6 +42,9 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
         logger.info('WAVES_GALAXY_URL: %s', waves.settings.WAVES_GALAXY_URL)
         logger.info('WAVES_GALAXY_API_KEY: %s', waves.settings.WAVES_GALAXY_API_KEY)
         logger.info('WAVES_GALAXY_PORT: %s', waves.settings.WAVES_GALAXY_PORT)
+        logger.info('WAVES_GALAXY_URL(settings): %s', settings.WAVES_GALAXY_URL)
+        logger.info('WAVES_GALAXY_API_KEY(settings): %s', settings.WAVES_GALAXY_API_KEY)
+        logger.info('WAVES_GALAXY_PORT(settings): %s', settings.WAVES_GALAXY_PORT)
 
     def test_list_galaxy_tools(self):
         """
@@ -47,7 +52,7 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
         Returns:
 
         """
-        print 'test', self.adaptor
+        # print 'test', self.adaptor
         tools = self.adaptor.importer().list_all_remote_services()
         logger.debug('Retrieved tools %s', tools)
         self.assertGreater(len(tools), 0)
@@ -89,77 +94,74 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
                                                           value=output_info.value))
         self.runJobWorkflow()
 
+    @test_util.skip_unless_tool("physic_ist")
+    def test_import_Physic_IST(self):
+        tool_client = bioblend.galaxy.objects.client.ObjToolClient(self.gi)
+        physic_ist = tool_client.list(name='Compute supertrees')
+        self.assertTrue(len(physic_ist) > 0)
+        self._import_tool_from_service(physic_ist[0].id)
 
-@test_util.skip_unless_tool("physic_ist")
-def test_import_Physic_IST(self):
-    tool_client = bioblend.galaxy.objects.client.ObjToolClient(self.gi)
-    physic_ist = tool_client.list(name='Compute supertrees')
-    self.assertTrue(len(physic_ist) > 0)
-    self._import_tool_from_service(physic_ist[0].id)
+    def test_job_retrieve(self):
+        # TODO complete test
+        job_client = bioblend.galaxy.jobs.JobsClient(self.gi.gi)
+        jobs = job_client.get_jobs()
+        for job in jobs[0:1]:
+            details = job_client.show_job(job_id=job['id'], full_details=True)
 
+    def test_galaxy(self):
+        # TODO complete test
+        import waves.adaptors.galaxy
+        try:
 
-def test_job_retrieve(self):
-    # TODO complete test
-    job_client = bioblend.galaxy.jobs.JobsClient(self.gi.gi)
-    jobs = job_client.get_jobs()
-    for job in jobs[0:1]:
-        details = job_client.show_job(job_id=job['id'], full_details=True)
+            all_galaxy_jobs = Job.objects \
+                .get_created_job(extra_filter={'service__run_on__clazz': 'waves.adaptors.GalaxyJobAdaptor'})
 
+            for job in all_galaxy_jobs:
+                self.assertIsInstance(job, Job)
+                job.make_job_dirs()
 
-def test_galaxy(self):
-    # TODO complete test
-    import waves.adaptors.galaxy
-    try:
-
-        all_galaxy_jobs = Job.objects \
-            .get_created_job(extra_filter={'service__run_on__clazz': 'waves.adaptors.GalaxyJobAdaptor'})
-
-        for job in all_galaxy_jobs:
-            self.assertIsInstance(job, Job)
-            job.make_job_dirs()
-
-            logger.debug(u'Job retrieved:' + str(job))
-            service = job.service
-            runner = self.adaptor
-            run_params = job.service.run_params()
-            runner.remote_tool_id = run_params['remote_tool_id']
-            logger.debug(u'Runner retrieved: %s %s ', runner, runner.init_params)
-            logger.debug(runner._dump_config())
-            self.assertIsInstance(runner, waves.adaptors.galaxy.GalaxyJobAdaptor)
-            runner.connect()
-            self.assertTrue(runner._ready())
-            runner.prepare_job(job)
-            logger.debug('Related history id %s', job.eav.galaxy_history_id)
-            self.assertTrue(job.status == const.JOB_PREPARED)
-            runner.remote_tool_id = service.service_run_params.get(param__name='remote_tool_id').value
-            job_id = runner.run_job(job)
-            self.assertTrue(job.status == const.JOB_QUEUED)
-            status = runner.job_status(job)
-            while status < const.JOB_COMPLETED:
+                logger.debug(u'Job retrieved:' + str(job))
+                service = job.service
+                runner = self.adaptor
+                run_params = job.service.run_params()
+                runner.remote_tool_id = run_params['remote_tool_id']
+                logger.debug(u'Runner retrieved: %s %s ', runner, runner.init_params)
+                logger.debug(runner._dump_config())
+                self.assertIsInstance(runner, waves.adaptors.galaxy.GalaxyJobAdaptor)
+                runner.connect()
+                self.assertTrue(runner._ready())
+                runner.prepare_job(job)
+                logger.debug('Related history id %s', job.eav.galaxy_history_id)
+                self.assertTrue(job.status == const.JOB_PREPARED)
+                runner.remote_tool_id = service.service_run_params.get(param__name='remote_tool_id').value
+                job_id = runner.run_job(job)
+                self.assertTrue(job.status == const.JOB_QUEUED)
                 status = runner.job_status(job)
-                time.sleep(2)
-                logger.info(u'const. : ' + str(job.get_status_display()))
-            self.assertTrue(job.status == const.JOB_COMPLETED)
-            results = runner.job_results(job)
-            self.assertEquals(len(results), len(job.job_outputs.all()))
-            for job_output in results:
-                self.assertIsInstance(job_output, JobOutput)
-                logger.debug('Current result %s ', job_output.file_path)
-                self.assertTrue(os.path.isfile(str(job_output.file_path)))
-    except Runner.DoesNotExist, Service.DoesNotExist:
-        logger.warn(u'Object does not exists')
+                while status < const.JOB_COMPLETED:
+                    status = runner.job_status(job)
+                    time.sleep(2)
+                    logger.info(u'const. : ' + str(job.get_status_display()))
+                self.assertTrue(job.status == const.JOB_COMPLETED)
+                results = runner.job_results(job)
+                self.assertEquals(len(results), len(job.job_outputs.all()))
+                for job_output in results:
+                    self.assertIsInstance(job_output, JobOutput)
+                    logger.debug('Current result %s ', job_output.file_path)
+                    self.assertTrue(os.path.isfile(str(job_output.file_path)))
+        except Runner.DoesNotExist, Service.DoesNotExist:
+            logger.warn(u'Object does not exists')
 
 
-def tearDown(self):
-    """
-    Delete created histories on remote Galaxy server after classic tearDown
-    Returns:
-        None
-    """
-    super(GalaxyRunnerTestCase, self).tearDown()
-    for history in self.gi.histories.list():
-        logger.debug('Deleting history %s:%s ', history.name, history.id)
-        self.gi.histories.delete(history.id, purge=self.gi.gi.config.get_config()['allow_user_dataset_purge'])
+    def tearDown(self):
+        """
+        Delete created histories on remote Galaxy server after classic tearDown
+        Returns:
+            None
+        """
+        super(GalaxyRunnerTestCase, self).tearDown()
+        for history in self.gi.histories.list():
+            logger.debug('Deleting history %s:%s ', history.name, history.id)
+            self.gi.histories.delete(history.id, purge=self.gi.gi.config.get_config()['allow_user_dataset_purge'])
 
 
 @test_util.skip_unless_galaxy()

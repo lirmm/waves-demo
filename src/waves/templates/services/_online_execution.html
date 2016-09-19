@@ -1,6 +1,6 @@
 {% if available_for_submission %}
     <a class="btn btn-primary" href="{% url 'waves:job_submission' service.id %}">
-        Online execution</a>
+        {% if label %}{{ label }}{% else %}Online execution{% endif %}</a>
 {% else %}
     <div class="alert alert-warning text-center">
         <i>Submission is not available at the moment</i>
