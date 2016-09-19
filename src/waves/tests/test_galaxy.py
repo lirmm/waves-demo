@@ -13,11 +13,13 @@ from waves.models import Runner, Service, Job, JobOutput, JobInput
 from waves.adaptors.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor
 
 logger = logging.getLogger(__name__)
-waves.settings.WAVES_GALAXY_URL = waves.settings.WAVES_TEST_GALAXY_URL
-waves.settings.WAVES_GALAXY_API_KEY = waves.settings.WAVES_TEST_GALAXY_API_KEY
-waves.settings.WAVES_GALAXY_PORT = waves.settings.WAVES_TEST_GALAXY_PORT
 
 
+@override_settings(
+    WAVES_GALAXY_URL=waves.settings.WAVES_TEST_GALAXY_URL,
+    WAVES_GALAXY_API_KEY=waves.settings.WAVES_TEST_GALAXY_API_KEY,
+    WAVES_GALAXY_PORT=waves.settings.WAVES_TEST_GALAXY_PORT,
+)
 @test_util.skip_unless_galaxy()
 class GalaxyRunnerTestCase(TestBaseJobRunner):
     # This is fixture:
@@ -40,6 +42,9 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
         logger.info('WAVES_GALAXY_URL: %s', waves.settings.WAVES_GALAXY_URL)
         logger.info('WAVES_GALAXY_API_KEY: %s', waves.settings.WAVES_GALAXY_API_KEY)
         logger.info('WAVES_GALAXY_PORT: %s', waves.settings.WAVES_GALAXY_PORT)
+        logger.info('WAVES_GALAXY_URL(settings): %s', settings.WAVES_GALAXY_URL)
+        logger.info('WAVES_GALAXY_API_KEY(settings): %s', settings.WAVES_GALAXY_API_KEY)
+        logger.info('WAVES_GALAXY_PORT(settings): %s', settings.WAVES_GALAXY_PORT)
 
     def test_list_galaxy_tools(self):
         """

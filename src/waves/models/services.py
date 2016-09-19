@@ -372,8 +372,8 @@ class Service(TimeStampable, DescribeAble, ApiAble):
             destination = service_sample_directory(srv_sample, os.path.basename(srv_sample.file.name))
 
             logger.debug('copy from %s to %s : %s ', srv_sample.file.path,
-                         waves.settings.WAVES_SAMPLE_DIR + '/' + self.api_name, destination)
-            shutil.copy(srv_sample.file.path, waves.settings.WAVES_SAMPLE_DIR + '/' + self.api_name)
+                         settings.WAVES_SAMPLE_DIR + '/' + self.api_name, destination)
+            shutil.copy(srv_sample.file.path, settings.WAVES_SAMPLE_DIR + '/' + self.api_name)
             srv_sample.file = destination
             srv_sample.input = ServiceInput.objects.get(name=srv_sample.input.name, service__pk=old_pk)
             if srv_sample.dependent_input:
@@ -385,7 +385,7 @@ class Service(TimeStampable, DescribeAble, ApiAble):
 
     @property
     def sample_dir(self):
-        return os.path.join(waves.settings.WAVES_SAMPLE_DIR, self.api_name)
+        return os.path.join(settings.WAVES_SAMPLE_DIR, self.api_name)
 
     @property
     def url_js(self):

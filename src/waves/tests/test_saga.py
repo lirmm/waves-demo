@@ -26,7 +26,7 @@ class SAGARunnerTestCase(TestBaseJobRunner):
         try:
             getattr(self, 'adaptor')
         except AttributeError:
-            self.runner = ShellJobAdaptor()
+            self.adaptor = ShellJobAdaptor()
         super(SAGARunnerTestCase, self).setUp()
 
     def _testBasicSagaLocalJob(self):
@@ -84,7 +84,7 @@ class SAGARunnerTestCase(TestBaseJobRunner):
             logger.error(" \n*** Backtrace:\n %s" % ex.traceback)
 
     def _prepare_hello_world(self):
-        self.runner.command = os.path.join(test_util.get_sample_dir(), 'services/hello_world.sh')
+        self.adaptor.command = os.path.join(test_util.get_sample_dir(), 'services/hello_world.sh')
         self.job = sample_job(self.service)
         self.job.job_inputs.add(JobInput.objects.create(job=self.job, value='Test Input 1', srv_input=None))
         self.job.job_inputs.add(JobInput.objects.create(job=self.job, value='Test Input 2', srv_input=None))
@@ -99,24 +99,26 @@ class SAGARunnerTestCase(TestBaseJobRunner):
     @test_util.skip_unless_tool('physic_ist')
     def testPhysicIST(self):
         jobs_params = self._loadServiceJobsParams(api_name='physic_ist')
-        self.runner.command = 'physic_ist'
+        self.adaptor.command = 'physic_ist'
+        # service_submission = self.service.default_submission
         for submitted_input in jobs_params:
-            self.job = ServiceJobManager.create_new_job(service=self.service, submitted_inputs=submitted_input)
+            self.job = ServiceJobManager.create_new_job(submission=self.service.default_submission,
+                                                        submitted_inputs=submitted_input)
             logger.debug('Job command line %s', self.job.command_line)
             self.assertTrue(self.runJobWorkflow())
 
     @test_util.skip_unless_tool('services/hello_world.sh')
     def testCancelJob(self):
         self._prepare_hello_world()
-        self.runner.prepare_job(self.job)
+        self.adaptor.prepare_job(self.job)
         self.assertEqual(self.job.status, waves.const.JOB_PREPARED)
-        self.runner.run_job(self.job)
+        self.adaptor.run_job(self.job)
         self.assertEqual(self.job.status, waves.const.JOB_QUEUED)
         for ix in range(30):
-            job_state = self.runner.job_status(self.job)
+            job_state = self.adaptor.job_status(self.job)
             logger.info(u'Current job state (%i) : %s ', ix, self.job.get_status_display())
             if job_state > waves.const.JOB_QUEUED:
-                self.runner.cancel_job(self.job)
+                self.adaptor.cancel_job(self.job)
                 break
             else:
                 time.sleep(1)
@@ -124,7 +126,7 @@ class SAGARunnerTestCase(TestBaseJobRunner):
 
     @test_util.skip_unless_tool('cp')
     def testSimpleCP(self):
-        self.runner.command = 'cp'
+        self.adaptor.command = 'cp'
         self.job = sample_job(self.service)
         self.job.job_inputs.add(JobInput.objects.create(job=self.job, srv_input=None,
                                                         value=os.path.join(get_sample_dir(),
@@ -139,7 +141,7 @@ class SAGARunnerTestCase(TestBaseJobRunner):
     @test_util.skip_unless_tool('fastme')
     @skip('Fastme test need refactoring\n')
     def testFastME(self):
-        self.runner.command = 'fastme'
+        self.adaptor.command = 'fastme'
         JobInput.objects.create(job=self.job, name="input_data", type=waves.const.TYPE_FILE,
                                 param_type=waves.const.OPT_TYPE_VALUATED,
                                 value=os.path.join(get_sample_dir(), 'fast_me', 'nucleic.phy'))
@@ -168,7 +170,7 @@ class SAGARunnerTestCase(TestBaseJobRunner):
 class SshRunnerTestCase(SAGARunnerTestCase):
     def setUp(self):
         try:
-            self.runner = SshUserPassJobAdaptor(init_params=dict(user_id=waves.settings.WAVES_TEST_SSH_USER_ID,
+            self.adaptor = SshUserPassJobAdaptor(init_params=dict(user_id=waves.settings.WAVES_TEST_SSH_USER_ID,
                                                                  user_pass=waves.settings.WAVES_TEST_SSH_USER_PASS,
                                                                  host=waves.settings.WAVES_TEST_SSH_HOST))
         except KeyError:
@@ -179,7 +181,7 @@ class SshRunnerTestCase(SAGARunnerTestCase):
 @test_util.skip_unless_sge()
 class SgeRunnerTestCase(SAGARunnerTestCase):
     def setUp(self):
-        self.runner = SGEJobAdaptor(init_params=dict(queue='mainqueue'))
+        self.adaptor = SGEJobAdaptor(init_params=dict(queue='mainqueue'))
         super(SgeRunnerTestCase, self).setUp()
 
     @test_util.skip_unless_tool('physic_ist')
@@ -191,7 +193,7 @@ class SgeRunnerTestCase(SAGARunnerTestCase):
 @skip('Not Yet implemented')
 class SgeSshRunnerTestCase(SAGARunnerTestCase):
     def setUp(self):
-        self.runner = SGEOverSSHAdaptor(init_params=dict(host='lamarck',
+        self.adaptor = SGEOverSSHAdaptor(init_params=dict(host='lamarck',
                                                          user_id='lefort',
                                                          user_pass='lrdj_@81'))
         super(SgeSshRunnerTestCase, self).setUp()

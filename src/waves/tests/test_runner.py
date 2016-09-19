@@ -64,10 +64,9 @@ class TestBaseJobRunner(WavesBaseTestCase):
 
     def tearDown(self):
         super(TestBaseJobRunner, self).tearDown()
-        if self.job:
-            if not settings.DEBUG:
-                self.job.delete_job_dirs()
-                pass
+        if self.job and not waves.settings.WAVES_TEST_DEBUG:
+            self.job.delete_job_dirs()
+            pass
 
     def testConnect(self):
         if self.__module__ != 'waves.tests.test_runner':

@@ -149,7 +149,7 @@ class Job(TimeStampable, SlugAble, UrlMixin):
 
     @property
     def working_dir(self):
-        return os.path.join(waves.settings.WAVES_JOB_DIR, str(self.slug))
+        return os.path.join(settings.WAVES_JOB_DIR, str(self.slug))
 
     @property
     def adaptor(self):

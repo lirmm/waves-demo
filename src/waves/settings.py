@@ -33,7 +33,8 @@ def get_setting(var, cast, default=environ.Env.NOTSET, override=False):
     # try to get value from settings, then from env, and finally return default
     setting_value = getattr(settings, var, env.get_value(var, cast, default=default))
     if override is True:
-        setattr(settings, var, setting_value)
+        if getattr(settings, var, None) is None:
+            setattr(settings, var, setting_value)
     elif override:
         if getattr(settings, override, None) is None:
             # override if not specified in settings
@@ -82,12 +83,13 @@ WAVES_SERVICES_EMAIL = get_setting('WAVES_SERVICES_EMAIL', str, default='waves@a
 
 # ---- WAVES WORKING DIRS ----
 # - Base dir for uploaded data and job results
-WAVES_DATA_ROOT = get_setting('WAVES_DATA_ROOT', str, default=str(join(dirname(settings.BASE_DIR), 'data')))
+WAVES_DATA_ROOT = get_setting('WAVES_DATA_ROOT', str, default=str(join(dirname(settings.BASE_DIR), 'data')),
+                              override=True)
 # - Jobs working dir (default is relative to WAVES_DATA_ROOT
-WAVES_JOB_DIR = get_setting('WAVES_JOB_DIR', str, default=str(join(WAVES_DATA_ROOT, 'jobs')))
+WAVES_JOB_DIR = get_setting('WAVES_JOB_DIR', str, default=str(join(WAVES_DATA_ROOT, 'jobs')), override=True)
 
 # - Uploaded services sample data dir (default is relative to media root)
-WAVES_SAMPLE_DIR = get_setting('WAVES_SAMPLE_DIR', str, default=str(join(WAVES_DATA_ROOT, 'sample')))
+WAVES_SAMPLE_DIR = get_setting('WAVES_SAMPLE_DIR', str, default=str(join(WAVES_DATA_ROOT, 'sample')), override=True)
 # - Max uploaded fil size (default is 20Mo)
 WAVES_UPLOAD_MAX_SIZE = get_setting('WAVES_UPLOAD_MAX_SIZE', int, 20 * 1024 * 1024, override='')
 # - Jobs max retry before abort running
@@ -113,6 +115,7 @@ WAVES_SSH_PRI_KEY = get_setting('WAVES_SSH_PRI_KEY', str, default='path-ssh-user
 WAVES_SSH_PASS_KEY = get_setting('WAVES_SSH_PASS_KEY', str, default='your-ssh-user-key-pass-phrase')
 
 # ---- TESTS PARAMETERS ----
+WAVES_TEST_DEBUG = get_setting('WAVES_TEST_DEBUG', bool, default=False)
 # -- Adaptors
 WAVES_TEST_DIR = get_setting('WAVES_TEST_DIR', str, default=join(dirname(settings.BASE_DIR) + '/tests/'))
 # - Galaxy

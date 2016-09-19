@@ -14,13 +14,16 @@ from waves.models import Service
 from utils import get_sample_dir
 
 logger = logging.getLogger(__name__)
-waves.settings.WAVES_DATA_ROOT = str(os.path.join(waves.settings.WAVES_TEST_DIR, 'data'))
-waves.settings.WAVES_SAMPLE_DIR = str(os.path.join(waves.settings.WAVES_TEST_DIR, 'data', 'sample'))
-waves.settings.WAVES_JOB_DIR = str(os.path.join(waves.settings.WAVES_TEST_DIR, 'data', 'jobs'))
+# waves.settings.WAVES_DATA_ROOT = str(os.path.join(waves.settings.WAVES_TEST_DIR, 'data'))
+# waves.settings.WAVES_SAMPLE_DIR = str(os.path.join(waves.settings.WAVES_TEST_DIR, 'data', 'sample'))
+# waves.settings.WAVES_JOB_DIR = str(os.path.join(waves.settings.WAVES_TEST_DIR, 'data', 'jobs'))
 
 
 @override_settings(
-    MEDIA_ROOT=os.path.join(waves.settings.WAVES_TEST_DIR, 'data'),
+    MEDIA_ROOT=os.path.join(dirname(settings.BASE_DIR), 'tests', 'media'),
+    WAVES_DATA_ROOT=str(os.path.join(dirname(settings.BASE_DIR), 'tests', 'data')),
+    WAVES_SAMPLE_DIR=str(os.path.join(dirname(os.path.abspath(__file__)), 'data', 'sample')),
+    WAVES_JOB_DIR=str(os.path.join(dirname(settings.BASE_DIR), 'tests', 'data', 'jobs'))
 )
 class WavesBaseTestCase(TestCase):
     current_result = None
@@ -30,9 +33,9 @@ class WavesBaseTestCase(TestCase):
     def setUpClass(cls):
         super(WavesBaseTestCase, cls).setUpClass()
         logger.info('MEDIA_ROOT: %s', settings.MEDIA_ROOT)
-        logger.info('WAVES_DATA_ROOT: %s', waves.settings.WAVES_DATA_ROOT)
-        logger.info('WAVES_JOB_DIR: %s', waves.settings.WAVES_JOB_DIR)
-        logger.info('WAVES_SAMPLE_DIR: %s', waves.settings.WAVES_SAMPLE_DIR)
+        logger.info('WAVES_DATA_ROOT: %s', settings.WAVES_DATA_ROOT)
+        logger.info('WAVES_JOB_DIR: %s', settings.WAVES_JOB_DIR)
+        logger.info('WAVES_SAMPLE_DIR: %s', settings.WAVES_SAMPLE_DIR)
         # copy_sample_dirs()
 
     def setUp(self):

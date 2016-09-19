@@ -5,7 +5,7 @@ import bioblend
 import six
 from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.objects import galaxy_instance as galaxy
-
+from django.conf import settings
 import waves.const
 import waves.settings
 from waves.exceptions import *
@@ -268,7 +268,7 @@ class GalaxyWorkFlowImporter(GalaxyToolImporter):
         wl = self._tool_client.get(id_=tool_id)
         wc = bioblend.galaxy.workflows.WorkflowClient(self._tool_client.gi)
         wc.export_workflow_to_local_path(workflow_id=tool_id,
-                                         file_local_path=waves.settings.WAVES_DATA_ROOT + '/' + tool_id + '.json',
+                                         file_local_path=settings.WAVES_DATA_ROOT + '/' + tool_id + '.json',
                                          use_default_filename=False)
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('inputs %s', wl.inputs)
