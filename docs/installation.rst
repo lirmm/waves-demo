@@ -17,13 +17,14 @@ Get WAVES application
         - a web server: Apache or NGINX
         - (Optional) a database backend Mysql, Oracle, Postgres (WAVES use a sqlite3 database by default)
 
-    1. Install source :
-        Choose in one of these methods
+    1. Install
         - git clone https://github.com/lirmm/mab/waves/
-            - use master / stable release at first, but if you feel lucky, you can try to switch to 'devel' branch for
-            last version
-        - Download archive at : https://github.com/lirmm/mab/waves/
-            - uncompress the archive in your destination dir ([INSTALL_DIR])
+
+            use master / stable release at first, but if you feel lucky, you can try to switch to 'devel' branch for last version
+
+        - Download archive at : https://github.com/lirmm/mab/waves/:
+
+            uncompress the archive in your destination dir ([INSTALL_DIR])
 
     2. Create virtual env dedicated to WAVES:
         - youruser@yourmachine:___$ cd [INSTALL_DIR]
