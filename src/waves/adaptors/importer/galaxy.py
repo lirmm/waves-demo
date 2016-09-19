@@ -21,7 +21,6 @@ class GalaxyToolImporter(ToolRunnerImporter):
         super(GalaxyToolImporter, self).__init__(runner, service)
 
     def connect(self):
-        print "connect", self._adaptor.__class__
         self._tool_client = bioblend.galaxy.objects.client.ObjToolClient(self._adaptor.connect())
 
     def _list_all_remote_services(self):

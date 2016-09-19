@@ -37,7 +37,7 @@ class ServiceOutputFromInputFormset(BaseInlineFormSet):
             forms = [f for f in self.forms
                      if f.cleaned_data
                      and not f.cleaned_data.get('DELETE', False)]
-            print "cleandformset ", self.instance.srv_input, ", mandatory ", self.instance.srv_input.mandatory, ', default ', self.instance.srv_input.default
+            # print "cleandformset ", self.instance.srv_input, ", mandatory ", self.instance.srv_input.mandatory, ', default ', self.instance.srv_input.default
             if self.instance.file_pattern and self.instance.from_input:
                 if len(forms) < self.instance.service.submissions.count():
                     raise ValidationError('You must setup an value for all possible submission')

@@ -26,9 +26,9 @@ class ServiceOutputFromInputSubmissionForm(ModelForm):
     # srv_input = AutoCompleteSelectField('related_input', required=True, help_text="Select related submission input")
     def clean(self):
         cleaned_data = super(ServiceOutputFromInputSubmissionForm, self).clean()
-        print "cleaned_data:", cleaned_data['srv_input'], cleaned_data['srv_input'].mandatory
-        print "Current instance", self.instance, self.instance.submission
-        print self.data
+        # print "cleaned_data:", cleaned_data['srv_input'], cleaned_data['srv_input'].mandatory
+        # print "Current instance", self.instance, self.instance.submission
+        # print self.data
         # print "In form : srv_input ", self.instance.srv_input, ", mandatory ", self.instance.srv_input.mandatory, ', default ', self.instance.srv_input.default
         return cleaned_data
 
@@ -191,11 +191,11 @@ class ServiceOutputForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(ServiceOutputForm, self).clean()
         return cleaned_data
-        print self.cleaned_data
+        # print self.cleaned_data
         count_related_input = self.instance.from_input_submission.count()
         submission_count = self.instance.service.submissions.count()
 
-        print "comparing ", count_related_input, submission_count
+        # print "comparing ", count_related_input, submission_count
         if self.instance.from_input and count_related_input < submission_count:
             raise ValidationError('If you set a pattern, please configure related input for each submission')
         if 0 < count_related_input < submission_count:

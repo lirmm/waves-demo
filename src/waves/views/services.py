@@ -134,7 +134,7 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
 
     def _get_selected_submission(self):
         slug = self.request.POST.get('slug', None)
-        print 'submission', ServiceSubmission.objects.filter(service=self.get_object())
+        # print 'submission', ServiceSubmission.objects.filter(service=self.get_object())
         if slug is None:
             return ServiceSubmission.objects.get(default=True, service=self.get_object())
         else:

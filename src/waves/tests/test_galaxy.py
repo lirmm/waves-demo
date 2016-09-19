@@ -47,7 +47,7 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
         Returns:
 
         """
-        print 'test', self.adaptor
+        # print 'test', self.adaptor
         tools = self.adaptor.importer().list_all_remote_services()
         logger.debug('Retrieved tools %s', tools)
         self.assertGreater(len(tools), 0)
