@@ -50,7 +50,7 @@ def treat_queue_jobs():
                 job.save()
                 runner.disconnect()
         logger.info('go to sleep for 10 seconds')
-        time.sleep(10)
+        time.sleep(5)
 
 
 def purge_old_jobs():

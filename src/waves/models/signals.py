@@ -66,9 +66,7 @@ def service_input_delete(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Service)
 def service_create_signal(sender, instance, created, **kwargs):
-    sample_dir = os.path.join(settings.WAVES_SAMPLE_DIR, instance.api_name)
-    if created and not os.path.isdir(sample_dir):
-        os.makedirs(sample_dir)
+    if created:
         instance.submissions.add(ServiceSubmission.objects.create(service=instance,
                                                                   label='default'))
 

@@ -28,10 +28,9 @@ class TestRunners(TestCase):
 class TestServices(TestCase):
 
     def test_create_service(self):
-
-        pass
-
-    def test_delete_service(self):
+        runner = Runner.objects.create(name="Sample runner", clazz="waves.adaptors.mock.MockJobAdaptor")
+        srv = Service.objects.create(name="Sample Service", run_on=runner)
+        self.assertIsNotNone(srv.default_submission)
         pass
 
     def test_service_run_param(self):

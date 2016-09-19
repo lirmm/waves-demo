@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 )
 class WavesBaseTestCase(TestCase):
     current_result = None
-    fixtures = ['test_init.json']
+    # fixtures = ['test_init.json']
 
     @classmethod
     def setUpClass(cls):
