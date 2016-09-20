@@ -13,7 +13,7 @@ TEMPLATES[0]['OPTIONS'].update({'debug': DEBUG})
 if "celery" in sys.argv[0]:
     DEBUG = False
 # Django Debug Toolbar
-INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
+# INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
 DEBUG404 = True
 ALLOWED_HOSTS = ['*'] # it works but not secure, so use
 

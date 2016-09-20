@@ -6,13 +6,15 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   quickstart
    authors
+   installation
    license
    readme
+   contributing
 
+   modules/source
 
-
+   user_doc/user_guide
 
 Indices and tables
 ==================

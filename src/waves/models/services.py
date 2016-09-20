@@ -12,7 +12,6 @@ from polymorphic.models import PolymorphicModel
 from django.utils.html import strip_tags
 from smart_selects.db_fields import ChainedForeignKey
 import waves.const
-import waves.managers.services as managers
 import waves.settings
 from waves.models.base import *
 from waves.models.profiles import APIProfile
@@ -151,6 +150,45 @@ class ServiceCategory(MPTTModel, OrderAble, DescribeAble, ApiAble):
         return self.name
 
 
+class ServiceManager(models.Manager):
+
+    def get_services(self, user=None, for_api=None):
+        """
+        Returns:
+        """
+        if user is not None:
+            if user.is_superuser:
+                # Super user has access to 'all' services / submissions etc...
+                queryset = self.all()
+            elif user.is_staff:
+                # Staff user have access their own Services and to all 'Test / Restricted / Public' made by others
+                queryset = self.filter(
+                    Q(status=waves.const.SRV_DRAFT, created_by=user) |
+                    Q(status__in=(waves.const.SRV_TEST, waves.const.SRV_RESTRICTED, waves.const.SRV_PUBLIC))
+                )
+            else:
+                # Simply registered user have access only to "Public" and configured restricted access
+                queryset = self.filter(
+                    Q(status=waves.const.SRV_RESTRICTED, restricted_client__in=(user.profile,)) |
+                    Q(status=waves.const.SRV_PUBLIC)
+                )
+        # Non logged in user have only access to public services
+        else:
+            queryset = self.filter(status=waves.const.SRV_PUBLIC)
+        if for_api:
+            queryset.filter(api_on=True)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('Generated query set \n%s', queryset.query)
+            logger.debug('Should return this services:\n%s', queryset.all())
+        return queryset
+
+    def get_api_services(self, user=None):
+        return self.get_services(user, for_api=True)
+
+    def get_web_services(self, user=None):
+        return self.get_services(user)
+
+
 class Service(TimeStampable, DescribeAble, ApiAble):
     """
     Represents a service on the platform
@@ -164,7 +202,7 @@ class Service(TimeStampable, DescribeAble, ApiAble):
 
     # manager
     objects = models.Manager()
-    retrieve = managers.ServiceManager()
+    retrieve = ServiceManager()
     # fields
     name = models.CharField('Service name',
                             max_length=255,
@@ -778,3 +816,5 @@ class ServiceMeta(OrderAble, DescribeAble):
     value = models.CharField('Meta value', max_length=500, blank=True, null=True)
     is_url = models.BooleanField('Is a url', editable=False, default=False)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='metas')
+
+

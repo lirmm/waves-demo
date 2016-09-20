@@ -1,0 +1,17 @@
+{% extends "!layout.html" %}
+
+{% block extrahead %}
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("img").click(function () {
+                alert('clicked ! ')
+                $.modal("<img src=\""+ $(this).attr('src') +"\" style=\"\"/>");
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block footer %}
+    this is extra content in footer
+{% endblock %}
