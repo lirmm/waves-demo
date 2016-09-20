@@ -1,5 +1,8 @@
-Quick Start Installation
-========================
+Reuse WAVES
+===========
+
+Reuse WAVES inside a Django project as a dependency
+---------------------------------------------------
 
 1. WAVES needs to be installed within a django project, see Django
    framework documentation if needed.
@@ -21,10 +24,7 @@ Quick Start Installation
 
     url('^waves/', include('waves.urls'))
 
-
-
-   Alternativly you can use only urls configuration you need::
-
+    Alternativly you can use only urls configuration you need::
 
     url(r'^$', HomePage.as_view(), name='home'),
     url(r'^accounts/', include('waves.urls.accounts_url')),
@@ -35,11 +35,11 @@ Quick Start Installation
 5. Run ``python manage.py migrate`` to install database models.
 
 
-6. Run ``python manage.py waves `` to
-   import sample data if you wish
+6. Run ``python manage.py waves`` to import sample data if you wish
 
 
-7. Start the development server, ``python manage.py runserver``: visit
-   ``http://127.0.0.1:8000/services/ to start your services``
+7. Start the development server, ``python manage.py runserver``:
+
+    visit ``http://127.0.0.1:8000/services/`` to start your services
 
 

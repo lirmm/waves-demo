@@ -16,18 +16,18 @@ Services are the main entry point for WAVEs application, managed by :ref:`servic
 Service Inputs
 --------------
     - Base class for service inputs shared information
-    .. autoclass:: waves.models.services.BaseInput
-        :members:
+        .. autoclass:: waves.models.services.BaseInput
+            :members:
     - Classic Service input
-    A Service input may be a file, text, int, bool, float, list of values
+        A Service input may be a file, text, int, bool, float, list of values
 
-    .. autoclass:: waves.models.services.ServiceInput
-        :members:
+        .. autoclass:: waves.models.services.ServiceInput
+            :members:
     - Related Inputs:
-    Input may be related to value specified from another one, this class represent this behaviour
+        Input may be related to value specified from another one, this class represent this behaviour
 
-    .. autoclass:: waves.models.services.RelatedInput
-        :members:
+        .. autoclass:: waves.models.services.RelatedInput
+            :members:
 
 .. _service-outputs-label:
 

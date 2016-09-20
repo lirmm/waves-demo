@@ -1,19 +1,26 @@
 {% extends "!layout.html" %}
 
+{% block extrahead %}
+    <link rel="stylesheet" href="../../_static/jquery.fancybox.css" type="text/css">
+
+{% endblock %}
+
+
 {% block footer %}
+
     <script type="text/javascript" src="../../_static/jquery.fancybox.pack.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
-            //$("img").fancybox();
             $("img").click(function (e) {
-                // alert('clicked ! ')
                 e.preventDefault();
-                alert('clicked');
-                // $.modal("<img src=\""+ $(this).attr('src') +"\" style=\"\"/>");
                 $.fancybox.open([
-
-                ])
-                alert('gone')
+                    {
+                    href : $(this).attr('src'),
+                    title : 'Image',
+                    }
+                ], {
+                    padding: 0
+                });
             });
         });
     </script>

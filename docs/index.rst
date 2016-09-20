@@ -11,10 +11,10 @@ Contents:
    license
    readme
    contributing
-
    modules/source
 
    user_doc/user_guide
+   reusable_app
 
 Indices and tables
 ==================
