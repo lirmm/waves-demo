@@ -65,13 +65,18 @@ class CompPhyApiAdaptor(RemoteApiAdaptor):
         if status_code == 200:
             # TODO: Set id of the job
             res = json.loads(buffer_curl.getvalue())
-            if res["success"]:
-                job.remote_job_id = res["idProject"]
-                job.eav.compphy_remote_access_key = res['access_key']
+            if res.get("success", False) is True:
+                job.remote_job_id = res.get("idProject", -1)
+                job.eav.compphy_remote_access_key = res.get('access_key', '')
+                if job.remote_job_id == -1 or job.eav.compphy_remote_access_key == '':
+                    raise JobRunException(
+                        "An error has occurred. Please contact us to report the bug"
+                    )
             else:
                 job.nb_retry = waves.settings.WAVES_JOBS_MAX_RETRY
+                print(res)
                 raise JobRunException(
-                    res["message"] if "message" in res else "An error has occurred. Please contact us to report the bug"
+                    res["message"] if "message" in res else "We are unable to launch your job. Please contact us to report the bug"
                 )
 
         else:
@@ -97,11 +102,11 @@ class CompPhyApiAdaptor(RemoteApiAdaptor):
         if status_code == 200:
             res = json.loads(buffer_curl.getvalue())
             if "status" in res:
-                if res["details"] == "success":
+                if res.get("details", "") == "success":
                     output_url = job.job_outputs.filter(srv_output__isnull=False).first()
                     with open(output_url.file_path, 'w+') as fp:
                         fp.write(res['url'])
-                return res["details"]
+                return res.get("details", "error")
             else:
                 raise JobRunException("Error: status of job not found. Please contact us to report the bug.")
         else:
