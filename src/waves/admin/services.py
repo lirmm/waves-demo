@@ -295,7 +295,9 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         request.current_obj = obj
-        return super(ServiceAdmin, self).get_form(request, obj, **kwargs)
+        form = super(ServiceAdmin, self).get_form(request, obj, **kwargs)
+        form.current_user = request.user
+        return form
 
     def get_formsets(self, request, obj=None):
         return super(ServiceAdmin, self).get_formsets(request, obj)
