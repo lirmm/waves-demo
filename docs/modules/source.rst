@@ -11,4 +11,5 @@ Source Documentation
    models/base
    const
    managers/managers
+   adaptors/adaptors
 
