@@ -29,17 +29,21 @@ class GalaxyAdaptorConnectionError(RunnerConnectionError):
 
 
 class GalaxyJobAdaptor(JobRunnerAdaptor):
-    """
+    """This is Galaxy bioblend api WAVES adaptors, maps call to Galaxy API to expected behaviour from base class
+
     Expected parameters to init call (dictionary):
-    - host : the ip address where Galaxy is set up (default: http://localhost)
-    - username : remote user name in Galaxy server
-    - app_key : remote user's app key in Galaxy
-    - library_dir: remote library dir, where to place files in order to create galaxy histories
+
+    **Init parameters:**
+        :param host: the ip address where Galaxy is set up (default: http://localhost)
+        :param username: remote user name in Galaxy server
+        :param app_key: remote user's app key in Galaxy
+        :param library_dir: remote library dir, where to place files in order to create galaxy histories
+
     """
 
-    host = waves.settings.WAVES_GALAXY_URL
-    port = waves.settings.WAVES_GALAXY_PORT
-    app_key = waves.settings.WAVES_GALAXY_API_KEY
+    host = settings.WAVES_GALAXY_URL
+    port = settings.WAVES_GALAXY_PORT
+    app_key = settings.WAVES_GALAXY_API_KEY
     library_dir = ""
     remote_tool_id = None
     importer_clazz = 'waves.adaptors.importer.galaxy.GalaxyToolImporter'
@@ -256,26 +260,41 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
 
 
 class GalaxyWorkFlowAdaptor(GalaxyJobAdaptor):
-    def importer_clazz(self):
-        return 'waves.adaptors.importer.galaxy.GalaxyWorkFlowImporter'
+    """Dedicated Adaptor to run / import / follow up Galaxy Workflow execution
+
+    .. WARNING::
+        This class is not fully implemented at the moment !
+
+    As it inherit from :class:`waves.adaptors.GalaxyJobAdaptor`, its init paramas are the same.
+
+    """
+    #: Dedicated import clazz for Galaxy workflows see :class:`waves.adaptors.importer.galaxy.GalaxyWorkFlowImporter`
+    importer_clazz = 'waves.adaptors.importer.galaxy.GalaxyWorkFlowImporter'
 
     def _run_job(self, job):
         """
-        From data prepared in galaxy, launch a new workflow identified by 'remote_tool_id'
-        Args:
-            job: Job model instance
-        Returns:
-            None
+        :param job: Job to run
+        :raise: NotImplementedError
         """
         raise NotImplementedError()
 
     def _cancel_job(self, job):
-        """Workflow invocation can be cancelled is not already launched
+        """
+        :param job: Job to cancel
+        :raise: NotImplementedError
         """
         raise NotImplementedError()
 
     def _job_status(self, job):
+        """
+        :param job: Job to show status
+        :raise: NotImplementedError
+        """
         raise NotImplementedError()
 
     def _job_results(self, job):
+        """
+        :param job: Job to retrieve result for
+        :raise: NotImplementedError
+        """
         raise NotImplementedError()

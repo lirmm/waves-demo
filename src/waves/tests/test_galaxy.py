@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 
 
 @override_settings(
-    WAVES_GALAXY_URL=waves.settings.WAVES_TEST_GALAXY_URL,
-    WAVES_GALAXY_API_KEY=waves.settings.WAVES_TEST_GALAXY_API_KEY,
-    WAVES_GALAXY_PORT=waves.settings.WAVES_TEST_GALAXY_PORT,
+    WAVES_GALAXY_URL=settings.WAVES_TEST_GALAXY_URL,
+    WAVES_GALAXY_API_KEY=settings.WAVES_TEST_GALAXY_API_KEY,
+    WAVES_GALAXY_PORT=settings.WAVES_TEST_GALAXY_PORT,
 )
 @test_util.skip_unless_galaxy()
 class GalaxyRunnerTestCase(TestBaseJobRunner):
@@ -29,9 +29,9 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
     # fixtures = ['users', 'test_services']
 
     def setUp(self):
-        self.adaptor = GalaxyJobAdaptor(init_params={'host': waves.settings.WAVES_TEST_GALAXY_URL,
-                                                     'port': waves.settings.WAVES_TEST_GALAXY_PORT,
-                                                     'app_key': waves.settings.WAVES_TEST_GALAXY_API_KEY})
+        self.adaptor = GalaxyJobAdaptor(init_params={'host': settings.WAVES_TEST_GALAXY_URL,
+                                                     'port': settings.WAVES_TEST_GALAXY_PORT,
+                                                     'app_key': settings.WAVES_TEST_GALAXY_API_KEY})
         super(GalaxyRunnerTestCase, self).setUp()
         self.gi = bioblend.galaxy.objects.galaxy_instance.GalaxyInstance(url=self.adaptor.complete_url,
                                                                          api_key=self.adaptor.app_key)
@@ -68,30 +68,32 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
         self.assertTrue(len(fast_me) > 0)
         self.service = self._import_tool_from_service(fast_me[0].id)
         # TODO remove this (moved in testFastMe function)
-        self.job = Job.objects.create(service=self.service, title="TestFastMe Galaxy")
-        self.job.job_inputs.add(JobInput.objects.create(job=self.job, name="input_data", type=waves.const.TYPE_FILE,
-                                                        param_type=waves.const.OPT_TYPE_VALUATED,
-                                                        value=os.path.join(settings.WAVES_TEST_SAMPLE_DIR, 'fast_me',
-                                                                           'fastme-dna.txt')))
-        self.job.job_inputs.add(JobInput.objects.create(job=self.job, name="dna", type=waves.const.TYPE_TEXT,
-                                                        param_type=waves.const.OPT_TYPE_VALUATED,
-                                                        value='J'))
-        output_tree = JobInput.objects.create(job=self.job, name="output_tree", type=waves.const.TYPE_TEXT,
+        self.current_job = Job.objects.create(service=self.service, title="TestFastMe Galaxy")
+        self.current_job.job_inputs.add(
+            JobInput.objects.create(job=self.current_job, name="input_data", type=waves.const.TYPE_FILE,
+                                    param_type=waves.const.OPT_TYPE_VALUATED,
+                                    value=os.path.join(settings.WAVES_TEST_SAMPLE_DIR, 'fast_me',
+                                                       'fastme-dna.txt')))
+        self.current_job.job_inputs.add(
+            JobInput.objects.create(job=self.current_job, name="dna", type=waves.const.TYPE_TEXT,
+                                    param_type=waves.const.OPT_TYPE_VALUATED,
+                                    value='J'))
+        output_tree = JobInput.objects.create(job=self.current_job, name="output_tree", type=waves.const.TYPE_TEXT,
                                               param_type=waves.const.OPT_TYPE_VALUATED,
                                               value='output_tree.txt')
-        output_matrix = JobInput.objects.create(job=self.job, name="output_matrix", type=waves.const.TYPE_TEXT,
+        output_matrix = JobInput.objects.create(job=self.current_job, name="output_matrix", type=waves.const.TYPE_TEXT,
                                                 param_type=waves.const.OPT_TYPE_VALUATED,
                                                 value='output_matrix.txt')
-        output_info = JobInput.objects.create(job=self.job, name='output_info', type=waves.const.TYPE_TEXT,
+        output_info = JobInput.objects.create(job=self.current_job, name='output_info', type=waves.const.TYPE_TEXT,
                                               param_type=waves.const.OPT_TYPE_VALUATED,
                                               value="output_info.txt")
         # associated outputs
-        self.job.job_outputs.add(JobOutput.objects.create(job=self.job, name='Inferred tree file',
-                                                          value=output_tree.value))
-        self.job.job_outputs.add(JobOutput.objects.create(job=self.job, name="Computed matrix",
-                                                          value=output_matrix.value))
-        self.job.job_outputs.add(JobOutput.objects.create(job=self.job, name="Output Info",
-                                                          value=output_info.value))
+        self.current_job.job_outputs.add(JobOutput.objects.create(job=self.current_job, name='Inferred tree file',
+                                                                  value=output_tree.value))
+        self.current_job.job_outputs.add(JobOutput.objects.create(job=self.current_job, name="Computed matrix",
+                                                                  value=output_matrix.value))
+        self.current_job.job_outputs.add(JobOutput.objects.create(job=self.current_job, name="Output Info",
+                                                                  value=output_info.value))
         self.runJobWorkflow()
 
     @test_util.skip_unless_tool("physic_ist")
@@ -150,7 +152,6 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
                     self.assertTrue(os.path.isfile(str(job_output.file_path)))
         except Runner.DoesNotExist, Service.DoesNotExist:
             logger.warn(u'Object does not exists')
-
 
     def tearDown(self):
         """

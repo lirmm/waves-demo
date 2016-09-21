@@ -6,6 +6,7 @@ Author : Marc Chakiachvili
 import unittest
 import bioblend
 from bioblend.galaxy.client import ConnectionError
+from django.conf import settings
 import waves.settings
 
 
@@ -18,8 +19,8 @@ MISSING_TOOL_MESSAGE = "Externally configured Galaxy instance requires tool %s t
 
 def skip_unless_galaxy():
     try:
-        galaxy_key = waves.settings.WAVES_GALAXY_API_KEY
-        galaxy_url = '%s:%s' % (waves.settings.WAVES_GALAXY_URL, waves.settings.WAVES_GALAXY_PORT)
+        galaxy_key = waves.settings.WAVES_TEST_GALAXY_API_KEY
+        galaxy_url = '%s:%s' % (waves.settings.WAVES_TEST_GALAXY_URL, waves.settings.WAVES_TEST_GALAXY_PORT)
         gi = bioblend.galaxy.GalaxyInstance(url=galaxy_url, key=galaxy_key)
         bioblend.galaxy.users.UserClient(gi).get_current_user()
     except ConnectionError:

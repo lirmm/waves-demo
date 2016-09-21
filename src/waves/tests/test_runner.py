@@ -9,7 +9,7 @@ import waves.const
 from waves.exceptions import *
 from waves.tests import WavesBaseTestCase
 from waves.adaptors import JobRunnerAdaptor
-from waves.models import Service, Runner, Job, RunnerParam
+from waves.models import Service, Job, JobInput, JobOutput, Runner, RunnerParam
 import waves.settings
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,11 @@ def sample_job(service):
     Returns:
         Job model instance
     """
-    return Job.objects.create(title='Sample Job', service=service)
+    job = Job.objects.create(title='Sample Job', service=service)
+    srv_submission = service.default_submission
+    for srv_input in srv_submission.service_inputs.all():
+        job.job_inputs.add(JobInput.objects.create(srv_input=srv_input, service=srv_submission, value="fake_value"))
+    return job
 
 
 class TestBaseJobRunner(WavesBaseTestCase):
@@ -49,6 +53,7 @@ class TestBaseJobRunner(WavesBaseTestCase):
     Test all functions in Runner adapters base class
 
     """
+    current_result = None
 
     def setUp(self):
         # Create sample data
@@ -59,14 +64,19 @@ class TestBaseJobRunner(WavesBaseTestCase):
             self.adaptor = JobRunnerAdaptor()
         self.runner_model = sample_runner(self.adaptor)
         self.service = Service.objects.create(name="Sample Service", run_on=self.runner_model)
-        self.job = None
+        self.current_job = None
+        self.jobs = []
         self._result = self.defaultTestResult()
 
     def tearDown(self):
         super(TestBaseJobRunner, self).tearDown()
-        if self.job and not waves.settings.WAVES_TEST_DEBUG:
-            self.job.delete_job_dirs()
-            pass
+        if not waves.settings.WAVES_TEST_DEBUG:
+            for job in self.jobs:
+                job.delete_job_dirs()
+
+    def run(self, result=None):
+        self.current_result = result
+        super(TestBaseJobRunner, self).run(result)
 
     def testConnect(self):
         if self.__module__ != 'waves.tests.test_runner':
@@ -81,68 +91,71 @@ class TestBaseJobRunner(WavesBaseTestCase):
         Returns:
 
         """
-        self.job = sample_job(self.service)
-        self.job.status = waves.const.JOB_RUNNING
-        length1 = self.job.job_history.count()
-        logger.debug('Internal state %s, current %s', self.job._status, self.job.status)
+        self.current_job = sample_job(self.service)
+        self.jobs.append(self.current_job)
+        self.current_job.status = waves.const.JOB_RUNNING
+        length1 = self.current_job.job_history.count()
+        logger.debug('Internal state %s, current %s', self.current_job._status, self.current_job.status)
         logger.debug('Test Prepare')
         with self.assertRaises(waves.exceptions.JobInconsistentStateError):
-            self.adaptor.prepare_job(self.job)
-        self.assertEqual(self.job.status, waves.const.JOB_RUNNING)
-        logger.debug('Internal state %s, current %s', self.job._status, self.job.status)
+            self.adaptor.prepare_job(self.current_job)
+        self.assertEqual(self.current_job.status, waves.const.JOB_RUNNING)
+        logger.debug('Internal state %s, current %s', self.current_job._status, self.current_job.status)
         logger.debug('Test Run')
         with self.assertRaises(waves.exceptions.JobInconsistentStateError):
-            self.adaptor.run_job(self.job)
-        self.assertEqual(self.job.status, waves.const.JOB_RUNNING)
-        logger.debug('Internal state %s, current %s', self.job._status, self.job.status)
+            self.adaptor.run_job(self.current_job)
+        self.assertEqual(self.current_job.status, waves.const.JOB_RUNNING)
+        logger.debug('Internal state %s, current %s', self.current_job._status, self.current_job.status)
         logger.debug('Test Cancel + inconsistent state')
-        self.job.status = waves.const.JOB_COMPLETED
+        self.current_job.status = waves.const.JOB_COMPLETED
         with self.assertRaises(waves.exceptions.JobInconsistentStateError):
-            self.adaptor.cancel_job(self.job)
-        logger.debug('Internal state %s, current %s', self.job._status, self.job.status)
+            self.adaptor.cancel_job(self.current_job)
+        logger.debug('Internal state %s, current %s', self.current_job._status, self.current_job.status)
         # status hasn't changed
-        self.assertEqual(self.job.status, waves.const.JOB_COMPLETED)
-        logger.debug('%i => %s', len(self.job.job_history.values()), self.job.job_history.values())
+        self.assertEqual(self.current_job.status, waves.const.JOB_COMPLETED)
+        logger.debug('%i => %s', len(self.current_job.job_history.values()), self.current_job.job_history.values())
         # assert that no history element has been added
-        self.assertEqual(length1, self.job.job_history.count())
+        self.assertEqual(length1, self.current_job.job_history.count())
 
     def runJobWorkflow(self, job=None):
         if job is not None:
-            self.job = job
-        logger.info('Starting workflow process for job %s', self.job.title)
-        self.assertEqual(1, self.job.job_history.count())
-        self.adaptor.prepare_job(self.job)
-        self.assertEqual(self.job.status, waves.const.JOB_PREPARED)
-        remote_job_id = self.adaptor.run_job(self.job)
+            self.current_job = job
+        if self.current_job not in self.jobs:
+            self.jobs.append(self.current_job)
+        logger.info('Starting workflow process for job %s', self.current_job.title)
+        self.assertEqual(1, self.current_job.job_history.count())
+        self.adaptor.prepare_job(self.current_job)
+        self.assertEqual(self.current_job.status, waves.const.JOB_PREPARED)
+        remote_job_id = self.adaptor.run_job(self.current_job)
         logger.debug('Remote Job ID %s', remote_job_id)
-        self.assertEqual(self.job.status, waves.const.JOB_QUEUED)
+        self.assertEqual(self.current_job.status, waves.const.JOB_QUEUED)
         for ix in range(100):
-            job_state = self.adaptor.job_status(self.job)
-            logger.info(u'Current job state (%i) : %s ', ix, self.job.get_status_display())
+            job_state = self.adaptor.job_status(self.current_job)
+            logger.info(u'Current job state (%i) : %s ', ix, self.current_job.get_status_display())
             if job_state >= waves.const.JOB_COMPLETED:
-                logger.info('Job state ended to %s ', self.job.get_status_display())
+                logger.info('Job state ended to %s ', self.current_job.get_status_display())
                 break
             else:
                 time.sleep(3)
-        self.assertIn(self.job.status, (waves.const.JOB_COMPLETED, waves.const.JOB_TERMINATED))
+        self.assertIn(self.current_job.status, (waves.const.JOB_COMPLETED, waves.const.JOB_TERMINATED))
         # Get job run details
-        self.adaptor.job_run_details(self.job)
-        history = self.job.job_history.first()
+        self.adaptor.job_run_details(self.current_job)
+        history = self.current_job.job_history.first()
         logger.debug("History timestamp %s", localtime(history.timestamp))
-        logger.debug("Job status timestamp %s", self.job.status_time)
-        self.assertTrue(self.job.results_available)
-        for output_job in self.job.job_outputs.filter(may_be_empty=False):
+        logger.debug("Job status timestamp %s", self.current_job.status_time)
+        self.assertTrue(self.current_job.results_available)
+        for output_job in self.current_job.job_outputs.filter(may_be_empty=False):
             # TODO reactivate job output verification as soon as possible
             if not os.path.isfile(output_job.file_path):
                 logger.warning("Job <<%s>> did not output expected %s (test_data/jobs/%s/) ",
-                               self.job.title, output_job.value, self.job.slug)
+                               self.current_job.title, output_job.value, self.current_job.slug)
             """
             self.assertTrue(os.path.isfile(output_job.file_path),
                             msg="Job <<%s>> did not output expected %s (test_data/jobs/%s/) " %
-                                (self.job.title, output_job.value, self.job.slug))
+                                (self.current_job.title, output_job.value, self.current_job.slug))
             """
             logger.info("Expected output file: %s ", output_job.file_path)
-        self.assertGreaterEqual(self.job.status, waves.const.JOB_COMPLETED)
+        self.assertGreaterEqual(self.current_job.status, waves.const.JOB_COMPLETED)
         return True
 
     def testExtraUnexpectedParameter(self):

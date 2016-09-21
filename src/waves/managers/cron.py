@@ -3,7 +3,7 @@ import logging.config
 import time
 import datetime
 from itertools import chain
-from waves.models import JobAdminHistory
+from waves.models.jobs import JobAdminHistory
 import waves.const as const
 import waves.settings
 from waves.models import Job
@@ -50,7 +50,7 @@ def treat_queue_jobs():
                 job.save()
                 runner.disconnect()
         logger.info('go to sleep for 10 seconds')
-        time.sleep(10)
+        time.sleep(5)
 
 
 def purge_old_jobs():

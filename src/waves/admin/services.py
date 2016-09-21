@@ -276,11 +276,11 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
         ('General', tab_overview),
         ('Details', tab_details),
         ('Metas', tab_metas),
-        ('Runner Params', tab_runner),
+        ('Run configuration', tab_runner),
         # ('Service Inputs', tab_inputs),
-        ('Submissions params', tab_submission),
-        ('Services outputs', tab_outputs),
-        ('Services samples', tab_samples)
+        ('Submissions', tab_submission),
+        ('Outputs', tab_outputs),
+        ('Samples', tab_samples)
     ]
 
     def get_readonly_fields(self, request, obj=None):
@@ -295,7 +295,9 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         request.current_obj = obj
-        return super(ServiceAdmin, self).get_form(request, obj, **kwargs)
+        form = super(ServiceAdmin, self).get_form(request, obj, **kwargs)
+        form.current_user = request.user
+        return form
 
     def get_formsets(self, request, obj=None):
         return super(ServiceAdmin, self).get_formsets(request, obj)
