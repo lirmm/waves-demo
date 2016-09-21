@@ -172,7 +172,7 @@ class Job(TimeStampable, SlugAble, UrlMixin):
                                     help_text="Job exit code on relative adaptor")
     #: Tell whether job results files are available for download from client
     results_available = models.BooleanField('Results are available', default=False, editable=False)
-    #: Jobs are remotly executed, store the remote job id
+    #: Jobs are remotely executed, store the remote job id
     remote_job_id = models.CharField('Remote Job ID (on adaptor)', max_length=255, editable=False, null=True)
     #: Job last status retry count (max before Error set in conf)
     nb_retry = models.IntegerField('Nb Retry', editable=False, default=0)
