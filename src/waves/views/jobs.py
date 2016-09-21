@@ -42,7 +42,7 @@ class JobListView(generic.ListView, WavesBaseContextMixin):
         return context
 
 
-class JobFileView(DownloadFileView):
+class JobFileView(DownloadFileView, WavesBaseContextMixin):
     context_object_name = "file_obj"
 
     @property
