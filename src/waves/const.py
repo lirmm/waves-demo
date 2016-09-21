@@ -1,12 +1,14 @@
 from __future__ import unicode_literals
 """
 Constant used in Waves webapps
+==============================
 """
+#: WAVES admin group
 WAVES_GROUP_ADMIN = 'WAVES_ADMIN'
-WAVES_GROUP_API = 'WAVES_API_USER'
-WAVES_GROUP_USER = 'WAVES_WEB_USER'
 
-
+"""
+"""
+#: META
 META_WEBSITE = 'website'
 META_DOC = 'doc'
 META_DOWNLOAD = 'download'

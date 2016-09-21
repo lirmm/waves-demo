@@ -55,7 +55,7 @@ class JobFileView(DownloadFileView):
 
     @property
     def return_link(self):
-        return self.object.job.get_url()
+        return self.object.job.get_absolute_url()
 
 
 class JobOutputView(JobFileView):

@@ -3,7 +3,7 @@ import logging.config
 import time
 import datetime
 from itertools import chain
-from waves.models import JobAdminHistory
+from waves.models.jobs import JobAdminHistory
 import waves.const as const
 import waves.settings
 from waves.models import Job
