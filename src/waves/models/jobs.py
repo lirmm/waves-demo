@@ -456,8 +456,8 @@ class Job(TimeStampable, SlugAble, UrlMixin):
     def create_non_editable_inputs(self, service_submission):
         """ Create non editable (i.e not submitted anywhere and used for run)
 
-        .. see::
-            Used in `post_save signals`
+        .. seealso::
+            Used in post_save signals
 
         :param service_submission:
         :return: None

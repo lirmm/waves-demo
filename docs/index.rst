@@ -1,20 +1,25 @@
 Welcome to WAVES's documentation!
 ==================================================
 
-Contents:
+
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 1
+    :caption: Use WAVES
 
-   authors
-   installation
-   license
-   readme
-   contributing
-   modules/source
+    readme
+    authors
+    license
+    installation
+    user_doc/user_guide
 
-   user_doc/user_guide
-   reusable_app
+.. toctree::
+    :maxdepth: 1
+    :caption: WAVES' Insider
+
+    contributing
+    modules/source
+    reusable_app
 
 Indices and tables
 ==================

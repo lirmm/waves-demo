@@ -14,10 +14,10 @@ In order to install WAVES you will need:
 Get the sources
 ---------------
     - Clone our repository:
-        git clone https://github.com/lirmm/mab/waves/ [waves_dir]
+        git clone https://github.com/lirmm/waves-webapp/ [waves_dir]
             For production, classically use master, but if you feel lucky, you can try to switch to 'devel' branch for the current latest version
     - Download archive:
-        Download archive at https://github.com/lirmm/mab/waves/ and uncompress the archive in your destination dir ([waves_dir])
+        Download archive at https://github.com/lirmm/waves-webapp/ and uncompress the archive in your destination dir ([waves_dir])
 
 Create virtual env
 ------------------
@@ -33,6 +33,7 @@ Install WAVES requirements
 
 Configuration files
 --------------------
+
     - Global configuration file (classic Django stuff):
         - rename waves_services/settings/local.sample.env to local.env
         - minimal setup requires these parameters:
@@ -43,7 +44,6 @@ Configuration files
         - (.venv)[waves_dir]$ cd config/
         - (.venv)[waves_dir]/config$ mv waves.env.sample waves.env
         - Edit your waves.env file to set WAVES parameters ([link:waves parameters])
-
     - Check parameters with:
 
         .. code-block:: python

@@ -4,6 +4,9 @@ Reuse WAVES
 Reuse WAVES inside a Django project as a dependency
 ---------------------------------------------------
 
+.. CAUTION::
+    !!! WORK IN PROGRESS !!! Planned to be available with version 1.0
+
 1. WAVES needs to be installed within a django project, see Django
    framework documentation if needed.
 
