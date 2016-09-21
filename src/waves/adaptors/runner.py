@@ -11,20 +11,31 @@ logger = logging.getLogger(__name__)
 
 class JobRunnerAdaptor(object):
     """
-    Abstract JobRunnerAdaptor class, declare expected behaviour from any Waves's JobRunnerAdaptor
+    Abstract JobRunnerAdaptor class, declare expected behaviour from any WAVES's JobRunnerAdaptor
+
     """
+    #: Defined remote connector, depending on subclass implementation
     _connector = None
+    #: Some connector need to parse requested job in order to create a remote job
     _parser = None
+    #: Some fields on remote connectors need a mapping for type between standard WAVES and theirs
     _type_map = {}
+    #: Remote status need to be mapped with WAVES expected job status
     _states_map = {}
+    #: List of WAVES status where job can be remotely cancelled
     _state_allow_cancel = (waves.const.STATUS_LIST[1:5])
+    #: Some Adaptor provide possibility to import services directly, this field declare full class name (module.class)
     importer_clazz = None
 
     def __init__(self, init_params={}, **kwargs):
-        """
-        Initialize a adaptor
-        :return: a new JobRunnerAdaptor object
+        """ Initialize a adaptor
 
+        Set _initialized value (True or False) if all non default expected params are set
+
+        :raise: :class:`waves.exceptions.RunnerUnexpectedInitParam` if wrong parameter given as init values
+        :param init_params: a dictionnary with expected initialization params (retrieved from init_params property)
+        :param kwargs: its possible to force _connector and _parser attributes when initialize a Adaptor
+        :return: a new JobRunnerAdaptor object
         """
         self._initialized = False
         self._connected = False
@@ -40,15 +51,25 @@ class JobRunnerAdaptor(object):
 
     @property
     def init_params(self):
+        """
+        List all expected initparams, with default if set at class level
+        :return: A dictionnary containing expected init params
+        """
         return dict()
 
     @property
     def connected(self):
+        """
+        Tells whether current adpator object is connected to remote calculation infrastructure
+        :return: Connected or Not to remote
+        :rtype: bool
+        """
         return self._connector is not None and self._connected is True
 
     def connect(self):
         """Connect to adaptor
-        :return: _connector reference or raise an ConnectionException
+        :raise: :class:`waves.exceptions.ConnectionException`
+        :return: _connector reference or raise an
         """
         if self.connected:
             logger.debug('Already connected to %s', self._connector)
@@ -68,7 +89,9 @@ class JobRunnerAdaptor(object):
     def disconnect(self):
         """
         Shut down connection to adaptor. Called after job adaptor execution to disconnect from remote
-        :return: boolean or raise an ConnectionException
+        :raise: :class:`waves.exceptions.ConnectionException`
+        :return: True if disconnected, false otherwise
+        :rtype: bool
         """
         if not self.connected:
             # if not connected, do nothing

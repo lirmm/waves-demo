@@ -501,9 +501,9 @@ class JobInput(OrderAble, SlugAble):
         db_table = 'waves_job_input'
         unique_together = ('srv_input', 'job', 'value')
 
-    #: Reference to related job
+    #: Reference to related :class:`waves.models.jobs.Job`
     job = models.ForeignKey(Job, related_name='job_inputs', on_delete=models.CASCADE)
-    #: Reference to related ServiceInput object
+    #: Reference to related :class:`waves.models.services.ServiceInput`
     srv_input = models.ForeignKey('BaseInput', null=True, on_delete=models.CASCADE)
     #: Value set to this service input for this job
     value = models.CharField('Input content', max_length=255, null=True, blank=True,
@@ -633,9 +633,9 @@ class JobOutput(OrderAble, SlugAble, UrlMixin):
     class Meta:
         db_table = 'waves_job_output'
         unique_together = ('srv_output', 'job', 'value')
-    #: Related `Job`
+    #: Related :class:`waves.models.jobs.Job`
     job = models.ForeignKey(Job, related_name='job_outputs', on_delete=models.CASCADE)
-    #: Related `ServiceOutput`
+    #: Related :class:`waves.models.services.ServiceOutput`
     srv_output = models.ForeignKey('ServiceOutput', null=True, on_delete=models.CASCADE)
     #: Job Output value
     value = models.CharField('Output value', max_length=200, null=True, blank=True, default="")
@@ -696,9 +696,9 @@ class JobHistory(models.Model):
         db_table = 'waves_job_history'
         ordering = ['-timestamp', '-status']
         unique_together = ('job', 'timestamp', 'status', 'is_admin')
-    #: Related Job
+    #: Related :class:`waves.models.jobs.Job`
     job = models.ForeignKey(Job, related_name='job_history', on_delete=models.CASCADE)
-    #: Time when this event occured
+    #: Time when this event occurred
     timestamp = models.DateTimeField('Date time', auto_now_add=True, help_text='History timestamp')
     #: Job Status for this event
     status = models.IntegerField('Job Status', blank=False, null=False, choices=waves.const.STATUS_LIST,
@@ -714,9 +714,16 @@ class JobHistory(models.Model):
 
 class JobAdminHistoryManager(models.Manager):
     def get_queryset(self):
+        """
+        Specific query set to filter only :class:`waves.models.jobs.JobAdminHistory` objects
+        :return: QuerySet
+        """
         return super(JobAdminHistoryManager, self).get_queryset().filter(is_admin=True)
 
     def create(self, **kwargs):
+        """ Force 'is_admin' flag for JobAdminHistory models objects
+        :return: a JobAdminHistory object
+        """
         kwargs.update({'is_admin': True})
         return super(JobAdminHistoryManager, self).create(**kwargs)
 
