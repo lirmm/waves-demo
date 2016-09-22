@@ -36,7 +36,6 @@ class JobOutputInline(TabularInline):
     readonly_fields = ('name', 'value', 'file_path')
     ordering = ('order',)
     fields = ('name', 'value', 'file_path')
-
     # classes = ('grp-collapse grp-closed',)
 
     def has_add_permission(self, request):
@@ -86,7 +85,6 @@ def delete_model(modeladmin, request, queryset):
                 messages.error(request, message="Job %s error %s " % (obj, e))
         else:
             messages.warning(request, message="You are not authorized to delete this job %s" % obj)
-
 
 mark_rerun.short_description = "Re-run jobs"
 delete_model.short_description = "Delete selected jobs"
