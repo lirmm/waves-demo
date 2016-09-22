@@ -101,7 +101,7 @@ class JobAdmin(WavesTabbedModelAdmin):
         JobOutputInline,
     ]
     actions = [mark_rerun, delete_model]
-    list_filter = ('status', 'service', 'client')
+    list_filter = ('status', 'service', 'client', 'service__run_on')
     list_display = ('__str__', 'get_colored_status', 'service', 'get_run_on', 'get_client', 'updated')
     list_per_page = 30
 

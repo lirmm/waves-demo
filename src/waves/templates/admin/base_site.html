@@ -12,19 +12,33 @@
     </div>
 {% endblock %}
 
+{% block messages %}
+    {% if messages %}
+        <ul class="messagelist grp-messagelist">
+            {% for message in messages %}
+                <li{% if message.tags %} class="grp-{{ message.tags }}"{% endif %}>{{ message|safe }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}
+
 {% block stylesheets %}
     {{ block.super }}
     <link href="{% static 'waves/css/waves.css' %}" rel="stylesheet">
 {% endblock stylesheets %}
 {% block javascripts %}
-    {{  block.super }}
+    {{ block.super }}
     <script src="{% static "admin/js/actions.js" %}" type="text/javascript"></script>
 {% endblock javascripts %}
-{%  block extrastyle %}
+{% block extrastyle %}
     {{ block.super }}
-    <link rel='stylesheet' type='text/css' href='{% static 'css/jquery-ui/pepper-grinder/jquery-ui.css' %}' />
+    <link rel='stylesheet' type='text/css' href='{% static 'css/jquery-ui/pepper-grinder/jquery-ui.css' %}'/>
 {% endblock extrastyle %}
 
 {% block extrahead %}
     <link rel="shortcut icon" type="image/png" href="{% static 'waves/ico/favicon.png' %}"/>
+{% endblock %}
+{% block footer %}
+    {{ block.super }}
+    <div id="popup_modal"></div>
 {% endblock %}

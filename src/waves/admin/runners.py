@@ -38,25 +38,28 @@ class RunnerAdmin(admin.ModelAdmin):
     list_filter = ('clazz', 'available')
     fieldsets = [
         ('General', {
-            'fields': ['name', 'description', 'available', 'clazz', 'update_init_params']
+            'fields': ['name', 'available', 'clazz', 'description', 'update_init_params']
         }
          ),
     ]
 
     def save_model(self, request, obj, form, change):
-        if 'clazz' in form.changed_data:
+        if obj is not None and ('update_init_params' in form.changed_data or 'clazz' in form.changed_data):
+            if 'update_init_params' in form.changed_data:
+                print "update init params"
             obj.runner_params.all().delete()
-            messages.warning(request, 'Be aware that related service configuration has been deleted ! ')
-        if 'update_init_params' in form.changed_data and obj is not None:
-            obj.runner_params.all().delete()
-            messages.warning(request, 'Be aware that related service configuration has been deleted ! ')
+            params = []
             for name, initial in obj.adaptor.init_params.items():
-                param = RunnerParam.objects.update_or_create(defaults={'default': initial}, name=name, runner=obj)
+                params.append(RunnerParam.objects.create(default=initial, name=name, runner=obj))
             for service in obj.runs.all():
                 service.status = waves.const.SRV_TEST
+                # force insert new default values
+                jobs = service.reset_runner_params(params, erase=('update_init_params' in form.changed_data))
+                message = 'Service %s has been disabled, please check configuration' % service.name
+                for job in jobs:
+                    message += '<br/>- Related unfinished job %s has been cancelled' % job.title
+                messages.warning(request, message)
                 service.save()
-            messages.warning(request, 'Be aware that related service configuration has been updated ! ')
-
         super(RunnerAdmin, self).save_model(request, obj, form, change)
 
     def get_form(self, request, obj=None, **kwargs):
