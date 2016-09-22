@@ -10,6 +10,7 @@ from django.db.models import Q
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
 import waves.const
+from waves.exceptions import WavesException
 from waves.eav.config import JobEavConfig, JobInputEavConfig, JobOutputEavConfig
 from waves.models import TimeStampable, SlugAble, OrderAble, UrlMixin
 import waves.settings
@@ -315,7 +316,7 @@ class Job(TimeStampable, SlugAble, UrlMixin):
         """Return current related service adaptor effective class
 
         :return: a child class of `JobRunnerAdaptor`
-        :rtype: `JobRunnerAdaptor`
+        :rtype: `waves.adaptors.runner.JobRunnerAdaptor`
         """
         return self.service.adaptor
 
@@ -491,6 +492,19 @@ class Job(TimeStampable, SlugAble, UrlMixin):
         :rtype: QuerySet
         """
         return self.job_history.filter(is_admin=False)
+
+    def cancel_job(self, admin=False):
+        self.status = waves.const.JOB_CANCELLED
+        try:
+            self.adaptor.cancel_job(self)
+        except WavesException as exc:
+            from waves.models.jobs import JobAdminHistory
+            JobAdminHistory.objects.create(job=self, status=self.status,
+                                           message="Unable to remotely cancel job, %s" % exc.message)
+        self.message = "Job automatically cancelled"
+        if admin:
+            self.message += " (by admin)"
+        self.save()
 
 
 class JobInput(OrderAble, SlugAble):

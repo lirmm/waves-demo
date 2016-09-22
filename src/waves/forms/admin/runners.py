@@ -19,17 +19,29 @@ def get_runners_list():
 
 
 class RunnerForm(ModelForm):
-    update_init_params = BooleanField(required=False, help_text='Update from clazz')
-
     class Meta:
         model = Runner
         exclude = ['id']
         widgets = {
-            'description': Textarea(attrs={'rows': 5}),
             'clazz': Select(choices=get_runners_list()),
             'available': CheckboxInput(),
             'update_init_params': CheckboxInput()
         }
+
+    class Media:
+        js = ('waves/js/runner.js',)
+
+    update_init_params = BooleanField(required=False, label='Reset associated services to default',
+                                      help_text='Reload from selected class implementation')
+
+    def __init__(self, *args, **kwargs):
+        super(RunnerForm, self).__init__(*args, **kwargs)
+        if self.instance.pk is None:
+            # print "creation"
+            self.fields['update_init_params'].widget.attrs['disabled'] = True
+        else:
+            # print "update", self.instance
+            pass
 
     def clean(self):
         return super(RunnerForm, self).clean()

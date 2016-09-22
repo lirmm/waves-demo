@@ -36,7 +36,6 @@ class JobOutputInline(TabularInline):
     readonly_fields = ('name', 'value', 'file_path')
     ordering = ('order',)
     fields = ('name', 'value', 'file_path')
-
     # classes = ('grp-collapse grp-closed',)
 
     def has_add_permission(self, request):
@@ -87,7 +86,6 @@ def delete_model(modeladmin, request, queryset):
         else:
             messages.warning(request, message="You are not authorized to delete this job %s" % obj)
 
-
 mark_rerun.short_description = "Re-run jobs"
 delete_model.short_description = "Delete selected jobs"
 
@@ -101,7 +99,7 @@ class JobAdmin(WavesTabbedModelAdmin):
         JobOutputInline,
     ]
     actions = [mark_rerun, delete_model]
-    list_filter = ('status', 'service', 'client')
+    list_filter = ('status', 'service', 'client', 'service__run_on')
     list_display = ('__str__', 'get_colored_status', 'service', 'get_run_on', 'get_client', 'updated')
     list_per_page = 30
 
@@ -111,7 +109,7 @@ class JobAdmin(WavesTabbedModelAdmin):
     suit_form_tabs = (('general', 'General'), ('inputs', 'Inputs'), ('outputs', 'Outputs'), ('history', 'History'))
 
     # grappelli list filter
-    # change_list_template = "admin/change_list_filter_sidebar.html"
+    change_list_template = "admin/change_list_filter_sidebar.html"
     change_form_template = 'admin/waves/job/' + WavesTabbedModelAdmin.admin_template
     change_list_filter_template = "admin/filter_listing.html"
     readonly_fields = ('title', 'slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on',
@@ -206,5 +204,6 @@ class JobAdmin(WavesTabbedModelAdmin):
     get_colored_status.short_description = 'Status'
     get_run_on.short_description = 'Run on'
     get_client.short_description = 'Email'
+
 
 admin.site.register(Job, JobAdmin)

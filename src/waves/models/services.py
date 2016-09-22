@@ -481,6 +481,32 @@ class Service(TimeStampable, DescribeAble, ApiAble):
                                                               default=True,
                                                               service=self))
 
+    def reset_runner_params(self, init_params=[], erase=False):
+        """Hard reset current parameters
+
+        :param init_params: :class:`waves.models.runners.RunnerParam` object list to reset
+        :param erase: boolean, set whether current configuration must be erase first
+        :return: None
+        """
+        if erase:
+            self.delete_runner_params()
+        jobs = []
+        for current_job in self.service_jobs.filter(status__lt=waves.const.JOB_COMPLETED):
+            # print "job cancelled ", current_job
+            current_job.cancel_job(admin=True)
+            jobs.append(current_job)
+
+        for srv_param in self.service_run_params.all():
+            if srv_param.param not in init_params:
+                # print "srv param don't exists in list ", srv_param.param.name, srv_param.value, " should delete"
+                srv_param.delete()
+        for run_param in init_params:
+            if run_param not in self.service_run_params.all():
+                # add new service run param with default value
+                self.service_run_params.add(ServiceRunnerParam.objects.create(service=self, param=run_param,
+                                                                              value=run_param.default))
+        return jobs
+
 
 class ServiceSubmission(TimeStampable, OrderAble, SlugAble, ApiAble):
     """
