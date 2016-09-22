@@ -29,13 +29,13 @@ def pre_job_save_handler(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Job)
 def job_save_handler(sender, instance, created, **kwargs):
-    if created:
+    if created and not kwargs.get('raw', False):
         JobHistory.objects.create(job=instance, status=instance.status, message="Job Created", timestamp=timezone.now())
         # create job working dirs locally
         instance.make_job_dirs()
         # initiate default outputs
         instance.create_default_outputs()
-    if instance.has_changed_status():
+    if instance.has_changed_status() and not kwargs.get('raw', False):
         if not instance.status_time:
             instance.status_time = timezone.now()
         JobHistory.objects.create(job=instance, status=instance.status, message=instance.message)
@@ -66,7 +66,7 @@ def service_input_delete(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Service)
 def service_create_signal(sender, instance, created, **kwargs):
-    if created:
+    if created and not kwargs.get('raw', False):
         instance.submissions.add(ServiceSubmission.objects.create(service=instance,
                                                                   label='default'))
 
