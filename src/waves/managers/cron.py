@@ -14,7 +14,16 @@ logger = logging.getLogger(__name__)
 
 def treat_queue_jobs():
     """
-    Very very simple daemon to monitor jobs
+    Very very simple daemon to monitor jobs queue.
+
+    - Retrieve all current non terminated job, and process according to current status.
+    - Jobs are run on a unconnected type
+
+    .. todo::
+        Implement this as separated forked processes for each jobs, inspired by Galaxy queue treatment.
+
+    :return None
+
     """
     logger.info("Queue job launched at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
     while True:
@@ -43,8 +52,7 @@ def treat_queue_jobs():
                 logger.error("Error Job %s (adaptor:%s-state:%s): %s", job, runner, job.get_status_display(), e.message)
                 if job.nb_retry >= waves.settings.WAVES_JOBS_MAX_RETRY:
                     job.status = const.JOB_ERROR
-                    job.message = 'Job cancelled (to many errors) \n%s' % e.message
-                break
+                    job.message = 'Job error (too many errors) \n%s' % e.message
             finally:
                 logger.info("Queue job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
                 job.save()
@@ -56,8 +64,8 @@ def treat_queue_jobs():
 def purge_old_jobs():
     """
     Purge old jobs from db and disk according to settings values (WAVES_KEEP_ANONYMOUS_JOBS, WAVES_KEEP_REGISTERED_JOBS) set in days
-    Returns:
-        None
+
+    :return None
     """
     logger.info("Purge job launched at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
     date_anonymous = datetime.date.today() - datetime.timedelta(waves.settings.WAVES_KEEP_ANONYMOUS_JOBS)
