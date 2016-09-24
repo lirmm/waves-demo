@@ -8,6 +8,7 @@ BASE_DIR = dirname(dirname(dirname(__file__)))
 STATIC_URL = '/static/'
 
 MEDIA_ROOT = join(BASE_DIR, 'media')
+
 MEDIA_URL = "/media/"
 
 TEMPLATES = [
@@ -131,7 +132,7 @@ AUTH_USER_MODEL = 'authtools.User'
 
 # Thumbnails configuration
 THUMBNAIL_EXTENSION = 'png'  # Or any extn for your thumbnails
-THUMBNAIL_MEDIA_ROOT = MEDIA_ROOT
+THUMBNAIL_MEDIA_ROOT = '/home/marc'
 
 # DRF Configuration
 REST_FRAMEWORK = {

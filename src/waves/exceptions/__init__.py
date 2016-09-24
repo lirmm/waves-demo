@@ -59,6 +59,9 @@ class JobException(WavesException):
     """
     def __init__(self, message, job=None):
         super(JobException, self).__init__(message)
+        if job is not None:
+            from waves.models.jobs import JobAdminHistory
+            JobAdminHistory.objects.create(job=job, message=self.message, status=job.status)
 
 
 class JobRunException(JobException):

@@ -109,9 +109,8 @@ class JobAdmin(WavesTabbedModelAdmin):
     suit_form_tabs = (('general', 'General'), ('inputs', 'Inputs'), ('outputs', 'Outputs'), ('history', 'History'))
 
     # grappelli list filter
-    # change_list_template = "admin/change_list_filter_sidebar.html"
+    change_list_template = "admin/change_list_filter_sidebar.html"
     change_form_template = 'admin/waves/job/' + WavesTabbedModelAdmin.admin_template
-    change_list_filter_template = "admin/filter_listing.html"
     readonly_fields = ('title', 'slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on',
                        'command_line')
 
@@ -204,5 +203,6 @@ class JobAdmin(WavesTabbedModelAdmin):
     get_colored_status.short_description = 'Status'
     get_run_on.short_description = 'Run on'
     get_client.short_description = 'Email'
+
 
 admin.site.register(Job, JobAdmin)

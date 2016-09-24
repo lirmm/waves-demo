@@ -191,10 +191,11 @@ class JobTests(WavesAPITestCase):
         submitted_input = jobs_params[0]
         submitted_input.pop('s')
         logger.debug('Data posted %s', submitted_input)
-        url_post = self.client.get(reverse('waves:waves-services-detail',
+        response = self.client.get(reverse('waves:waves-services-detail',
                                            kwargs={'api_name': 'physic_ist'}),
                                    data=self._dataUser())
-        response = self.client.post(url_post.data['default_submission_uri'],
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.post(response.data['default_submission_uri'],
                                     data=self._dataUser(initial=submitted_input),
                                     format='multipart')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

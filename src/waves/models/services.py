@@ -151,12 +151,11 @@ class ServiceCategory(MPTTModel, OrderAble, DescribeAble, ApiAble):
 
 
 class ServiceManager(models.Manager):
-
     def get_services(self, user=None, for_api=None):
         """
         Returns:
         """
-        if user is not None:
+        if user is not None and not user.is_anonymous:
             if user.is_superuser:
                 # Super user has access to 'all' services / submissions etc...
                 queryset = self.all()
@@ -272,7 +271,9 @@ class Service(TimeStampable, DescribeAble, ApiAble):
         if not self.api_name:
             self.set_api_name()
         super(Service, self).save(force_insert, force_update, using, update_fields)
-        if self.run_on and self.service_run_params.count() != self.run_on.runner_params.count():
+        if self.run_on and (
+                self.service_run_params.count() == 0 or
+                        self.service_run_params.count() != self.run_on.runner_params.count()):
             # initialize adaptor params with defaults
             self.set_default_params_4_runner(self.run_on)
 
@@ -473,7 +474,7 @@ class Service(TimeStampable, DescribeAble, ApiAble):
                (self.status == waves.const.SRV_DRAFT and self.created_by == user) or \
                (self.status == waves.const.SRV_TEST and user.is_staff) or \
                (self.status == waves.const.SRV_RESTRICTED and (
-               user.profile in self.restricted_client.all() or user.is_staff)) or \
+                   user.profile in self.restricted_client.all() or user.is_staff)) or \
                user.is_superuser
 
     def create_default_submission(self):
@@ -842,5 +843,3 @@ class ServiceMeta(OrderAble, DescribeAble):
     value = models.CharField('Meta value', max_length=500, blank=True, null=True)
     is_url = models.BooleanField('Is a url', editable=False, default=False)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='metas')
-
-

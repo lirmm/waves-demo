@@ -9,18 +9,23 @@ from django.conf import settings
 import waves.const
 import waves.settings
 from waves.exceptions import *
-from waves.adaptors.importer import ToolRunnerImporter
+from waves.adaptors.importer import Importer
 from waves.models.services import ServiceInputFormat, RelatedInput, ServiceOutput, ServiceInput, Service, \
     ServiceOutputFromInputSubmission
 
 logger = logging.getLogger(__name__)
 
 
-class GalaxyToolImporter(ToolRunnerImporter):
-    def __init__(self, runner, service=None):
-        super(GalaxyToolImporter, self).__init__(runner, service)
+# TODO add specific exceptions for importers
+class GalaxyToolImporter(Importer):
+    """ Allow Service to automatically import submission parameters from Galaxy API
 
+    """
     def connect(self):
+        """
+        Connect to remote Galaxy Host
+        :return:
+        """
         self._tool_client = bioblend.galaxy.objects.client.ObjToolClient(self._adaptor.connect())
 
     def _list_all_remote_services(self):
@@ -140,7 +145,7 @@ class GalaxyToolImporter(ToolRunnerImporter):
             logger.debug("param_type: %s ", service_input.param_type)
             return service_input
         except KeyError as e:
-            logger.warn(u'Unmanaged input param type "' + tool_input['type'] + u'" for input "' + tool_input['name'] +
+            logger.warn(u'Un-managed input param type "' + tool_input['type'] + u'" for input "' + tool_input['name'] +
                         u'"\n' + e.message)
             return None
         except Exception as exc:
@@ -192,7 +197,6 @@ class GalaxyToolImporter(ToolRunnerImporter):
         return self._import_number(tool_input, service_input)
 
     def _import_float(self, tool_input, service_input):
-
         return self._import_number(tool_input, service_input)
 
     def _import_number(self, tool_input, service_input):

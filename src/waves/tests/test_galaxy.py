@@ -7,6 +7,7 @@ import utils.galaxy_util as test_util
 from django.conf import settings
 import waves.const as const
 import waves.settings
+from waves.tests.utils import get_sample_dir
 from django.test import override_settings
 from waves.tests.test_runner import TestBaseJobRunner
 from waves.models import Runner, Service, Job, JobOutput, JobInput
@@ -58,7 +59,7 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
         self.assertGreater(len(tools), 0)
 
     def _import_tool_from_service(self, remote_tool_id, service=None):
-        importer = self.runner_model.importer(for_service=service)
+        importer = self.runner_model.get_importer(for_service=service)
         return importer.import_remote_service(remote_tool_id=remote_tool_id)
 
     @test_util.skip_unless_tool("fastme")
@@ -67,13 +68,14 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
         fast_me = tool_client.list(name='FastME')
         self.assertTrue(len(fast_me) > 0)
         self.service = self._import_tool_from_service(fast_me[0].id)
+        self.adaptor.remote_tool_id = fast_me[0].id
+        print self.service.service_run_params.all()
         # TODO remove this (moved in testFastMe function)
         self.current_job = Job.objects.create(service=self.service, title="TestFastMe Galaxy")
         self.current_job.job_inputs.add(
             JobInput.objects.create(job=self.current_job, name="input_data", type=waves.const.TYPE_FILE,
                                     param_type=waves.const.OPT_TYPE_VALUATED,
-                                    value=os.path.join(settings.WAVES_TEST_SAMPLE_DIR, 'fast_me',
-                                                       'fastme-dna.txt')))
+                                    value=os.path.join(get_sample_dir(), 'fast_me', 'fastme-dna.txt')))
         self.current_job.job_inputs.add(
             JobInput.objects.create(job=self.current_job, name="dna", type=waves.const.TYPE_TEXT,
                                     param_type=waves.const.OPT_TYPE_VALUATED,
@@ -174,12 +176,12 @@ class GalaxyWorkFlowRunnerTestCase(TestBaseJobRunner):
                                                                          api_key=self.runner.app_key)
 
     def test_list_galaxy_workflow(self):
-        importer = self.runner_model.importer()
+        importer = self.runner_model.get_importer()
         services = importer.list_all_remote_services()
         self.assertGreater(len(services), 0)
 
     def test_import_new_workflow(self):
-        importer = self.runner_model.importer()
+        importer = self.runner_model.get_importer()
         services = importer.list_all_remote_services()
         for remote_service in services[0:1]:
             importer.import_remote_service(remote_tool_id=remote_service[0])
@@ -190,7 +192,7 @@ class GalaxyWorkFlowRunnerTestCase(TestBaseJobRunner):
             self.fail('Unable to test update workflow, since there is none in db')
         for updated in service[0:1]:
             # just try for the the first one
-            importer = self.runner_model.importer(for_service=updated)
+            importer = self.runner_model.get_importer(for_service=updated)
             remote_tool_param = updated.service_run_params.get(param__name='remote_tool_id')
             logger.debug('Remote too id for service %s : %s', updated, remote_tool_param.value)
             importer.import_remote_service(remote_tool_id=remote_tool_param.value)

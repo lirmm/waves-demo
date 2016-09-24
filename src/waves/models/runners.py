@@ -52,12 +52,21 @@ class Runner(DescribeAble):
     @property
     def adaptor(self):
         if self.clazz:
-            job_runner = import_string(self.clazz)
-            return job_runner(init_params=self.default_run_params())
+            Adaptor = import_string(self.clazz)
+            return Adaptor(init_params=self.default_run_params())
         return None
 
-    def importer(self, for_service=None):
-        return self.adaptor.importer(for_service)
+    def get_importer(self, for_service=None):
+        """
+        Shortcut function to retrieve an importer associated with a runner Model object
+
+        :param for_service:
+        :return:
+        """
+        if self.adaptor is not None:
+            return self.adaptor.importer(for_service=for_service)
+        else:
+            raise NotImplementedError("Runner doesn't have import functionality")
 
     def default_run_params(self):
         """
