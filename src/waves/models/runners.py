@@ -71,8 +71,9 @@ class Runner(DescribeAble):
     def default_run_params(self):
         """
         Return a list of tuples representing current service adaptor init params
-        Returns:
-            List of Tuple (param_name, param_service_value, runner_param_default)
+
+        :return: a dictionary (param_name=runner_param_default)
+        :rtype: dict
         """
         runner_params = self.runner_params.values_list('name', 'default')
         returned = dict()

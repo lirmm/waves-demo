@@ -288,8 +288,9 @@ class Service(TimeStampable, DescribeAble, ApiAble):
     def run_params(self):
         """
         Return a list of tuples representing current service adaptor init params
-        Returns:
-            List of Tuple (param_name, param_service_value, runner_param_default)
+
+        :return: a Dictionary (param_name=param_service_value or runner_param_default if not set
+        :rtype: dict
         """
         runner_params = self.service_run_params.values_list('param__name', 'value', 'param__default')
         returned = dict()
@@ -298,10 +299,9 @@ class Service(TimeStampable, DescribeAble, ApiAble):
         return returned
 
     def import_service_params(self):
-        """
-        Try to import service param configuration issued from adaptor
-        Returns:
-            None
+        """ Try to import service param configuration issued from adaptor
+
+        :return: None
         """
         if not self.run_on:
             raise ImportError(u'Unable to import if no adaptor is set')
@@ -642,10 +642,9 @@ class BaseInput(PolymorphicModel, DescribeAble, TimeStampable, OrderAble):
         return self.default
 
     def clean(self):
-        """
-        Base clean for all service input
-        Returns:
+        """ Base clean for all service input
 
+        :return:
         """
         if not (self.display or self.default):
             # param is mandatory
@@ -676,11 +675,13 @@ class ServiceInput(BaseInput):
 
     # TODO use validators already made (and better made)
     def clean(self):
-        """
-        Form validation when creating service Input (check consistency for list / boolean values / integer
+        """ Form validation when creating service Input (check consistency for list / boolean values / integer
         and float default values
-            Returns:
-                None
+
+        .. todo::
+           use validators already made (and better made)
+
+        :return: None
         """
         if self.type != self.__original_type:
             if self.default:

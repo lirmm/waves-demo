@@ -21,6 +21,11 @@ class GalaxyToolImporter(Importer):
     """ Allow Service to automatically import submission parameters from Galaxy API
 
     """
+
+    #: List of tools categories which are not meaning a 'WAVES' service tool
+    _unwanted_categories = [None, 'Get Data', 'Filter and sort', 'Collection Operations', 'Graph/Display Data',
+                            'Send Data', 'Text Manipulation', 'Fetch Alignments', ]
+
     def connect(self):
         """
         Connect to remote Galaxy Host
@@ -29,10 +34,24 @@ class GalaxyToolImporter(Importer):
         self._tool_client = bioblend.galaxy.objects.client.ObjToolClient(self._adaptor.connect())
 
     def _list_all_remote_services(self):
+        """
+        List available tools on remote Galaxy server, filtering with ``_unwanted_categories``
+        Group items by categories
+
+        :return: A list of tuples corresponding to format used in Django for Choices
+        """
         try:
             tool_list = self._tool_client.list()
-            tool_list.sort(key=lambda tool: tool.name, reverse=False)
-            return [(g.id, g.name) for g in tool_list]
+            group_list = sorted(set(map(lambda x: x.wrapped['panel_section_name'], tool_list)), key=lambda z: z)
+            group_list = [x for x in group_list if x not in self._unwanted_categories]
+            print group_list
+            return [
+                (x,
+                 sorted([(y.id, y.name) for y in tool_list if
+                         y.wrapped['panel_section_name'] == x and y.wrapped['model_class'] == 'Tool'],
+                        key=lambda d: d[1])
+                 )
+                for x in group_list]
         except ConnectionError as e:
             raise RunnerConnectionError(e.message, 'Connection Error:\n')
 
