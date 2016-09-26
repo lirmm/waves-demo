@@ -392,7 +392,7 @@ class JobRunnerAdaptor(object):
     def importer(self, for_service=None, for_runner=None):
         from django.utils.module_loading import import_string
         if self.importer_clazz:
-            # print "importerclazz", self.importer_clazz
+            print "importerclazz", self.importer_clazz
             importer = import_string(self.importer_clazz)
             if for_service is not None:
                 return importer(self, service=for_service)
