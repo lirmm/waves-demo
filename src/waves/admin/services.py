@@ -247,7 +247,7 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
     form = ServiceForm
     filter_horizontal = ['restricted_client']
     readonly_fields = ['created', 'updated']
-    list_display = ('name', 'api_name', 'api_on', 'version', 'run_on', 'status', 'created_by')
+    list_display = ('name', 'api_name', 'api_on', 'web_on', 'version', 'run_on', 'status', 'created_by')
     list_filter = ('status', 'name', 'run_on')
     tab_overview = (
         (None, {
@@ -257,8 +257,9 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
     )
     tab_details = (
         (None, {
-            'fields': ['api_name', 'created_by', 'restricted_client', 'email_on', 'api_on', 'clazz', 'created',
+            'fields': ['api_name', 'created_by', 'restricted_client', 'email_on', 'api_on', 'web_on', 'created',
                        'updated']
+            # TODO reintegrate 'clazz'
         }),
     )
     tab_runner = (ServiceRunnerParamInLine,)
