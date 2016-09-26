@@ -14,8 +14,21 @@ logger = logging.getLogger(__name__)
 
 
 class ServiceJobManager(object):
+    """ Class in charge to create job in database, related to a service submission, inputs given (either via API
+    or form submission)
+    """
+
     @staticmethod
     def _create_job_input(job, service_input, order, submitted_input):
+        """
+
+        :param job: The current job being created,
+        :param service_input: current service submission input
+        :param order: given order in future command line creation (if needed)
+        :param submitted_input: received value for this service submission input
+        :return: return the newly created JobInput
+        :rtype: :class:`waves.models.jobs.JobInput`
+        """
         from waves.models import JobInput
         input_dict = dict(job=job,
                           order=order,
@@ -50,20 +63,22 @@ class ServiceJobManager(object):
                 input_dict.update(dict(value=service_input.name + '.txt'))
                 with open(filename, 'wb+') as uploaded_file:
                     uploaded_file.write(submitted_input)
-        job.job_inputs.add(JobInput.objects.create(**input_dict))
+        job_input = JobInput.objects.create(**input_dict)
+        job.job_inputs.add(job_input)
+        return job_input
 
     @staticmethod
     @transaction.atomic
     def create_new_job(submission, submitted_inputs, email_to=None, user=None):
         """
-        Create a new job from service data and submitted params values
-        Args:
-            submitted_inputs: Dictionary { param_name:param_value }
-            submission: Service - related service submission
-            email_to: email results to
-            user: associated user (may be None)
-        Returns:
-            A newly created Job object
+        Create a new job from service submission data and submitted inputs values
+
+        :param submission: Dictionary { param_name: param_value }
+        :param submitted_inputs: received input from client submission
+        :param email_to: if given, email address to notify job process to
+        :param user: associated user (may be anonymous)
+        :return: a newly create Job instance
+        :rtype: :class:`waves.models.jobs.Job`
         """
         from waves.models import Job, BaseInput, JobOutput
         try:

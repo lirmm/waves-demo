@@ -151,13 +151,12 @@ class ServiceCategory(MPTTModel, OrderAble, DescribeAble, ApiAble):
 
 
 class ServiceManager(models.Manager):
-    def get_services(self, user=None, for_api=None):
+    def get_services(self, user=None, for_api=False):
         """
         Returns:
         """
-        if user is not None and not user.is_anonymous:
+        if user is not None and not user.is_anonymous():
             if user.is_superuser:
-                # Super user has access to 'all' services / submissions etc...
                 queryset = self.all()
             elif user.is_staff:
                 # Staff user have access their own Services and to all 'Test / Restricted / Public' made by others
@@ -175,7 +174,9 @@ class ServiceManager(models.Manager):
         else:
             queryset = self.filter(status=waves.const.SRV_PUBLIC)
         if for_api:
-            queryset.filter(api_on=True)
+            queryset = queryset.filter(api_on=True)
+        else:
+            queryset = queryset.filter(web_on=True)
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('Generated query set \n%s', queryset.query)
             logger.debug('Should return this services:\n%s', queryset.all())
@@ -244,7 +245,10 @@ class Service(TimeStampable, DescribeAble, ApiAble):
                                  help_text='Service online status')
     api_on = models.BooleanField('Available on API',
                                  default=True,
-                                 help_text='Service is available for api calls ?')
+                                 help_text='Service is available for api calls')
+    web_on = models.BooleanField('Available on WEB',
+                                  default=True,
+                                  help_text='Service is available for web front')
     email_on = models.BooleanField('Notify results to client',
                                    default=True,
                                    help_text='This service sends notification email')
@@ -272,7 +276,7 @@ class Service(TimeStampable, DescribeAble, ApiAble):
             self.set_api_name()
         super(Service, self).save(force_insert, force_update, using, update_fields)
         if self.run_on and (
-                self.service_run_params.count() == 0 or
+                        self.service_run_params.count() == 0 or
                         self.service_run_params.count() != self.run_on.runner_params.count()):
             # initialize adaptor params with defaults
             self.set_default_params_4_runner(self.run_on)

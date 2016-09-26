@@ -52,22 +52,26 @@ class JobRunnerAdaptor(object):
     @property
     def init_params(self):
         """
-        List all expected initparams, with default if set at class level
-        :return: A dictionnary containing expected init params
+        List all expected 'init_params', with default if set at class level
+
+        :return: A dictionary containing expected init params
         """
         return dict()
 
     @property
     def connected(self):
         """
-        Tells whether current adpator object is connected to remote calculation infrastructure
+        Tells whether current remote adapator object is connected to calculation infrastructure
+
         :return: Connected or Not to remote
         :rtype: bool
         """
         return self._connector is not None and self._connected is True
 
     def connect(self):
-        """Connect to adaptor
+        """
+        Connect to adaptor
+
         :raise: :class:`waves.exceptions.ConnectionException`
         :return: _connector reference or raise an
         """
@@ -89,7 +93,8 @@ class JobRunnerAdaptor(object):
     def disconnect(self):
         """
         Shut down connection to adaptor. Called after job adaptor execution to disconnect from remote
-        :raise: :class:`waves.exceptions.ConnectionException`
+
+        :raise: : class:`waves.exceptions.ConnectionException`
         :return: True if disconnected, false otherwise
         :rtype: bool
         """
@@ -107,9 +112,13 @@ class JobRunnerAdaptor(object):
 
     def prepare_job(self, job):
         """
-        Command execution preparation process
-        Args:
-            job:
+        Job execution preparation process, may store prepared data in a pickled object
+
+        :param job: The job to prepare execution for
+        :return: True if success, False otherwise, set job status to 'Prepared'
+        :rtype: bool
+        :raise: :class:`waves.exceptions.JobPrepareException` if error during preparation process
+        :raise: :class:`waves.exceptions.JobInconsistentStateError` if job status is not 'created'
         """
         if not self._ready():
             raise RunnerNotReady()
@@ -139,6 +148,15 @@ class JobRunnerAdaptor(object):
         return True
 
     def run_job(self, job):
+        """
+        Launch a previously 'prepared' job on the remote adaptor class
+
+        :param job: The job to launch execution
+        :return: External remote adaptor job identifier
+        :rtype: Any
+        :raise: :class:`waves.exceptions.JobRunException` if error during launch
+        :raise: :class:`waves.exceptions.JobInconsistentStateError` if job status is not 'prepared'
+        """
         assert isinstance(job, Job)
         if job.status != waves.const.JOB_PREPARED:
             raise JobInconsistentStateError(job.get_status_display(), waves.const.STR_JOB_PREPARED)
@@ -169,9 +187,13 @@ class JobRunnerAdaptor(object):
 
     def cancel_job(self, job):
         """
-        Cancel a running job on adaptor class
-        :param job:
-        :return:
+        Cancel a running job on adaptor class, if possible
+
+        :param job: The job to cancel
+        :return: The new job status
+        :rtype: int
+        :raise: :class:`waves.exceptions.JobRunException` if error during launch
+        :raise: :class:`waves.exceptions.JobInconsistentStateError` if job status is not 'prepared'
         """
         if job.status not in dict(self._state_allow_cancel):
             raise JobInconsistentStateError(job.get_status_display(), self._state_allow_cancel, 'Cancel not allowed')
@@ -185,7 +207,11 @@ class JobRunnerAdaptor(object):
             job.nb_retry = 0
             logger.info('Job %s cancelled ', job.slug)
         except WavesException as exc:
-            job.nb_retry += 1
+            if job.nb_retry < waves.settings.WAVES_JOBS_MAX_RETRY:
+                job.nb_retry += 1
+            else:
+                job.status = waves.const.JOB_ERROR
+                job.message = "Job could not be remotely cancelled"
             JobAdminHistory.objects.create(job=job, message=exc.message, status=job.status)
             raise JobException('Cancel error:[%s] %s' %
                                (exc.__class__.__name__, str(exc)))
@@ -194,7 +220,7 @@ class JobRunnerAdaptor(object):
             job.message = "Current runner do not implements required method '_cancel_job()'"
         except Exception as exc:
             logger.error('Cancel job %s not applied to adaptor %s', job.pk, job.service.run_on)
-            job.message = 'Could not cancel job'
+            job.message = 'Could not remotely cancel job'
             raise JobRunException('Cancel job error:\n%s: %s' %
                                   (exc.__class__.__name__, str(exc)), job=job)
         finally:

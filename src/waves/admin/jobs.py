@@ -220,4 +220,5 @@ class JobAdmin(WavesTabbedModelAdmin):
     get_run_on.admin_order_field = 'service__run_on'
     get_client.admin_order_field = 'client'
 
+
 admin.site.register(Job, JobAdmin)
