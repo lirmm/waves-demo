@@ -3,6 +3,7 @@ import logging.config
 import time
 import datetime
 from itertools import chain
+from django.db import transaction
 from waves.models.jobs import JobAdminHistory
 import waves.const as const
 import waves.settings
@@ -18,7 +19,8 @@ def treat_queue_jobs():
     """
     logger.info("Queue job launched at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
     while True:
-        jobs = Job.objects.filter(status__lt=const.JOB_TERMINATED)
+        jobs = Job.objects.prefetch_related('job_inputs').\
+            prefetch_related('job_outputs').filter(status__lt=const.JOB_TERMINATED)
         logger.info("Starting queue process with %i(s) unfinished jobs", jobs.count())
         for job in jobs:
             runner = job.adaptor

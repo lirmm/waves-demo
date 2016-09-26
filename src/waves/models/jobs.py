@@ -321,7 +321,7 @@ class Job(TimeStampable, SlugAble, UrlMixin):
         return self.service.adaptor
 
     def __str__(self):
-        return '%s [%s][%s]' % (self.title, self.service.api_name, self.slug)
+        return '[%s][%s]' % (self.slug, self.service.api_name)
 
     @property
     def command(self):
