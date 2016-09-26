@@ -151,13 +151,12 @@ class ServiceCategory(MPTTModel, OrderAble, DescribeAble, ApiAble):
 
 
 class ServiceManager(models.Manager):
-    def get_services(self, user=None, for_api=None):
+    def get_services(self, user=None, for_api=False):
         """
         Returns:
         """
         if user is not None and not user.is_anonymous():
             if user.is_superuser:
-                # Super user has access to 'all' services / submissions etc...
                 queryset = self.all()
             elif user.is_staff:
                 # Staff user have access their own Services and to all 'Test / Restricted / Public' made by others
@@ -175,9 +174,9 @@ class ServiceManager(models.Manager):
         else:
             queryset = self.filter(status=waves.const.SRV_PUBLIC)
         if for_api:
-            queryset.filter(api_on=True)
+            queryset = queryset.filter(api_on=True)
         else:
-            queryset.filter(web_on=True)
+            queryset = queryset.filter(web_on=True)
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('Generated query set \n%s', queryset.query)
             logger.debug('Should return this services:\n%s', queryset.all())
