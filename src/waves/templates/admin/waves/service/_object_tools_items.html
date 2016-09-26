@@ -23,7 +23,7 @@
         View online
     </a>
 </li>
-{% if original.run_on %}
+{% if original.run_on and original.adaptor.has_importer %}
     <li>
         <a type="button" href="{% url 'waves:service_import_form' original.pk %}"
            target="_blank"

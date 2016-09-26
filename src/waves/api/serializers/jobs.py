@@ -2,12 +2,16 @@
 from __future__ import unicode_literals
 
 import logging
+
 from django.contrib.auth import get_user_model
+from django.core.urlresolvers import reverse
 from rest_framework import serializers
 from rest_framework.reverse import reverse as reverse_drf
 
 from dynamic import DynamicFieldsModelSerializer
+from waves.api.serializers.services import ServiceSerializer, InputSerializer
 from waves.models import Service, JobHistory, JobInput, Job, JobOutput
+from waves.utils import get_complete_absolute_url
 
 logger = logging.getLogger(__name__)
 User = get_user_model()

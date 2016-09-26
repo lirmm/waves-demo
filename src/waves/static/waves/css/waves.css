@@ -53,12 +53,13 @@ WAVES backOffice dedicated css
     position: absolute;
     top: 50%;
     left: 50%;
-    margin-left: -63px; /* half width of the spinner gif */
-    margin-top: -11px; /* half height of the spinner gif */
+    margin-left: -60px; /* half width of the spinner gif */
+    margin-top: -60px; /* half height of the spinner gif */
     text-align: center;
     z-index: 10000;
     overflow: auto;
-    width: 126px; /* width of the spinner gif */
+    background-color: #888888;
+    width: 120px; /* width of the spinner gif */
 }
 
 #form_import .form-actions {

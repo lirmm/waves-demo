@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import FormView, View
 from django.db import DatabaseError
+from django.core.exceptions import ObjectDoesNotExist
 from crispy_forms.utils import render_crispy_form
 from django.core.exceptions import ValidationError
 from waves.forms.admin import ImportForm
@@ -30,7 +31,7 @@ class ServiceParamImportView(FormView):
     def get_context_data(self, **kwargs):
         # print 'get context'
         context = super(ServiceParamImportView, self).get_context_data(**kwargs)
-        context['service_id'] = self.service.pk
+        context['service_id'] = self.kwargs['service_id']
         return context
 
     def get_success_url(self):
@@ -46,37 +47,65 @@ class ServiceParamImportView(FormView):
         # print "get ", kwargs
         try:
             self.service = Service.objects.get(id=kwargs['service_id'])
-            self.importer = self.service.run_on.importer(for_service=self.service)
+            self.importer = self.service.run_on.adaptor.importer(for_service=self.service)
+            # self.tool_list = self.importer.list_all_remote_services()
+        except ObjectDoesNotExist:
+            # We came here probably with a runner instance instead
+            try:
+                self.service = None
+                from waves.models.runners import Runner
+                runner = Runner.objects.get(id=kwargs['service_id'])
+                self.importer = runner.adaptor.importer(for_runner=runner)
+            except ObjectDoesNotExist as e:
+                logger.info('Unable to retrieve anything, where did we come from ??? %s ', e)
+                messages.error(request, message=e.message)
+                return super(ServiceParamImportView, self).get(request, *args, **kwargs)
+            except Exception as e:
+                messages.error(request, message=e.message)
+                return super(ServiceParamImportView, self).get(request, *args, **kwargs)
+        try:
             self.tool_list = self.importer.list_all_remote_services()
-        except NotImplementedError as e:
+        except RunnerException as exc:
+            logger.info('Runner Exception ')
+            messages.error(request, message="Connection error to remote adaptor")
+        except NotImplementedError:
             logger.info('Not Implemented error')
-            messages.warning(request,
-                             message='This adaptor cannot import service')
+            messages.warning(request, message='This adaptor cannot import service')
         except Exception as e:
             logger.info('Other exception %s ', e)
-            messages.error(request,
-                           message=e.message)
+            messages.error(request, message=e.message)
+
         return super(ServiceParamImportView, self).get(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super(ServiceParamImportView, self).get_form_kwargs()
         extra_kwargs = {
-           'tool_list': self.tool_list,
+            'tool_list': self.tool_list,
         }
         extra_kwargs.update(kwargs)
         return extra_kwargs
 
     def post(self, request, *args, **kwargs):
-        self.service = Service.objects.get(id=kwargs['service_id'])
-        logger.debug('Service %s:%s', self.service.pk, self.service)
-        self.importer = self.service.run_on.importer(for_service=self.service)
+        try:
+            self.service = Service.objects.get(id=kwargs['service_id'])
+
+            logger.debug('Service %s:%s', self.service.pk, self.service)
+            self.importer = self.service.run_on.adaptor.importer(for_service=self.service)
+        except ObjectDoesNotExist:
+            # We came here probably with a runner instance instead
+            self.service = None
+            from waves.models.runners import Runner
+            runner = Runner.objects.get(id=kwargs['service_id'])
+            self.importer = runner.adaptor.importer(for_runner=runner)
         self.tool_list = self.importer.list_all_remote_services()
         form = self.get_form()
         if request.is_ajax():
             if form.is_valid():
                 logger.warning('Form is valid')
                 try:
-                    self.importer.import_remote_service(request.POST['tool_list'])
+                    self.service = self.importer.import_remote_service(request.POST['tool_list'])
+                    self.service.created_by = self.request.user
+                    self.service.save()
                     data = {
                         'url_redirect': reverse('admin:waves_service_change',
                                                 args=[self.service.id])

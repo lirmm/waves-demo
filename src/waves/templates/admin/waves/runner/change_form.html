@@ -9,4 +9,17 @@
            class="link">{% trans "Associated Services" %}</a>
     </li>
     {{ block.super }}
+    {% if original.adaptor.has_importer %}
+    <li>
+        <a type="button" href="{% url 'waves:service_import_form' original.pk %}"
+           target="_blank"
+           title="Import from adapter"
+           class="js-popup-link btn btn-high btn-info"
+           data-toggle="modal"
+           data-target="#form-modal"
+           id="launch_import">
+            Import from adapter
+        </a>
+    </li>
+{% endif %}
 {% endblock %}

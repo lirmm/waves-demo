@@ -17,20 +17,10 @@
             }
 
         });
-        // $('.has-popover').popover({'trigger': 'hover'});
-        $('.js-popup-link').click(function (e) {
-            e.preventDefault();
-            $('#popup_modal').dialog({
-                modal: true,
-                position: {my: 'top', at: 'top+100', of: window},
-                minWidth: 500,
-                resizable: true,
-                dialogClass: "tool_import_modal",
-                title: this.title,
-            }).dialog('open').load(this.href)
-        });
+
         $('#launch_import').click(function () {
             $('#form-modal-body').load('/launch_import/', function () {
+                console.log('IamUsed');
                 $('#form-modal').modal('toggle');
             });
         });

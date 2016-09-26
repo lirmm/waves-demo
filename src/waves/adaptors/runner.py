@@ -363,14 +363,20 @@ class JobRunnerAdaptor(object):
             jd_dict = pickle.load(fp)
         return jd_dict
 
-    def importer(self, for_service=None):
+    def importer(self, for_service=None, for_runner=None):
         from django.utils.module_loading import import_string
         if self.importer_clazz:
             # print "importerclazz", self.importer_clazz
             importer = import_string(self.importer_clazz)
-            if for_service:
+            if for_service is not None:
                 return importer(self, service=for_service)
+            elif for_runner is not None:
+                return importer(self, runner=for_runner)
             else:
-                return importer(self)
+                raise ValueError('We need either a service or a runner to initialize an importer !')
+                # return importer(self)
         else:
-            raise NotImplementedError
+            return None
+
+    def has_importer(self):
+        return self.importer_clazz is not None

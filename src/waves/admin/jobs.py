@@ -100,7 +100,7 @@ class JobAdmin(WavesTabbedModelAdmin):
     ]
     actions = [mark_rerun, delete_model]
     list_filter = ('status', 'service', 'client', 'service__run_on')
-    list_display = ('__str__', 'get_colored_status', 'service', 'get_run_on', 'get_client', 'updated')
+    list_display = ('get_slug', 'get_colored_status', 'service', 'get_run_on', 'get_client', 'created', 'updated')
     list_per_page = 30
 
     search_fields = ('client__email', 'service__name', 'service__run_on__clazz', 'service__run_on__name')
@@ -111,7 +111,6 @@ class JobAdmin(WavesTabbedModelAdmin):
     # grappelli list filter
     change_list_template = "admin/change_list_filter_sidebar.html"
     change_form_template = 'admin/waves/job/' + WavesTabbedModelAdmin.admin_template
-    change_list_filter_template = "admin/filter_listing.html"
     readonly_fields = ('title', 'slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on',
                        'command_line')
 
@@ -139,6 +138,9 @@ class JobAdmin(WavesTabbedModelAdmin):
         ('Outputs', tab_outputs),
     ]
 
+    def get_slug(self, obj):
+        return str(obj.slug)
+
     def get_queryset(self, request):
         if request.user.is_superuser:
             return super(JobAdmin, self).get_queryset(request)
@@ -163,9 +165,11 @@ class JobAdmin(WavesTabbedModelAdmin):
         return actions
 
     def has_add_permission(self, request):
-        if not request.user.is_superuser:
-            return False
-        return True
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        has_change = super(JobAdmin, self).has_change_permission(request, obj)
+        return has_change or request.user.is_superuser
 
     def __init__(self, model, admin_site):
         super(JobAdmin, self).__init__(model, admin_site)
@@ -201,9 +205,20 @@ class JobAdmin(WavesTabbedModelAdmin):
         # print 'in get row css'
         return obj.label_class
 
+    def get_readonly_fields(self, request, obj=None):
+        read_only_fields = list(super(JobAdmin, self).get_readonly_fields(request, obj))
+        if request.user.is_superuser:
+            read_only_fields.remove('status')
+        return read_only_fields
+
     get_colored_status.short_description = 'Status'
     get_run_on.short_description = 'Run on'
     get_client.short_description = 'Email'
+    get_slug.short_description = 'identifier'
+    get_slug.admin_order_field = 'slug'
+    get_colored_status.admin_order_field = 'status'
+    get_run_on.admin_order_field = 'service__run_on'
+    get_client.admin_order_field = 'client'
 
 
 admin.site.register(Job, JobAdmin)
