@@ -55,6 +55,7 @@ class JobRunnerAdaptor(object):
         List all expected 'init_params', with default if set at class level
 
         :return: A dictionary containing expected init params
+        :rtype: dict
         """
         return dict()
 

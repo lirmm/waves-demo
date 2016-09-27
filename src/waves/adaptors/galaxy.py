@@ -7,7 +7,6 @@ import bioblend
 import requests
 from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.objects import galaxy_instance as galaxy
-
 from django.conf import settings
 from django.utils.text import slugify
 from django.core.exceptions import ObjectDoesNotExist
@@ -22,7 +21,16 @@ logger = logging.getLogger(__name__)
 
 
 class GalaxyAdaptorConnectionError(RunnerConnectionError):
+    """
+    Specific subclass for managing Galaxy service connection errors
+
+    """
+
     def __init__(self, e):
+        """
+        Load and parse superclass ConnectionError message body
+        :param e: The exception
+        """
         error_data = json.loads(e.body)
         message = '{} [{}]'.format(e.message, error_data['err_msg'])
         super(GalaxyAdaptorConnectionError, self).__init__(reason=message)
@@ -72,6 +80,19 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
 
     @property
     def init_params(self):
+        """
+        List Galaxy adaptor expected initialization parameters, defaults can be set in waves.env
+
+        - **returns**
+            - host: Galaxy full host url
+            - port: Galaxy host port
+            - app_key: Galaxy remote user api_key
+            - library_dir: Galaxy remote user library, no default
+            - remote_tool_id: Galaxy remote tool id, should be set for each Service, no default
+
+        :return: A dictionary containing expected init params
+        :rtype: dict
+        """
         return dict(host=self.host,
                     port=self.port,
                     app_key=self.app_key,
@@ -79,6 +100,13 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
                     remote_tool_id=self.remote_tool_id)
 
     def _connect(self):
+        """
+        Actually connect to remote Galaxy Instance
+
+        :raise: `waves.adaptors.galaxy.GalaxyAdaptorConnectionError`
+        :return: Nothing
+        :rtype:None
+        """
         try:
             self._connector = bioblend.galaxy.objects.GalaxyInstance(url=self.complete_url,
                                                                      api_key=self.app_key)
@@ -87,6 +115,12 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
             raise GalaxyAdaptorConnectionError(exc)
 
     def _disconnect(self):
+        """
+        Setup instance to disconnected
+
+        :return: Nothing
+        :rtype: None
+        """
         self._connector = None
         self._connected = False
 
