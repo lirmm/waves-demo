@@ -21,28 +21,29 @@ Get the sources
 
 Create virtual env
 ------------------
-    - $ cd [waves_dir]
-    - [waves_dir]$ virtualenv .venv
-    - [waves_dir]$ source .venv/bin/activate
+    - $ ``cd [waves_dir]``
+    - [waves_dir]$ ``virtualenv .venv``
+    - [waves_dir]$ ``source .venv/bin/activate``
 
 Install WAVES requirements
 --------------------------
 
-    - ** Your need to have git installed in order to get all dependencies **
-    - (.venv)[waves_dir]$ pip install -r requirements.txt
+    .. WARNING::
+        **Your need to have git installed in order to get all dependencies**
+    - (.venv)[waves_dir]$ ``pip install -r requirements.txt``
 
 Configuration files
 --------------------
 
     - Global configuration file (classic Django stuff):
-        - rename waves_services/settings/local.sample.env to local.env
+        - copy **`waves_services/settings/local.sample.env`** to **`local.env`**
         - minimal setup requires these parameters:
             - SECRET_KEY=your-secret-key-to-keep-secret
             - REGISTRATION_SALT=generate-your-key
             - ALLOWED_HOSTS=your-host-name
     - WAVES specific settings: you do not need to modify anything to basic configuration, but some useful parameters can be set up your conf:
-        - (.venv)[waves_dir]$ cd config/
-        - (.venv)[waves_dir]/config$ mv waves.env.sample waves.env
+        - (.venv)[waves_dir]$ ``cd config/``
+        - (.venv)[waves_dir]/config$ ``mv waves.env.sample waves.env``
         - Edit your waves.env file to set WAVES parameters ([link:waves parameters])
     - Check parameters with:
 
@@ -54,27 +55,29 @@ Configuration files
 
 Static files
 ------------
-Collect staticfiles :
-[waves_dir]/src/manage.py collectstatics
 
-.. code-block:: python
+Collect staticfiles : ~[waves_dir]$ ``/src/manage.py collectstatic``
 
-    var = 'this is python code'
-    for truc in bidule:
-        pass
 
 
 3. You plan to use default database layer configuration:
 
     3.1 If your are NOT using WAVES sample database and want to insert data in your own :
+
     Create database and initialize some data:
-    - (.venv)youruser@yourmachine:[waves_dir]$ cd src
-    - (.venv)youruser@yourmachine:[waves_dir]/src$ python manage.py makemigrations eav
-    - (.venv)youruser@yourmachine:[waves_dir]/src$ python manage.py migrate
-    - (.venv)youruser@yourmachine:[waves_dir]/src$ python manage.py loaddata waves/fixtures/init.json
+
+        - (.venv)~[waves_dir]$ ``cd src``
+        - (.venv)~[waves_dir]/src$ ``python manage.py makemigrations eav``
+        - (.venv)~[waves_dir]/src$ ``python manage.py migrate``
+
+    Load Sample data:
+        - (.venv)~[waves_dir]/src$ ``python manage.py loaddata waves/fixtures/init.json``
+    or
+        - (.venv)~[waves_dir]/src$ ``python manage.py createsuperuser``
 
     3.2 If you use WAVES sample database:
-    - be sure your 'Web' user has write access to sample db file (waves.sample.sqlite3)
+
+        - be sure your 'Web' user has write access to sample db file (waves.sample.sqlite3)
 
 4. Configure your web server to activate WAVES:
     - For Apache: see section [link: Apache]

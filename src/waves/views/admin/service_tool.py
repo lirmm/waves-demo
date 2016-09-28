@@ -65,6 +65,8 @@ class ServiceParamImportView(FormView):
                 return super(ServiceParamImportView, self).get(request, *args, **kwargs)
         try:
             self.tool_list = self.importer.list_all_remote_services()
+            if len(self.tool_list) == 0:
+                messages.info(request, "No tool retrieved")
         except RunnerException as exc:
             logger.info('Runner Exception ')
             messages.error(request, message="Connection error to remote adaptor")

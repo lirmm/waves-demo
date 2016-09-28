@@ -55,6 +55,7 @@ class JobRunnerAdaptor(object):
         List all expected 'init_params', with default if set at class level
 
         :return: A dictionary containing expected init params
+        :rtype: dict
         """
         return dict()
 
@@ -392,7 +393,7 @@ class JobRunnerAdaptor(object):
     def importer(self, for_service=None, for_runner=None):
         from django.utils.module_loading import import_string
         if self.importer_clazz:
-            # print "importerclazz", self.importer_clazz
+            print "importerclazz", self.importer_clazz
             importer = import_string(self.importer_clazz)
             if for_service is not None:
                 return importer(self, service=for_service)

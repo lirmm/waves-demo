@@ -26,11 +26,9 @@ class Importer(object):
         self._formatter = ServiceInputFormat()
         self._adaptor = adaptor
         self._runner = runner
-        print "inside ", runner
         if service is not None:
             # Service update
             self._service = service
-            print "get here ?"
             self._runner = service.run_on
             # replace self._adaptor with service configurated one
             self._adaptor = service.adaptor

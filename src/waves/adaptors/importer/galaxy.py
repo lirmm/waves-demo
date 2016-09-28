@@ -44,7 +44,6 @@ class GalaxyToolImporter(Importer):
             tool_list = self._tool_client.list()
             group_list = sorted(set(map(lambda x: x.wrapped['panel_section_name'], tool_list)), key=lambda z: z)
             group_list = [x for x in group_list if x not in self._unwanted_categories]
-            print group_list
             return [
                 (x,
                  sorted([(y.id, y.name) for y in tool_list if
@@ -280,11 +279,24 @@ class GalaxyToolImporter(Importer):
 
 
 class GalaxyWorkFlowImporter(GalaxyToolImporter):
-    def __init__(self, runner, service=None):
-        super(GalaxyWorkFlowImporter, self).__init__(runner, service)
+    workflow = None
+    workflow_full_description = None
+
+    def connect(self):
+        """
+        Connect to remote Galaxy Host
+        :return:
+        """
         self._tool_client = bioblend.galaxy.objects.client.ObjWorkflowClient(self._adaptor.connect())
-        self.workflow = None
-        self.workflow_full_description = None
+
+    def _list_all_remote_services(self):
+        try:
+            tool_list = self._tool_client.list()
+            return [
+                (y.id, y.name) for y in tool_list if y.published is True
+                ]
+        except ConnectionError as e:
+            raise RunnerConnectionError(e.message, 'Connection Error:\n')
 
     def _list_remote_inputs(self, tool_id):
         logger.warn('Not Implemented yet')
