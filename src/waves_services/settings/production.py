@@ -51,7 +51,7 @@ LOGGING = {
         'waves': {
             'handlers': ['waves_log_file'],
             'level': WAVES_LOG_LEVEL,
-        }
+        },
     }
 }
 logging.config.dictConfig(LOGGING)
