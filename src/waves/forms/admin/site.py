@@ -13,8 +13,8 @@ from django import forms
 class SiteForm(ModelForm):
     class Meta:
         model = WavesSite
-        fields = ('theme', 'current_queue_status')
+        fields = '__all__'
 
-    current_queue_status = forms.BooleanField(label="Queue status")
+    current_queue_status = forms.BooleanField(label="Queue status", widget=forms.widgets.HiddenInput)
 
 

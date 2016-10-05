@@ -1,25 +1,41 @@
+"""
+WAVES app Django application descriptor
+
+"""
 from __future__ import unicode_literals
 
 from django.apps import AppConfig
 from django.core.checks import Error, register
-import logging
-logger = logging.getLogger(__name__)
+
 
 class WavesApp(AppConfig):
+    """
+    WAVES main application AppConfig, add signals for webapp
+    """
     name = "waves"
     verbose_name = 'Web Application for Versatile & Easy Bio-informatics Services'
 
     def ready(self):
         """
         Executed once when WAVES application startup !
-        :return:
+        Just import waves signals
+        :return: None
         """
         from waves.models import signals
 
 
 @register()
 def check_waves_config(app_configs=('waves'), **kwargs):
-    # TODO implements some control on WAVES configuration
+    """
+    WAVES configuration check up, added to classic ``manage.py check`` Django command
+
+    .. TODO:
+        Add more control on WAVES configuration
+
+    :param app_configs:
+    :param kwargs:
+    :return:
+    """
     errors = []
     check_failed = False
     if check_failed:

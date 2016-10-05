@@ -16,8 +16,8 @@ class WavesSite(models.Model):
         verbose_name = "WAVES configuration"
 
     site = models.OneToOneField(Site, on_delete=models.CASCADE)
-    theme = models.CharField(max_length=255, default=waves.settings.WAVES_BOOTSTRAP_THEME,
-                             choices=list_themes())
+    theme = models.CharField('Bootstrap theme', max_length=255, default=waves.settings.WAVES_BOOTSTRAP_THEME,
+                             choices=list_themes(), )
     objects = models.Manager()
     on_site = CurrentSiteManager('site')
 
