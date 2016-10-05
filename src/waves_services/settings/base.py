@@ -28,7 +28,7 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
-                # 'waves.utils.context_theme_processor.css_theme',
+                'waves.utils.context_theme_processor.css_theme',
             ],
         },
     },
@@ -110,8 +110,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
-
-
 
 ROOT_URLCONF = 'waves_services.urls'
 
