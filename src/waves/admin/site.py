@@ -27,7 +27,7 @@ class WavesSiteAdmin(admin.ModelAdmin):
     def current_queue_state(self, obj):
         from waves.management.commands.wavesqueue import Command as WavesQueueCommand
         from waves.management.daemon_runner import DaemonRunner
-        daemon = DaemonRunner(WavesQueueCommand, argv=['wavesqueue', 'status'])
+        daemon = DaemonRunner(WavesQueueCommand, argv=['wavesqueue', 'status'], verbose=False)
         daemon_status = daemon._status()
         if daemon_status == DaemonRunner.STATUS_RUNNING:
             css_class = "led-green"

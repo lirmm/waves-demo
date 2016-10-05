@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import signal
 import sys
 
@@ -47,11 +48,14 @@ class DaemonCommand(BaseCommand):
                             default=self.work_dir)
         parser.add_argument('--pidfile', action='store', dest='pidfile_path', default=self.pidfile_path,
                             help='PID absolute filename.')
-        parser.add_argument('--logfile', action='store', dest='log_file', default=self.log_file, help='Path to log file')
+        parser.add_argument('--logfile', action='store', dest='log_file', default=self.log_file,
+                            help='Path to log file')
         parser.add_argument('--stdout', action='store', dest='stdout', default=self.stdout,
                             help='Destination to redirect standard out')
         parser.add_argument('--stderr', action='store', dest='stderr', default=self.stderr,
                             help='Destination to redirect standard error')
+        parser.add_argument('--verbose', action='store', dest='verbose', default=True, type=bool,
+                            help='Verbose, or not')
 
     def loop_callback(self):
         raise NotImplementedError('You must implement loop_callback method to define a daemon')

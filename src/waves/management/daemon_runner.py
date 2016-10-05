@@ -5,6 +5,7 @@ Extended DaemonRunner class (from python-daemon):
 - implement base `run()` method, which launch `loop_callback()`, on exit run `exit_callback()`
 
 """
+from __future__ import unicode_literals
 from os import kill
 import lockfile
 from daemon import DaemonContext
@@ -21,31 +22,37 @@ class DaemonRunner(BaseDaemonRunner):
     STOP_ERROR = "Unable to stop %s"
     STATUS_STOPPED = "Stopped"
     STATUS_RUNNING = "Running"
+    _verbose = True
 
     def _status(self):
         try:
             pid = self.pidfile.read_pid()
             kill(pid, 0)
         except (OSError, TypeError):
-            emit_message("Stopped")
+            if self._verbose:
+                emit_message("Stopped")
             return self.STATUS_STOPPED
         else:
-            emit_message("Running")
+            if self._verbose:
+                emit_message("Running")
             return self.STATUS_RUNNING
 
     def _start(self):
         try:
             super(DaemonRunner, self)._start()
         except DaemonRunnerStartFailureError as exc:
-            emit_message(self.START_ERROR % exc.message)
+            if self._verbose:
+                emit_message(self.START_ERROR % exc.message)
         except lockfile.LockTimeout as exc:
-            emit_message(self.LOCK_ERROR)
+            if self._verbose:
+                emit_message(self.LOCK_ERROR)
 
     def _stop(self):
         try:
             super(DaemonRunner, self)._stop()
         except DaemonRunnerStopFailureError as exc:
-            emit_message(self.STOP_ERROR % exc.message)
+            if self._verbose:
+                emit_message(self.STOP_ERROR % exc.message)
 
     def _restart(self):
         super(DaemonRunner, self)._restart()
@@ -84,6 +91,8 @@ class DaemonRunner(BaseDaemonRunner):
             """
         self.parse_args(argv)
         self.app = app
+        if 'verbose' in kwargs:
+            self._verbose = kwargs['verbose']
         self.daemon_context = DaemonContext()
         self.daemon_context.stdin = open(app.stdin_path, 'rt')
         self.daemon_context.stdout = open(app.stdout_path, 'w+t')
