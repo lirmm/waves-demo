@@ -1,25 +1,26 @@
-=======
-License
-=======
+===============
+License (GPLv3)
+===============
 
-WAVES is distributed under MIT License
+WAVES are free software: you can redistribute it and/or modify it under the terms of the GNU General Public License version 3 as published by the `Free Software Foundation <http://www.fsf.org/>`__.
 
-Copyright (c) [2016] [UMR5506 LIRMM - CNRS]
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+Public License for more details.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+For more specific details see
+`http://www.gnu.org/licenses, <http://www.gnu.org/licenses/>`__ the
+`Quick Guide to GPLv3. <http://www.gnu.org/licenses/quick-guide-gplv3.html>`__ in the codebase.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+The GNU operating system which is under the same license has an
+informative `FAQ here <http://www.gnu.org/licenses/gpl-faq.html>`__.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Note to developers
+==================
+
+We very much appreciate you using our code to do fun and interesting
+things with. We hope that while doing this you may find and fix bugs or
+make enhancements that could be useful for the greater community and
+will makes the developers aware of them by emailing to waves-webapp@googlegroups.com
+so they can be considered to be added to the original code base.

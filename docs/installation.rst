@@ -30,7 +30,7 @@ Install WAVES requirements
 
     .. WARNING::
         **Your need to have git installed in order to get all dependencies**
-    - (.venv)[waves_dir]$ ``pip install -r requirements.txt``
+        - (.venv)[waves_dir]$ ``pip install -r requirements.txt``
 
 Configuration files
 --------------------
