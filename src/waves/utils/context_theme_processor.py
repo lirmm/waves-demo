@@ -15,4 +15,4 @@ def css_theme(request):
     except (ObjectDoesNotExist, MultipleObjectsReturned, AttributeError):
         # get default from settings
         current_theme = waves.settings.WAVES_BOOTSTRAP_THEME
-    return {'BOOTSTRAP_CSS_THEME': current_theme}
+    return {'css_theme': current_theme}

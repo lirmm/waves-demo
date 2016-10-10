@@ -11,6 +11,8 @@ from django_countries import countries
 from authtools import forms as authtoolsforms
 from django.contrib.auth import forms as authforms
 from django.core.urlresolvers import reverse
+from django.core.validators import RegexValidator
+
 import registration.forms
 import waves.settings
 
@@ -54,9 +56,12 @@ class SignupForm(registration.forms.RegistrationFormTermsOfService,
               '<a href="#" data-toggle="modal" data-target="#tosModal">Terms of Service</a>,',
     )
     institution = forms.CharField()
-    register_for_api = forms.BooleanField('Register as a REST API user')
+    register_for_api = forms.BooleanField(label='Register as a REST API user', initial=False, required=False)
     country = LazyTypedChoiceField(choices=countries)
-    phone = forms.CharField(required=False)
+    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$',
+                                 message="Phone number must be entered in the format: '+999999999'. "
+                                         "Up to 15 digits allowed.")
+    phone = forms.CharField(required=False, validators=[phone_regex])
     comment = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': '5'}))
 
     def __init__(self, *args, **kwargs):

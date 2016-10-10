@@ -6,6 +6,14 @@
     {% include "_navbar.html" with active_link="rest_api" %}
 {% endblock %}
 
+{% block messages %}
+    <div class="messages alert alert-warning">  <!-- singular -->
+        <a class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span></a>
+        Content is currently under construction and is therefore not accurate.
+    </div>
+{% endblock %}
+
 {% block container %}
     <div id="sec1" class="text-page">
         <div class="container">

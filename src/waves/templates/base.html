@@ -57,7 +57,7 @@
                         {% if user.is_authenticated %}
                             <ul class="dropdown">
                                 <li class="btn btn-default dropdown-toggle" id="dropdownAuthenticated"
-                                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <img src="{% thumbnail user.profile.picture|default:'default_profile.png' 30x30 crop %}"
                                          alt=""/>
                                     {{ user.get_full_name|truncatechars:20 }}
@@ -90,6 +90,12 @@
                 {{ message|safe }}
             </div>
         {% endfor %}
+    {% else %}
+        <div class="messages alert alert-warning alert-dismissible fade in" style="width:15%; left:auto; right: 10px;">  <!-- singular -->
+            <a class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span></a>
+            WAVES '0.1.0Beta' version, mind this is beta!
+        </div>
     {% endif %}
 {% endblock %}
 
