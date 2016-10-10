@@ -16,6 +16,16 @@ import sys
 import os
 import django
 from distutils.sysconfig import get_python_lib
+from mock import Mock as MagicMock
+
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return Mock()
+
+MOCK_MODULES = ['Pillow', 'curl', 'mysql-python', 'pycurl', 'argparse']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -289,6 +299,8 @@ intersphinx_mapping = {
     }
 
 locale_dirs = [get_python_lib() + '/django/conf/locale/']
+
+
 
 def setup(app):
     from django_sphinx import process_docstring
