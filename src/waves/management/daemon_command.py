@@ -24,8 +24,8 @@ class DaemonCommand(BaseCommand):
     """
     requires_model_validation = True
     stdin_path = '/dev/null'
-    stdout_path = '/dev/tty'
-    stderr_path = '/dev/tty'
+    stdout_path = '/dev/null'
+    stderr_path = '/dev/null'
     work_dir = '/'
     pidfile_path = '/tmp/daemon_command.pid'
     pidfile_timeout = 5
