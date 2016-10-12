@@ -11,7 +11,7 @@ class SGEJobAdaptor(ShellJobAdaptor):
     """
     Locally available SGE cluster
     """
-    queue = waves.settings.WAVES_SGE_CELL
+    queue = 'all.q'
     _protocol = 'sge'
 
     @property

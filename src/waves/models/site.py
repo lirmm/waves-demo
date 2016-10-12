@@ -9,7 +9,7 @@ import waves.settings
 
 class WavesSite(models.Model):
     """
-    Main application configuration entity,
+    Main application configuration entity
     # TODO add
     """
     class Meta:

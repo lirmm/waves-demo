@@ -1,9 +1,12 @@
+"""
+WAVES command line interface default settings configuration
+"""
 from __future__ import unicode_literals
 
+from .base import *
 import logging.config
-from .base import * # NOQA
 
-
+DEBUG = True
 # Reset logging
 LOGGING_CONFIG = None
 LOGGING = {
@@ -23,15 +26,15 @@ LOGGING = {
     'loggers': {
         'root': {
             'handlers': ['console'],
-            'level': ROOT_LOG_LEVEL,
+            'level': logging.ERROR,
         },
         'waves': {
             'handlers': ['console'],
-            'level': WAVES_LOG_LEVEL,
+            'level': logging.WARNING,
         },
         'radical.saga': {
             'handlers': ['console'],
-            'level': SAGA_LOG_LEVEL,
+            'level': logging.WARNING,
         },
 
     }

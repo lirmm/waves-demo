@@ -2,6 +2,10 @@ from __future__ import unicode_literals
 
 from .base import *             # NOQA
 import logging.config
+
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+
+DEBUG = False
 # Cache the templates in memory for speed-up
 loaders = [
     ('django.template.loaders.cached.Loader', [
@@ -38,19 +42,19 @@ LOGGING = {
         'root': {
             'handlers': ['waves_log_file'],
             'propagate': False,
-            'level': ROOT_LOG_LEVEL,
+            'level': logging.ERROR,
         },
         'django': {
             'handlers': ['waves_log_file'],
-            'level': ROOT_LOG_LEVEL,
+            'level': logging.ERROR,
         },
         'radical.saga': {
             'handlers': ['waves_log_file'],
-            'level': SAGA_LOG_LEVEL,
+            'level': logging.ERROR,
         },
         'waves': {
             'handlers': ['waves_log_file'],
-            'level': WAVES_LOG_LEVEL,
+            'level': logging.ERROR,
         },
     }
 }

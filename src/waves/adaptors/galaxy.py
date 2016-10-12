@@ -49,9 +49,9 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
 
     """
 
-    host = settings.WAVES_GALAXY_URL
-    port = settings.WAVES_GALAXY_PORT
-    app_key = settings.WAVES_GALAXY_API_KEY
+    host = '127.0.0.1'
+    port = '8080'
+    app_key = None
     library_dir = ""
     remote_tool_id = None
     importer_clazz = 'waves.adaptors.importer.galaxy.GalaxyToolImporter'
