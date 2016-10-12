@@ -297,7 +297,7 @@ class Job(TimeStampable, SlugAble, UrlMixin):
         :return: working dir
         :rtype: unicode
         """
-        return os.path.join(settings.WAVES_JOB_DIR, str(self.slug))
+        return os.path.join(waves.settings.WAVES_JOB_DIR, str(self.slug))
 
     @property
     def adaptor(self):
