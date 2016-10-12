@@ -124,7 +124,7 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
                 runner.connect()
                 self.assertTrue(runner._ready())
                 runner.prepare_job(job)
-                logger.debug('Related history id %s', job.eav.galaxy_history_id)
+                logger.debug('Related history id %s', job.remote_history_id)
                 self.assertTrue(job.status == const.JOB_PREPARED)
                 runner.remote_tool_id = service.service_run_params.get(param__name='remote_tool_id').value
                 job_id = runner.run_job(job)

@@ -48,8 +48,8 @@ def job_delete_handler(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Service)
 def service_input_files_delete(sender, instance, **kwargs):
-    if os.path.exists(os.path.join(settings.WAVES_SAMPLE_DIR, instance.api_name)):
-        shutil.rmtree(os.path.join(settings.WAVES_SAMPLE_DIR, instance.api_name))
+    if os.path.exists(instance.sample_dir):
+        shutil.rmtree(instance.sample_dir)
 
 
 @receiver(post_delete, sender=ServiceInputSample)

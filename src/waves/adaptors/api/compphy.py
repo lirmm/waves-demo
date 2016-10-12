@@ -67,8 +67,8 @@ class CompPhyApiAdaptor(RemoteApiAdaptor):
             res = json.loads(buffer_curl.getvalue())
             if res.get("success", False) is True:
                 job.remote_job_id = res.get("idProject", -1)
-                job.eav.compphy_remote_access_key = res.get('access_key', '')
-                if job.remote_job_id == -1 or job.eav.compphy_remote_access_key == '':
+                job.remote_history_id = res.get('access_key', '')
+                if job.remote_job_id == -1 or job.remote_history_id == '':
                     raise JobRunException(
                         "An error has occurred. Please contact us to report the bug"
                     )
@@ -88,7 +88,7 @@ class CompPhyApiAdaptor(RemoteApiAdaptor):
         curl = self._connector
         curl.setopt(pycurl.URL, self.host + self.api_base_path + self.api_endpoint + "/" + job.remote_job_id +
                     "?api_key=" + self.app_key + "&origin=" + self.origin + "&access_key=" +
-                    job.eav.compphy_remote_access_key)
+                    job.remote_history_id)
         curl.setopt(pycurl.HTTPHEADER, ['Accept: application/json'])
         curl.setopt(pycurl.HTTPGET, 1)
         curl.setopt(pycurl.POST, 0)

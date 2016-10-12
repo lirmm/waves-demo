@@ -1,7 +1,9 @@
+"""
+Job Runners related models
+
+"""
 from __future__ import unicode_literals
-import eav
 from django.db import models
-from waves.eav.config import RunnerEavConfig
 from waves.models.base import DescribeAble
 from django.utils.module_loading import import_string
 __all__ = ['Runner', 'RunnerParam']
@@ -112,6 +114,3 @@ class RunnerParam(models.Model):
         if not self.default:
             self.mandatory = True
         return cleaned_data
-
-
-eav.register(Runner, RunnerEavConfig)
