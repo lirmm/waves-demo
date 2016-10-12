@@ -23,8 +23,6 @@ class Command(DaemonCommand):
     """
     help = 'Managing WAVES job queue'
     SLEEP_TIME = 5
-    stdout_path = '/dev/tty'
-    stderr_path = '/dev/tty'
     work_dir = waves.settings.WAVES_DATA_ROOT
     pidfile_path = join(waves.settings.WAVES_DATA_ROOT, 'waves_daemon.pid')
     pidfile_timeout = 5
