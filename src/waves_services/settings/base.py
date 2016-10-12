@@ -46,7 +46,7 @@ if exists(env_file):
 SECRET_KEY = env.str('SECRET_KEY')
 # DATABASE configuration
 DATABASES = {
-    'default': env.db(default='sqlite:///' + BASE_DIR + '/waves/db/waves.sample.sqlite3'),
+    'default': env.db(default='sqlite:///' + BASE_DIR + '/waves/db/waves.sqlite3'),
 }
 
 if 'test' in sys.argv:

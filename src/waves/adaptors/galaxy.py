@@ -140,16 +140,11 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
         import os
         try:
             histories = self._connector.histories.list(name=str(job.slug))
-            if job.eav.galaxy_allow_purge is None:
-                job.eav.galaxy_allow_purge = \
-                    self._connector.gi.config.get_config()['allow_user_dataset_purge']
-            if len(histories) > 1:
-                logger.warn('Strange behaviours, multiple histories with same name : %s', len(histories))
-                self._connector.histories.delete(name=str(job.slug), purge=bool(job.eav.galaxy_allow_purge))
+            galaxy_allow_purge = self._connector.gi.config.get_config()['allow_user_dataset_purge']
+            if len(histories) >= 1:
+                logger.warn('A least one history exist for this job, %s', len(histories))
+                self._connector.histories.delete(name=str(job.slug), purge=bool(galaxy_allow_purge))
                 history = self._connector.histories.create(name=str(job.slug))
-            elif len(histories) == 1:
-                logger.debug("Retrieved only one history, maybe job is currently preparing in another process")
-                history = histories[0]
             else:
                 # Normal behaviour, create new history and set up file
                 history = self._connector.histories.create(name=str(job.slug))

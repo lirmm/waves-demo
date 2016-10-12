@@ -74,24 +74,18 @@ class JobManager(models.Manager):
     def get_service_job(self, user, service):
         """
         Returns jobs filtered by service, according to following access rule:
-        * user is member of 'ADMIN_GROUP' or superuser, return all jobs for this service
         * user is simply registered, return its jobs, filtered by service
         :param user: currently logged in user
         :param service: service model object to filter
         :return: QuerySet
         """
-        try:
-            admin_group = Group.objects.get(name=waves.const.WAVES_GROUP_ADMIN)
-        except Group.DoesNotExist:
-            admin_group = None
-        if user.is_superuser or admin_group in user.groups.all():
+        if user.is_superuser or user.is_staff:
             return self.filter(service=service)
         return self.filter(client=user, service=service)
 
     def get_pending_jobs(self, user=None):
         """
         Return pending jobs for user, according to following access rule:
-        * user is member of 'ADMIN_GROUP' or superuser, return all pending job
         * user is simply registered, return its jobs, filtered by service
         :param user: currently logged in user
         :return: QuerySet
@@ -100,11 +94,7 @@ class JobManager(models.Manager):
             Pending jobs are all jobs which are 'Created', 'Prepared', 'Queued', 'Running'
         """
         if user is not None:
-            try:
-                admin_group = Group.objects.get(name=waves.const.WAVES_GROUP_ADMIN)
-            except Group.DoesNotExist:
-                admin_group = None
-            if user.is_superuser or admin_group in user.groups.all():
+            if user.is_superuser or user.is_staff:
                 # return all pending jobs
                 return self.filter(status__in=(
                     waves.const.JOB_CREATED, waves.const.JOB_PREPARED, waves.const.JOB_QUEUED,
@@ -119,7 +109,6 @@ class JobManager(models.Manager):
     def get_created_job(self, extra_filter, user=None):
         """
         Return pending jobs for user, according to following access rule:
-        * user is member of 'ADMIN_GROUP' or superuser, return all pending job
         * user is simply registered, return its jobs, filtered by service
         :param extra_filter: add an extra filter to queryset
         :param user: currently logged in user

@@ -32,13 +32,10 @@ def _create_test_file(path, index):
 class WavesAPITestCase(APITestCase, WavesBaseTestCase):
     def setUp(self):
         super(WavesAPITestCase, self).setUp()
-        self.group_admin = Group.objects.get(name=waves.const.WAVES_GROUP_ADMIN)
         self.super_user = AuthModel.objects.create(email='superadmin@waves.fr',
                                                    is_superuser=True)
-        self.super_user.groups.add(self.group_admin)
         self.admin_user = AuthModel.objects.create(email='admin@waves.fr',
                                                    is_staff=True)
-        self.admin_user.groups.add(self.group_admin)
         self.api_user = AuthModel.objects.create(email="api@waves.fr",
                                                  is_staff=False,
                                                  is_superuser=False,

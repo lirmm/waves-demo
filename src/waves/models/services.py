@@ -177,9 +177,6 @@ class ServiceManager(models.Manager):
             queryset = queryset.filter(api_on=True)
         else:
             queryset = queryset.filter(web_on=True)
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug('Generated query set \n%s', queryset.query)
-            logger.debug('Should return this services:\n%s', queryset.all())
         return queryset
 
     def get_api_services(self, user=None):

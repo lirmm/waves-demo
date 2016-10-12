@@ -29,7 +29,6 @@ django-registration==2.1.2
 django-smart-selects==1.2.2
 django-tabbed-admin==1.0.0
 djangorestframework==3.4.0
-djangorestframework-jwt==1.8.0
 djangorestframework-xml==1.3.0
 docutils==0.12
 drfdocs==0.0.11
