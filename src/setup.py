@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name='waves-webapp',
     version='0.1.0-beta',
-    packages=['waves', 'waves.api', 'waves.api.views', 'waves.api.serializers', 'waves.api.authentication', 'waves.eav',
+    packages=['waves', 'waves.api', 'waves.api.views', 'waves.api.serializers', 'waves.api.authentication',
               'waves.urls', 'waves.admin', 'waves.const', 'waves.forms', 'waves.forms.lib', 'waves.forms.admin',
               'waves.forms.exceptions', 'waves.tests', 'waves.tests.utils', 'waves.utils', 'waves.views',
               'waves.views.admin', 'waves.models', 'waves.accounts', 'waves.adaptors', 'waves.adaptors.api',

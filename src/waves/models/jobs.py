@@ -1,17 +1,14 @@
 from __future__ import unicode_literals
 import os
 import logging
-import eav
 from collections import namedtuple
 from django.conf import settings
-from django.contrib.auth.models import Group
 from django.db import models
 from django.db.models import Q
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
 import waves.const
 from waves.exceptions import WavesException
-from waves.eav.config import JobEavConfig, JobInputEavConfig, JobOutputEavConfig
 from waves.models import TimeStampable, SlugAble, OrderAble, UrlMixin
 import waves.settings
 
@@ -74,24 +71,18 @@ class JobManager(models.Manager):
     def get_service_job(self, user, service):
         """
         Returns jobs filtered by service, according to following access rule:
-        * user is member of 'ADMIN_GROUP' or superuser, return all jobs for this service
         * user is simply registered, return its jobs, filtered by service
         :param user: currently logged in user
         :param service: service model object to filter
         :return: QuerySet
         """
-        try:
-            admin_group = Group.objects.get(name=waves.const.WAVES_GROUP_ADMIN)
-        except Group.DoesNotExist:
-            admin_group = None
-        if user.is_superuser or admin_group in user.groups.all():
+        if user.is_superuser or user.is_staff:
             return self.filter(service=service)
         return self.filter(client=user, service=service)
 
     def get_pending_jobs(self, user=None):
         """
         Return pending jobs for user, according to following access rule:
-        * user is member of 'ADMIN_GROUP' or superuser, return all pending job
         * user is simply registered, return its jobs, filtered by service
         :param user: currently logged in user
         :return: QuerySet
@@ -100,11 +91,7 @@ class JobManager(models.Manager):
             Pending jobs are all jobs which are 'Created', 'Prepared', 'Queued', 'Running'
         """
         if user is not None:
-            try:
-                admin_group = Group.objects.get(name=waves.const.WAVES_GROUP_ADMIN)
-            except Group.DoesNotExist:
-                admin_group = None
-            if user.is_superuser or admin_group in user.groups.all():
+            if user.is_superuser or user.is_staff:
                 # return all pending jobs
                 return self.filter(status__in=(
                     waves.const.JOB_CREATED, waves.const.JOB_PREPARED, waves.const.JOB_QUEUED,
@@ -119,7 +106,6 @@ class JobManager(models.Manager):
     def get_created_job(self, extra_filter, user=None):
         """
         Return pending jobs for user, according to following access rule:
-        * user is member of 'ADMIN_GROUP' or superuser, return all pending job
         * user is simply registered, return its jobs, filtered by service
         :param extra_filter: add an extra filter to queryset
         :param user: currently logged in user
@@ -173,10 +159,12 @@ class Job(TimeStampable, SlugAble, UrlMixin):
                                     help_text="Job exit code on relative adaptor")
     #: Tell whether job results files are available for download from client
     results_available = models.BooleanField('Results are available', default=False, editable=False)
-    #: Jobs are remotely executed, store the remote job id
-    remote_job_id = models.CharField('Remote Job ID (on adaptor)', max_length=255, editable=False, null=True)
     #: Job last status retry count (max before Error set in conf)
     nb_retry = models.IntegerField('Nb Retry', editable=False, default=0)
+    #: Jobs are remotely executed, store the adaptor job identifier
+    remote_job_id = models.CharField('Remote job ID (on adaptor)', max_length=255, editable=False, null=True)
+    #: Jobs sometime can gain access to a remote history, store the adaptor history identifier
+    remote_history_id = models.CharField('Remote history ID (on adaptor)', max_length=255, editable=False, null=True)
 
     def __init__(self, *args, **kwargs):
         super(Job, self).__init__(*args, **kwargs)
@@ -522,6 +510,8 @@ class JobInput(OrderAble, SlugAble):
     #: Value set to this service input for this job
     value = models.CharField('Input content', max_length=255, null=True, blank=True,
                              help_text='Input value (filename, boolean value, int value etc.)')
+    #: Each input may have its own identifier on remote adaptor
+    remote_input_id = models.CharField('Remote input ID (on adaptor)', max_length=255, editable=False, null=True)
 
     def __str__(self):
         return u'|'.join([self.name, str(self.value)])
@@ -655,6 +645,9 @@ class JobOutput(OrderAble, SlugAble, UrlMixin):
     value = models.CharField('Output value', max_length=200, null=True, blank=True, default="")
     #: Set whether this output may be empty (no output from Service)
     may_be_empty = models.BooleanField('MayBe empty', default=True)
+    #: Each output may have its own identifier on remote adaptor
+    remote_output_id = models.CharField('Remote output ID (on adaptor)',  max_length=255, editable=False, null=True)
+
 
     @property
     def name(self):
@@ -715,7 +708,7 @@ class JobHistory(models.Model):
     #: Time when this event occurred
     timestamp = models.DateTimeField('Date time', auto_now_add=True, help_text='History timestamp')
     #: Job Status for this event
-    status = models.IntegerField('Job Status', blank=False, null=False, choices=waves.const.STATUS_LIST,
+    status = models.IntegerField('Job Status', choices=waves.const.STATUS_LIST,
                                  help_text='History job status')
     #: Job event message
     message = models.TextField('History log', blank=True, null=True, help_text='History log')
@@ -750,7 +743,3 @@ class JobAdminHistory(JobHistory):
 
     objects = JobAdminHistoryManager()
 
-
-eav.register(Job, JobEavConfig)
-eav.register(JobInput, JobInputEavConfig)
-eav.register(JobOutput, JobOutputEavConfig)

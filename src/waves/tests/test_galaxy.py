@@ -16,11 +16,6 @@ from waves.adaptors.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor
 logger = logging.getLogger(__name__)
 
 
-@override_settings(
-    WAVES_GALAXY_URL=settings.WAVES_TEST_GALAXY_URL,
-    WAVES_GALAXY_API_KEY=settings.WAVES_TEST_GALAXY_API_KEY,
-    WAVES_GALAXY_PORT=settings.WAVES_TEST_GALAXY_PORT,
-)
 @test_util.skip_unless_galaxy()
 class GalaxyRunnerTestCase(TestBaseJobRunner):
     # This is fixture:
@@ -30,9 +25,9 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
     # fixtures = ['users', 'test_services']
 
     def setUp(self):
-        self.adaptor = GalaxyJobAdaptor(init_params={'host': settings.WAVES_TEST_GALAXY_URL,
-                                                     'port': settings.WAVES_TEST_GALAXY_PORT,
-                                                     'app_key': settings.WAVES_TEST_GALAXY_API_KEY})
+        self.adaptor = GalaxyJobAdaptor(init_params={'host': waves.settings.WAVES_TEST_GALAXY_URL,
+                                                     'port': waves.settings.WAVES_TEST_GALAXY_PORT,
+                                                     'app_key': waves.settings.WAVES_TEST_GALAXY_API_KEY})
         super(GalaxyRunnerTestCase, self).setUp()
         self.gi = bioblend.galaxy.objects.galaxy_instance.GalaxyInstance(url=self.adaptor.complete_url,
                                                                          api_key=self.adaptor.app_key)
@@ -40,12 +35,6 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
     @classmethod
     def setUpClass(cls):
         super(GalaxyRunnerTestCase, cls).setUpClass()
-        logger.info('WAVES_GALAXY_URL: %s', waves.settings.WAVES_GALAXY_URL)
-        logger.info('WAVES_GALAXY_API_KEY: %s', waves.settings.WAVES_GALAXY_API_KEY)
-        logger.info('WAVES_GALAXY_PORT: %s', waves.settings.WAVES_GALAXY_PORT)
-        logger.info('WAVES_GALAXY_URL(settings): %s', settings.WAVES_GALAXY_URL)
-        logger.info('WAVES_GALAXY_API_KEY(settings): %s', settings.WAVES_GALAXY_API_KEY)
-        logger.info('WAVES_GALAXY_PORT(settings): %s', settings.WAVES_GALAXY_PORT)
 
     def test_list_galaxy_tools(self):
         """
@@ -135,7 +124,7 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
                 runner.connect()
                 self.assertTrue(runner._ready())
                 runner.prepare_job(job)
-                logger.debug('Related history id %s', job.eav.galaxy_history_id)
+                logger.debug('Related history id %s', job.remote_history_id)
                 self.assertTrue(job.status == const.JOB_PREPARED)
                 runner.remote_tool_id = service.service_run_params.get(param__name='remote_tool_id').value
                 job_id = runner.run_job(job)

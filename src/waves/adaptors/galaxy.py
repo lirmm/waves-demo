@@ -12,7 +12,7 @@ from django.utils.text import slugify
 from django.core.exceptions import ObjectDoesNotExist
 
 import waves.const
-from waves.exceptions import RunnerConnectionError, RunnerNotReady
+from waves.exceptions import *
 from waves.models import JobOutput
 from waves.adaptors.runner import JobRunnerAdaptor
 import waves.settings
@@ -49,9 +49,9 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
 
     """
 
-    host = settings.WAVES_GALAXY_URL
-    port = settings.WAVES_GALAXY_PORT
-    app_key = settings.WAVES_GALAXY_API_KEY
+    host = '127.0.0.1'
+    port = '8080'
+    app_key = None
     library_dir = ""
     remote_tool_id = None
     importer_clazz = 'waves.adaptors.importer.galaxy.GalaxyToolImporter'
@@ -140,16 +140,11 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
         import os
         try:
             histories = self._connector.histories.list(name=str(job.slug))
-            if job.eav.galaxy_allow_purge is None:
-                job.eav.galaxy_allow_purge = \
-                    self._connector.gi.config.get_config()['allow_user_dataset_purge']
-            if len(histories) > 1:
-                logger.warn('Strange behaviours, multiple histories with same name : %s', len(histories))
-                self._connector.histories.delete(name=str(job.slug), purge=bool(job.eav.galaxy_allow_purge))
+            galaxy_allow_purge = self._connector.gi.config.get_config()['allow_user_dataset_purge']
+            if len(histories) >= 1:
+                logger.warn('A least one history exist for this job, %s', len(histories))
+                self._connector.histories.delete(name=str(job.slug), purge=bool(galaxy_allow_purge))
                 history = self._connector.histories.create(name=str(job.slug))
-            elif len(histories) == 1:
-                logger.debug("Retrieved only one history, maybe job is currently preparing in another process")
-                history = histories[0]
             else:
                 # Normal behaviour, create new history and set up file
                 history = self._connector.histories.create(name=str(job.slug))
@@ -158,15 +153,15 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
                 file_full_path = os.path.join(job.input_dir, job_input_file.value)
                 upload = history.upload_file(file_full_path, file_name=job_input_file.name,
                                              file_type=os.path.splitext(file_full_path)[1][1:])
-                job_input_file.eav.galaxy_input_dataset_id = upload.id
+                job_input_file.remote_input_id = upload.id
                 job_input_file.save()
-                logger.debug(u'Remote dataset id ' + job_input_file.eav.galaxy_input_dataset_id + u' for ' +
+                logger.debug(u'Remote dataset id ' + job_input_file.remote_input_id + u' for ' +
                              job_input_file.name + u'(' + job_input_file.value + u')')
             if job.input_files.count() == 0:
                 logger.info("No inputs files for galaxy service ??? %s ", job)
-            job.eav.galaxy_history_id = history.id
+            job.remote_history_id = history.id
             job.message = 'Job prepared with %i args ' % job.job_inputs.count()
-            logger.debug(u'History initialized [galaxy_history_id:' + job.eav.galaxy_history_id + u']')
+            logger.debug(u'History initialized [galaxy_history_id: %s]', job.slug)
             return history.id
         except RuntimeError as e:
             job.message = e.message
@@ -177,7 +172,7 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
             raise exc
         except IOError as e:
             job.message = 'File upload error (%s) for "%s" (Details: %s)' % (
-                job_input_file.name, job_input_file.eav.galaxy_input_dataset_id, e.message)
+                job_input_file.name, job_input_file.remote_input_id, e.message)
             raise
         except Exception as e:
             job.message = 'Job preparation error (%s) "%s" ' % (e.__class__.__name__, e.message)
@@ -190,7 +185,11 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
             job:
         """
         try:
-            history = self._connector.histories.get(job.eav.galaxy_history_id)
+            histories = self._connector.histories.list(name=str(job.slug), deleted=False)
+            if len(histories) > 1:
+                raise JobRunException('Inconsistent remote state - multiple histories for this job')
+            else:
+                history = histories[0]
             galaxy_tool = self._connector.tools.get(id_=self.remote_tool_id)
             logger.debug('Galaxy tool connector %s', galaxy_tool)
             if galaxy_tool:
@@ -199,7 +198,7 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
                 inputs = {}
                 for job_input in job.job_inputs.all():
                     if job_input.type == waves.const.TYPE_FILE:
-                        index = job_input.eav.galaxy_input_dataset_id
+                        index = job_input.remote_input_id
                         value = job_input.name
                     else:
                         index = job_input.name
@@ -222,22 +221,18 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
                     logger.debug('Remote output id %s', output_data['id'])
                     try:
                         job_related_output = job.job_outputs.get(srv_output__name=remote_output)
-                        job_related_output.eav.galaxy_output_dataset_id = output_data['id']
+                        job_related_output.remote_output_id = output_data['id']
                     except ObjectDoesNotExist as e:
                         logger.warn('Output not retrieved from remote')
                     job_output = JobOutput.objects.get(job=job, srv_output__name=remote_output)
-                    job_output.eav.galaxy_output_dataset_id = output_data['id']
+                    job_output.remote_output_id = output_data['id']
                     job_output.save()
                 for data_set in output_data_sets:
                     logger.debug('Dataset Info %s', data_set)
-                    job_output = JobOutput.eav_objects.filter(eav__galaxy_output_dataset_id=data_set.id)[0]
-                    logger.debug('Eav retrieved %s ' % job_output)
-                    job_output.eav.job_output_file = '.'.join([slugify(data_set.name), data_set.file_ext])
-                    logger.debug('output file name %s ' % job_output.eav.job_output_file)
-                    job_output.value = job_output.eav.job_output_file
+                    job_output = JobOutput.filter(remote_output_id=data_set.id)[0]
+                    job_output.value = '.'.join([slugify(data_set.name), data_set.file_ext])
                     job_output.save()
-                    logger.debug(u'Output added : %s - %s' % (job_output.eav.galaxy_output_dataset_id,
-                                                              job_output.value))
+                    logger.debug(u'Output added[%s - %s]' % (job_output.remote_output_id, job_output.value))
                 job.message = "Job queued"
                 # raise Exception('Test Exception')
         except requests.exceptions.RequestException as e:
@@ -266,9 +261,9 @@ class GalaxyJobAdaptor(JobRunnerAdaptor):
             logger.debug('Job info %s', remote_job)
             for job_output in job.job_outputs.all():
                 logger.debug("Retrieved data from output %s", job_output)
-                if job_output.eav.galaxy_output_dataset_id:
-                    self._connector.gi.histories.download_dataset(job.eav.galaxy_history_id,
-                                                                  job_output.eav.galaxy_output_dataset_id,
+                if job_output.remote_output_id:
+                    self._connector.gi.histories.download_dataset(job.remote_history_id,
+                                                                  job_output.remote_output_id,
                                                                   job_output.file_path,
                                                                   use_default_filename=False)
                 logger.debug("Saving output to " + job_output.file_path)

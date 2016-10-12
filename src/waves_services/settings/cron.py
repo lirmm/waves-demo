@@ -7,15 +7,7 @@ import sys
 # This file is meant only to be used by 'crontab' manage command
 import warnings
 
-message = "This file is meant only to be used with and by crontab (django_crontab app)"
-if 'django_crontab' not in INSTALLED_APPS:
-    warnings.warn('Django crontab app is not installed %s !' % message)
-    exit(0)
-else:
-    if 'crontab' not in sys.argv:
-        warnings.warn(message)
-        exit(0)
-
+DEBUG = False
 # Reset logging
 LOGGING_CONFIG = None
 LOGGING = {
@@ -39,19 +31,19 @@ LOGGING = {
     'loggers': {
         'root': {
             'handlers': ['log_file'],
-            'level': ROOT_LOG_LEVEL,
+            'level': logging.ERROR,
         },
         'waves': {
-            'level': WAVES_LOG_LEVEL,
+            'level': logging.WARNING,
             'handlers': ['log_file'],
             'propagate': True
         },
-        'django_crontab': {
-            'level': CRON_LOG_LEVEL,
+        'waves.daemon': {
+            'level': logging.WARNING,
             'handlers': ['log_file'],
         },
         'radical.saga': {
-            'level': SAGA_LOG_LEVEL,
+            'level': logging.WARNING,
             'handlers': ['log_file'],
         },
 

@@ -4,18 +4,14 @@ import sys
 import logging.config
 from .base import *
 
+DEBUG = True
+DEBUG404 = True
 # DEBUG
 THUMBNAIL_DEBUG = DEBUG
 TEMPLATES[0]['OPTIONS'].update({'debug': DEBUG})
 
-# Turn off debug while imported by Celery with a workaround
-# See http://stackoverflow.com/a/4806384
-if "celery" in sys.argv[0]:
-    DEBUG = False
 # Django Debug Toolbar
-# INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
-DEBUG404 = True
-ALLOWED_HOSTS = ['*'] # it works but not secure, so use
+INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
 
 LOGGING_CONFIG = None
 LOGGING = {
@@ -39,16 +35,16 @@ LOGGING = {
     'loggers': {
         'root': {
             'handlers': ['console'],
-            'level': 'ERROR',
+            'level': logging.ERROR,
         },
         'django': {
             'handlers': ['console'],
             'propagate': False,
-            'level': 'WARNING',
+            'level': logging.WARNING,
         },
         'waves': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': logging.DEBUG,
             'propagate': False,
         },
     }

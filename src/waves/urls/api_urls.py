@@ -5,7 +5,6 @@ from rest_framework import routers
 
 # API VIEWS
 from waves.api.views import categories, jobs, services
-from rest_framework_jwt.views import obtain_jwt_token
 from waves.views.jobs import JobOutputView
 
 # API router setup
@@ -23,7 +22,6 @@ router.register(prefix=r'jobs',
                 base_name='waves-jobs')
 urlpatterns = [
     url(r'^', include(router.urls)),
-    url(r'^token-auth/', obtain_jwt_token),
     url(r'^docs/', include('rest_framework_docs.urls')),
     url(r'^services/(?P<service>[^/.]+)/submissions/(?P<api_name>[^/.]+)/$',
         services.ServiceJobSubmissionView.as_view(), name='waves-services-submissions'),

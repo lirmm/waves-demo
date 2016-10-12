@@ -185,7 +185,7 @@ class SshRunnerTestCase(SAGARunnerTestCase):
 @test_util.skip_unless_sge()
 class SgeRunnerTestCase(SAGARunnerTestCase):
     def setUp(self):
-        self.adaptor = SGEJobAdaptor(init_params=dict(queue='mainqueue'))
+        self.adaptor = SGEJobAdaptor(init_params=dict(queue=waves.settings.WAVES_TEST_SGE_CELL))
         super(SgeRunnerTestCase, self).setUp()
 
     @test_util.skip_unless_tool('physic_ist')
