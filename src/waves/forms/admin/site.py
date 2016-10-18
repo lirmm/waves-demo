@@ -15,6 +15,3 @@ class SiteForm(ModelForm):
         model = WavesSite
         fields = '__all__'
 
-    current_queue_status = forms.BooleanField(label="Queue status", widget=forms.widgets.HiddenInput)
-
-

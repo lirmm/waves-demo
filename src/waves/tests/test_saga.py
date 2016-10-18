@@ -1,87 +1,28 @@
+"""
+Test class for SAGA Runners
+"""
 from __future__ import unicode_literals
 
-import saga
 import os
-import logging
 import time
 from unittest import skip
-
-from django.conf import settings
-
 import waves.const
 import waves.tests.utils.shell_util as test_util
-from waves.tests.test_runner import TestBaseJobRunner, Service, sample_job
-from waves.adaptors import ShellJobAdaptor, SshUserPassJobAdaptor, SGEJobAdaptor
-from waves.models import Job, JobInput, JobOutput
-from waves.adaptors.ssh import SGEOverSSHAdaptor
+from waves.tests.test_runner import TestBaseJobRunner, sample_job
+from waves.adaptors.sge import SGEJobAdaptor, SGEOverSSHAdaptor
+from waves.adaptors.local import ShellJobAdaptor
+from waves.adaptors.ssh import SshUserPassJobAdaptor
+from waves.models import JobInput, JobOutput
+from waves.adaptors.sge import SGEOverSSHAdaptor
 from waves.managers.servicejobs import ServiceJobManager
 from waves.tests.utils import get_sample_dir
 import waves.settings
 
-logger = logging.getLogger(__name__)
-
 
 class SAGARunnerTestCase(TestBaseJobRunner):
     def setUp(self):
-        try:
-            getattr(self, 'adaptor')
-        except AttributeError:
-            self.adaptor = ShellJobAdaptor()
+        self.adaptor = ShellJobAdaptor()
         super(SAGARunnerTestCase, self).setUp()
-
-    def _testBasicSagaLocalJob(self):
-        try:
-            # Create a job service object that represent the local machine.
-            # The keyword 'fork://' in the url scheme triggers the 'shell' adaptor
-            # which can execute jobs on the local machine as well as on a remote
-            # machine via "ssh://hostname".
-            ctx = saga.Context('UserPass')
-            ctx.user_id = "lefort"
-            ctx.user_pass = 'lrdj_@81'
-            # ctx.user_cert = '$HOME/.ssh/id_rsa'
-            # ctx.user_key = '$HOME/.ssh/id_rsa.pub'
-            ses = saga.Session()
-            ses.add_context(ctx)
-            js = saga.job.Service("sge+ssh://wilkins")
-
-            # describe our job
-            jd = saga.job.Description()
-
-            # Next, we describe the job we want to run. A complete set of job
-            # description attributes can be found in the API documentation.
-            jd.environment = {'MYOUTPUT': '"Hello from SAGA"'}
-            jd.executable = '/bin/echo'
-            jd.arguments = ['$MYOUTPUT']
-            jd.output = "mysagajob.stdout"
-            jd.error = "mysagajob.stderr"
-            jd.working_directory = '/tmp/'
-            jd.queue = 'all.q'
-
-            # Create a new job from the job description. The initial state of
-            # the job is 'New'.
-            myjob = js.create_job(jd)
-
-            # Check our job's id and state
-            logger.debug("Job ID    : %s" % (myjob.id))
-            logger.debug("Job State : %s" % (myjob.state))
-            logger.debug("\n...starting job...\n")
-
-            # Now we can start our job.
-            myjob.run()
-
-            logger.debug("Job ID    : %s" % (myjob.id))
-            logger.debug("Job State : %s" % (myjob.state))
-            logger.debug("\n...waiting for job...\n")
-            # wait for the job to either finish or fail
-            myjob.wait()
-
-            logger.debug("Job State : %s" % (myjob.state))
-            logger.debug("Exitcode  : %s" % (myjob.exit_code))
-            self.assertTrue(True)
-        except saga.SagaException as ex:
-            # Catch all saga exceptions
-            logger.error("An exception occured: (%s) %s " % (ex.type, (str(ex))))
-            logger.error(" \n*** Backtrace:\n %s" % ex.traceback)
 
     def _prepare_hello_world(self):
         self.adaptor.command = os.path.join(test_util.get_sample_dir(), 'services/hello_world.sh')
@@ -106,7 +47,6 @@ class SAGARunnerTestCase(TestBaseJobRunner):
         for submitted_input in jobs_params:
             self.current_job = ServiceJobManager.create_new_job(submission=self.service.default_submission,
                                                                 submitted_inputs=submitted_input)
-            logger.debug('Job command line %s', self.current_job.command_line)
             self.assertTrue(self.runJobWorkflow())
             # self.fail('Failed message')
 
@@ -120,7 +60,6 @@ class SAGARunnerTestCase(TestBaseJobRunner):
         self.assertEqual(self.current_job.status, waves.const.JOB_QUEUED)
         for ix in range(30):
             job_state = self.adaptor.job_status(self.current_job)
-            logger.info(u'Current job state (%i) : %s ', ix, self.current_job.get_status_display())
             if job_state > waves.const.JOB_QUEUED:
                 self.adaptor.cancel_job(self.current_job)
                 break

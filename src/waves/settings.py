@@ -4,12 +4,18 @@ WAVES proprietary optional settings
 from __future__ import unicode_literals
 
 import environ
+# monkey patch to be sure saga is loaded first (before any logging)
+import saga
 from os.path import join, dirname
 from django.conf import settings
 
 # check if environ has been setup in Django settings.py or initialize an new one
-env = getattr(settings, 'env', environ.Env())
-env_file_name = getattr(settings, 'WAVES_ENV_FILE', join(settings.BASE_DIR, 'waves', 'config', 'waves.env'))
+env = getattr(settings, 'env', None)
+if env is None:
+    env = environ.Env()
+env_file_name = getattr(settings, 'WAVES_ENV_FILE', None)
+if env_file_name is None:
+    env_file_name = join(settings.BASE_DIR, 'waves', 'config', 'waves.env')
 environ.Env.read_env(str(env_file_name))
 
 
@@ -101,16 +107,20 @@ WAVES_TEST_DEBUG = get_setting('WAVES_TEST_DEBUG', bool, default=False)
 # -- Adaptors
 WAVES_TEST_DIR = get_setting('WAVES_TEST_DIR', str, default=join(dirname(settings.BASE_DIR) + '/tests/'))
 # - Galaxy
-WAVES_TEST_GALAXY_URL = get_setting('WAVES_TEST_GALAXY_URL', str, default='your-galaxy-test-host')
+WAVES_TEST_GALAXY_URL = get_setting('WAVES_TEST_GALAXY_URL', str, default='127.0.0.1')
 WAVES_TEST_GALAXY_API_KEY = get_setting('WAVES_TEST_GALAXY_API_KEY', str, default='your-galaxy-test-api-key')
-WAVES_TEST_GALAXY_PORT = get_setting('WAVES_TEST_GALAXY_PORT', str, default='your-galaxy-test-port')
+WAVES_TEST_GALAXY_PORT = get_setting('WAVES_TEST_GALAXY_PORT', str, default='8080')
 # -- SGE cluster
 WAVES_TEST_SGE_CELL = get_setting('WAVES_TEST_SGE_CELL', str, default='mainqueue')
 # - SSH remote user / pass
-WAVES_TEST_SSH_HOST = get_setting('WAVES_TEST_SSH_HOST', str, default='your-test-host')
+WAVES_TEST_SSH_HOST = get_setting('WAVES_TEST_SSH_HOST', str, default='127.0.0.1')
 WAVES_TEST_SSH_USER_ID = get_setting('WAVES_TEST_SSH_USER_ID', str, default='your-test-ssh-user')
 WAVES_TEST_SSH_USER_PASS = get_setting('WAVES_TEST_SSH_USER_PASS', str, default='your-test-ssh-user-pass')
 # - SSH remote pub / private key
 WAVES_TEST_SSH_PUB_KEY = get_setting('WAVES_TEST_SSH_PUB_KEY', str, default='path-to-ssh-user-public-key')
 WAVES_TEST_SSH_PRI_KEY = get_setting('WAVES_TEST_SSH_PRI_KEY', str, default='path-to-ssh-user-private-key')
 WAVES_TEST_SSH_PASS_KEY = get_setting('WAVES_TEST_SSH_PASS_KEY', str, default='your-test-ssh-user-key-pass-phrase')
+
+WAVES_ADAPTORS = get_setting('WAVES_ADAPTORS', list,
+                             default=['waves.adaptors.local.ShellJobAdaptor', 'adaptors.sge.SGEJobAdaptor',
+                                      'adaptors.api.galaxy.GalaxyJobAdaptor'])

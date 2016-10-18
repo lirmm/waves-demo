@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 
-from waves.tests import WavesBaseTestCase
+from waves.tests.base import WavesBaseTestCase
 import waves.const
 
 

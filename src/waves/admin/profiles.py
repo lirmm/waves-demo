@@ -6,14 +6,14 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 
 from waves.forms.admin import ProfileForm
-from waves.models.profiles import APIProfile
+from waves.models.profiles import WavesProfile
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
 class UserProfileInline(admin.StackedInline):
-    model = APIProfile
+    model = WavesProfile
     form = ProfileForm
     extra = 0
     fields = ['api_key', 'registered_for_api', 'banned', 'ip', 'country', 'institution', 'restricted_services',

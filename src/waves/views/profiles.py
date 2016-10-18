@@ -16,7 +16,7 @@ class ShowProfile(LoginRequiredMixin, generic.TemplateView, WavesBaseContextMixi
     def get(self, request, *args, **kwargs):
         slug = self.kwargs.get('slug')
         if slug:
-            profile = get_object_or_404(waves.models.profiles.APIProfile, slug=slug)
+            profile = get_object_or_404(waves.models.profiles.WavesProfile, slug=slug)
             user = profile.user
         else:
             user = self.request.user

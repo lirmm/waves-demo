@@ -14,7 +14,7 @@ from smart_selects.db_fields import ChainedForeignKey
 import waves.const
 import waves.settings
 from waves.models.base import *
-from waves.models.profiles import APIProfile
+from waves.models.profiles import WavesProfile
 from waves.models.runners import RunnerParam, Runner
 from waves.utils import set_api_name
 
@@ -39,7 +39,7 @@ class ServiceInputFormat(object):
 
     @staticmethod
     def format_list(values):
-        return ('' + os.linesep).join(values)
+        return os.linesep.join([x.strip(' ') for x in values])
 
     @staticmethod
     def param_type_from_value(value):
@@ -161,7 +161,7 @@ class ServiceManager(models.Manager):
             elif user.is_staff:
                 # Staff user have access their own Services and to all 'Test / Restricted / Public' made by others
                 queryset = self.filter(
-                    Q(status=waves.const.SRV_DRAFT, created_by=user) |
+                    Q(status=waves.const.SRV_DRAFT, created_by=user.profile) |
                     Q(status__in=(waves.const.SRV_TEST, waves.const.SRV_RESTRICTED, waves.const.SRV_PUBLIC))
                 )
             else:
@@ -220,7 +220,7 @@ class Service(TimeStampable, DescribeAble, ApiAble):
                                            through=ServiceRunnerParam,
                                            related_name='service_init_params',
                                            help_text='Runner initial parameter')
-    restricted_client = models.ManyToManyField(APIProfile,
+    restricted_client = models.ManyToManyField(WavesProfile,
                                                related_name='restricted_services',
                                                blank=True,
                                                verbose_name='Restricted clients',
@@ -253,7 +253,7 @@ class Service(TimeStampable, DescribeAble, ApiAble):
                                   default=False,
                                   help_text='Set whether some service outputs are dynamic (not known in advance)')
 
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    created_by = models.ForeignKey(WavesProfile, on_delete=models.SET_NULL, null=True)
 
     def delete_runner_params(self):
         return self.service_run_params.all().delete()
@@ -311,7 +311,7 @@ class Service(TimeStampable, DescribeAble, ApiAble):
     def adaptor(self):
         if self.run_on:
             from django.utils.module_loading import import_string
-            job_runner = import_string(self.run_on.clazz)
+            job_runner = import_string(self.run_on.clazz.name)
             return job_runner(init_params=self.run_params())
         return None
 
@@ -472,7 +472,7 @@ class Service(TimeStampable, DescribeAble, ApiAble):
     def available_for_user(self, user):
         # RULES to set if user can access submissions
         return (self.status == waves.const.SRV_PUBLIC) or \
-               (self.status == waves.const.SRV_DRAFT and self.created_by == user) or \
+               (self.status == waves.const.SRV_DRAFT and self.created_by == user.profile) or \
                (self.status == waves.const.SRV_TEST and user.is_staff) or \
                (self.status == waves.const.SRV_RESTRICTED and (
                    user.profile in self.restricted_client.all() or user.is_staff)) or \

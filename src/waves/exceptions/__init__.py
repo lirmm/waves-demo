@@ -2,7 +2,6 @@
 # TODO move exceptions classes into dedicated files
 from __future__ import unicode_literals
 
-import logging
 import sys
 
 __all__ = ['WavesException', 'RunnerException', 'RunnerNotInitialized', 'RunnerNotReady', 'RunnerConnectionError',
@@ -10,16 +9,18 @@ __all__ = ['WavesException', 'RunnerException', 'RunnerNotInitialized', 'RunnerN
            'JobRunException', 'JobSubmissionException', 'JobCreateException', 'RunnerUnexpectedInitParam']
 if sys.version_info[0] < 3:
     __all__ = [n.encode('ascii') for n in __all__]
-logger = logging.getLogger(__name__)
 
 
 class WavesException(Exception):
     """
     Waves base exception class, add log corresponding logger
     """
+    """
     def _log(self):
+        import logging
+        logger = logging.getLogger(__name__)
         logger.fatal('%s: %s ' % (self.__class__.__name__, self.message), exc_info=sys.exc_info())
-
+    """
     def __init__(self, *args, **kwargs):
         super(WavesException, self).__init__(*args, **kwargs)
         # TODO find new cool method to print stack trace related to THIS exception

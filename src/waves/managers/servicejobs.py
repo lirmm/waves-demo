@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import logging
 from os import path as path
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.files.uploadedfile import TemporaryUploadedFile
+from django.core.files.uploadedfile import TemporaryUploadedFile, InMemoryUploadedFile
 from django.db import transaction
 from django.db.models import Q
 import waves.const
@@ -40,7 +40,7 @@ class ServiceJobManager(object):
         except ObjectDoesNotExist:
             pass
         if service_input.type == waves.const.TYPE_FILE:
-            if isinstance(submitted_input, TemporaryUploadedFile):
+            if isinstance(submitted_input, TemporaryUploadedFile) or isinstance(submitted_input, InMemoryUploadedFile):
                 # classic uploaded file
                 filename = path.join(job.input_dir, submitted_input.name)
                 with open(filename, 'wb+') as uploaded_file:

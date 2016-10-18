@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
 import saga
+
 from local import ShellJobAdaptor
-from waves.adaptors.sge import SGEJobAdaptor
 
 
 class SshJobAdaptor(ShellJobAdaptor):
@@ -80,20 +80,3 @@ class SshUserPassJobAdaptor(SshJobAdaptor):
         return ctx
 
 
-class SGEOverSSHAdaptor(SGEJobAdaptor, SshUserPassJobAdaptor):
-    _protocol = 'sge+ssh'
-
-    @property
-    def init_params(self):
-        base = super(SGEJobAdaptor, self).init_params
-        base.update(super(SshJobAdaptor, self).init_params)
-        return base
-
-    def _job_description(self, job):
-
-        dir_name = 'sftp://' + self.host + "/$HOME/sge_runs/"
-        work_dir = saga.filesystem.Directory(dir_name, saga.filesystem.READ,
-                                                    self.session)
-        jd = super(SGEJobAdaptor, self)._job_description(job)
-        jd.update(dict(queue=self.queue, working_directory='/$HOME/sge_runs/'))
-        return jd

@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.authentication import BaseAuthentication
 from django.contrib.auth.signals import user_logged_in
 
-from waves.models import APIProfile
+from waves.models import WavesProfile
 import waves.const as const
 
 
@@ -15,7 +15,7 @@ class WavesAPI_KeyAuthBackend(BaseAuthentication):
             return None
         try:
             # Validate API KEY
-            api_prof = APIProfile.objects.get(api_key=api_key)
+            api_prof = WavesProfile.objects.get(api_key=api_key)
             if not api_prof.banned:
                 # Authorized all 'api_key' except when user is banned
                 user_logged_in.send(sender=api_prof.__class__, request=request, user=api_prof.user)

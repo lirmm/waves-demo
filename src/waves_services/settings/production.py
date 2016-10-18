@@ -19,7 +19,7 @@ TEMPLATES[0].update({"APP_DIRS": False})
 LOGGING_CONFIG = None
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': True,
     'formatters': {
         'verbose': {
             'format': "[%(asctime)s] %(levelname)s [%(pathname)s:%(lineno)s] %(message)s",

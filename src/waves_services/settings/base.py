@@ -38,9 +38,14 @@ env = environ.Env()
 environ.Env.read_env(join(dirname(__file__), 'local.env'))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str('SECRET_KEY')
+WAVES_ENV_FILE = env.str('WAVES_ENV_FILE', None)
 # DATABASE configuration
 DATABASES = {
     'default': env.db(default='sqlite:///' + BASE_DIR + '/waves/db/waves.sqlite3'),
+    'sample': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': join(BASE_DIR, 'waves', 'db', 'waves.sqlite3')
+    }
 }
 if 'test' in sys.argv:
     DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
@@ -67,7 +72,6 @@ INSTALLED_APPS = (
     'polymorphic',
     'smart_selects',
     'mptt',
-    'eav',
     'nested_admin',
     'django_crontab',
     'django_countries',

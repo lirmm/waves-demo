@@ -288,7 +288,7 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
         readonly_fields = super(ServiceAdmin, self).get_readonly_fields(request, obj)
         if not request.user.is_superuser:
             readonly_fields.append('created_by')
-        if obj is not None and obj.created_by != request.user:
+        if obj is not None and obj.created_by != request.user.profile:
             readonly_fields.append('api_name')
             readonly_fields.append('clazz')
             readonly_fields.append('version')
@@ -305,7 +305,7 @@ class ServiceAdmin(nested_admin.NestedModelAdmin, WavesTabbedModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if not obj.created_by:
-            obj.created_by = request.user
+            obj.created_by = request.user.profile
         super(ServiceAdmin, self).save_model(request, obj, form, change)
         if 'run_on' in form.changed_data and obj is not None:
             if obj.runner_params is not None:

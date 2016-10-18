@@ -15,7 +15,7 @@ def profile_directory(instance, filename):
 
 
 @python_2_unicode_compatible
-class APIProfile(SlugAble):
+class WavesProfile(SlugAble):
     class Meta:
         unique_together = ('user', 'api_key')
 
@@ -63,7 +63,7 @@ class APIProfile(SlugAble):
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if self.user.is_staff or self.user.is_superuser:
             self.registered_for_api = True
-        super(APIProfile, self).save(force_insert, force_update, using, update_fields)
+        super(WavesProfile, self).save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
         return "{}".format(self.user)

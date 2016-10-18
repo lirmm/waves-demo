@@ -3,21 +3,20 @@ from __future__ import unicode_literals
 import os
 import logging
 
-from django.test import TestCase
+from waves.tests.base import WavesBaseTestCase
 from django.utils.module_loading import import_string
 
-from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory
+from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory, RunnerImplementation
 import waves.const
 
 logger = logging.getLogger(__name__)
 
 
-class TestRunners(TestCase):
-
+class TestRunners(WavesBaseTestCase):
     def test_runners_defaults(self):
-        for runner in Runner.objects.exclude(clazz__isnull=True):
-            obj_runner = import_string(runner.clazz)
-            logger.debug("Clazz %s", runner.clazz)
+        for runner in Runner.objects.all():
+            obj_runner = import_string(runner.clazz.name)
+            logger.debug("Clazz %s", runner.clazz.name)
             expected_params = obj_runner().init_params
             runner_params = runner.default_run_params()
             logger.debug("Expected %s", expected_params)
@@ -25,18 +24,17 @@ class TestRunners(TestCase):
             self.assertEquals(sorted(expected_params), sorted(runner_params))
 
 
-class TestServices(TestCase):
-
+class TestServices(WavesBaseTestCase):
     def test_create_service(self):
-        runner = Runner.objects.create(name="Sample runner", clazz="waves.adaptors.mock.MockJobAdaptor")
+        runner = Runner.objects.create(name="Sample runner", clazz=RunnerImplementation.objects.create(
+            name='waves.adaptors.mock.MockJobAdaptor'))
         srv = Service.objects.create(name="Sample Service", run_on=runner)
         self.assertIsNotNone(srv.default_submission)
-        pass
 
     def test_service_run_param(self):
         services = Service.objects.all()
         for service in services:
-            obj_runner = import_string(service.run_on.clazz)
+            obj_runner = import_string(service.run_on.clazz.name)
             expected_params = obj_runner().init_params
             runner_params = service.run_params()
             logger.debug(expected_params)
@@ -44,7 +42,7 @@ class TestServices(TestCase):
             self.assertEquals(sorted(expected_params.keys()), sorted(runner_params.keys()))
 
 
-class TestJobs(TestCase):
+class TestJobs(WavesBaseTestCase):
     def setUp(self):
         super(TestJobs, self).setUp()
 
@@ -57,7 +55,7 @@ class TestJobs(TestCase):
         self.assertTrue(os.path.isdir(job.working_dir))
         self.assertTrue(os.path.isdir(job.input_dir))
         self.assertTrue(os.path.isdir(job.output_dir))
-        logger.debug('Job directories has been created')
+        logger.debug('Job directories has been created %s ', job.working_dir)
         self.assertEqual(job.status, waves.const.JOB_CREATED)
         job_history = job.job_history.all()
         self.assertEqual(len(job_history), 1)

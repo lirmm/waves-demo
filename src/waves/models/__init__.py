@@ -1,5 +1,5 @@
 from waves.models.base import *
-from waves.models.profiles import APIProfile
+from waves.models.profiles import WavesProfile
 from waves.models.jobs import *
 from waves.models.runners import *
 from waves.models.services import *
