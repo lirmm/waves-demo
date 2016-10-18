@@ -5,7 +5,7 @@ from django import forms
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth import get_user_model
 from django_countries.widgets import CountrySelectWidget
-from waves.models import Service, APIProfile
+from waves.models import Service, WavesProfile
 import waves.const
 
 __all__ = ['UserForm', 'ProfileForm']
@@ -29,7 +29,7 @@ class UserForm(forms.ModelForm):
 
 class ProfileForm(forms.ModelForm):
     class Meta:
-        model = APIProfile
+        model = WavesProfile
         fields = ['api_key', 'registered_for_api', 'banned', 'comment', 'ip', 'country', 'comment', 'institution',
                   'restricted_services']
 

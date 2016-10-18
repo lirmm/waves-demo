@@ -106,7 +106,7 @@ class ServiceParamImportView(FormView):
                 logger.warning('Form is valid')
                 try:
                     self.service = self.importer.import_remote_service(request.POST['tool_list'])
-                    self.service.created_by = self.request.user
+                    self.service.created_by = self.request.user.profile
                     self.service.save()
                     data = {
                         'url_redirect': reverse('admin:waves_service_change',

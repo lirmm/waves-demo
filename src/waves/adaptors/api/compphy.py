@@ -9,7 +9,6 @@ from StringIO import StringIO
 
 
 class CompPhyApiAdaptor(RemoteApiAdaptor):
-
     origin = None
 
     def __init__(self, **kwargs):
@@ -76,7 +75,8 @@ class CompPhyApiAdaptor(RemoteApiAdaptor):
                 job.nb_retry = waves.settings.WAVES_JOBS_MAX_RETRY
                 print(res)
                 raise JobRunException(
-                    res["message"] if "message" in res else "We are unable to launch your job. Please contact us to report the bug"
+                    res[
+                        "message"] if "message" in res else "We are unable to launch your job. Please contact us to report the bug"
                 )
 
         else:
@@ -110,7 +110,8 @@ class CompPhyApiAdaptor(RemoteApiAdaptor):
             else:
                 raise JobRunException("Error: status of job not found. Please contact us to report the bug.")
         else:
-            raise JobRunException("Error: unable to contact CompPhy's API to get status. Please contact us to report the bug.")
+            raise JobRunException(
+                "Error: unable to contact CompPhy's API to get status. Please contact us to report the bug.")
 
     def _disconnect(self):
         pass

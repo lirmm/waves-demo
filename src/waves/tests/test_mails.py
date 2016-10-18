@@ -4,7 +4,9 @@ import logging
 
 from django.utils import timezone
 from django.core import mail
-from waves.tests import WavesBaseTestCase, settings, override_settings
+from django.conf import settings
+from django.test import override_settings
+from waves.tests.base import WavesBaseTestCase
 from waves.models import Job, JobInput, JobOutput, Service
 import waves.const
 import waves.settings

@@ -1,12 +1,9 @@
 from __future__ import unicode_literals
+
 import waves.const
 from waves.exceptions import *
 from waves.models import Job
 from waves.models.jobs import JobAdminHistory
-
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class JobRunnerAdaptor(object):
@@ -37,6 +34,8 @@ class JobRunnerAdaptor(object):
         :param kwargs: its possible to force _connector and _parser attributes when initialize a Adaptor
         :return: a new JobRunnerAdaptor object
         """
+        import logging
+        self.logger = logging.getLogger(__name__)
         self._initialized = False
         self._connected = False
         self._connector = kwargs['connector'] if 'connector' in kwargs else None
@@ -77,13 +76,13 @@ class JobRunnerAdaptor(object):
         :return: _connector reference or raise an
         """
         if self.connected:
-            logger.debug('Already connected to %s', self._connector)
+            self.logger.debug('Already connected to %s', self._connector)
             return self._connector
         else:
             try:
                 self._connect()
             except Exception as exc:
-                logger.error(self.dump_config())
+                self.logger.error(self.dump_config())
                 self._connected = False
                 raise RunnerConnectionError(str(exc), 'Connect')
             finally:
@@ -108,7 +107,7 @@ class JobRunnerAdaptor(object):
             self._connected = False
             return
         except Exception as exc:
-            logger.fatal(self.dump_config())
+            self.logger.fatal(self.dump_config())
             raise RunnerConnectionError(str(exc), 'Disconnect')
 
     def prepare_job(self, job):
@@ -131,7 +130,7 @@ class JobRunnerAdaptor(object):
             self._prepare_job(job)
             job.status = waves.const.JOB_PREPARED
             job.nb_retry = 0
-            logger.info('Job %s prepared', job.slug)
+            self.logger.info('Job %s prepared', job.slug)
         except WavesException as exc:
             job.nb_retry += 1
             JobAdminHistory.objects.create(job=job, message=exc.message, status=job.status)
@@ -169,7 +168,7 @@ class JobRunnerAdaptor(object):
             self._run_job(job)
             job.status = waves.const.JOB_QUEUED
             job.nb_retry = 0
-            logger.info('Job %s queued', job.slug)
+            self.logger.info('Job %s queued', job.slug)
         except WavesException as exc:
             job.nb_retry += 1
             JobAdminHistory.objects.create(job=job, message=exc.message, status=job.status)
@@ -206,7 +205,7 @@ class JobRunnerAdaptor(object):
             self._cancel_job(job)
             job.status = waves.const.JOB_CANCELLED
             job.nb_retry = 0
-            logger.info('Job %s cancelled ', job.slug)
+            self.logger.info('Job %s cancelled ', job.slug)
         except WavesException as exc:
             if job.nb_retry < waves.settings.WAVES_JOBS_MAX_RETRY:
                 job.nb_retry += 1
@@ -220,7 +219,7 @@ class JobRunnerAdaptor(object):
             job.status = waves.const.JOB_ERROR
             job.message = "Current runner do not implements required method '_cancel_job()'"
         except Exception as exc:
-            logger.error('Cancel job %s not applied to adaptor %s', job.pk, job.service.run_on)
+            self.logger.error('Cancel job %s not applied to adaptor %s', job.pk, job.service.run_on)
             job.message = 'Could not remotely cancel job'
             raise JobRunException('Cancel job error:\n%s: %s' %
                                   (exc.__class__.__name__, str(exc)), job=job)
@@ -391,9 +390,16 @@ class JobRunnerAdaptor(object):
         return jd_dict
 
     def importer(self, for_service=None, for_runner=None):
+        """
+        Return an Service Importer instance, using either
+        :param for_service:
+        :param for_runner:
+        :return:
+        """
         from django.utils.module_loading import import_string
+        if for_service is not None and for_runner is not None:
+            raise ValueError('Specify either for_service or for_runner, but not both')
         if self.importer_clazz:
-            print "importerclazz", self.importer_clazz
             importer = import_string(self.importer_clazz)
             if for_service is not None:
                 return importer(self, service=for_service)
@@ -401,9 +407,5 @@ class JobRunnerAdaptor(object):
                 return importer(self, runner=for_runner)
             else:
                 raise ValueError('We need either a service or a runner to initialize an importer !')
-                # return importer(self)
         else:
             return None
-
-    def has_importer(self):
-        return self.importer_clazz is not None

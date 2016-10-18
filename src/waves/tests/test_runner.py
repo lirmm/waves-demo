@@ -1,17 +1,17 @@
+"""
+Base Test class for Runner's adaptors
+"""
 from __future__ import unicode_literals
 
 import time
 import os
-import logging
 from django.utils.timezone import localtime
-from django.conf import settings
 import waves.const
+from waves.tests.base import WavesBaseTestCase
+from waves.adaptors.runner import JobRunnerAdaptor
 from waves.exceptions import *
-from waves.tests import WavesBaseTestCase
-from waves.adaptors import JobRunnerAdaptor
-from waves.models import Service, Job, JobInput, JobOutput, Runner, RunnerParam
+from waves.models import Service, Job, JobInput, Runner, RunnerParam, RunnerImplementation
 import waves.settings
-logger = logging.getLogger(__name__)
 
 __all__ = ['TestBaseJobRunner', 'sample_runner']
 
@@ -26,7 +26,8 @@ def sample_runner(runner_impl):
     """
     runner_model = Runner.objects.create(name=runner_impl.__class__.__name__,
                                          description='Sample Runner %s' % runner_impl.__class__.__name__,
-                                         clazz='%s.%s' % (runner_impl.__module__, runner_impl.__class__.__name__),
+                                         clazz=RunnerImplementation.objects.create(
+                                             name='%s.%s' % (runner_impl.__module__, runner_impl.__class__.__name__)),
                                          available=True)
     for name, value in runner_impl.init_params.items():
         RunnerParam.objects.update_or_create(name=name, runner=runner_model, defaults={'value': value})
@@ -70,9 +71,9 @@ class TestBaseJobRunner(WavesBaseTestCase):
 
     def tearDown(self):
         super(TestBaseJobRunner, self).tearDown()
-        if not waves.settings.WAVES_TEST_DEBUG:
-            for job in self.jobs:
-                job.delete_job_dirs()
+        # if not waves.settings.WAVES_TEST_DEBUG:
+        #    for job in self.jobs:
+        #        job.delete_job_dirs()
 
     def run(self, result=None):
         self.current_result = result
@@ -91,6 +92,9 @@ class TestBaseJobRunner(WavesBaseTestCase):
         Returns:
 
         """
+        import logging
+        logger = logging.getLogger(__name__)
+
         self.current_job = sample_job(self.service)
         self.jobs.append(self.current_job)
         self.current_job.status = waves.const.JOB_RUNNING
@@ -118,6 +122,8 @@ class TestBaseJobRunner(WavesBaseTestCase):
         self.assertEqual(length1, self.current_job.job_history.count())
 
     def runJobWorkflow(self, job=None):
+        import logging
+        logger = logging.getLogger(__name__)
         if job is not None:
             self.current_job = job
         if self.current_job not in self.jobs:

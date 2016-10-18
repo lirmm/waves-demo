@@ -1,17 +1,14 @@
+"""
+Saga-python based Local job runner Adaptor
+"""
 from __future__ import unicode_literals
 
 import saga
 import os
-
-
-import logging
-
 from waves.adaptors.runner import JobRunnerAdaptor
 import waves.const
 
 __author__ = "Marc Chakiachvili <marc.chakiachvili@lirmm.fr>"
-
-logger = logging.getLogger(__name__)
 
 
 class ShellJobAdaptor(JobRunnerAdaptor):
@@ -77,7 +74,7 @@ class ShellJobAdaptor(JobRunnerAdaptor):
 
     @property
     def init_params(self):
-        return dict(command=self.command, host=self.host)
+        return dict(command=self.command)
 
     def _disconnect(self):
         self._connector.close()
@@ -94,7 +91,7 @@ class ShellJobAdaptor(JobRunnerAdaptor):
             job:
         """
         jd = self._load_job_description(job)
-        logger.debug('JobInfo %s %s', jd, jd.__class__.__name__)
+        self.logger.debug('JobInfo %s %s', jd, jd.__class__.__name__)
         new_job = self._connector.create_job(jd)
         new_job.run()
         job.remote_job_id = new_job.id
@@ -107,14 +104,14 @@ class ShellJobAdaptor(JobRunnerAdaptor):
             the_job = self._connector.get_job(str(job.remote_job_id))
             the_job.cancel()
         except saga.SagaException as exc:
-            logger.warning('Remote cancel job error:\n%s: %s' % (exc.__class__.__name__, str(exc)))
+            self.logger.warning('Remote cancel job error:\n%s: %s' % (exc.__class__.__name__, str(exc)))
 
     def _job_status(self, job):
         try:
             the_job = self._connector.get_job(str(job.remote_job_id))
             return the_job.state
         except saga.SagaException as exc:
-            logger.warning('Remote job status error:\n%s: %s' % (exc.__class__.__name__, str(exc)))
+            self.logger.warning('Remote job status error:\n%s: %s' % (exc.__class__.__name__, str(exc)))
             return waves.const.JOB_UNDEFINED
 
     def _job_results(self, job):

@@ -3,7 +3,7 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, Field, Fieldset
 from django.contrib.auth import get_user_model
-from waves.models import APIProfile
+from waves.models import WavesProfile
 
 User = get_user_model()
 
@@ -57,5 +57,5 @@ class ProfileForm(forms.ModelForm):
         )
 
     class Meta:
-        model = APIProfile
+        model = WavesProfile
         fields = ['registered_for_api', 'country', 'comment', 'institution', 'phone', 'picture']

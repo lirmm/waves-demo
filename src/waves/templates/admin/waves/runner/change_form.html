@@ -9,7 +9,7 @@
            class="link">{% trans "Associated Services" %}</a>
     </li>
     {{ block.super }}
-    {% if original.adaptor.has_importer %}
+    {% if original.adaptor.importer_clazz %}
     <li>
         <a type="button" href="{% url 'waves:service_import_form' original.pk %}"
            target="_blank"

@@ -86,7 +86,7 @@ class Command(BaseCommand):
             self.stderr.write('Warning, this action reset ALL waves data to initial')
             if self._boolean_input("Do you want to proceed ? [y/N]"):
                 from django.contrib.auth import get_user_model
-                from waves.models import Service, APIProfile, Runner
+                from waves.models import Service, WavesProfile, Runner
                 for service in Service.objects.all():
                     service.delete()
                 User = get_user_model()

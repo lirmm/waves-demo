@@ -46,7 +46,7 @@ class ServiceSubmissionForm(ModelForm):
 
 class ImportForm(forms.Form):
 
-    tool_list = forms.ChoiceField(required=True, widget=forms.Select(attrs={'size': '10'}))
+    tool_list = forms.ChoiceField(widget=forms.Select(attrs={'size': '10'}))
 
     def __init__(self, *args, **kwargs):
         tool_list = kwargs.pop('tool_list', ())
@@ -219,7 +219,7 @@ class ServiceForm(forms.ModelForm):
         super(ServiceForm, self).__init__(*args, **kwargs)
         self.fields['restricted_client'].label = "Restrict access to specified user"
         if not self.fields['created_by'].initial:
-            self.fields['created_by'].initial = self.current_user
+            self.fields['created_by'].initial = self.current_user.profile
         if not waves.settings.WAVES_NOTIFY_RESULTS:
             self.fields['email_on'].widget.attrs['readonly'] = True
             self.fields['email_on'].help_text = '<span class="warning">Disabled by main configuration</span><br/>' \

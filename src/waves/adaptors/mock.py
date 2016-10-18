@@ -1,12 +1,8 @@
 from __future__ import unicode_literals
 
-import logging
-
 import waves.const as const
 from waves.models import Job, JobInput, JobOutput
-from waves.adaptors import JobRunnerAdaptor
-
-logger = logging.getLogger(__name__)
+from waves.adaptors.runner import JobRunnerAdaptor
 
 
 class MockJobAdaptor(JobRunnerAdaptor):
@@ -29,10 +25,10 @@ class MockJobAdaptor(JobRunnerAdaptor):
     def _prepare_job(self, job):
         for job_input in job.inputs.values():
             # TODO parse and setup input according to their type
-            logger.debug(u'current input ' + job_input.name + u'/current input value ' + job_input.value)
+            self.logger.debug(u'current input ' + job_input.name + u'/current input value ' + job_input.value)
         for job_output in job.job_outputs.values():
             # TODO checkout output and setup associated members to their values
-            logger.debug(u'current output ' + job_output.name + u'/current input value ' +
+            self.logger.debug(u'current output ' + job_output.name + u'/current input value ' +
                          job_output.value)
         job.status = const.JOB_PREPARED
         job.save()

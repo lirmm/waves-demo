@@ -10,8 +10,20 @@ class WavesSiteAdmin(admin.ModelAdmin):
     list_display = ('site', 'get_name', 'theme', 'current_queue_state')
     # search_fields = ('site__domain', 'site__name')
     # fields = ('theme')
-    fieldsets = ()
-    readonly_fields = ('get_name', 'current_queue_state')
+    fieldsets = [
+        ('Site', {
+            'classes': ('suit-tab', 'suit-tab-general',),
+            'fields': ['site', ]
+        }),
+        ('Frontend configuration', {
+            'fields': ['theme', 'get_name', ]
+        }),
+        ('Queue', {
+            'fields': ['current_queue_state']
+        })
+
+    ]
+    readonly_fields = ('get_name', 'current_queue_state',)
     form = SiteForm
 
     class Media:
@@ -22,7 +34,7 @@ class WavesSiteAdmin(admin.ModelAdmin):
     def get_name(self, obj):
         return obj.site.name
 
-    get_name.short_description = 'Global NAME'
+    get_name.short_description = 'Global name'
 
     def current_queue_state(self, obj):
         from waves.management.commands.wavesqueue import Command as WavesQueueCommand
@@ -42,5 +54,6 @@ class WavesSiteAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
 
 admin.site.register(WavesSite, WavesSiteAdmin)

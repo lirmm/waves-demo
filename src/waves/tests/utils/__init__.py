@@ -1,6 +1,4 @@
 from __future__ import unicode_literals
-
-import waves.settings
 from os.path import join, dirname, isfile, realpath
 
 

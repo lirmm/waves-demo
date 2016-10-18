@@ -1,20 +1,17 @@
 from __future__ import unicode_literals
 
-import logging
+
 import bioblend
 import six
 from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.objects import galaxy_instance as galaxy
-from django.conf import settings
 import waves.const
 import waves.settings
 from waves.exceptions import *
 from waves.adaptors.importer import Importer
 from waves.models.services import ServiceInputFormat, RelatedInput, ServiceOutput, ServiceInput, Service, \
     ServiceOutputFromInputSubmission
-
-logger = logging.getLogger(__name__)
-
+import logging
 
 # TODO add specific exceptions for importers
 class GalaxyToolImporter(Importer):
@@ -60,7 +57,7 @@ class GalaxyToolImporter(Importer):
                                                           defaults={'value': remote_tool_id,
                                                                     'service': self._service,
                                                                     'param': param_service}, )
-        logger.debug('runner_params %s ',
+        self.logger.debug('runner_params %s ',
                      self._service.service_run_params.values_list('value', 'param__name', 'param__default'))
 
     def _update_service(self, details):
@@ -75,7 +72,7 @@ class GalaxyToolImporter(Importer):
         existing_service = Service.objects.filter(api_name=self._service.api_name)
         if existing_service.count() > 0:
             self._service.api_name += '_%i' % existing_service.count()
-            logger.debug('Setting api_name to %s', self._service.api_name)
+            self.logger.debug('Setting api_name to %s', self._service.api_name)
         self._update_remote_tool_id(details.id)
         self._submission.save()
         self._service.save()
@@ -126,51 +123,51 @@ class GalaxyToolImporter(Importer):
                 if service_input is not None:
                     service_input.save()
                     service_inputs.append(service_input)
-        if logger.isEnabledFor(logging.DEBUG):
+        if self.logger.isEnabledFor(logging.DEBUG):
             for service_input in service_inputs:
-                logger.debug('****' + service_input.label + ' - ' + service_input.name + '****')
-                logger.debug('__class__ ' + str(service_input.__class__))
-                logger.debug('Type ' + str(service_input.type) + '|' + service_input.get_type_display())
-                logger.debug('Mandatory ' + str(service_input.mandatory))
-                logger.debug('Help ' + str(service_input.description))
-                logger.debug('Default ' + str(service_input.default))
+                self.logger.debug('****' + service_input.label + ' - ' + service_input.name + '****')
+                self.logger.debug('__class__ ' + str(service_input.__class__))
+                self.logger.debug('Type ' + str(service_input.type) + '|' + service_input.get_type_display())
+                self.logger.debug('Mandatory ' + str(service_input.mandatory))
+                self.logger.debug('Help ' + str(service_input.description))
+                self.logger.debug('Default ' + str(service_input.default))
                 if isinstance(service_input, RelatedInput):
-                    logger.debug('Depends on ' + str(service_input.related_to))
-                    logger.debug('Value ' + service_input.when_value)
-                logger.debug('Format ' + str(service_input.format))
+                    self.logger.debug('Depends on ' + str(service_input.related_to))
+                    self.logger.debug('Value ' + service_input.when_value)
+                self.logger.debug('Format ' + str(service_input.format))
                 # raise ValueError('A value error is set !!!')
         return service_inputs
 
     def _import_param(self, tool_input, service_input):
         try:
-            logger.debug('---------------')
+            self.logger.debug('---------------')
             service_input.type = self._adaptor.map_type(tool_input['type'])
-            logger.debug('name ' + tool_input['name'])
+            self.logger.debug('name ' + tool_input['name'])
             service_input.mandatory = self._get_input_value(tool_input, 'optional', 'True') is False
-            logger.debug('mandatory ' + str(service_input.mandatory))
+            self.logger.debug('mandatory ' + str(service_input.mandatory))
             service_input.description = self._get_input_value(tool_input, 'help')
-            logger.debug('description ' + str(service_input.description))
+            self.logger.debug('description ' + str(service_input.description))
             result = getattr(self, '_import_' + tool_input['type'])
-            logger.debug('import func _import_%s ', tool_input['type'])
+            self.logger.debug('import func _import_%s ', tool_input['type'])
             result(tool_input, service_input)
-            logger.debug('result %s ', tool_input['type'])
-            logger.debug("default : %s ", service_input.default)
+            self.logger.debug('result %s ', tool_input['type'])
+            self.logger.debug("default : %s ", service_input.default)
             service_input.param_type = ServiceInputFormat.param_type_from_value(service_input.default)
             service_input.order = self._order_input
             self._order_input += 1
             if service_input.param_type is None:
                 service_input.param_type = waves.const.OPT_TYPE_POSIX
-            logger.debug("param_type: %s ", service_input.param_type)
+            self.logger.debug("param_type: %s ", service_input.param_type)
             return service_input
         except KeyError as e:
-            logger.warn(u'Un-managed input param type "' + tool_input['type'] + u'" for input "' + tool_input['name'] +
+            self.logger.warn(u'Un-managed input param type "' + tool_input['type'] + u'" for input "' + tool_input['name'] +
                         u'"\n' + e.message)
             return None
         except Exception as exc:
-            logger.warn(u'Unexpected error "%s" for input "%s"', tool_input['type'], tool_input['name'])
+            self.logger.warn(u'Unexpected error "%s" for input "%s"', tool_input['type'], tool_input['name'])
             raise exc
         finally:
-            logger.debug('---------------')
+            self.logger.debug('---------------')
 
     def _import_conditional_set(self, tool_input):
         if 'cases' in tool_input:
@@ -181,7 +178,7 @@ class GalaxyToolImporter(Importer):
                                        type=waves.const.TYPE_LIST,
                                        service=self._submission)
             conditional = self._import_param(tool_input['test_param'], conditional)
-            logger.debug('Test param %s', tool_input['test_param'])
+            self.logger.debug('Test param %s', tool_input['test_param'])
             conditional.save()
             conditional_inputs.append(conditional)
 
@@ -239,11 +236,11 @@ class GalaxyToolImporter(Importer):
         service_input.format = self._formatter.format_list(options)
 
     def _import_service_outputs(self, outputs):
-        logger.debug(u'Managing service outputs')
+        self.logger.debug(u'Managing service outputs')
         service_outputs = []
         index = 0
         for tool_output in outputs:
-            logger.debug(tool_output.keys())
+            self.logger.debug(tool_output.keys())
             service_output = ServiceOutput(name=tool_output['name'], service=self._service,
                                            file_pattern=tool_output['name'])
             service_output.order = index
@@ -264,11 +261,11 @@ class GalaxyToolImporter(Importer):
                     service_output.from_input_submission.add(submission_related_output, bulk=True)
                     service_output.description = "Issued from input '%s'" % input_related_name
                 except ObjectDoesNotExist:
-                    logger.warn('Did not found related input by name ' + service_output.description)
+                    self.logger.warn('Did not found related input by name ' + service_output.description)
                 except MultipleObjectsReturned:
-                    logger.warn('Did not found related input by name ' + service_output.description)
+                    self.logger.warn('Did not found related input by name ' + service_output.description)
                 except Exception as e:
-                    logger.warn('Other Exception %s', e)
+                    self.logger.warn('Other Exception %s', e)
             service_output.save()
             service_outputs.append(service_output)
             index += 1
@@ -279,6 +276,9 @@ class GalaxyToolImporter(Importer):
 
 
 class GalaxyWorkFlowImporter(GalaxyToolImporter):
+    """
+    Galaxy Workflow service importer
+    """
     workflow = None
     workflow_full_description = None
 
@@ -287,10 +287,13 @@ class GalaxyWorkFlowImporter(GalaxyToolImporter):
         Connect to remote Galaxy Host
         :return:
         """
+        print 'first', self._adaptor.dump_config()
         self._tool_client = bioblend.galaxy.objects.client.ObjWorkflowClient(self._adaptor.connect())
+        print 'then', self._adaptor.dump_config()
 
     def _list_all_remote_services(self):
         try:
+
             tool_list = self._tool_client.list()
             return [
                 (y.id, y.name) for y in tool_list if y.published is True
@@ -299,33 +302,33 @@ class GalaxyWorkFlowImporter(GalaxyToolImporter):
             raise RunnerConnectionError(e.message, 'Connection Error:\n')
 
     def _list_remote_inputs(self, tool_id):
-        logger.warn('Not Implemented yet')
+        self.logger.warn('Not Implemented yet')
         wl = self._tool_client.get(id_=tool_id)
         wc = bioblend.galaxy.workflows.WorkflowClient(self._tool_client.gi)
         wc.export_workflow_to_local_path(workflow_id=tool_id,
                                          file_local_path=waves.settings.WAVES_DATA_ROOT + '/' + tool_id + '.json',
                                          use_default_filename=False)
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug('inputs %s', wl.inputs)
-            logger.debug('inputs_i %s', wl.data_input_ids)
-            logger.debug('inputs %s', wl.inputs['0'])
-            logger.debug('labels %s', wl.input_labels)
-            logger.debug('runnable %s', wl.is_runnable)
+        if self.logger.isEnabledFor(logging.DEBUG):
+            self.logger.debug('inputs %s', wl.inputs)
+            self.logger.debug('inputs_i %s', wl.data_input_ids)
+            self.logger.debug('inputs %s', wl.inputs['0'])
+            self.logger.debug('labels %s', wl.input_labels)
+            self.logger.debug('runnable %s', wl.is_runnable)
         for id_step in wl.sorted_step_ids():
             step = wl.steps[id_step]
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug('step  %s %s %s:', step.type, ' name ', step.name)
-                logger.debug('input_steps %s', step.input_steps)
-                logger.debug('tool_inputs %s', step.tool_inputs)
-                logger.debug('tool_id %s', step.tool_id)
+            if self.logger.isEnabledFor(logging.DEBUG):
+                self.logger.debug('step  %s %s %s:', step.type, ' name ', step.name)
+                self.logger.debug('input_steps %s', step.input_steps)
+                self.logger.debug('tool_inputs %s', step.tool_inputs)
+                self.logger.debug('tool_id %s', step.tool_id)
         return wl.inputs
 
     def _list_remote_outputs(self, tool_id):
-        logger.warn('Not Implemented yet')
+        self.logger.warn('Not Implemented yet')
         return []
 
     def _list_exit_codes(self, tool_id):
-        logger.warn('Not Implemented yet')
+        self.logger.warn('Not Implemented yet')
         return []
 
     def _get_tool_details(self, remote_tool_id):
@@ -341,7 +344,7 @@ class GalaxyWorkFlowImporter(GalaxyToolImporter):
         # check whether another service exists with same generated api_name
         existing_service = Service.objects.filter(api_name=self._service.api_name)
         if existing_service.count() > 0:
-            logger.debug('Setting api_name to %s_%i', self._service.api_name, existing_service.count())
+            self.logger.debug('Setting api_name to %s_%i', self._service.api_name, existing_service.count())
             self._service.api_name += '_%i' % existing_service.count()
         self._update_remote_tool_id(details.id)
         self._service.save()
@@ -356,6 +359,6 @@ class GalaxyWorkFlowImporter(GalaxyToolImporter):
                                          type=waves.const.TYPE_FILE,
                                          default=dic['value'],
                                          mandatory=True)
-            logger.debug('Service input %s ', service_input)
+            self.logger.debug('Service input %s ', service_input)
             service_inputs.append(service_input)
         return service_inputs

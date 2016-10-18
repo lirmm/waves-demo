@@ -11,26 +11,20 @@ from waves.tests.utils import get_sample_dir
 from django.test import override_settings
 from waves.tests.test_runner import TestBaseJobRunner
 from waves.models import Runner, Service, Job, JobOutput, JobInput
-from waves.adaptors.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor
+from waves.adaptors.api.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor
 
 logger = logging.getLogger(__name__)
 
 
 @test_util.skip_unless_galaxy()
 class GalaxyRunnerTestCase(TestBaseJobRunner):
-    # This is fixture:
-    # fields: {name: GalaxyTestRunner, clazz: waves.runners.GalaxyJobAdaptor}
-    # model: waves.models.Runner
-    # pk: 1
-    # fixtures = ['users', 'test_services']
-
     def setUp(self):
         self.adaptor = GalaxyJobAdaptor(init_params={'host': waves.settings.WAVES_TEST_GALAXY_URL,
                                                      'port': waves.settings.WAVES_TEST_GALAXY_PORT,
                                                      'app_key': waves.settings.WAVES_TEST_GALAXY_API_KEY})
         super(GalaxyRunnerTestCase, self).setUp()
-        self.gi = bioblend.galaxy.objects.galaxy_instance.GalaxyInstance(url=self.adaptor.complete_url,
-                                                                         api_key=self.adaptor.app_key)
+        # ShortCut for adaptor GI
+        self.gi = self.adaptor.connect()
 
     @classmethod
     def setUpClass(cls):
@@ -43,48 +37,38 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
 
         """
         # print 'test', self.adaptor
-        tools = self.adaptor.importer().list_all_remote_services()
+        tools = self.adaptor.importer(for_runner=self.runner_model).list_all_remote_services()
         logger.debug('Retrieved tools %s', tools)
         self.assertGreater(len(tools), 0)
 
     def _import_tool_from_service(self, remote_tool_id, service=None):
-        importer = self.runner_model.get_importer(for_service=service)
+        importer = self.runner_model.get_importer()
         return importer.import_remote_service(remote_tool_id=remote_tool_id)
 
     @test_util.skip_unless_tool("fastme")
     def test_import_FastME(self):
+        from shutil import copyfile
         tool_client = bioblend.galaxy.objects.client.ObjToolClient(self.gi)
         fast_me = tool_client.list(name='FastME')
         self.assertTrue(len(fast_me) > 0)
         self.service = self._import_tool_from_service(fast_me[0].id)
         self.adaptor.remote_tool_id = fast_me[0].id
-        print self.service.service_run_params.all()
         # TODO remove this (moved in testFastMe function)
         self.current_job = Job.objects.create(service=self.service, title="TestFastMe Galaxy")
+        source_file = os.path.join(get_sample_dir(), 'fast_me', 'fastme-dna.phy')
+        copyfile(source_file, os.path.join(self.current_job.working_dir, 'fastme-dna.phy'))
         self.current_job.job_inputs.add(
-            JobInput.objects.create(job=self.current_job, name="input_data", type=waves.const.TYPE_FILE,
-                                    param_type=waves.const.OPT_TYPE_VALUATED,
-                                    value=os.path.join(get_sample_dir(), 'fast_me', 'fastme-dna.txt')))
+            JobInput.objects.create(job=self.current_job, name="input_data",
+                                    srv_input=self.service.default_submission.service_inputs.get(name='input'),
+                                    value='fastme-dna.phy'))
         self.current_job.job_inputs.add(
             JobInput.objects.create(job=self.current_job, name="dna", type=waves.const.TYPE_TEXT,
                                     param_type=waves.const.OPT_TYPE_VALUATED,
                                     value='J'))
-        output_tree = JobInput.objects.create(job=self.current_job, name="output_tree", type=waves.const.TYPE_TEXT,
-                                              param_type=waves.const.OPT_TYPE_VALUATED,
-                                              value='output_tree.txt')
-        output_matrix = JobInput.objects.create(job=self.current_job, name="output_matrix", type=waves.const.TYPE_TEXT,
-                                                param_type=waves.const.OPT_TYPE_VALUATED,
-                                                value='output_matrix.txt')
-        output_info = JobInput.objects.create(job=self.current_job, name='output_info', type=waves.const.TYPE_TEXT,
-                                              param_type=waves.const.OPT_TYPE_VALUATED,
-                                              value="output_info.txt")
         # associated outputs
-        self.current_job.job_outputs.add(JobOutput.objects.create(job=self.current_job, name='Inferred tree file',
-                                                                  value=output_tree.value))
-        self.current_job.job_outputs.add(JobOutput.objects.create(job=self.current_job, name="Computed matrix",
-                                                                  value=output_matrix.value))
-        self.current_job.job_outputs.add(JobOutput.objects.create(job=self.current_job, name="Output Info",
-                                                                  value=output_info.value))
+        for srv_output in self.service.service_outputs.all():
+            self.current_job.job_outputs.add(JobOutput.objects.create(job=self.current_job, srv_output=srv_output,
+                                                                      may_be_empty=True))
         self.runJobWorkflow()
 
     @test_util.skip_unless_tool("physic_ist")
@@ -103,11 +87,11 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
 
     def test_galaxy(self):
         # TODO complete test
-        import waves.adaptors.galaxy
+        import waves.adaptors.api.galaxy
         try:
 
             all_galaxy_jobs = Job.objects \
-                .get_created_job(extra_filter={'service__run_on__clazz': 'waves.adaptors.GalaxyJobAdaptor'})
+                .get_created_job(extra_filter={'service__run_on__clazz__name': 'waves.adaptors.api.GalaxyJobAdaptor'})
 
             for job in all_galaxy_jobs:
                 self.assertIsInstance(job, Job)
@@ -159,29 +143,29 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
 @test_util.skip_unless_galaxy()
 class GalaxyWorkFlowRunnerTestCase(TestBaseJobRunner):
     def setUp(self):
-        self.runner = GalaxyWorkFlowAdaptor()
+        self.adaptor = GalaxyWorkFlowAdaptor(init_params={'host': waves.settings.WAVES_TEST_GALAXY_URL,
+                                                          'port': waves.settings.WAVES_TEST_GALAXY_PORT,
+                                                          'app_key': waves.settings.WAVES_TEST_GALAXY_API_KEY})
         super(GalaxyWorkFlowRunnerTestCase, self).setUp()
-        self.gi = bioblend.galaxy.objects.galaxy_instance.GalaxyInstance(url=self.runner.complete_url,
-                                                                         api_key=self.runner.app_key)
+
+    @property
+    def importer(self):
+        return self.adaptor.importer(for_runner=self.runner_model)
 
     def test_list_galaxy_workflow(self):
-        importer = self.runner_model.get_importer()
-        services = importer.list_all_remote_services()
-        self.assertGreater(len(services), 0)
+        services = self.importer.list_all_remote_services()
+        self.assertGreaterEqual(len(services), 0)
 
     def test_import_new_workflow(self):
-        importer = self.runner_model.get_importer()
-        services = importer.list_all_remote_services()
+        services = self.importer.list_all_remote_services()
         for remote_service in services[0:1]:
-            importer.import_remote_service(remote_tool_id=remote_service[0])
+            self.importer.import_remote_service(remote_tool_id=remote_service[0])
 
     def test_update_existing_workflow(self):
-        service = Service.objects.filter(run_on__clazz='waves.adaptors.GalaxyWorkFlowAdaptor')
-        if service.count() == 0:
-            self.fail('Unable to test update workflow, since there is none in db')
+        service = Service.objects.filter(run_on__clazz__name='waves.adaptors.GalaxyWorkFlowAdaptor')
+        self.assertGreaterEqual(len(service), 0)
         for updated in service[0:1]:
             # just try for the the first one
-            importer = self.runner_model.get_importer(for_service=updated)
             remote_tool_param = updated.service_run_params.get(param__name='remote_tool_id')
             logger.debug('Remote too id for service %s : %s', updated, remote_tool_param.value)
-            importer.import_remote_service(remote_tool_id=remote_tool_param.value)
+            self.importer.import_remote_service(remote_tool_id=remote_tool_param.value)

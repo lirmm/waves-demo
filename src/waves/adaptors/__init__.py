@@ -2,6 +2,9 @@ from __future__ import unicode_literals
 
 from collections import namedtuple
 
+
+
+"""
 from waves.adaptors.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor
 from waves.adaptors.runner import JobRunnerAdaptor
 from waves.adaptors.local import ShellJobAdaptor
@@ -12,7 +15,9 @@ from waves.adaptors.ssh import SshJobAdaptor, SshKeyJobAdaptor, SshUserPassJobAd
 __all__ = ['SGEJobAdaptor', 'GalaxyJobAdaptor', 'GalaxyWorkFlowAdaptor', 'ShellJobAdaptor',
            'CompPhyApiAdaptor']
 
-
+"""
+__all__ = ['adaptors.sge.SGEJobAdaptor', 'adaptors.galaxy.GalaxyJobAdaptor', 'adaptors.galaxy.GalaxyWorkFlowAdaptor',
+           'adaptors.local.ShellJobAdaptor', 'adaptors.api.compphy.CompPhyApiAdaptor']
 def get_implementation():
     # waves.settings.WAVES_ENABLED_ADAPTORS
     classes_list = []

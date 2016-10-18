@@ -17,7 +17,7 @@ import waves.settings
 from waves.models.jobs import Job, JobHistory
 from waves.models.samples import ServiceInputSample
 from waves.models.services import *
-from waves.models.profiles import APIProfile, profile_directory
+from waves.models.profiles import WavesProfile, profile_directory
 logger = logging.getLogger(__name__)
 
 
@@ -97,7 +97,7 @@ def login_action(sender, user, **kwargs):
 def create_profile_handler(sender, instance, created, **kwargs):
     if created:
         # Create the profile object, only if it is newly created
-        profile = APIProfile(user=instance)
+        profile = WavesProfile(user=instance)
         profile.save()
     if instance.is_active and instance.profile.registered_for_api and not instance.profile.api_key:
         # User is activated, has registered for api services, and do not have any api_key
@@ -108,7 +108,7 @@ def create_profile_handler(sender, instance, created, **kwargs):
     instance.profile.save()
 
 
-@receiver(post_delete, sender=APIProfile)
+@receiver(post_delete, sender=WavesProfile)
 def delete_profile_file(sender, instance, **kwargs):
     import shutil
     import os

@@ -12,7 +12,7 @@ from rest_framework.test import APITestCase
 
 import waves.const
 from waves.models import Job
-from waves.tests import WavesBaseTestCase
+from waves.tests.base import WavesBaseTestCase
 import waves.settings
 
 logger = logging.getLogger(__name__)
@@ -49,10 +49,8 @@ class WavesAPITestCase(APITestCase, WavesBaseTestCase):
 
     def testSetUp(self):
         self.assertTrue(self.super_user.is_superuser)
-        self.assertTrue(self.group_admin in self.super_user.groups.all())
         self.assertIsNotNone(self.super_user.profile.api_key)
         self.assertTrue(self.admin_user.is_staff)
-        self.assertTrue(self.group_admin in self.admin_user.groups.all())
         self.assertFalse(self.api_user.is_staff)
 
     def _dataUser(self, user='api', initial={}):

@@ -1,12 +1,8 @@
 from __future__ import unicode_literals
 
-import logging
 
 from django.db import transaction
-
 from waves.models.services import Service, ServiceInputFormat, ServiceSubmission
-
-logger = logging.getLogger(__name__)
 
 
 class Importer(object):
@@ -23,6 +19,8 @@ class Importer(object):
             runner: A Runner model object (mandatory)
             service: A existing service to update or create when not specified
         """
+        import logging
+        self.logger = logging.getLogger(__name__)
         self._formatter = ServiceInputFormat()
         self._adaptor = adaptor
         self._runner = runner
@@ -44,13 +42,12 @@ class Importer(object):
         :rtype: :class:`waves.models.services.Service`
         """
         self.connect()
-        print "remote tool id", remote_tool_id
         self._adaptor.remote_tool_id = remote_tool_id
 
         if not self._service:
             # import is for a new service
             from waves.models.runners import Runner
-            logger.debug("New Service from adaptor")
+            self.logger.debug("New Service from adaptor")
             # try to get one runner with parameters
             if self._runner is None:
                 self._runner = Runner.objects.create(
@@ -67,7 +64,7 @@ class Importer(object):
         self._update_service(self._get_tool_details(remote_tool_id))
         # list all services inputs
         remote_inputs = self._list_remote_inputs(remote_tool_id)
-        logger.debug('Import service %i inputs ', len(remote_inputs))
+        self.logger.debug('Import service %i inputs ', len(remote_inputs))
         self._submission.service_inputs.all().delete()
         service_inputs = self._import_service_inputs(remote_inputs)
         # update related or create new
@@ -76,14 +73,14 @@ class Importer(object):
         # list all services outputs
         remote_outputs = self._list_remote_outputs(remote_tool_id)
         # for each output retrieved import_service_output
-        logger.debug('Import service %i outputs', len(remote_outputs))
+        self.logger.debug('Import service %i outputs', len(remote_outputs))
         self._service.service_outputs.all().delete()
         service_outputs = self._import_service_outputs(remote_outputs)
         # update related objects
         self._service.service_outputs.set(service_outputs, bulk=False, clear=True)
         # retrieve potential exit codes
         exit_codes = self._list_exit_codes(remote_tool_id)
-        logger.debug('Import service %i exit codes ', len(exit_codes))
+        self.logger.debug('Import service %i exit codes ', len(exit_codes))
         self._service.service_exit_codes.all().delete()
         self._service.service_exit_codes.set(exit_codes, bulk=False, clear=True)
         return self._service
