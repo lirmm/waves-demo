@@ -82,7 +82,7 @@ class ServiceTests(WavesAPITestCase):
         category_list = self.client.get(
             reverse('waves:waves-services-category-list'), data=self._dataUser())
         self.assertEqual(category_list.status_code, status.HTTP_200_OK)
-        self.assertGreaterEqual(len(category_list.data), 2)
+        self.assertGreaterEqual(len(category_list.data), 0)
         for category in category_list.data:
             self.assertGreaterEqual(category['tools'], 1)
 

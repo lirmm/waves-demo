@@ -59,31 +59,18 @@ Static files
 Collect staticfiles : ~[waves_dir]$ ``/src/manage.py collectstatic``
 
 
-1. You plan to use default database layer configuration:
-
-    1.1 If your are NOT using WAVES sample database and want to insert data in your own :
-
-    Create database and initialize some data:
+1. Create database and initialize some data:
 
         - (.venv)~[waves_dir]$ ``cd src``
         - (.venv)~[waves_dir]/src$ ``python manage.py migrate``
-
-    If you use your own DB, you can load Sample data:
-        - (.venv)~[waves_dir]/src$ ``python manage.py loaddata waves/fixtures/init.json``
-    or
         - (.venv)~[waves_dir]/src$ ``python manage.py createsuperuser``
 
-    1.2 If you use WAVES sample database:
-
-        - be sure your 'Web' user has write access to sample db file (waves.sample.sqlite3)
+    You can load sample data with :
+        - (.venv)~[waves_dir]/src$ ``python manage.py loaddata waves/fixtures/init.json``
 
 2. Configure your web server to activate WAVES:
-    - For Apache: see section [link: Apache]
-    - For Nginx: see section [link: Nginx]
-    - StandAlone uwsgi [link: uwsgi Doc] (not recommended for production):
-        - pip install uwsgi
-        - edit waves_uwsgi.ini.sample and rename to waves_uwsgi.ini
-        - launch uwsgi waves_uwsgi.ini
+    - For Apache: see section [link: Apache] TOBEDONE
+    - For Nginx: see section [link: Nginx] TOBEDONE
 
 Web Server configuration
 ------------------------

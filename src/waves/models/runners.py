@@ -7,22 +7,7 @@ from django.db import models
 from waves.models.base import DescribeAble
 from django.utils.module_loading import import_string
 
-__all__ = ['Runner', 'RunnerParam', 'RunnerImplementation']
-
-
-class RunnerImplementation(models.Model):
-    """
-    Represents an available runner class implementation
-    """
-
-    class Meta:
-        ordering = ['name']
-        db_table = 'waves_runner_impl'
-
-    name = models.CharField('Class name', max_length=255, help_text='Class full python path')
-
-    def __str__(self):
-        return self.name
+__all__ = ['Runner', 'RunnerParam']
 
 
 class Runner(DescribeAble):
@@ -43,12 +28,13 @@ class Runner(DescribeAble):
     available = models.BooleanField('Availability',
                                     default=True,
                                     help_text='Available for job runs')
-    clazz = models.ForeignKey(RunnerImplementation,
-                              help_text='Associated implementation class')
-
+    clazz = models.CharField('Class implementation',
+                             max_length=100,
+                             null=False,
+                             help_text='Associated implementation class')
 
     def __str__(self):
-        return self.name + ' [' + self.clazz.name + ']'
+        return self.name + ' [' + self.clazz + ']'
 
     def clean(self):
         cleaned_data = super(Runner, self).clean()
@@ -69,8 +55,8 @@ class Runner(DescribeAble):
 
     @property
     def adaptor(self):
-        if self.clazz.name:
-            Adaptor = import_string(self.clazz.name)
+        if self.clazz:
+            Adaptor = import_string(self.clazz)
             return Adaptor(init_params=self.default_run_params())
         return None
 

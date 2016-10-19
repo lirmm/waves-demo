@@ -122,5 +122,5 @@ WAVES_TEST_SSH_PRI_KEY = get_setting('WAVES_TEST_SSH_PRI_KEY', str, default='pat
 WAVES_TEST_SSH_PASS_KEY = get_setting('WAVES_TEST_SSH_PASS_KEY', str, default='your-test-ssh-user-key-pass-phrase')
 
 WAVES_ADAPTORS = get_setting('WAVES_ADAPTORS', list,
-                             default=['waves.adaptors.local.ShellJobAdaptor', 'adaptors.sge.SGEJobAdaptor',
-                                      'adaptors.api.galaxy.GalaxyJobAdaptor'])
+                             default=['waves.adaptors.local.ShellJobAdaptor', 'waves.adaptors.sge.SGEJobAdaptor',
+                                      'waves.adaptors.api.galaxy.GalaxyJobAdaptor'])

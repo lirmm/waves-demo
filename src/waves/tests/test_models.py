@@ -6,7 +6,7 @@ import logging
 from waves.tests.base import WavesBaseTestCase
 from django.utils.module_loading import import_string
 
-from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory, RunnerImplementation
+from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory
 import waves.const
 
 logger = logging.getLogger(__name__)
@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 class TestRunners(WavesBaseTestCase):
     def test_runners_defaults(self):
         for runner in Runner.objects.all():
-            obj_runner = import_string(runner.clazz.name)
-            logger.debug("Clazz %s", runner.clazz.name)
+            obj_runner = import_string(runner.clazz)
+            logger.debug("Clazz %s", runner.clazz)
             expected_params = obj_runner().init_params
             runner_params = runner.default_run_params()
             logger.debug("Expected %s", expected_params)
@@ -26,15 +26,14 @@ class TestRunners(WavesBaseTestCase):
 
 class TestServices(WavesBaseTestCase):
     def test_create_service(self):
-        runner = Runner.objects.create(name="Sample runner", clazz=RunnerImplementation.objects.create(
-            name='waves.adaptors.mock.MockJobAdaptor'))
+        runner = Runner.objects.create(name="Sample runner", clazz='waves.adaptors.mock.MockJobAdaptor')
         srv = Service.objects.create(name="Sample Service", run_on=runner)
         self.assertIsNotNone(srv.default_submission)
 
     def test_service_run_param(self):
         services = Service.objects.all()
         for service in services:
-            obj_runner = import_string(service.run_on.clazz.name)
+            obj_runner = import_string(service.run_on.clazz)
             expected_params = obj_runner().init_params
             runner_params = service.run_params()
             logger.debug(expected_params)

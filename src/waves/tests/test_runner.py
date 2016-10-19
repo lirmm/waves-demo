@@ -10,7 +10,7 @@ import waves.const
 from waves.tests.base import WavesBaseTestCase
 from waves.adaptors.runner import JobRunnerAdaptor
 from waves.exceptions import *
-from waves.models import Service, Job, JobInput, Runner, RunnerParam, RunnerImplementation
+from waves.models import Service, Job, JobInput, Runner, RunnerParam
 import waves.settings
 
 __all__ = ['TestBaseJobRunner', 'sample_runner']
@@ -26,8 +26,7 @@ def sample_runner(runner_impl):
     """
     runner_model = Runner.objects.create(name=runner_impl.__class__.__name__,
                                          description='Sample Runner %s' % runner_impl.__class__.__name__,
-                                         clazz=RunnerImplementation.objects.create(
-                                             name='%s.%s' % (runner_impl.__module__, runner_impl.__class__.__name__)),
+                                         clazz='%s.%s' % (runner_impl.__module__, runner_impl.__class__.__name__),
                                          available=True)
     for name, value in runner_impl.init_params.items():
         RunnerParam.objects.update_or_create(name=name, runner=runner_model, defaults={'value': value})

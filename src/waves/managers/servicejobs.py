@@ -125,7 +125,7 @@ class ServiceJobManager(object):
                     logger.debug('srv_submission_output: %s', srv_submission_output.srv_input)
                     logger.debug('value_to_normalize: %s', value_to_normalize)
                     logger.debug('input_value %s', input_value)
-                if service_output.file_pattern is not None:
+                if service_output.file_pattern:
                     formatted_value = service_output.file_pattern % input_value
                     logger.debug('Base input value %s, formatted to %s', input_value, formatted_value)
                 else:

@@ -311,7 +311,7 @@ class Service(TimeStampable, DescribeAble, ApiAble):
     def adaptor(self):
         if self.run_on:
             from django.utils.module_loading import import_string
-            job_runner = import_string(self.run_on.clazz.name)
+            job_runner = import_string(self.run_on.clazz)
             return job_runner(init_params=self.run_params())
         return None
 
