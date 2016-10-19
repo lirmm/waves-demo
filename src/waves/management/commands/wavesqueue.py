@@ -4,14 +4,12 @@ Allow to start / stop / restart job queue management
 
 """
 from __future__ import unicode_literals
-
-from os.path import join, dirname
+from os.path import join
+import datetime
 import logging
 import time
-
-from django.conf import settings
 from waves.management.daemon_command import DaemonCommand
-import datetime
+import waves.exceptions
 import waves.const as const
 import waves.settings
 from waves.models import Job
@@ -64,7 +62,7 @@ class Command(DaemonCommand):
                         logging.info("[ResultJob] %s (adaptor:%s)", job, runner)
                         runner.job_run_details(job)
                     logging.debug("[RunningJobStatus] %s (adaptor:%s)", job.get_status_display(), runner)
-            except Exception as e:
+            except waves.exceptions.WavesException as e:
                 logging.error("Error Job %s (adaptor:%s-state:%s): %s", job, runner, job.get_status_display(), e.message)
                 if job.nb_retry >= waves.settings.WAVES_JOBS_MAX_RETRY:
                     job.status = const.JOB_ERROR
