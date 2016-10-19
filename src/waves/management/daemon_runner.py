@@ -22,20 +22,24 @@ class DaemonRunner(BaseDaemonRunner):
     STOP_ERROR = "Unable to stop %s"
     STATUS_STOPPED = "Stopped"
     STATUS_RUNNING = "Running"
+    STATUS_UNKNOWN = "Unknown"
     _verbose = True
 
     def _status(self):
         try:
-            pid = self.pidfile.read_pid()
-            kill(pid, 0)
+            import psutil
+            running = psutil.pid_exists(self.pidfile.read_pid())
         except (OSError, TypeError):
             if self._verbose:
-                emit_message("Stopped")
-            return self.STATUS_STOPPED
+                emit_message(self.STATUS_UNKNOWN)
+            return self.STATUS_UNKNOWN
         else:
-            if self._verbose:
-                emit_message("Running")
-            return self.STATUS_RUNNING
+            if running:
+                if self._verbose:
+                    emit_message(self.STATUS_RUNNING)
+                return self.STATUS_RUNNING
+            else:
+                return self.STATUS_STOPPED
 
     def _start(self):
         try:

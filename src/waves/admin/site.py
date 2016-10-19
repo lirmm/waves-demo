@@ -47,7 +47,7 @@ class WavesSiteAdmin(admin.ModelAdmin):
             css_class = "led-red"
         else:
             css_class = "led-yellow"
-        return format_html('<div class="led-box"><div class="{}"></div></div>', css_class)
+        return format_html('<div class="led-box"><div class="{}"></div></div>' + daemon_status, css_class)
 
     def config_file_content(self):
         pass
