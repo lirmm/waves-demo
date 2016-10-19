@@ -6,8 +6,7 @@ import waves.settings
 
 class WavesStorage(FileSystemStorage):
     def __init__(self):
-        self.location = waves.settings.WAVES_DATA_ROOT
-        self.directory_permissions_mode = 0o775
-        self.file_permissions_mode = 0o775
+        super(WavesStorage, self).__init__(location=waves.settings.WAVES_DATA_ROOT, directory_permissions_mode=0o775,
+                                           file_permissions_mode=0o775)
 
-waves_storage = WavesStorage
+waves_storage = WavesStorage()
