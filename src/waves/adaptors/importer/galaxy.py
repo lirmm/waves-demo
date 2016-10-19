@@ -287,9 +287,7 @@ class GalaxyWorkFlowImporter(GalaxyToolImporter):
         Connect to remote Galaxy Host
         :return:
         """
-        print 'first', self._adaptor.dump_config()
         self._tool_client = bioblend.galaxy.objects.client.ObjWorkflowClient(self._adaptor.connect())
-        print 'then', self._adaptor.dump_config()
 
     def _list_all_remote_services(self):
         try:
