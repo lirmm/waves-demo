@@ -34,8 +34,6 @@ Contribute
 Support
 -------
 
-    If you are having issues, please let us know.
-
-    We have a mailing list located at: waves-webapp@googlegroups.com
+    If you are having issues, (or just want to say hello) : we have a mailing list located at: waves-webapp@googlegroups.com
 
 
