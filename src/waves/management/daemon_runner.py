@@ -53,7 +53,10 @@ class DaemonRunner(BaseDaemonRunner):
 
     def _stop(self):
         try:
+            pid = self.pidfile.read_pid()
             super(DaemonRunner, self)._stop()
+            if self._verbose:
+                emit_message("Process %i stopped " % pid)
         except DaemonRunnerStopFailureError as exc:
             if self._verbose:
                 emit_message(self.STOP_ERROR % exc.message)

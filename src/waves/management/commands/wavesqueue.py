@@ -26,8 +26,8 @@ class Command(DaemonCommand):
     work_dir = waves.settings.WAVES_DATA_ROOT
     pidfile_path = join(waves.settings.WAVES_DATA_ROOT, 'waves_daemon.pid')
     pidfile_timeout = 5
-    log_file = join(getattr(waves.settings, 'WAVES_LOG_ROOT', dirname(settings.BASE_DIR)), "waves_queue.log")
-    log_level = getattr(waves.settings, 'WAVES_QUEUE_LOG_LEVEL', logging.ERROR)
+    log_file = join(waves.settings.WAVES_LOG_ROOT, "waves_queue.log")
+    log_level = waves.settings.WAVES_QUEUE_LOG_LEVEL
 
     def loop_callback(self):
         """
