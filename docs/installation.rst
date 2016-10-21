@@ -29,6 +29,7 @@ GET a WAVES web-app online following the next few steps, WAVES can run on Apache
         - ``$ cd [waves_dir]``
         - ``[waves_dir]$ virtualenv .venv``
         - ``[waves_dir]$ source .venv/bin/activate``
+        - ``(.venv)[waves_dir]]$ pip install -r requirements.txt``
 
 1. Install WAVES
 ----------------
