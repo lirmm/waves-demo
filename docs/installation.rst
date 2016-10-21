@@ -1,80 +1,85 @@
 Installation
 ============
 
-GET a WAVES web-app online following the next few steps, WAVES can run on Apache, Nginx, uWSGI
+GET a WAVES web-app online following the next few steps, WAVES can run on Apache, Nginx with uWSGI
 
-Prerequisites
-----------------------
-In order to install WAVES you will need:
-    - python 2.7.X (not sure if WAVES is fully compatible with python 3!)
-    - pip or easy_install
-    - A web server (obviously): `Apache <https://httpd.apache.org/>`_ or `NGINX <https://nginx.org/>`_
-    - Optionally a database backend (Mysql or Postgres) but WAVES comes with its own ready-to-run sqlite3 database
-
-Get the sources
----------------
-    - Clone our repository:
-        git clone https://github.com/lirmm/waves-webapp/ [waves_dir]
-            For production, classically use master, but if you feel lucky, you can try to switch to 'devel' branch for the current latest version
-    - Download archive:
-        Download archive at https://github.com/lirmm/waves-webapp/ and uncompress the archive in your destination dir ([waves_dir])
-
-Create virtual env
-------------------
-    - $ ``cd [waves_dir]``
-    - [waves_dir]$ ``virtualenv .venv``
-    - [waves_dir]$ ``source .venv/bin/activate``
-
-Install WAVES requirements
---------------------------
-
-    .. WARNING::
-        **Your need to have git installed in order to get all dependencies**
-        - (.venv)[waves_dir]$ ``pip install -r requirements.txt``
-
-Configuration files
---------------------
-
-    - Global configuration file (classic Django stuff):
-        - copy **`waves_services/settings/local.sample.env`** to **`local.env`**
-        - minimal setup requires these parameters:
-            - SECRET_KEY=your-secret-key-to-keep-secret
-            - REGISTRATION_SALT=generate-your-key
-            - ALLOWED_HOSTS=your-host-name
-    - WAVES specific settings: you do not need to modify anything to basic configuration, but some useful parameters can be set up your conf:
-        - (.venv)[waves_dir]$ ``cd config/``
-        - (.venv)[waves_dir]/config$ ``mv waves.env.sample waves.env``
-        - Edit your waves.env file to set WAVES parameters ([link:waves parameters])
-    - Check parameters with:
-
-        .. code-block:: python
-
-            [waves_dir]/src/manage.py check
-            [waves_dir]/src/manage.py wavesconfig
+.. WARNING::
+    To run WAVES, it's strongly recommended that you setup a dedicated user, because WAVES run with
+    saga-python, and this module need to create some directories you might not be able to create (.radical and .saga)
+    with another user (such as www-data)
 
 
-Static files
-------------
+0. Prerequisites
+----------------
+    .. note::
+        In order to install WAVES you will need:
+            - python 2.7.X (WAVES should be compatible with python 3.5 but not fully tested)
+            - pip package manager
+            - A web server: `Apache <https://httpd.apache.org/>`_ or `NGINX <https://nginx.org/>`_
+            - A database backend (Mysql or Postgres) but WAVES could run with sqlite DB
 
-Collect staticfiles : ~[waves_dir]$ ``/src/manage.py collectstatic``
+    0.1 Get the sources:
+        - Clone our repository:
+            git clone https://github.com/lirmm/waves-webapp/ [waves_dir]
+
+        - Download archive:
+            Download archive at https://github.com/lirmm/waves-webapp/ and uncompress the archive in your destination dir ([waves_dir])
+
+    0.2 Create virtual env:
+        - ``$ cd [waves_dir]``
+        - ``[waves_dir]$ virtualenv .venv``
+        - ``[waves_dir]$ source .venv/bin/activate``
+
+1. Install WAVES
+----------------
+
+    1.1 Configuration files:
+        - WAVES env configuration file:
+            - ``(.venv)[waves_dir]/src/$ cd waves_services/settings``
+            - ``(.venv)[waves_dir]/src/waves_services_settings/$ cp local.sample.env local.env``
+            - minimal setup requires these parameters:
+                - SECRET_KEY=your-secret-key-to-keep-secret
+                - REGISTRATION_SALT=generate-your-key
+                - ALLOWED_HOSTS=your-host-name
+            - you can set up as well your db connection params here
+        - (Optional) WAVES specific settings: some useful parameters can be set up your conf:
+            - ``(.venv)[waves_dir]$ cd src/waves/config/``
+            - ``(.venv)[waves_dir]/config$ cp waves.env.sample waves.env``
+            - Uncomment/Edit your waves.env file to set your specific WAVES parameters
+
+    1.2 Set up database:
+        - Create your database: ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
+        - (optional) load sample data: ``(.venv)[waves_dir]/src/$ .manage.py loaddata waves/fixtures/init.json``
+        - Create Superadmin user: ``(.venv)[waves_dir]/src/$ ./manage.py createsuperuser``
+        - Create staticfiles: ``(.venv)[waves_dir]/src/$ ./manage.py collecstatic``
+        - Check parameters with: ``(.venv)[waves_dir]/src/$ ./manage.py check``
+        - See your configuration with: ``(.venv)[waves_dir]/src/$ ./manage.py wavesconfig``
+
+2. Configure your web server:
+-----------------------------
+
+    2.1 UWSGI:
+        - Sample file is located under src/waves/config/waves_uwsgi.ini.sample
+        - Rename/Edit according to your settings
+        - more information `<http://uwsgi-docs.readthedocs.io/>`_
+
+        .. seealso::
+            Init script is available in src/waves/config/uwsgi.conf in order to automatically start WAVES on server
+            start-up
 
 
-1. Create database and initialize some data:
+    2.1 APACHE:
+        - Sample file is located under src/waves/config/waves.apache.conf.sample
+        - Rename/Edit according to your settings
+        - Add it to Apache enabled conf
 
-        - (.venv)~[waves_dir]$ ``cd src``
-        - (.venv)~[waves_dir]/src$ ``python manage.py migrate``
-        - (.venv)~[waves_dir]/src$ ``python manage.py createsuperuser``
+        .. seealso:: `<http://uwsgi-docs.readthedocs.io/en/latest/Apache.html>`_
 
-    You can load sample data with :
-        - (.venv)~[waves_dir]/src$ ``python manage.py loaddata waves/fixtures/init.json``
+    2.2 NGINX:
+        - Sample file is located under src/waves/config/waves.nginx.conf.sample
+        - Rename/Edit according to your settings
+        - Add it to nginx enabled conf
 
-2. Configure your web server to activate WAVES:
-    - For Apache: see section [link: Apache] TOBEDONE
-    - For Nginx: see section [link: Nginx] TOBEDONE
+        .. seealso:: `<http://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html>`_
 
-Web Server configuration
-------------------------
-- almost ready-to-go apache configuration template is available in src/waves/config/waves.apache.conf.sample
-- almost ready-to-go uwsgi configuration template is available in src/waves/config/waves_uwsgi.ini.sample
 
-Feel free to use them according to your server.

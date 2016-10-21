@@ -219,7 +219,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=200, verbose_name='Name')),
-                ('file', models.FileField(storage=waves.models.storage.WavesStorage, upload_to=waves.models.samples.service_sample_directory, verbose_name='File')),
+                ('file', models.FileField(storage=waves.models.storage.WavesStorage(), upload_to=waves.models.samples.service_sample_directory, verbose_name='File')),
             ],
             options={
                 'ordering': ['name'],
@@ -325,7 +325,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('slug', models.UUIDField(blank=True, default=uuid.uuid4, editable=False)),
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, related_name='profile', serialize=False, to=settings.AUTH_USER_MODEL)),
-                ('picture', models.ImageField(blank=True, help_text="Users's avatar", null=True, storage=waves.models.storage.WavesStorage, upload_to=waves.models.profiles.profile_directory, verbose_name='Profile picture')),
+                ('picture', models.ImageField(blank=True, help_text="Users's avatar", null=True, storage=waves.models.storage.WavesStorage(), upload_to=waves.models.profiles.profile_directory, verbose_name='Profile picture')),
                 ('registered_for_api', models.BooleanField(default=False, help_text='Register for REST API use', verbose_name='Registered for api use')),
                 ('api_key', models.CharField(blank=True, help_text="User's api access key", max_length=255, null=True, unique=True, verbose_name='Api key')),
                 ('institution', models.CharField(help_text="User's laboratory", max_length=255, null=True, verbose_name='Institution')),
@@ -450,7 +450,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='job',
             name='client',
-            field=models.ForeignKey(blank=True, help_text='Associated registered user', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='clients_job', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(blank=True, help_text='Associated registered user', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='clients_job', to='waves.WavesProfile'),
         ),
         migrations.AddField(
             model_name='job',

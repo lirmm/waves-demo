@@ -1,26 +1,31 @@
 [uwsgi]
-project = waves_services
-stats = 127.0.0.1:9091
+project=waves_services
+# enabled stats
+stats=127.0.0.1:9091
 
-chdir = [ABSOLUTE_PATH_TO_WAVES_INSTALL_DIR]/waves/src
-virtualenv = [ABSOLUTE_PATH_TO_VIRTUAL_ENV]/waves
+chdir=[PATH/TO/WAVES/SRC]
+virtualenv=[PATH/TO/VIRTUAL/ENV]
+master=True
 
-app = waves_services
-env = DJANGO_SETTINGS_MODULE=waves_services.settings.production
+pidfile=[PATH/TO/WAVES/DIR]waves-master.pid
+vacuum=True
+max-request=5000
+daemonize=[PATH/TO/LOG/DIR]/d-uwsgi.log
+
+app=waves_services
+
+env=DJANGO_SETTINGS_MODULE=waves_services.settings.production
 
 wsgi-file = waves_services/wsgi.py
+# How many processes should be run
 processes = 4
+# How many threads
 threads = 2
-logto = [ABSOLUTE_PATH_TO_LOG_DIR]uwsgi.log
+# WAVES wsgi controller
 module = waves_services.wsgi:application
+# socket used in nginx / apache related configuration file
+socket=[HOST:PORT]
+# OR
+socket=[/ABSOLUTE/PATH/TO/SOCKET].sock
 
-# ################ Serve directly with uwsgi #######################
-# http = 127.0.0.1:9090
-# static-map = /static=[ABSOLUTE_PATH_TO_WAVES_STATIC_DIR]/
-# static-map = /media=[ABSOLUTE_PATH_TO_WAVES_MEDIA_DIR]/
-# ##################################################################
-
-# ################ Integrated in WebServer (Nginx or Apache) #######
-socket = 127.0.0.1:3031
-# ##################################################################
 
