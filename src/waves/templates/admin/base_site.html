@@ -41,5 +41,11 @@
 {% endblock %}
 {% block footer %}
     {{ block.super }}
-    <div id="popup_modal"></div>
+    <div id="popup_modal">
+    {% block modal_content %}
+    {% endblock %}
+    </div>
+    <div id="loading" class="loading">
+        <img class="spinner" src="{% static 'waves/img/ring.gif'%}">
+    </div>
 {% endblock %}

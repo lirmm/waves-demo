@@ -10,7 +10,7 @@ from django.conf import settings
 import waves.settings
 
 
-NO_GALAXY_MESSAGE = "Externally configured Galaxy, but connection failed."
+NO_GALAXY_MESSAGE = "Externally configured Galaxy, but connection failed. %s"
 WRONG_GALAXY_KEY = "A Galaxy server is running, but provided api key is wrong."
 MISSING_SETTINGS = "Some settings are required to run Galaxy test : WAVES_TEST_GALAXY_URL, WAVES_TEST_GALAXY_PORT, " \
                    "WAVES_TEST_GALAXY_API_KEY."
@@ -20,11 +20,13 @@ MISSING_TOOL_MESSAGE = "Externally configured Galaxy instance requires tool %s t
 def skip_unless_galaxy():
     try:
         galaxy_key = waves.settings.WAVES_TEST_GALAXY_API_KEY
-        galaxy_url = '%s:%s' % (waves.settings.WAVES_TEST_GALAXY_URL, waves.settings.WAVES_TEST_GALAXY_PORT)
+        galaxy_url = waves.settings.WAVES_TEST_GALAXY_URL
+        if waves.settings.WAVES_TEST_GALAXY_PORT:
+            galaxy_url += ':%s' % waves.settings.WAVES_TEST_GALAXY_PORT
         gi = bioblend.galaxy.GalaxyInstance(url=galaxy_url, key=galaxy_key)
         bioblend.galaxy.users.UserClient(gi).get_current_user()
-    except ConnectionError:
-        return unittest.skip(NO_GALAXY_MESSAGE + ' [' + galaxy_url + '][' + galaxy_key + ']')
+    except ConnectionError as e:
+        return unittest.skip(NO_GALAXY_MESSAGE % e + ' [' + galaxy_url + '][' + galaxy_key + ']')
     except AttributeError:
         return unittest.skip(MISSING_SETTINGS)
     return lambda f: f

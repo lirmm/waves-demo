@@ -6,26 +6,41 @@ from __future__ import unicode_literals
 import os
 import time
 from unittest import skip
+from django.conf import settings
 import waves.const
 import waves.tests.utils.shell_util as test_util
 from waves.tests.test_runner import TestBaseJobRunner, sample_job
-from waves.adaptors.sge import SGEJobAdaptor, SGEOverSSHAdaptor
-from waves.adaptors.local import ShellJobAdaptor
-from waves.adaptors.ssh import SshUserPassJobAdaptor
-from waves.models import JobInput, JobOutput
-from waves.adaptors.sge import SGEOverSSHAdaptor
+from waves.adaptors.sge import SGEJobAdaptor
+from waves.adaptors.saga.shell.local import ShellJobAdaptor
+from waves.adaptors.saga.cluster.ssh import SshUserPassClusterJobAdaptor
+from waves.adaptors.saga.shell.ssh import SshUserPassJobAdaptor
+from waves.models import JobInput, JobOutput, Service, Job
 from waves.managers.servicejobs import ServiceJobManager
 from waves.tests.utils import get_sample_dir
 import waves.settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-class SAGARunnerTestCase(TestBaseJobRunner):
+class ShellRunnerTestCase(TestBaseJobRunner):
+    def _set_command(self, command):
+        service_command = self.service.service_run_params.get(param__name='command')
+        service_command._value = command
+        service_command.save()
+        self.service.adaptor.command = command
+        logger.debug("service command %s", service_command.value)
+
     def setUp(self):
-        self.adaptor = ShellJobAdaptor()
-        super(SAGARunnerTestCase, self).setUp()
+
+        try:
+            getattr(self, 'adaptor')
+        except AttributeError:
+            self.adaptor = ShellJobAdaptor()
+        super(ShellRunnerTestCase, self).setUp()
 
     def _prepare_hello_world(self):
-        self.adaptor.command = os.path.join(test_util.get_sample_dir(), 'services/hello_world.sh')
+        self._set_command(os.path.join(test_util.get_sample_dir(), 'services/hello_world.sh'))
         self.current_job = sample_job(self.service)
         self.current_job.job_inputs.add(
             JobInput.objects.create(job=self.current_job, value='Test Input 1', srv_input=None))
@@ -35,33 +50,40 @@ class SAGARunnerTestCase(TestBaseJobRunner):
                                                                   srv_output=None))
 
     def testHelloWorld(self):
+        if not self.__class__.__name__ == 'ShellRunnerTestCase':
+            self.skipTest("Only run with Local saga adaptor")
         self._prepare_hello_world()
         self.runJobWorkflow()
         self.assertEqual(self.current_job.status, waves.const.JOB_TERMINATED)
+        # retrieve job run details
+        # print self.current_job.run_details()
 
     @test_util.skip_unless_tool('physic_ist')
-    def testPhysicIST(self):
+    def testPhysicIST(self, command_path='physic_ist'):
         jobs_params = self._loadServiceJobsParams(api_name='physic_ist')
-        self.adaptor.command = 'physic_ist'
+        self.service.run_on = self.runner_model
+        self.service.adaptor = self.adaptor
+        self._set_command(command_path)
         # service_submission = self.service.default_submission
         for submitted_input in jobs_params:
             self.current_job = ServiceJobManager.create_new_job(submission=self.service.default_submission,
                                                                 submitted_inputs=submitted_input)
             self.assertTrue(self.runJobWorkflow())
-            # self.fail('Failed message')
 
     @test_util.skip_unless_tool('services/hello_world.sh')
     def testCancelJob(self):
+        if not self.__class__.__name__ == 'ShellRunnerTestCase':
+            self.skipTest("Only run with Local saga adaptor")
         self._prepare_hello_world()
         self.jobs.append(self.current_job)
-        self.adaptor.prepare_job(self.current_job)
+        self.current_job.run_prepare()
         self.assertEqual(self.current_job.status, waves.const.JOB_PREPARED)
-        self.adaptor.run_job(self.current_job)
+        self.current_job.run_launch()
         self.assertEqual(self.current_job.status, waves.const.JOB_QUEUED)
         for ix in range(30):
             job_state = self.adaptor.job_status(self.current_job)
-            if job_state > waves.const.JOB_QUEUED:
-                self.adaptor.cancel_job(self.current_job)
+            if job_state >= waves.const.JOB_QUEUED:
+                self.current_job.run_cancel()
                 break
             else:
                 time.sleep(1)
@@ -69,74 +91,80 @@ class SAGARunnerTestCase(TestBaseJobRunner):
 
     @test_util.skip_unless_tool('cp')
     def testSimpleCP(self):
-        self.adaptor.command = 'cp'
-        self.current_job = sample_job(self.service)
-        self.current_job.job_inputs.add(JobInput.objects.create(job=self.current_job, srv_input=None,
-                                                                value=os.path.join(get_sample_dir(),
-                                                                                   'sample_tree.nhx')))
-        self.current_job.job_inputs.add(JobInput.objects.create(job=self.current_job, srv_input=None,
-                                                                value=self.current_job.output_dir))
-        self.current_job.job_outputs.add(JobOutput.objects.create(job=self.current_job, srv_output=None,
-                                                                  value='sample_tree.nhx'))
+        from shutil import copyfile
+        # self.adaptor.command = 'cp'
+        self.service = Service.objects.get(api_name='simple-cp-10')
+        self.service.adaptor = self.adaptor
+        self._set_command('cp')
+        self.current_job = Job.objects.create(title='Copy Job', service=self.service)
+        source_file = os.path.join(get_sample_dir(), 'sample_tree.nhx')
+        copyfile(source_file, os.path.join(self.current_job.working_dir, 'sample_tree.nhx'))
 
-        self.runJobWorkflow()
-
-    @test_util.skip_unless_tool('fastme')
-    @skip('Fastme test need refactoring\n')
-    def testFastME(self):
-        self.adaptor.command = 'fastme'
-        JobInput.objects.create(job=self.current_job, name="input_data", type=waves.const.TYPE_FILE,
-                                param_type=waves.const.OPT_TYPE_VALUATED,
-                                value=os.path.join(get_sample_dir(), 'fast_me', 'nucleic.phy'))
-        JobInput.objects.create(job=self.current_job, name="dna", type=waves.const.TYPE_TEXT,
-                                param_type=waves.const.OPT_TYPE_VALUATED,
-                                value='J')
-        output_tree = JobInput.objects.create(job=self.current_job, name="output_tree", type=waves.const.TYPE_TEXT,
-                                              param_type=waves.const.OPT_TYPE_VALUATED,
-                                              value='output_tree.txt')
-        output_matrix = JobInput.objects.create(job=self.current_job, name="output_matrix", type=waves.const.TYPE_TEXT,
-                                                param_type=waves.const.OPT_TYPE_VALUATED,
-                                                value='output_matrix.txt')
-        output_info = JobInput.objects.create(job=self.current_job, name='output_info', type=waves.const.TYPE_TEXT,
-                                              param_type=waves.const.OPT_TYPE_VALUATED,
-                                              value="output_info.txt")
-        # associated outputs
-        JobOutput.objects.create(job=self.current_job, name='Inferred tree file',
-                                 value=output_tree.value)
-        JobOutput.objects.create(job=self.current_job, name="Computed matrix",
-                                 value=output_matrix.value)
-        JobOutput.objects.create(job=self.current_job, name="Output Info",
-                                 value=output_info.value)
+        self.current_job.job_inputs.add(
+            JobInput.objects.create(job=self.current_job,
+                                    srv_input=self.service.service_submission_inputs().get(name='input'),
+                                    value='sample_tree.nhx'))
+        self.current_job.job_inputs.add(
+            JobInput.objects.create(job=self.current_job,
+                                    srv_input=self.service.service_submission_inputs().get(name='output_name'),
+                                    value=self.service.service_submission_inputs().get(name='output_name').default))
+        self.current_job.job_outputs.add(JobOutput.objects.create(job=self.current_job,
+                                                                  srv_output=self.service.service_outputs.get(
+                                                                      name='Copied file')))
         self.runJobWorkflow()
 
 
-class SshRunnerTestCase(SAGARunnerTestCase):
+class SshRunnerTestCase(ShellRunnerTestCase):
     def setUp(self):
         try:
-            self.adaptor = SshUserPassJobAdaptor(init_params=dict(user_id=waves.settings.WAVES_TEST_SSH_USER_ID,
-                                                                  user_pass=waves.settings.WAVES_TEST_SSH_USER_PASS,
-                                                                  host=waves.settings.WAVES_TEST_SSH_HOST))
+            self.adaptor = SshUserPassJobAdaptor(init_params=dict(protocol='sge',
+                                                                  user_id=settings.WAVES_TEST_SSH_USER_ID,
+                                                                  crypt_user_pass=settings.WAVES_TEST_SSH_USER_PASS,
+                                                                  basedir="/data/http/www/exec/waves/",
+                                                                  host=settings.WAVES_TEST_SSH_HOST))
         except KeyError:
             self.skipTest("Missing one or more SSH_TEST_* environment variable")
         super(SshRunnerTestCase, self).setUp()
 
+    def testConnect(self):
+        # Only run for sub classes
+        self.adaptor.connect()
+        self.assertTrue(self.adaptor.connected)
+        self.assertIsNotNone(self.adaptor._connector)
+
+    def testSimpleCP(self):
+        self.adaptor.connect()
+        self.adaptor.command = 'cp'
+        super(SshRunnerTestCase, self).testSimpleCP()
+
 
 @test_util.skip_unless_sge()
-class SgeRunnerTestCase(SAGARunnerTestCase):
+class SgeRunnerTestCase(ShellRunnerTestCase):
     def setUp(self):
         self.adaptor = SGEJobAdaptor(init_params=dict(queue=waves.settings.WAVES_TEST_SGE_CELL))
         super(SgeRunnerTestCase, self).setUp()
 
-    @test_util.skip_unless_tool('physic_ist')
-    def testPhysicIST(self):
-        # short cut to launch only this test from here
-        super(SgeRunnerTestCase, self).testPhysicIST()
+    def testSimpleCP(self):
+        self.adaptor.connect()
+        self.adaptor.command = 'cp'
+        super(SgeRunnerTestCase, self).testSimpleCP()
 
 
-@skip('Not Yet implemented')
-class SgeSshRunnerTestCase(SAGARunnerTestCase):
+class SGESshUserPassRunnerTestCase(ShellRunnerTestCase):
     def setUp(self):
-        self.adaptor = SGEOverSSHAdaptor(init_params=dict(host='lamarck',
-                                                          user_id='lefort',
-                                                          user_pass='lrdj_@81'))
-        super(SgeSshRunnerTestCase, self).setUp()
+        self.adaptor = SshUserPassClusterJobAdaptor(init_params=dict(protocol='sge',
+                                                                     queue=settings.WAVES_TEST_SGE_CELL,
+                                                                     user_id=settings.WAVES_TEST_SSH_USER_ID,
+                                                                     crypt_user_pass=settings.WAVES_TEST_SSH_USER_PASS,
+                                                                     basedir="/data/http/www/exec/waves/",
+                                                                     host=settings.WAVES_TEST_SSH_HOST))
+        super(SGESshUserPassRunnerTestCase, self).setUp()
+
+    def testSimpleCP(self):
+        super(SGESshUserPassRunnerTestCase, self).testSimpleCP()
+
+    def testPhysicIST(self, command_path='physic_ist'):
+        super(SGESshUserPassRunnerTestCase, self).testPhysicIST('/data/http/www/binaries/physic_ist/physic_ist')
+
+    def testConnect(self):
+        super(SGESshUserPassRunnerTestCase, self).testConnect()

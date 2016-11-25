@@ -1,5 +1,37 @@
 {% extends "services/base.html" %}
 {% load waves_tags %}
+{% block scripts %}
+    {{ block.super }}
+    <script>
+        var reloading;
+
+        function checkReloading() {
+            if (window.location.hash == "#autoreload") {
+                reloading = setTimeout("window.location.reload();", 5000);
+                $('#reloadCB').bootstrapToggle('on');
+            }
+        }
+
+        function toggleAutoRefresh(checked) {
+            if (checked) {
+                window.location.replace("#autoreload");
+                reloading = setTimeout("window.location.reload();", 5000);
+            } else {
+                window.location.replace("#");
+                clearTimeout(reloading);
+            }
+        }
+        $(function () {
+            $('#reloadCB').change(function () {
+                console.log('toggle fired' + $(this).prop('checked'));
+                toggleAutoRefresh($(this).prop('checked'));
+            })
+        })
+        // $("#reloadCB").onSwitchChange(toggleAutoRefresh($("#reloadCB")));
+        window.onload = checkReloading;
+
+    </script>
+{% endblock %}
 {% block container %}
     <div id="sec1">
         <div class="text-page container">
@@ -12,6 +44,9 @@
                                 {{ job.service }} job
                                 <span class="label label-{{ job.label_class }} pull-right">{{ job.get_status_display }}</span>
                             </h2>
+                            <div class="text-right">
+                                Auto Refresh
+                                <input type="checkbox" data-toggle="toggle" data-size="small" id="reloadCB"></div>
                             </p>
                         </div>
                         <div class="panel-body">
@@ -174,8 +209,9 @@
                     </div>
                     <div class="panel panel-default">
                         <div class="panel-body text-right">
-                            <a class="btn btn-primary" href="{% url 'waves:service_details' job.service.id %}">Back to service</a>
-                            {% online_exec_button service=job.service label="New job"%}
+                            <a class="btn btn-primary" href="{% url 'waves:service_details' job.service.id %}">Back to
+                                service</a>
+                            {% online_exec_button service=job.service label="New job" %}
                         </div>
                     </div>
                     {% if user.is_staff %}
@@ -188,10 +224,10 @@
                             <div class="panel-body text-right">
                                 <a class="btn btn-default" href="{% url 'admin:waves_job_change' job.id %}">Edit job</a>
                                 <a class="btn btn-default"
-                                    href="{% url 'admin:waves_service_change' job.service.id %}">Edit Service</a>
+                                   href="{% url 'admin:waves_service_change' job.service.id %}">Edit Service</a>
                             </div>
                         </div>
-                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
         </div>

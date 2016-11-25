@@ -14,7 +14,7 @@
 
     <!-- Bootstrap core CSS -->
     {% bootstrap_styles theme=css_theme type='css' %}
-
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
     <!-- Custom styles for this site -->
     {% block styles %}
         <link href="{% static 'waves/css/main.css' %}" rel="stylesheet"/>
@@ -166,6 +166,8 @@
 <script type="text/javascript"
         src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
 {% block scripts %}
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
     <script src="{% static 'waves/js/site.js' %}"></script>
 {% endblock scripts %}
 </body>

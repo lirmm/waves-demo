@@ -7,10 +7,6 @@
     {% include 'admin/waves/service/_object_tools_items.html' %}
 {% endblock %}
 
-{% block extrahead %}
-    {{ block.super }}
-    <script src="{% static 'waves/js/services.js' %}"></script>
-{% endblock %}
 {% block footer %}
     {{ block.super }}
     <div id="dialog-confirm" title="Empty the recycle bin?" style="display: none">

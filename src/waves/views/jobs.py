@@ -1,48 +1,38 @@
+""" WAVES jobs related web views """
 from __future__ import unicode_literals
 
-import logging
-
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 from django.views import generic
-
+from braces.views import LoginRequiredMixin
 from base import WavesBaseContextMixin
 from waves.models import Job, JobOutput, JobInput
 from waves.views.files import DownloadFileView
+import logging
 
 logger = logging.getLogger(__name__)
 
 
 class JobView(generic.DetailView, WavesBaseContextMixin):
+    """ Job Detail view """
     model = Job
     slug_field = 'slug'
     template_name = 'services/job_detail.html'
     context_object_name = 'job'
 
-    def dispatch(self, request, *args, **kwargs):
-        return super(JobView, self).dispatch(request, *args, **kwargs)
 
-
-class JobListView(generic.ListView, WavesBaseContextMixin):
+class JobListView(generic.ListView, LoginRequiredMixin, WavesBaseContextMixin):
+    """ Job List view (for user) """
     model = Job
     template_name = 'services/job_list.html'
     context_object_name = 'job_list'
     paginate_by = 10
 
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(JobListView, self).dispatch(request, *args, **kwargs)
-
     def get_queryset(self):
+        """ Retrieve user job """
         return Job.objects.get_user_job(user=self.request.user)
-
-    def get_context_data(self, **kwargs):
-        context = super(JobListView, self).get_context_data(**kwargs)
-        context['user'] = self.request.user
-        return context
 
 
 class JobFileView(DownloadFileView, WavesBaseContextMixin):
+    """ Extended FileView for job files """
     context_object_name = "file_obj"
 
     @property
@@ -59,20 +49,22 @@ class JobFileView(DownloadFileView, WavesBaseContextMixin):
 
 
 class JobOutputView(JobFileView):
+    """ Extended JobFileView for job outputs """
     model = JobOutput
 
     @property
     def file_description(self):
-        return self.object.srv_output.short_description if self.object.srv_output else self.object.value
+        return self.object.name
 
 
 class JobInputView(JobFileView):
+    """ Extended JobFileView for job inputs """
     model = JobInput
 
     @property
     def file_name(self):
-        return self.object.srv_input.label if self.object.srv_input else self.object.value
+        return self.object.label
 
     @property
     def file_description(self):
-        return self.object.srv_input.short_description if self.object.srv_input else self.object.value
+        return ""

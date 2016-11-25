@@ -1,8 +1,10 @@
+"""
+WAVES Service models forms
+"""
 from __future__ import unicode_literals
-
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.forms import ModelForm, Textarea
+from django.forms import ModelForm, Textarea, TextInput
 from django.core import validators
 from crispy_forms.layout import Layout, Div, Field, Button
 from crispy_forms.helper import FormHelper
@@ -15,7 +17,7 @@ import waves.settings
 
 __all__ = ['ServiceForm', 'ServiceCategoryForm', 'ImportForm', 'ServiceSubmissionForm', 'RelatedInputForm',
            'ServiceInputSampleForm', 'ServiceMetaForm', 'ServiceRunnerParamForm', 'ServiceOutputForm',
-           'ServiceInputForm', 'ServiceOutputFromInputSubmissionForm']
+           'ServiceInputForm', 'ServiceOutputFromInputSubmissionForm', 'ServiceSubmissionFormSet']
 
 
 class ServiceOutputFromInputSubmissionForm(ModelForm):
@@ -43,58 +45,66 @@ class ServiceSubmissionForm(ModelForm):
             }
         }
 
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+
+class ServiceSubmissionFormSet(forms.models.BaseInlineFormSet):
+    def clean(self):
+        if len(self.forms) == 0:
+            raise ValidationError('Please setup a submission ')
+        if self.instance.pk is not None or len(self.forms) > 0:
+            nb_api = 0
+            nb_web = 0
+            for form in self.forms:
+                nb_api += 1 if form.cleaned_data.get('available_api') is True else 0
+                nb_web += 1 if form.cleaned_data.get('available_online') is True else 0
+            if nb_api == 0 and self.data.get('api_on') == 'on':
+                raise ValidationError('At least one submission must be available for api if service is')
+            if nb_web == 0 and self.data.get('web_on') == 'on':
+                raise ValidationError('At least one submission must be available for web if service is')
+
 
 class ImportForm(forms.Form):
-
-    tool_list = forms.ChoiceField(widget=forms.Select(attrs={'size': '10'}))
+    """
+    Service Import Form
+    """
+    category = forms.ModelChoiceField(label='Import to category',
+                                      queryset=ServiceCategory.objects.all())
+    tool = forms.ChoiceField()
 
     def __init__(self, *args, **kwargs):
-        tool_list = kwargs.pop('tool_list', ())
+        tool_list = kwargs.pop('tool', ())
+        selected = kwargs.pop('selected', None)
         super(ImportForm, self).__init__(*args, **kwargs)
-        self.fields['tool_list'].choices = tool_list
+        self.fields['tool'] = forms.ChoiceField(
+            choices=tool_list,
+            initial=selected,
+            disabled=('disabled' if selected is not None else ''),
+            widget=forms.widgets.Select(attrs={'size': '10'}))
+
         self.helper = FormHelper()
         self.helper.form_tag = False
-        self.helper.render_unmentioned_fields = True
+        self.helper.render_unmentioned_fields = False
         self.helper.form_show_labels = True
         self.helper.form_show_errors = True
         self.helper.layout = Layout(
-            Field('tool_list'),
+            Field('category'),
+            Field('tool'),
         )
-        if len(self.fields['tool_list'].choices) != 0:
-            self.helper.layout.extend(
-                Div(
-                    Button('launch-import', 'Launch Import',
-                           css_id='launch-import',
-                           css_class="btn btn-high btn-info grp-button text-center", ),
-                    style='text-align:center; padding-top:5px'
-                )
-            )
-        else:
-            self.helper.layout.extend(
-                Div(
-                    Button('launch-import', 'Launch Import',
-                           css_id='launch-import',
-                           css_class="btn btn-high btn-info grp-button text-center",
-                           disabled='disabled'),
-                    style='text-align:center; padding-top:5px'
-                )
-            )
-
-    def clean(self):
-        cleaned_data = super(ImportForm, self).clean()
-        if 'tool_list' not in cleaned_data:
-            raise ValidationError('Please select a tool in list')
-        return cleaned_data
+        self.helper.disable_csrf = True
 
 
 class ServiceMetaForm(forms.ModelForm):
     """
     A ServiceMeta form part for inline insertion
     """
+
     class Meta:
         exclude = ['id']
         model = ServiceMeta
         fields = ['type', 'value', 'description', 'order']
+
     description = forms.CharField(widget=Textarea(attrs={'rows': 3, 'class': 'input-xlarge'}), required=False)
 
     def clean(self):
@@ -231,24 +241,17 @@ class ServiceForm(forms.ModelForm):
         else:
             return self.cleaned_data.get('email_on')
 
-    def clean(self):
-        cleaned_data = super(ServiceForm, self).clean()
-        return cleaned_data
-
 
 class ServiceRunnerParamForm(ModelForm):
     class Meta:
         model = ServiceRunnerParam
-        fields = ['param', 'value']
+        fields = ['param', '_value']
         widgets = {
-            'value': Textarea(attrs={'rows': 2, 'class': 'span12'})
+            '_value': TextInput(attrs={'size': 35})
         }
 
-    def clean(self):
-        cleaned_data = super(ServiceRunnerParamForm, self).clean()
-        if not cleaned_data['value'] and self.instance.param.default is None:
-            raise ValidationError('%s needs a value !' % self.instance.param.name)
-        return cleaned_data
+    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None, initial=None, **kwargs):
+        super(ServiceRunnerParamForm, self).__init__(data, files, auto_id, prefix, initial, **kwargs)
 
 
 class ServiceCategoryForm(ModelForm):

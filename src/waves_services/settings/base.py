@@ -65,21 +65,17 @@ INSTALLED_APPS = (
     'jquery_ui',
     'tabbed_admin',
     # WAVES required dependencies
-    # 'django-log-file-viewer',
-    'polymorphic',
+    'waves.apps.WavesApp',
     'smart_selects',
     'mptt',
     'nested_admin',
-    'django_crontab',
     'django_countries',
     'crispy_forms',
     'easy_thumbnails',
     'mail_templated',
     'rest_framework',
-    'waves.apps.WavesApp',
-    'corsheaders',
     'rest_framework_docs',
-    # WAVES optional dependencies
+    'corsheaders',
     'ckeditor',
     'bootstrap_themes',
 )
@@ -112,7 +108,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'waves.api.authentication.auth.WavesAPI_KeyAuthBackend',
+        'waves.api.authentication.auth.WavesAPIKeyAuthBackend',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PARSER_CLASSES': (
@@ -142,3 +138,7 @@ CRONTAB_DJANGO_SETTINGS_MODULE = 'waves_services.settings.cron'
 CRONJOBS = [('1 0 * * *', 'waves.managers.cron.purge_old_jobs')]
 # Django countries first items
 COUNTRIES_FIRST = ['FR', 'GB', 'US', 'DE']
+
+
+# MAILS
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

@@ -6,7 +6,8 @@ import logging
 from waves.tests.base import WavesBaseTestCase
 from django.utils.module_loading import import_string
 
-from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory
+from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory, ServiceSubmission
+from waves.models.serializers.services import ServiceSerializer
 import waves.const
 
 logger = logging.getLogger(__name__)
@@ -26,9 +27,10 @@ class TestRunners(WavesBaseTestCase):
 
 class TestServices(WavesBaseTestCase):
     def test_create_service(self):
-        runner = Runner.objects.create(name="Sample runner", clazz='waves.adaptors.mock.MockJobAdaptor')
+        runner = Runner.objects.create(name="Sample runner", clazz='waves.tests.mocks.adaptor.MockJobRunnerAdaptor')
         srv = Service.objects.create(name="Sample Service", run_on=runner)
-        self.assertIsNotNone(srv.default_submission)
+        srv.submissions.add(ServiceSubmission.objects.create(service=srv, label="Sample submission"))
+        self.assertEqual(srv.submissions.count(), 1)
 
     def test_service_run_param(self):
         services = Service.objects.all()
@@ -39,6 +41,21 @@ class TestServices(WavesBaseTestCase):
             logger.debug(expected_params)
             logger.debug(runner_params)
             self.assertEquals(sorted(expected_params.keys()), sorted(runner_params.keys()))
+
+    def test_load_service(self):
+        from os.path import join
+        import json
+        from django.conf import settings
+        init_count = Service.objects.all().count()
+        file_paths = []
+        for srv in Service.objects.all():
+            file_paths.append(srv.serialize())
+        for exp in file_paths:
+            with open(exp) as fp:
+                serializer = ServiceSerializer(data=json.load(fp))
+                if serializer.is_valid():
+                    serializer.save()
+        self.assertEqual(init_count * 2, Service.objects.all().count())
 
 
 class TestJobs(WavesBaseTestCase):
@@ -52,20 +69,26 @@ class TestJobs(WavesBaseTestCase):
         job = Job.objects.create(service=Service.objects.create(name='Sample Service'))
         self.assertIsNotNone(job.title)
         self.assertTrue(os.path.isdir(job.working_dir))
-        self.assertTrue(os.path.isdir(job.input_dir))
-        self.assertTrue(os.path.isdir(job.output_dir))
         logger.debug('Job directories has been created %s ', job.working_dir)
         self.assertEqual(job.status, waves.const.JOB_CREATED)
-        job_history = job.job_history.all()
-        self.assertEqual(len(job_history), 1)
+        self.assertEqual(job.job_history.count(), 1)
+        job.message = "Test job Message"
+        job.status = waves.const.JOB_PREPARED
+        job.save()
+        self.assertEqual(job.job_history.count(), 2)
+        self.assertEqual(job.job_history.first().message, job.message)
         job.delete()
         self.assertFalse(os.path.isdir(job.working_dir))
         logger.debug('Job directories has been deleted')
 
     def test_job_history(self):
         job = Job.objects.create(service=Service.objects.create(name='Sample Service'))
-        admin_hist = JobAdminHistory.objects.create(job=job, message="Test Admin message", status=job.status)
-        job.job_history.add(admin_hist)
+        job.job_history.add(JobAdminHistory.objects.create(job=job, message="Test Admin message", status=job.status))
         job.job_history.add(JobHistory.objects.create(job=job, message="Test public message", status=job.status))
-        self.assertEqual(job.job_history.count(), 3)
-        self.assertEqual(job.public_history.count(), 2)
+        try:
+            self.assertEqual(job.job_history.count(), 3)
+            self.assertEqual(job.public_history.count(), 2)
+        except AssertionError:
+            logger.debug('All history %s', job.job_history.all())
+            logger.debug('Public history %s', job.public_history.all())
+            raise

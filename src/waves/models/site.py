@@ -3,7 +3,12 @@ from __future__ import unicode_literals
 from django.contrib.sites.models import Site
 from django.contrib.sites.managers import CurrentSiteManager
 from django.db import models
-from bootstrap_themes import list_themes
+from django.conf import settings
+if 'bootstrap_themes' in settings.INSTALLED_APPS:
+    from bootstrap_themes import list_themes
+else:
+    def list_themes():
+        return ()
 import waves.settings
 
 

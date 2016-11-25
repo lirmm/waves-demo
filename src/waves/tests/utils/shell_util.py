@@ -34,9 +34,13 @@ def skip_unless_tool(program):
                 for path in os.environ["PATH"].split(os.pathsep):
                     path = path.strip('"')
                     exe_file = os.path.join(path, program)
+                    # print "exe_file searched ", exe_file, is_exe(exe_file)
                     if is_exe(exe_file):
+                        #print "found !!!!"
                         found = True
+            # print "found ? ", found
             if not found:
+                # print "not found"
                 raise unittest.SkipTest(MISSING_TOOL_MESSAGE % program)
 
             return method(test, *args, **kwargs)

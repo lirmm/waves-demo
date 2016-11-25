@@ -2,15 +2,13 @@ from __future__ import unicode_literals
 import logging
 
 from django.core.urlresolvers import reverse
-from django.shortcuts import redirect, render_to_response
 from django.views import generic
 from django.db.models import Prefetch
 from django.contrib import messages
 from uuid import UUID
 import waves.const as const
-
-from waves.forms.services import ServiceForm, ServiceSubmissionForm
-from waves.exceptions import JobException
+from waves.forms.services import ServiceSubmissionForm
+from waves.exceptions.jobs import JobException
 from waves.models import ServiceCategory, Service, ServiceSubmission
 from waves.views.jobs import logger
 from waves.managers.servicejobs import ServiceJobManager
@@ -61,7 +59,7 @@ class CategoryDetailView(generic.DetailView, WavesBaseContextMixin, ):
     def get_queryset(self):
         return ServiceCategory.objects.all().prefetch_related(
             Prefetch('category_tools',
-                     queryset=Service.retrieve.get_web_services(user=self.request.user),
+                     queryset=Service.objects.get_web_services(user=self.request.user),
                      to_attr="category_public_tools"
                      )
         )
@@ -75,7 +73,7 @@ class CategoryListView(generic.ListView, WavesBaseContextMixin):
     def get_queryset(self):
         return ServiceCategory.objects.all().prefetch_related(
             Prefetch('category_tools',
-                     queryset=Service.retrieve.get_web_services(user=self.request.user),
+                     queryset=Service.objects.get_web_services(user=self.request.user),
                      to_attr="category_public_tools"
                      )
         )
@@ -134,9 +132,8 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
 
     def _get_selected_submission(self):
         slug = self.request.POST.get('slug', None)
-        # print 'submission', ServiceSubmission.objects.filter(service=self.get_object())
         if slug is None:
-            return ServiceSubmission.objects.get(default=True, service=self.get_object())
+            return self.get_object().default_submission # ServiceSubmission.objects.get(default=True, service=)
         else:
             return ServiceSubmission.objects.get(slug=UUID(slug), service=self.get_object())
 

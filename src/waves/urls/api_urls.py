@@ -22,7 +22,7 @@ router.register(prefix=r'jobs',
                 base_name='waves-jobs')
 urlpatterns = [
     url(r'^', include(router.urls)),
-    url(r'^docs/', include('rest_framework_docs.urls')),
+    url(r'^documentation/', include('rest_framework_docs.urls')),
     url(r'^services/(?P<service>[^/.]+)/submissions/(?P<api_name>[^/.]+)/$',
         services.ServiceJobSubmissionView.as_view(), name='waves-services-submissions'),
     url(r'^services/(?P<service>[^/.]+)/submissions/(?P<api_name>[^/.]+)/form/',

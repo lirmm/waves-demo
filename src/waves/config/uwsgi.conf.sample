@@ -1,0 +1,9 @@
+# file: /etc/init/uwsgi.conf
+description "uWSGI WAVES automated Starter"
+
+start on (local-filesystems and runlevel [2345])
+stop on runlevel [016]
+
+respawn
+
+exec /path/to/your/virtualenv/bin/uwsgi --uid your-user --ini /path/to/your/waves_uwsgi.ini

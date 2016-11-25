@@ -1,31 +1,30 @@
+"""
+WAVES runner adaptor module
+"""
 from __future__ import unicode_literals
 
-from collections import namedtuple
+__author__ = "Marc Chakiachvili <marc.chakiachvili@lirmm.fr>"
+__version__ = "1.0"
+
+from .api.compphy import *
+from .api.galaxy import *
+from .saga import *
+
+__all__ = ['ShellJobAdaptor', 'ClusterJobAdaptor', 'CompPhyApiAdaptor',
+           "GalaxyJobAdaptor", "GalaxyWorkFlowAdaptor", "SshKeyClusterJobAdaptor",
+           "SshUserPassJobAdaptor", 'SshKeyJobAdaptor', 'SshUserPassClusterJobAdaptor']
 
 
-
-"""
-from waves.adaptors.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor
-from waves.adaptors.runner import JobRunnerAdaptor
-from waves.adaptors.local import ShellJobAdaptor
-from waves.adaptors.sge import SGEJobAdaptor
-from waves.adaptors.api.compphy import CompPhyApiAdaptor
-from waves.adaptors.ssh import SshJobAdaptor, SshKeyJobAdaptor, SshUserPassJobAdaptor, SGEOverSSHAdaptor
-
-__all__ = ['SGEJobAdaptor', 'GalaxyJobAdaptor', 'GalaxyWorkFlowAdaptor', 'ShellJobAdaptor',
-           'CompPhyApiAdaptor']
-
-"""
-__all__ = ['adaptors.sge.SGEJobAdaptor', 'adaptors.galaxy.GalaxyJobAdaptor', 'adaptors.galaxy.GalaxyWorkFlowAdaptor',
-           'adaptors.local.ShellJobAdaptor', 'adaptors.api.compphy.CompPhyApiAdaptor']
 def get_implementation():
-    # waves.settings.WAVES_ENABLED_ADAPTORS
     classes_list = []
-    from django.utils.module_loading import import_module
-    for cls in import_module(__package__).__all__:
-        classes_list.append(__package__ + '.' + cls)
+    from django.utils.module_loading import import_module, import_string
+    sub_modules = ['api.galaxy', 'api.compphy', 'saga']
+    for sub in sub_modules:
+        # print sub
+        sub_module = import_module(__package__ + '.' + sub)
+        for cls in sub_module.__all__:
+            clazz = import_string(sub_module.__name__ + '.' + cls)
+            classes_list.append(clazz)
     return classes_list
 
-JobRunInfo = namedtuple("JobInfo",
-                        """jobId hasExited hasSignal terminatedSignal hasCoreDump
-                        wasAborted exitStatus resourceUsage""")
+CURRENT_IMPLEMENTATION = get_implementation

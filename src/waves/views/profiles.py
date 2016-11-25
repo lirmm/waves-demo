@@ -10,6 +10,7 @@ import waves.models
 
 
 class ShowProfile(LoginRequiredMixin, generic.TemplateView, WavesBaseContextMixin):
+    """ WAVES user Profile show page """
     template_name = "profiles/show_profile.html"
     http_method_names = ['get', 'post']
 
@@ -27,6 +28,7 @@ class ShowProfile(LoginRequiredMixin, generic.TemplateView, WavesBaseContextMixi
         return super(ShowProfile, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        """ only post to delete user profile """
         user = self.request.user
         if user:
             user.delete()
@@ -34,6 +36,7 @@ class ShowProfile(LoginRequiredMixin, generic.TemplateView, WavesBaseContextMixi
 
 
 class EditProfile(LoginRequiredMixin, generic.TemplateView, WavesBaseContextMixin):
+    """ WAVES user Profile edit page """
     template_name = "profiles/edit_profile.html"
     http_method_names = ['get', 'post']
 
