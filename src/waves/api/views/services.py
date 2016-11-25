@@ -5,6 +5,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from django.core.exceptions import ValidationError
 from rest_framework.decorators import detail_route
 from waves.models import Service, Job, ServiceSubmission
 from waves.exceptions.jobs import JobException
@@ -110,16 +112,18 @@ class ServiceJobSubmissionView(MultipleFieldLookupMixin, generics.RetrieveAPIVie
             submitted_data = {
                 'submission': service_submission,
                 'client': request.user.pk,
-                'inputs': request.data
+                'job_inputs': request.data
             }
-            serializer = self.get_serializer(context={'request': request}, fields=('inputs',))
-            serializer.run_validation(data=submitted_data, )
+            from ..serializers.jobs import JobCreateSerializer
+            from django.db.models import Q
             job = ServiceJobManager.create_new_job(submission=service_submission, email_to=ass_email,
                                                    submitted_inputs=request.data, user=request.user)
-            # Now job is created (or raised an exception),
+            # Now job is created (or raise an exception),
             serializer = JobSerializer(job, many=False, context={'request': request},
                                        fields=('slug', 'url', 'created', 'status',))
             return Response(serializer.data, status=201)
+        except ValidationError as e:
+            raise DRFValidationError(e.message_dict)
         except JobException as e:
             logger.fatal("Create Error %s", e.message)
             return Response({'error': e.message}, status=status.HTTP_400_BAD_REQUEST)
@@ -127,6 +131,7 @@ class ServiceJobSubmissionView(MultipleFieldLookupMixin, generics.RetrieveAPIVie
 
 class ServiceJobSubmissionViewForm(ServiceJobSubmissionView):
     """ Service Form content view """
+
     def get(self, request, *args, **kwargs):
         """ GET accessor """
         submission = self.get_object()

@@ -128,7 +128,7 @@ class ServiceSubmissionSerializer(DynamicFieldsModelSerializer, serializers.Hype
 
     view_name = 'waves:waves-services-submissions'
     submission_uri = serializers.SerializerMethodField()
-    inputs = InputSerializer(many=True, read_only=True, source="submitted_service_inputs")
+    inputs = InputSerializer(many=True, source="submitted_service_inputs")
     form = serializers.SerializerMethodField()
     service = serializers.SerializerMethodField()
 

@@ -127,12 +127,12 @@ class JobOutputDetailSerializer(serializers.HyperlinkedModelSerializer):
         return obj.get_status_display()
 
 
-class JobSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsModelSerializer):
+class JobSerializer(DynamicFieldsModelSerializer, serializers.HyperlinkedModelSerializer):
     """ Serializer for Job (only GET) """
     class Meta:
         model = Job
         fields = ('url', 'title', 'status_code', 'status_txt', 'created', 'updated', 'inputs', 'outputs',
-                  'history', 'client', 'service',)
+                  'history', 'client', 'service', 'slug')
         readonly_fields = (
             'status_code', 'status_txt', 'slug', 'client', 'service', 'created', 'updated', 'url', 'history')
         extra_kwargs = {
@@ -170,3 +170,14 @@ class JobSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsModelSe
     def get_status_txt(job):
         """ Return string corresponding to status code """
         return job.get_status_display()
+
+
+class JobCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Job
+        fields = ('job_inputs', 'submission')
+        write_only_fields = ('job_inputs',)
+
+    def create(self, validated_data):
+        print 'in create', validated_data
+        return Job.objects.create()

@@ -55,11 +55,7 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
         service = self.adaptor.importer.import_remote_service(
             "toolshed.g2.bx.psu.edu/repos/rnateam/mafft/rbc_mafft/7.221.1", self.runner_model)
         self.assertIsNotNone(service)
-        from waves.managers import ServiceJobManager
-        job = Job.objects.create(service=service, title="Test MAFFT", email_to=None,
-                                 submission=service.default_submission)
-        job.job_inputs.add(JobInput.objects.create(job=job, value=join(settings.WAVES_DATA_ROOT2)
-                                                   ))
+
     def tearDown(self):
         """
         Delete created histories on remote Galaxy server after classic tearDown

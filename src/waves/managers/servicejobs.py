@@ -6,6 +6,7 @@ from os import path as path
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.uploadedfile import TemporaryUploadedFile, InMemoryUploadedFile
 from django.db import transaction
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from itertools import chain
 import waves.const
@@ -76,9 +77,7 @@ class ServiceJobManager(object):
     @staticmethod
     @transaction.atomic
     def create_new_job(submission, submitted_inputs, email_to=None, user=None):
-        """
-        Create a new job from service submission data and submitted inputs values
-
+        """ Create a new job from service submission data and submitted inputs values
         :param submission: Dictionary { param_name: param_value }
         :param submitted_inputs: received input from client submission
         :param email_to: if given, email address to notify job process to
@@ -99,6 +98,14 @@ class ServiceJobManager(object):
         job = Job.objects.create(service=submission.service, email_to=email_to, client=client, title=job_title,
                                  submission=submission)
         job.create_non_editable_inputs(submission)
+        mandatory_params = submission.submitted_service_inputs.filter(mandatory=True).filter(
+            Q(default__isnull=True) | Q(default__exact=''))
+        missings = {}
+        for m in mandatory_params:
+            if m.name not in submitted_inputs.keys():
+                missings[m.name] = '%s (:%s:) is required field' % (m.label, m.name)
+        if len(missings) > 0:
+            raise ValidationError(missings)
         # First create inputs
         service_inputs = ServiceInput.objects.filter(name__in=submitted_inputs.keys(), editable=True,
                                                      service=submission)

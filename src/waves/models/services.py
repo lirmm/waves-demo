@@ -542,6 +542,8 @@ class BaseInput(DescribeAble, TimeStampable, OrderAble):
                                max_length=100, null=True, blank=True,
                                help_text='Input list display mode (for type list only)')
 
+    value = None
+
     def natural_key(self):
         return self.label, self.name, self.default, self.service.natural_key()
 
@@ -804,6 +806,7 @@ class ServiceOutputFromInputSubmission(models.Model):
     def duplicate(self, srv_output):
         self.pk = None
         self.save()
+
 
 class ServiceMeta(OrderAble, DescribeAble):
     """

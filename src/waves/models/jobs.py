@@ -75,7 +75,7 @@ class JobManager(models.Manager):
         if user.is_staff:
             return self.filter(Q(service__created_by=user.profile) | Q(client=user) | Q(email_to=user.email))
         # return self.filter(Q(client=user) | Q(email_to=user.email))
-        return self.filter(client=user)
+        return self.filter(client=user.profile)
 
     def get_service_job(self, user, service):
         """
@@ -683,8 +683,14 @@ class JobInput(OrderAble, SlugAble):
             logger.warn('No Input type !')
             raise ValueError("No type specified for input")
 
+    @property
+    def srv_input(self):
+        return self.job.submission.service_inputs.filter(name=self.name).first()
+
     def clean(self):
+        print "in clean"
         if self.srv_input.mandatory and not self.srv_input.default and not self.value:
+            print "ovetrtjher"
             raise ValidationError('Input %(input) is mandatory', params={'input': self.srv_input.label})
         super(JobInput, self).clean()
 
