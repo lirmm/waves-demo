@@ -1,7 +1,7 @@
+""" WAVES user accounts urls """
 from __future__ import unicode_literals
-from django.conf.urls import include, url
+from django.conf.urls import url
 from django.views.generic import TemplateView
-
 import waves.views.accounts
 import waves.views.profiles
 import waves.views.jobs
@@ -10,17 +10,12 @@ urlpatterns = [
     url(r'^activate/complete/$',
         waves.views.accounts.ActivationView.as_view(template_name='accounts/activation_complete.html'),
         name='registration_activation_complete'),
-    url(r'^activate/(?P<activation_key>[-:\w]+)/$',
-        waves.views.accounts.ActivationView.as_view(),
+    url(r'^activate/(?P<activation_key>[-:\w]+)/$', waves.views.accounts.ActivationView.as_view(),
         name='registration_activate'),
-    url(r'^register/$',
-        waves.views.accounts.SignUpView.as_view(),
-        name='registration_register'),
-    url(r'^register/complete/$',
-        TemplateView.as_view(template_name='accounts/registration_complete.html'),
+    url(r'^register/$', waves.views.accounts.SignUpView.as_view(), name='registration_register'),
+    url(r'^register/complete/$', TemplateView.as_view(template_name='accounts/registration_complete.html'),
         name='registration_complete'),
-    url(r'^register/closed/$',
-        TemplateView.as_view(template_name='accounts/registration_closed.html'),
+    url(r'^register/closed/$', TemplateView.as_view(template_name='accounts/registration_closed.html'),
         name='registration_disallowed'),
     url(r'^signup/$', waves.views.accounts.SignUpView.as_view(), name='signup'),
     url(r'^password/change/$', waves.views.accounts.PasswordChangeView.as_view(), name='password-change'),

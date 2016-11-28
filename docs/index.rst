@@ -1,8 +1,6 @@
 Welcome to WAVES's documentation!
 ==================================================
 
-
-
 .. toctree::
     :maxdepth: 1
     :caption: Use WAVES
@@ -11,6 +9,7 @@ Welcome to WAVES's documentation!
     authors
     license
     installation
+    modules/settings
     user_doc/user_guide
 
 .. toctree::

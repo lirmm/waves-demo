@@ -1,3 +1,5 @@
+""" WAVES application configuration parameters admin """
+
 from __future__ import unicode_literals
 
 from django.contrib import admin
@@ -6,10 +8,11 @@ from django.utils.html import format_html
 from waves.forms.admin.site import SiteForm
 
 
+# TODO add button action for queue (stop / start / restart)
+# TODO add action button to invoke command 'dump' for WAVES config
 class WavesSiteAdmin(admin.ModelAdmin):
+    """ Admin WAVES application parameters """
     list_display = ('site', 'get_name', 'theme', 'current_queue_state')
-    # search_fields = ('site__domain', 'site__name')
-    # fields = ('theme')
     fieldsets = [
         ('Site', {
             'classes': ('suit-tab', 'suit-tab-general',),
@@ -20,6 +23,7 @@ class WavesSiteAdmin(admin.ModelAdmin):
         }),
         ('Queue', {
             'fields': ['current_queue_state']
+
         })
 
     ]
@@ -37,9 +41,12 @@ class WavesSiteAdmin(admin.ModelAdmin):
     get_name.short_description = 'Global name'
 
     def current_queue_state(self, obj):
-        from waves.management.commands.wavesqueue import Command as WavesQueueCommand
-        from waves.management.daemon_runner import DaemonRunner
-        daemon = DaemonRunner(WavesQueueCommand, argv=['wavesqueue', 'status'], verbose=False)
+        from waves.management.waves_commands import JobQueueCommand
+        from waves.management.daemon.runner import DaemonRunner
+        import sys
+        sys.argv[0] = 'wavesqueue'
+        sys.argv[1] = 'status'
+        daemon = DaemonRunner(JobQueueCommand, verbose=False)
         daemon_status = daemon._status()
         if daemon_status == DaemonRunner.STATUS_RUNNING:
             css_class = "led-green"

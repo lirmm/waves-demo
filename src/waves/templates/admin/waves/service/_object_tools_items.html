@@ -1,4 +1,12 @@
 <li>
+    <a type="button" href="{% url 'admin:waves_job_changelist' %}?service__id__exact={{ original.pk }}"
+       title="View online"
+       class="btn btn-high btn-info"
+       id="view_jobs">
+        Jobs
+    </a>
+</li>
+<li>
     <a type="button" href="{% url 'waves:service_duplicate' original.pk %}"
        target="_self"
        title="Duplicate"
@@ -8,11 +16,11 @@
     </a>
 </li>
 <li>
-    <a type="button" href="{% url 'admin:waves_job_changelist' %}?service__id__exact={{ original.pk }}"
+    <a type="button" href="{% url 'waves:service_export_form' original.pk %}"
        title="View online"
        class="btn btn-high btn-info"
        id="view_jobs">
-        View jobs
+        Export
     </a>
 </li>
 <li>
@@ -20,7 +28,7 @@
        title="View online"
        class="btn btn-high btn-info"
        id="view_service">
-        View online
+        Online
     </a>
 </li>
 {% if original.run_on and original.run_on.adaptor.importer_clazz %}
@@ -32,7 +40,7 @@
            data-toggle="modal"
            data-target="#form-modal"
            id="launch_import">
-            Import from adapter
+            Update from adapter
         </a>
     </li>
 {% endif %}

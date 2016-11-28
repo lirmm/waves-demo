@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.contrib import admin, messages
 from django.contrib.admin import TabularInline
 from django.db.models import Q
+import os
 import waves.const as const
 from waves.forms.admin import JobInputForm, JobOutputForm, JobForm
 from waves.models.jobs import *
@@ -15,16 +16,13 @@ class JobInputInline(TabularInline):
     extra = 0
     suit_classes = 'suit-tab suit-tab-inputs'
     exclude = ('order',)
-    readonly_fields = ('name', 'value', 'srv_input', 'file_path')
+    readonly_fields = ('name', 'value', 'file_path')
     can_delete = False
     ordering = ('order',)
-    fields = ('srv_input', 'name', 'value', 'file_path')
+    fields = ('name', 'value', 'file_path')
 
     def has_add_permission(self, request):
         return False
-
-    def srv_input(self, obj):
-        return obj.srv_input.label
 
 
 class JobOutputInline(TabularInline):
@@ -63,11 +61,7 @@ def mark_rerun(modeladmin, request, queryset):
         if job.status != const.JOB_CREATED:
             try:
                 # Delete old history (except admin messages)
-                job.job_history.filter(is_admin=False).delete()
-                job.message = "Job marked for re-run"
-                job.nb_retry = 0
-                job.status = const.JOB_CREATED
-                job.save()
+                job.re_run()
                 messages.success(request, message="Job [%s] successfully marked for re-run" % job.title)
             except StandardError as e:
                 messages.error(request, message="Job [%s] error %s " % (job.title, e))
@@ -77,7 +71,7 @@ def mark_rerun(modeladmin, request, queryset):
 
 def delete_model(modeladmin, request, queryset):
     for obj in queryset.all():
-        if request.user == obj.client or obj.service.created_by == request.user.profile or request.user.is_superuser:
+        if obj.client == request.user.profile or obj.service.created_by == request.user.profile or request.user.is_superuser:
             try:
                 obj.delete()
                 messages.success(request, message="Jobs %s successfully deleted" % obj)
@@ -146,7 +140,9 @@ class JobAdmin(WavesTabbedModelAdmin):
             return super(JobAdmin, self).get_queryset(request)
         else:
             qs = Job.objects.filter(
-                Q(service__created_by=request.user.profile) | Q(client=request.user) | Q(email_to=request.user.email))
+                Q(service__created_by=request.user.profile) |
+                Q(client=request.user.profile) |
+                Q(email_to=request.user.email))
             ordering = self.get_ordering(request)
             if ordering:
                 qs = qs.order_by(*ordering)
@@ -157,7 +153,7 @@ class JobAdmin(WavesTabbedModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser or (
-            obj is not None and (request.user == obj.client or obj.service.created_by == request.user.profile))
+            obj is not None and (obj.client == request.user.profile or obj.service.created_by == request.user.profile))
 
     def get_actions(self, request):
         actions = super(JobAdmin, self).get_actions(request)
@@ -196,7 +192,7 @@ class JobAdmin(WavesTabbedModelAdmin):
         return obj.service.run_on.name
 
     def get_client(self, obj):
-        return obj.email_to
+        return obj.client.user.email if obj.client else "Anonymous"
 
     def get_colored_status(self, obj):
         return obj.colored_status()
@@ -207,8 +203,6 @@ class JobAdmin(WavesTabbedModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         read_only_fields = list(super(JobAdmin, self).get_readonly_fields(request, obj))
-        if request.user.is_superuser:
-            read_only_fields.remove('status')
         return read_only_fields
 
     get_colored_status.short_description = 'Status'

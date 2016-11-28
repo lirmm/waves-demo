@@ -42,19 +42,16 @@ GET a WAVES web-app online following the next few steps, WAVES can run on Apache
                 - SECRET_KEY=your-secret-key-to-keep-secret
                 - REGISTRATION_SALT=generate-your-key
                 - ALLOWED_HOSTS=your-host-name
-            - you can set up as well your db connection params here
-        - (Optional) WAVES specific settings: some useful parameters can be set up your conf:
-            - ``(.venv)[waves_dir]$ cd src/waves/config/``
-            - ``(.venv)[waves_dir]/config$ cp waves.env.sample waves.env``
-            - Uncomment/Edit your waves.env file to set your specific WAVES parameters
+            - you can set up as well your db connection params here (or ing classsical DJANGO settings if you want)
 
     1.2 Set up database:
         - Create your database: ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
-        - (optional) load sample data: ``(.venv)[waves_dir]/src/$ .manage.py loaddata waves/fixtures/init.json``
         - Create Superadmin user: ``(.venv)[waves_dir]/src/$ ./manage.py createsuperuser``
         - Create staticfiles: ``(.venv)[waves_dir]/src/$ ./manage.py collecstatic``
+        - Initialize some required data: ``(.venv)[waves_dir]/src/$ ./manage.py wavesadmin init``
         - Check parameters with: ``(.venv)[waves_dir]/src/$ ./manage.py check``
-        - See your configuration with: ``(.venv)[waves_dir]/src/$ ./manage.py wavesconfig``
+        - See your configuration with: ``(.venv)[waves_dir]/src/$ ./manage.py wavesadmin config``
+
 
 2. Configure your web server:
 -----------------------------

@@ -3,7 +3,6 @@
  */
 (function ($) {
     $(document).ready(function () {
-// $('.has-popover').popover({'trigger': 'hover'});
         $('.js-popup-link').click(function (e) {
             e.preventDefault();
             console.log('Js-pop-up-modal called');
@@ -16,5 +15,13 @@
                 title: this.title,
             }).dialog('open').load(this.href)
         });
+        var $loading = $('#loading').hide();
+        $(document)
+            .ajaxStart(function () {
+                $loading.show();
+            })
+            .ajaxStop(function () {
+                $loading.hide();
+            });
     });
 })(jQuery || django.jQuery);

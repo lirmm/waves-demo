@@ -15,6 +15,7 @@ import waves.settings
 class ServiceForm(forms.ModelForm):
     pass
 
+
 class ServiceSubmissionForm(forms.ModelForm):
     class Meta:
         model = ServiceSubmission
@@ -32,7 +33,7 @@ class ServiceSubmissionForm(forms.ModelForm):
         self.helper.init_layout(fields=('title', 'email', 'slug'))
         self.fields['title'].initial = 'my %s job' % self.instance.service.name
         self.fields['slug'].initial = str(self.instance.slug)
-        self.list_inputs = list(self.instance.service_inputs.filter(Q(instance_of=ServiceInput), editable=True))
+        self.list_inputs = list(self.instance.service_inputs.filter(editable=True).order_by('-mandatory', 'order'))
         extra_fields = []
         for service_input in self.list_inputs:
             if service_input.type == waves.const.TYPE_FILE and not service_input.multiple:

@@ -58,8 +58,7 @@ WAVES backOffice dedicated css
     text-align: center;
     z-index: 10000;
     overflow: auto;
-    background-color: #888888;
-    width: 120px; /* width of the spinner gif */
+    width: 200px; /* width of the spinner gif */
 }
 
 #form_import .form-actions {
@@ -71,9 +70,11 @@ WAVES backOffice dedicated css
     margin-left: 0 !important;
 }
 
-#id_tool_list {
-    width: 100%;
+#popup_modal #id_tool {
     min-height: 250px;
+    width:90%;
+    overflow-y:auto;
+    overflow-x:hidden;
 }
 
 .selector .selector-filter input[type="text"]{
@@ -112,12 +113,32 @@ span.success{
     width:75% !important
 }
 
-#id_tool_list {
-    width:90%;
-    overflow-y:auto;
-    overflow-x:hidden;
-}
 .tool_import_modal{
     background: whitesmoke;
 
+}
+
+.loading {
+    background-color: rgba(0, 0, 0, 0.8);
+    position: absolute;
+    display: none;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    margin: -25px 0 0 -25px;
+}
+
+
+/* When the body has the loading class, we turn
+   the scrollbar off with overflow:hidden */
+body.loading {
+    overflow: hidden;
+}
+
+/* Anytime the body has the loading class, our
+   modal element will be visible */
+body.loading .modal {
+    display: block;
 }

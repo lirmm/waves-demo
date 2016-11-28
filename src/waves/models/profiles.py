@@ -66,4 +66,4 @@ class WavesProfile(SlugAble):
         super(WavesProfile, self).save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
-        return "{}".format(self.user)
+        return "{}".format(self.user.name)

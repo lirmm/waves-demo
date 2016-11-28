@@ -1,26 +1,26 @@
+""" Job tool WAVES admin dedicated views """
 from __future__ import unicode_literals
-import logging
 
 from django.views.generic import View
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.core.urlresolvers import reverse
 from django.contrib import messages
-
+from waves.exceptions import *
 from waves.models import Job
-
+import logging
 logger = logging.getLogger(__name__)
 
 
 class JobCancelView(View):
-
+    """ View after cancel a job, if possible """
     def get(self, request, *args, **kwargs):
+        """ Try to cancel specified job (in kwargs), redirect to current job page """
         try:
-            job = get_object_or_404(Job, id=kwargs['job_id'])
+            job = get_object_or_404(Job, id=self.kwargs['job_id'])
             runner = job.adaptor
             runner.cancel_job(job)
             messages.add_message(request, level=messages.SUCCESS, message="Job cancelled")
-            return redirect(reverse('admin:waves_job_change', args=[job.id]))
-        except Exception as e:
-            messages.add_message(request, level=messages.WARNING, message="Error occurred: %s " % e.message)
-            return redirect(reverse('admin:waves_job_change', args=[kwargs['job_id']]))
+        except WavesException as e:
+            messages.add_message(request, level=messages.ERROR, message=e.message)
+        return redirect(reverse('admin:waves_job_change', args=[self.kwargs['job_id']]))

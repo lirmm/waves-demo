@@ -1,13 +1,17 @@
+""" WAVES API services end points """
 from __future__ import unicode_literals
+
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, permissions, generics
+from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.decorators import detail_route, list_route
-from waves.models import Service, ServiceInput, Job, ServiceSubmission
-from waves.exceptions import JobException
-from waves.api.serializers import InputSerializer, ServiceSerializer, MetaSerializer, \
-    JobSerializer, ServiceFormSerializer, ServiceMetaSerializer, ServiceSubmissionSerializer
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from django.core.exceptions import ValidationError
+from rest_framework.decorators import detail_route
+from waves.models import Service, Job, ServiceSubmission
+from waves.exceptions.jobs import JobException
+from waves.api.serializers import ServiceSerializer, JobSerializer, ServiceFormSerializer, ServiceMetaSerializer, \
+    ServiceSubmissionSerializer
 from waves.managers.servicejobs import ServiceJobManager
 from . import WavesBaseView
 
@@ -16,110 +20,91 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ServiceInputViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):
-    """
-    Api entry point to ServiceInputs
-    """
-    serializer_class = InputSerializer
-
-    def get_queryset(self):
-        return ServiceInput.objects.filter(tool__pk=self.kwargs['service'],
-                                           conditionalqsdqsdinput=None,
-                                           conditionalwhen=None)
-
-
 class ServiceViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):
     """
-    API entry point to Services
+    API entry point to Services (Retrieve, job submission)
     """
     serializer_class = ServiceSerializer
     lookup_field = 'api_name'
 
     def get_queryset(self):
-        return Service.retrieve.get_api_services(user=self.request.user)
+        """ retrieve available services for current request user """
+        return Service.objects.get_api_services(user=self.request.user)
 
     def list(self, request):
-        queryset = Service.retrieve.get_api_services(user=request.user)
-        serializer = ServiceSerializer(queryset, many=True, context={'request': request},
+        """ List all available services """
+        serializer = ServiceSerializer(self.get_queryset(), many=True, context={'request': request},
                                        fields=('url', 'name', 'short_description', 'version', 'created', 'updated',
-                                               'category', 'jobs')
-                                       )
+                                               'category', 'jobs'))
         return Response(serializer.data)
 
-    def retrieve(self, request, api_name=None):
-        queryset = Service.retrieve.get_api_services(user=request.user)
-        service_tool = get_object_or_404(queryset, api_name=api_name)
+    def retrieve(self, request, *args, **kwargs):
+        """ Retrieve Service details"""
+        api_name = kwargs.pop('api_name')
+        service_tool = get_object_or_404(self.get_queryset(), api_name=api_name)
         serializer = ServiceSerializer(service_tool, context={'request': request})
         return Response(serializer.data)
 
     @detail_route(methods=['get'], url_path='jobs')
     def service_job(self, request, api_name=None):
-        # RETRIEVE A SERVICE JOB
-        queryset = Service.retrieve.get_api_services(request.user)
-        service_tool = get_object_or_404(queryset, api_name=api_name)
+        """ Retrieves services Jobs """
+        service_tool = get_object_or_404(self.get_queryset(), api_name=api_name)
         queryset_jobs = Job.objects.get_service_job(user=request.user, service=service_tool)
-        serializer = JobSerializer(queryset_jobs,
-                                   many=True,
-                                   context={'request': request},
+        serializer = JobSerializer(queryset_jobs, many=True, context={'request': request},
                                    fields=('url', 'created', 'status', 'service'))
         return Response(serializer.data)
 
     @detail_route(methods=['get'], url_path="metas")
     def service_metas(self, request, api_name=None):
-        queryset = Service.retrieve.get_api_services(request.user)
-        service = get_object_or_404(queryset, api_name=api_name)
-        serializer = ServiceMetaSerializer(service,
-                                           many=False,
-                                           context={'request': request})
+        """ Retrieve service metas """
+        service = get_object_or_404(self.get_queryset(), api_name=api_name)
+        serializer = ServiceMetaSerializer(service, many=False, context={'request': request})
         return Response(serializer.data)
 
     @detail_route(methods=['get'], url_path="form")
     def service_form(self, request, api_name=None):
-        queryset = Service.retrieve.get_api_services(request.user)
-        service_tool = get_object_or_404(queryset, api_name=api_name)
-        serializer = ServiceFormSerializer(many=False,
-                                           context={'request': request},
-                                           instance=service_tool)
+        """ Retrieve service form """
+        service_tool = get_object_or_404(self.get_queryset(), api_name=api_name)
+        serializer = ServiceFormSerializer(many=False, context={'request': request}, instance=service_tool)
         return Response(serializer.data)
 
 
 class MultipleFieldLookupMixin(object):
+    """ Some view with multiple url kwargs """
+
     def get_object(self):
+        """ Retrieve an object from multiple field retrieved from kwargs """
         queryset = self.get_queryset()  # Get the base queryset
         queryset = self.filter_queryset(queryset)  # Apply any filter backends
-        filter = {}
+        filters = {}
         for field in self.lookup_fields:
-            filter[field] = self.kwargs[field]
-        return get_object_or_404(queryset, **filter)  # Lookup the object
+            filters[field] = self.kwargs[field]
+        return get_object_or_404(queryset, **filters)  # Lookup the object
 
 
 class ServiceJobSubmissionView(MultipleFieldLookupMixin, generics.RetrieveAPIView, generics.CreateAPIView,
                                WavesBaseView):
+    """ Service job Submission view """
     queryset = ServiceSubmission.objects.all()
     serializer_class = ServiceSubmissionSerializer
     lookup_fields = ('service', 'api_name')
 
     def get_queryset(self):
-        queryset = ServiceSubmission.objects.filter(api_name=self.kwargs.get('api_name'),
-                                                    service__api_name=self.kwargs.get('service'),
-                                                    available_api=True)
-        return queryset
+        """ Retrieve for service, current submissions available for API """
+        return ServiceSubmission.objects.filter(api_name=self.kwargs.get('api_name'),
+                                                service__api_name=self.kwargs.get('service'), available_api=True)
 
     def get_object(self):
+        """ Retrieve object or redirect to 404 """
         return get_object_or_404(self.get_queryset())
 
     def post(self, request, *args, **kwargs):
-        # CREATE A NEW JOB
-        # print kwargs
+        """ Create a new job from submitted params """
         if logger.isEnabledFor(logging.DEBUG):
             for param in request.data:
                 logger.debug('param key ' + param)
                 logger.debug(request.data[param])
             logger.debug('Request Data %s', request.data)
-        service = Service.objects.get(api_name=kwargs['service'])
-        # print 'object', self.get_object().__class__
-        queryset = ServiceSubmission.objects.get(api_name=kwargs['api_name'],
-                                                 service=service)
         service_submission = self.get_object()
         ass_email = request.data.pop('email', None)
         try:
@@ -127,31 +112,28 @@ class ServiceJobSubmissionView(MultipleFieldLookupMixin, generics.RetrieveAPIVie
             submitted_data = {
                 'submission': service_submission,
                 'client': request.user.pk,
-                'inputs': request.data
+                'job_inputs': request.data
             }
-            serializer = self.get_serializer(context={'request': request},
-                                             fields=('inputs',))
-            serializer.run_validation(data=submitted_data, )
-            job = ServiceJobManager.create_new_job(submission=service_submission,
-                                                   email_to=ass_email,
-                                                   submitted_inputs=request.data,
-                                                   user=request.user)
-            serializer = JobSerializer(job,
-                                       many=False,
-                                       context={'request': request},
+            from ..serializers.jobs import JobCreateSerializer
+            from django.db.models import Q
+            job = ServiceJobManager.create_new_job(submission=service_submission, email_to=ass_email,
+                                                   submitted_inputs=request.data, user=request.user)
+            # Now job is created (or raise an exception),
+            serializer = JobSerializer(job, many=False, context={'request': request},
                                        fields=('slug', 'url', 'created', 'status',))
             return Response(serializer.data, status=201)
+        except ValidationError as e:
+            raise DRFValidationError(e.message_dict)
         except JobException as e:
             logger.fatal("Create Error %s", e.message)
             return Response({'error': e.message}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ServiceJobSubmissionViewForm(ServiceJobSubmissionView):
+    """ Service Form content view """
 
     def get(self, request, *args, **kwargs):
+        """ GET accessor """
         submission = self.get_object()
-        serializer = ServiceFormSerializer(many=False,
-                                           context={'request': request},
-                                           instance=submission)
+        serializer = ServiceFormSerializer(many=False, context={'request': request}, instance=submission)
         return Response(serializer.data)
-

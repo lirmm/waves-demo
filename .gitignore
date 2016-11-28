@@ -83,3 +83,5 @@ default_profile.png.*
 /docs/_build/
 /tests/data/
 /src/media/profile/
+/waves.sqlite3
+!tests/data/.gitkeep

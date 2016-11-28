@@ -57,7 +57,7 @@
                                     Details</a></li>
                                 <li class="list-group-item"><em>Submitted :</em> {{ job.created }}</li>
                                 <li class="list-group-item"><em>Updated :</em> {{ job.updated }}</li>
-                                {% if user.is_staff %}
+                                {% if request.user.is_staff %}
                                     <li class="list-group-item">User: {{ job.client }}</li>
                                 {% endif %}
                             </ul>

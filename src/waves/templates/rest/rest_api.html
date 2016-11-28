@@ -21,6 +21,8 @@
                 <div class="col-md-12 text-center">
                     <h1>{% include "_brandname.html" %} REST API</h1>
                     <p class="lead">Access our services from your own application / services</p>
+                    <p class="emphasis">Entry point: {{ request.scheme }}://{{ request.get_host }}{% url 'waves:api-root' %}
+                    </p>
                 </div>
             </div>
         </div>

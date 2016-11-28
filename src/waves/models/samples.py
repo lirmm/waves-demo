@@ -17,7 +17,7 @@ class ServiceInputSample(models.Model):
 
     name = models.CharField('Name', max_length=200, null=False)
     file = models.FileField('File', upload_to=service_sample_directory, storage=waves_storage)
-    input = models.ForeignKey('BaseInput', on_delete=models.CASCADE, related_name='input_samples',
+    input = models.ForeignKey('ServiceInput', on_delete=models.CASCADE, related_name='input_samples',
                               help_text='Associated input')
     service = models.ForeignKey('Service', on_delete=models.CASCADE, related_name='services_sample', null=True)
 
@@ -27,6 +27,6 @@ class ServiceSampleDependentsInput(OrderAble):
         db_table = 'waves_sample_dependent_input'
 
     sample = models.ForeignKey(ServiceInputSample, on_delete=models.CASCADE)
-    dependent_input = models.ForeignKey('BaseInput', on_delete=models.CASCADE)
+    dependent_input = models.ForeignKey('ServiceInput', on_delete=models.CASCADE)
     set_value = models.CharField('When sample selected, set value to ', max_length=200, null=False, blank=False)
 
