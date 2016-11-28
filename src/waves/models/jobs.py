@@ -15,7 +15,8 @@ from waves.exceptions.jobs import JobInconsistentStateError, JobRunException
 from waves.adaptors.exceptions import AdaptorException
 from waves.exceptions import WavesException
 
-from waves.models import TimeStampable, SlugAble, OrderAble, UrlMixin, WavesProfile, ServiceInput, Service, ServiceSubmission
+from waves.models import TimeStampable, SlugAble, OrderAble, UrlMixin, WavesProfile, ServiceInput, Service, \
+    ServiceSubmission, ServiceOutput
 import waves.settings
 
 __license__ = "MIT"
@@ -613,6 +614,14 @@ class JobInputManager(models.Manager):
         return self.get(job=job, name=name)
 
 
+    def create(self, **kwargs):
+        sin = kwargs.pop('srv_input', None)
+        if sin:
+            assert isinstance(sin, ServiceInput)
+            kwargs.update(dict(name=sin.name, type=sin.type, param_type=sin.param_type, label=sin.label))
+        return super(JobInputManager, self).create(**kwargs)
+
+
 class JobInput(OrderAble, SlugAble):
     """
     Job Inputs is association between a Job, a ServiceInput, setting a value specific for this job
@@ -688,9 +697,7 @@ class JobInput(OrderAble, SlugAble):
         return self.job.submission.service_inputs.filter(name=self.name).first()
 
     def clean(self):
-        print "in clean"
         if self.srv_input.mandatory and not self.srv_input.default and not self.value:
-            print "ovetrtjher"
             raise ValidationError('Input %(input) is mandatory', params={'input': self.srv_input.label})
         super(JobInput, self).clean()
 
@@ -748,6 +755,14 @@ class JobOutputManager(models.Manager):
     """ JobInput model Manager """
     def get_by_natural_key(self, job, name):
         return self.get(job=job, _name=name)
+
+    def create(self, **kwargs):
+        sout = kwargs.pop('srv_output', None)
+        if sout:
+            assert isinstance(sout, ServiceOutput)
+            kwargs.update(dict(_name=sout.name, type=sout.type, may_be_empty=sout.may_be_empty))
+        return super(JobOutputManager, self).create(**kwargs)
+
 
 
 class JobOutput(OrderAble, SlugAble, UrlMixin):
