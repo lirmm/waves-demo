@@ -3,8 +3,7 @@ from __future__ import unicode_literals
 from waves.adaptors.saga.cluster.local import ClusterJobAdaptor
 from waves.adaptors.saga.shell.ssh import SshUserPassJobAdaptor, SshKeyJobAdaptor
 
-grp_name = "Cluster"
-
+__group__ = 'SSH'
 
 class SshUserPassClusterJobAdaptor(ClusterJobAdaptor, SshUserPassJobAdaptor):
     """

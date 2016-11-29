@@ -9,7 +9,8 @@ from waves.adaptors.exceptions import AdaptorConnectException, AdaptorJobExcepti
 from waves.adaptors.base import JobRunnerAdaptor
 
 logger = logging.getLogger(__name__)
-grp_name = 'Local'
+
+__group__ = 'Local'
 
 
 class ShellJobAdaptor(JobRunnerAdaptor):

@@ -4,7 +4,7 @@ from django.conf import settings
 
 from waves.adaptors.saga.shell.local import ShellJobAdaptor
 
-grp_name = "Cluster"
+__group__ = "Local"
 
 
 class ClusterJobAdaptor(ShellJobAdaptor):
