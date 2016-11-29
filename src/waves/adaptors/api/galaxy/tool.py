@@ -1,3 +1,4 @@
+""" Remote Galaxy API adaptor """
 from __future__ import unicode_literals
 
 from os.path import join
@@ -15,7 +16,7 @@ from waves.adaptors.api.base import RemoteApiAdaptor
 from waves.adaptors.exceptions import AdaptorJobException, AdaptorExecException, AdaptorConnectException
 logger = logging.getLogger(__name__)
 
-grp_name = 'Galaxy'
+__group__ = 'Galaxy'
 
 
 class GalaxyJobAdaptor(RemoteApiAdaptor):

@@ -7,7 +7,8 @@ from waves.adaptors.exceptions import AdaptorJobException
 from waves.utils.encrypt import EncryptedValue
 from .local import ShellJobAdaptor
 
-grp_name = 'Local'
+__group__ = 'SSH'
+
 
 class SshJobAdaptor(ShellJobAdaptor):
     """

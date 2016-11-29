@@ -16,7 +16,7 @@ def get_runners_list(raw=False):
         raw_impls = []
         for adaptor in impls:
             mod = sys.modules[adaptor.__module__]
-            grp_name = getattr(mod, 'grp_name', 'None')
+            grp_name = getattr(mod, '__group__', 'None')
             if grp_name not in grp_impls:
                 grp_impls[grp_name] = []
             grp_impls[grp_name].append(("%s.%s" % (adaptor.__module__, adaptor.__name__),

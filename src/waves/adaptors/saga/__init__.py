@@ -1,3 +1,4 @@
+""" SAGA based WAVES adaptors"""
 from __future__ import unicode_literals
 
 from .shell.local import ShellJobAdaptor
@@ -11,5 +12,9 @@ __all__ = [str('ShellJobAdaptor'),
            str('ClusterJobAdaptor'),
            str('SshUserPassClusterJobAdaptor'),
            str('SshKeyClusterJobAdaptor')]
+
+__group__ = "Saga"
+__author__ = "Marc Chakiachvili"
+__version__ = '0.1.0'
 
 
