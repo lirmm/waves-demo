@@ -19,6 +19,8 @@ class AdaptorImporter(object):
     _tool_client = None
     _order_input = 0
     _submission = None
+    #: Some fields on remote connectors need a mapping for type between standard WAVES and theirs
+    _type_map = {}
 
     def __init__(self, adaptor):
         """
@@ -123,3 +125,7 @@ class AdaptorImporter(object):
 
     def connect(self):
         pass
+
+    def map_type(self, type_value):
+        """ Map remote adaptor types to JobInput/JobOutput WAVES TYPE"""
+        return self._type_map[type_value]

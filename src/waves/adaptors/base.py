@@ -20,8 +20,6 @@ class JobRunnerAdaptor(object):
     _connector = None
     #: Some connector need to parse requested job in order to create a remote job
     _parser = None
-    #: Some fields on remote connectors need a mapping for type between standard WAVES and theirs
-    _type_map = {}
     #: Remote status need to be mapped with WAVES expected job status
     _states_map = {}
     #: List of WAVES status where job can be remotely cancelled (may be overridden in sub-classes)
@@ -171,10 +169,6 @@ class JobRunnerAdaptor(object):
         self.disconnect()
         return details
 
-    def map_type(self, type_to_map):
-        """ Map remote adaptor types to JobInput/JobOutput WAVES TYPE"""
-        return self.__map_type(type_to_map)
-
     def dump_config(self):
         """ Create string representation of current adaptor config"""
         str_dump = 'Dump config for %s \n ' % self.__class__
@@ -245,10 +239,6 @@ class JobRunnerAdaptor(object):
     def __map_status(self, status):
         """ Map concrete adaptor status to WAVES expected status """
         return self._states_map[status]
-
-    def __map_type(self, type_value):
-        """ Map concrete adaptor data type to WAVES expected Input/Output types"""
-        return self._type_map[type_value]
 
     def __ready(self):
         """ Short cut to check if concrete adaptor is ready"""

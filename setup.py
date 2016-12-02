@@ -6,11 +6,14 @@ mod_root = "src/waves"
 
 
 def get_version(mod_root):
+    import imp
+    # mod_waves = imp.find_module('waves', os.path.join(os.path.dirname(os.path.realpath(__file__))))
+    # print mod_waves
+    waves = imp.load_source('waves', os.path.join(os.path.dirname(os.path.realpath(__file__)), 'src', 'waves', '__init__.py'))
     try:
-        import waves
-        _version = getattr(waves, '__version__', None)
-        _version_detail = getattr(waves, '__version_details__', None)
-        _dist_name = getattr(waves, '__name__', 'WAVES')
+        _version = waves.__version__
+        _version_detail = waves.__version_detail__
+        _dist_name = waves.__name__
     except ImportError:
         _version = None
         _version_detail = None
@@ -36,6 +39,9 @@ setup(
     maintainer='LIRMM - MAB Laboratory - France',
     maintainer_email='vincent.lefort@lirmm.fr',
     classifiers=[
+        'Environment :: Web Environment',
+        'Framework :: Django',
+        'Framework :: Django :: 1.9.8',
         'Development Status :: 1 - Dev/Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GPLv3 License',

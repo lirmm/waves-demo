@@ -50,17 +50,6 @@ class GalaxyJobAdaptor(RemoteApiAdaptor):
             error=waves.const.JOB_ERROR,
             ok=waves.const.JOB_COMPLETED
         )
-        self._type_map = dict(
-            text=waves.const.TYPE_TEXT,
-            boolean=waves.const.TYPE_BOOLEAN,
-            integer=waves.const.TYPE_INTEGER,
-            float=waves.const.TYPE_FLOAT,
-            data=waves.const.TYPE_FILE,
-            select=waves.const.TYPE_LIST,
-            conditional=waves.const.TYPE_LIST,
-            data_column=waves.const.TYPE_TEXT,
-            data_collection=waves.const.TYPE_FILE,
-        )
 
     @property
     def init_params(self):

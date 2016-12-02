@@ -21,6 +21,18 @@ class GalaxyToolImporter(AdaptorImporter):
     _unwanted_categories = [None, 'Get Data', 'Filter and sort', 'Collection Operations', 'Graph/Display Data',
                             'Send Data', 'Text Manipulation', 'Fetch Alignments', ]
 
+    _type_map = dict(
+        text=waves.const.TYPE_TEXT,
+        boolean=waves.const.TYPE_BOOLEAN,
+        integer=waves.const.TYPE_INTEGER,
+        float=waves.const.TYPE_FLOAT,
+        data=waves.const.TYPE_FILE,
+        select=waves.const.TYPE_LIST,
+        conditional=waves.const.TYPE_LIST,
+        data_column=waves.const.TYPE_TEXT,
+        data_collection=waves.const.TYPE_FILE,
+    )
+
     def connect(self):
         """
         Connect to remote Galaxy Host
@@ -137,7 +149,7 @@ class GalaxyToolImporter(AdaptorImporter):
     def _import_param(self, tool_input, service_input):
         try:
             logger.debug('---------------')
-            service_input.type = self._adaptor.map_type(tool_input['type'])
+            service_input.type = self.map_type(tool_input['type'])
             logger.debug('name ' + tool_input['name'])
             service_input.mandatory = self._get_input_value(tool_input, 'optional', 'True') is False
             logger.debug('mandatory ' + str(service_input.mandatory))
