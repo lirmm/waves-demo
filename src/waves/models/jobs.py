@@ -764,7 +764,6 @@ class JobOutputManager(models.Manager):
         return super(JobOutputManager, self).create(**kwargs)
 
 
-
 class JobOutput(OrderAble, SlugAble, UrlMixin):
     """ JobOutput is association fro a Job, a ServiceOutput, and the effective value set for this Job
     """
