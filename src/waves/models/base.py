@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+
 import uuid
 from django.db import models
 from django.contrib.sites.models import Site
@@ -58,10 +59,10 @@ class DescribeAble(models.Model):
         abstract = True
 
     #: Text field to set up a complete description of model object, with HTML editor enabled
-    description = RichTextField('Description', null=True, blank=True, help_text='Full description (HTML enabled)')
+    description = RichTextField('Description', null=True, blank=True, help_text='Description (HTML)')
     #: text field for short version, no html
     short_description = models.TextField('Short Description', null=True, blank=True,
-                                         help_text='Short description (Text only)')
+                                         help_text='Short description (Text)')
 
 
 class SlugAble(models.Model):

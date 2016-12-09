@@ -2,20 +2,19 @@ import sys
 
 import waves.settings
 
-
 def get_runners_list(raw=False):
     """
     Retrieve enabled adaptors list from waves settings env file
     :return: a list of Tuple 'value'/'label'
     """
     from django.utils.module_loading import import_module
+    grp_impls = {'': 'Select a implementation class...'}
+    raw_impls = []
     for mod in waves.settings.WAVES_ADAPTORS_MODS:
         available_impl = import_module(mod)
         impls = [adapt for adapt in available_impl.CURRENT_IMPLEMENTATION()]
-        grp_impls = {'': 'Select a implementation class...'}
-        raw_impls = []
         for adaptor in impls:
-            grp_name = getattr(adaptor, 'group', '')
+            grp_name = adaptor.group.split('/', 1)[0]
             if grp_name not in grp_impls:
                 grp_impls[grp_name] = []
             grp_impls[grp_name].append((adaptor.clazz, adaptor.name))

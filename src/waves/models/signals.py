@@ -18,6 +18,7 @@ from waves.models.base import ApiAble
 from waves.models.jobs import Job, JobHistory, JobAdminHistory, JobOutput
 from waves.models.samples import ServiceInputSample
 from waves.models.services import *
+from waves.models.submissions import *
 from waves.models.runners import Runner, RunnerParam
 from waves.models.profiles import WavesProfile, profile_directory
 

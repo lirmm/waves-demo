@@ -11,21 +11,6 @@
         </h1>
     </div>
 {% endblock %}
-
-{% block messages %}
-    {% if messages %}
-        <ul class="messagelist grp-messagelist">
-            {% for message in messages %}
-                <li{% if message.tags %} class="grp-{{ message.tags }}"{% endif %}>{{ message|safe }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-{% endblock %}
-
-{% block stylesheets %}
-    {{ block.super }}
-    <link href="{% static 'waves/css/waves.css' %}" rel="stylesheet">
-{% endblock stylesheets %}
 {% block javascripts %}
     {{ block.super }}
     <script src="{% static "waves/js/admin.js" %}" type="text/javascript"></script>
@@ -33,7 +18,8 @@
 {% endblock javascripts %}
 {% block extrastyle %}
     {{ block.super }}
-    <link rel='stylesheet' type='text/css' href='{% static 'css/jquery-ui/pepper-grinder/jquery-ui.css' %}'/>
+    <!--link href="{% static 'waves/css/waves.css' %}" rel="stylesheet"-->
+    <!--link rel='stylesheet' type='text/css' href='{% static 'css/jquery-ui/pepper-grinder/jquery-ui.css' %}'/-->
 {% endblock extrastyle %}
 
 {% block extrahead %}
@@ -45,7 +31,7 @@
     {% block modal_content %}
     {% endblock %}
     </div>
-    <div id="loading" class="loading">
+    <div id="loading" style="display: none;" class="loading">
         <img class="spinner" src="{% static 'waves/img/ring.gif'%}">
     </div>
 {% endblock %}

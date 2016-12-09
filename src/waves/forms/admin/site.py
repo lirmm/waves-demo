@@ -7,7 +7,6 @@ from __future__ import unicode_literals
 
 from django.forms import ModelForm
 from waves.models import WavesSite
-from django import forms
 
 
 class SiteForm(ModelForm):

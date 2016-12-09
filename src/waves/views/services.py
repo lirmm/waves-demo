@@ -9,7 +9,8 @@ from uuid import UUID
 import waves.const as const
 from waves.forms.services import ServiceSubmissionForm
 from waves.exceptions.jobs import JobException
-from waves.models import ServiceCategory, Service, ServiceSubmission
+from waves.models import ServiceCategory, Service
+from waves.models.submissions import ServiceSubmission
 from waves.views.jobs import logger
 from waves.managers.servicejobs import ServiceJobManager
 from base import WavesBaseContextMixin

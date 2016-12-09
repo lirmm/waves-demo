@@ -1,19 +1,17 @@
 """
 Job Runners related models
-
 """
 from __future__ import unicode_literals
+
 from django.db import models
-from waves.models.base import DescribeAble, ExportAbleMixin
 from django.utils.module_loading import import_string
+from django.core.exceptions import ValidationError
 import waves.const
+from waves.models.base import DescribeAble, ExportAbleMixin
+from waves.models.managers.runners import RunnerManager, RunnerParamManager
 from waves.utils.encrypt import EncryptedValue
 
 __all__ = ['Runner', 'RunnerParam']
-
-
-class RunnerManager(models.Manager):
-    pass
 
 
 class Runner(DescribeAble, ExportAbleMixin):
@@ -30,10 +28,9 @@ class Runner(DescribeAble, ExportAbleMixin):
     _clazz = None
     objects = RunnerManager()
 
-    name = models.CharField('Runner name', max_length=50, null=False, help_text='Runner displayed name')
-    available = models.BooleanField('Availability', default=True, help_text='Available for job runs')
+    name = models.CharField('Runner name', max_length=50, null=False, help_text='Displayed name')
     clazz = models.CharField('Class implementation', max_length=100, null=False,
-                             help_text='Associated implementation class')
+                             help_text='Runner adaptor')
 
     def __str__(self):
         return self.name
@@ -50,22 +47,6 @@ class Runner(DescribeAble, ExportAbleMixin):
         instance = super(Runner, cls).from_db(db, field_names, values)
         instance._clazz = instance.clazz
         return instance
-
-    def save(self, **kwargs):
-        """
-        Override save method in order to setup initial related objects 'RunnerParam' issued from implementation class
-        :param force_insert:
-        :param force_update:
-        :param using:
-        :param update_fields:
-        :return:
-        """
-        super(Runner, self).save(**kwargs)
-        # Disable all related services upon change on adaptor
-        if not self.available:
-            for service in self.runs.all():
-                service.status = waves.const.SRV_DRAFT
-                service.save()
 
     @property
     def adaptor(self):
@@ -115,13 +96,6 @@ class Runner(DescribeAble, ExportAbleMixin):
         from waves.models.serializers.runners import RunnerSerializer
         return RunnerSerializer
 
-    def publishUnPublish(self):
-        self.available = not self.available
-        self.save()
-
-class RunnerParamManager(models.Manager):
-    pass
-
 
 class RunnerParam(models.Model):
     """
@@ -138,7 +112,7 @@ class RunnerParam(models.Model):
                             blank=True,
                             null=True,
                             help_text='Runner init param name')
-    default = models.TextField('Default',
+    default = models.TextField('Default Value',
                                max_length=500,
                                null=True,
                                blank=True,
@@ -155,10 +129,8 @@ class RunnerParam(models.Model):
 
     def clean(self):
         cleaned_data = super(RunnerParam, self).clean()
-        if not self.default:
-            # TODO check if still needed, as not defined as an class model attribute
-            self.prevent_override = False
-
+        if not self.default and self.prevent_override:
+            raise ValidationError('You can\'t prevent override with no default value')
         return cleaned_data
 
     @classmethod

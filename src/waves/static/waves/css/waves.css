@@ -129,16 +129,3 @@ span.success{
     height: 100%;
     margin: -25px 0 0 -25px;
 }
-
-
-/* When the body has the loading class, we turn
-   the scrollbar off with overflow:hidden */
-body.loading {
-    overflow: hidden;
-}
-
-/* Anytime the body has the loading class, our
-   modal element will be visible */
-body.loading .modal {
-    display: block;
-}

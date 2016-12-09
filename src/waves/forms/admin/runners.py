@@ -20,7 +20,6 @@ class RunnerForm(ModelForm):
         model = Runner
         exclude = ['id']
         widgets = {
-            'available': CheckboxInput(),
             'update_init_params': CheckboxInput()
         }
 
@@ -39,7 +38,6 @@ class RunnerForm(ModelForm):
             # print "creation"
             self.fields['update_init_params'].widget = HiddenInput()
             self.fields['update_init_params'].initial = False
-            self.fields['available'].initial = False
         else:
             pass
 

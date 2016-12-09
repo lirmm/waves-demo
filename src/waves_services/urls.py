@@ -23,7 +23,9 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^', include('waves.urls.urls', namespace='waves')),
     url(r'^nested_admin/', include('nested_admin.urls')),
-    url(r'^grappelli/', include('grappelli.urls')),  # grappelli URLS
+    # url(r'^grappelli/', include('grappelli.urls')),  # grappelli URLS
+    url(r'^jet/', include('jet.urls', 'jet')),  # Django JET URLS
+    url(r'^jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS
     url(r'^chaining/', include('smart_selects.urls')),
     url(r'^admin/', include(admin.site.urls)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

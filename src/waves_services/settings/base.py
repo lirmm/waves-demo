@@ -56,19 +56,23 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'authtools',
-    'grappelli',
+    # 'grappelli',
+    # 'bootstrap_admin',
+    'jet.dashboard',
+    'jet',
     'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'jquery_ui',
-    'tabbed_admin',
+    # 'tabbed_admin',
     # WAVES required dependencies
     'waves.apps.WavesApp',
     'smart_selects',
     'mptt',
-    'nested_admin',
+    # 'nested_admin',
+    # 'nested_inline',
     'django_countries',
     'crispy_forms',
     'easy_thumbnails',
@@ -138,7 +142,38 @@ CRONTAB_DJANGO_SETTINGS_MODULE = 'waves_services.settings.cron'
 CRONJOBS = [('1 0 * * *', 'waves.managers.cron.purge_old_jobs')]
 # Django countries first items
 COUNTRIES_FIRST = ['FR', 'GB', 'US', 'DE']
-
-
+JET_SIDE_MENU_COMPACT = True
 # MAILS
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+JET_THEMES = [
+    {
+        'theme': 'default', # theme folder name
+        'color': '#47bac1', # color of the theme's button in user menu
+        'title': 'Default' # theme title
+    },
+    {
+        'theme': 'green',
+        'color': '#44b78b',
+        'title': 'Green'
+    },
+    {
+        'theme': 'light-green',
+        'color': '#2faa60',
+        'title': 'Light Green'
+    },
+    {
+        'theme': 'light-violet',
+        'color': '#a464c4',
+        'title': 'Light Violet'
+    },
+    {
+        'theme': 'light-blue',
+        'color': '#5EADDE',
+        'title': 'Light Blue'
+    },
+    {
+        'theme': 'light-gray',
+        'color': '#222',
+        'title': 'Light Gray'
+    }
+]

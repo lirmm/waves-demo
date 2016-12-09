@@ -64,9 +64,6 @@
                                     <span class="caret"></span>
                                 </li>
                                 <ul class="dropdown-menu" aria-labelledby="dropdownAuthenticated">
-                                    {% if user.is_staff %}
-                                        <li><a href="{% url 'admin:index' %}">{% get_app_name %} Admin</a></li>
-                                    {% endif %}
                                     <li><a href="{% url 'waves:show_self' %}">Your Profile</a></li>
                                     <li><a href="{% url 'waves:logout' %}">Logout</a></li>
                                 </ul>

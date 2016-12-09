@@ -10,7 +10,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.test import override_settings, TestCase
 from waves.tests.utils import get_sample_dir
 import waves.settings
-from waves.models.services import ServiceInput, ServiceOutput
+from waves.models.services import ServiceOutput
+from waves.models.submissions import ServiceInput, ServiceOutput
 
 
 @override_settings(

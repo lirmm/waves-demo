@@ -32,7 +32,9 @@ class ServiceJobManager(object):
         :return: return the newly created JobInput
         :rtype: :class:`waves.models.jobs.JobInput`
         """
-        from waves.models import JobInput, ServiceInput, RelatedInput
+        from waves.models import JobInput
+        from waves.models.submissions import RelatedInput
+        from waves.models.submissions import ServiceInput
         input_dict = dict(job=job,
                           order=order,
                           name=service_input.name,
@@ -85,7 +87,9 @@ class ServiceJobManager(object):
         :return: a newly create Job instance
         :rtype: :class:`waves.models.jobs.Job`
         """
-        from waves.models import Job, ServiceInput, RelatedInput, JobOutput
+        from waves.models import Job, JobOutput
+        from waves.models.submissions import RelatedInput
+        from waves.models.submissions import ServiceInput
         try:
             job_title = submitted_inputs.pop('title')
         except KeyError:

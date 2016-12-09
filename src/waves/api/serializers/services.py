@@ -6,7 +6,8 @@ from rest_framework.fields import empty
 from django.utils.html import strip_tags
 from rest_framework.reverse import reverse as reverse
 from dynamic import DynamicFieldsModelSerializer
-from waves.models import ServiceInput, ServiceOutput, ServiceMeta, Service, RelatedInput, ServiceSubmission
+from waves.models import ServiceInput, ServiceOutput, ServiceMeta, Service, RelatedInput
+from waves.models.submissions import ServiceSubmission, ServiceInput, RelatedInput, ServiceOutput
 from django.contrib.staticfiles.storage import staticfiles_storage
 import waves.settings
 

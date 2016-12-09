@@ -6,7 +6,8 @@ import logging
 from waves.tests.base import WavesBaseTestCase
 from django.utils.module_loading import import_string
 
-from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory, ServiceSubmission
+from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory
+from waves.models.submissions import ServiceSubmission
 from waves.models.serializers.services import ServiceSerializer
 import waves.const
 

@@ -1,23 +1,24 @@
 """ WVES job related models class objects """
 from __future__ import unicode_literals
 
-import os
 import json
-from os.path import join
 import logging
-from django.db import models
-from django.db.models import Q
-from django.utils.html import format_html
-from django.core.exceptions import ValidationError
-from django.core.exceptions import ObjectDoesNotExist
-import waves.const
-from waves.exceptions.jobs import JobInconsistentStateError, JobRunException
-from waves.adaptors.exceptions import AdaptorException
-from waves.exceptions import WavesException
+import os
+from os.path import join
 
-from waves.models import TimeStampable, SlugAble, OrderAble, UrlMixin, WavesProfile, ServiceInput, Service, \
-    ServiceSubmission, ServiceOutput
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.utils.html import format_html
+from waves.adaptors.exceptions import AdaptorException
+import waves.const
 import waves.settings
+from waves.exceptions import WavesException
+from waves.exceptions.jobs import JobInconsistentStateError, JobRunException
+from waves.models import TimeStampable, SlugAble, OrderAble, UrlMixin, WavesProfile, Service
+from waves.models.submissions import ServiceSubmission, ServiceInput
+from waves.models.managers.jobs import JobManager, JobInputManager, JobOutputManager, JobHistoryManager, \
+    JobAdminHistoryManager
 
 __license__ = "MIT"
 __revision__ = " $Id: actor.py 1586 2009-01-30 15:56:25Z cokelaer $ "
@@ -25,8 +26,7 @@ __docformat__ = 'reStructuredText'
 
 logger = logging.getLogger(__name__)
 
-__all__ = ['allow_display_online', 'Job', 'JobInput', 'JobOutput', 'JobHistory', 'JobAdminHistory',
-           'JobAdminHistoryManager']
+__all__ = ['allow_display_online', 'Job', 'JobInput', 'JobOutput', 'JobHistory', 'JobAdminHistory']
 
 
 def default_run_details(job):
@@ -46,86 +46,6 @@ def allow_display_online(file_name):
     except os.error:
         return False
     return False
-
-
-class JobManager(models.Manager):
-    """ Job Manager add few shortcut function to default Django models objects Manager
-    """
-    def get_by_natural_key(self, slug, service):
-        return self.get(slug=slug, service=service)
-
-    def get_all_jobs(self):
-        """
-        Return all jobs currently registered in database, as list of dictionary elements
-        :return: QuerySet
-        """
-        return self.all().values()
-
-    def get_user_job(self, user):
-        """
-        Filter jobs according to user (logged in) according to following access rule:
-        * User is a super_user, return all jobs
-        * User is member of staff (access to Django admin): returns only jobs from services user has created,
-        jobs created by user, or where associated email is its email
-        * User is simply registered on website, returns only those created by its own
-        :param user: current user (may be Anonymous)
-        :return: QuerySet
-        """
-        if user.is_superuser:
-            return self.all()
-        if user.is_staff:
-            return self.filter(Q(service__created_by=user.profile) | Q(client=user) | Q(email_to=user.email))
-        # return self.filter(Q(client=user) | Q(email_to=user.email))
-        return self.filter(client=user.profile)
-
-    def get_service_job(self, user, service):
-        """
-        Returns jobs filtered by service, according to following access rule:
-        * user is simply registered, return its jobs, filtered by service
-        :param user: currently logged in user
-        :param service: service model object to filter
-        :return: QuerySet
-        """
-        if user.is_superuser or user.is_staff:
-            return self.filter(service=service)
-        return self.filter(client=user, service=service)
-
-    def get_pending_jobs(self, user=None):
-        """
-        Return pending jobs for user, according to following access rule:
-        * user is simply registered, return its jobs, filtered by service
-        :param user: currently logged in user
-        :return: QuerySet
-
-        .. note::
-            Pending jobs are all jobs which are 'Created', 'Prepared', 'Queued', 'Running'
-        """
-        if user is not None:
-            if user.is_superuser or user.is_staff:
-                # return all pending jobs
-                return self.filter(status__in=(
-                    waves.const.JOB_CREATED, waves.const.JOB_PREPARED, waves.const.JOB_QUEUED,
-                    waves.const.JOB_RUNNING))
-            # get only user jobs
-            return self.filter(status__in=(waves.const.JOB_CREATED, waves.const.JOB_PREPARED,
-                                           waves.const.JOB_QUEUED, waves.const.JOB_RUNNING),
-                               client=user)
-        # User is not supposed to be None
-        return self.none()
-
-    def get_created_job(self, extra_filter, user=None):
-        """
-        Return pending jobs for user, according to following access rule:
-        * user is simply registered, return its jobs, filtered by service
-        :param extra_filter: add an extra filter to queryset
-        :param user: currently logged in user
-        :return: QuerySet
-        """
-        if user is not None:
-            self.filter(status=waves.const.JOB_CREATED,
-                        client=user,
-                        **extra_filter).order_by('-created')
-        return self.filter(status=waves.const.JOB_CREATED, **extra_filter).order_by('-created').all()
 
 
 class Job(TimeStampable, SlugAble, UrlMixin):
@@ -608,20 +528,6 @@ class Job(TimeStampable, SlugAble, UrlMixin):
             return fp.read()
 
 
-class JobInputManager(models.Manager):
-    """ JobInput model Manager """
-    def get_by_natural_key(self, job, name):
-        return self.get(job=job, name=name)
-
-
-    def create(self, **kwargs):
-        sin = kwargs.pop('srv_input', None)
-        if sin:
-            assert isinstance(sin, ServiceInput)
-            kwargs.update(dict(name=sin.name, type=sin.type, param_type=sin.param_type, label=sin.label))
-        return super(JobInputManager, self).create(**kwargs)
-
-
 class JobInput(OrderAble, SlugAble):
     """
     Job Inputs is association between a Job, a ServiceInput, setting a value specific for this job
@@ -751,19 +657,6 @@ class JobInput(OrderAble, SlugAble):
         return allow_display_online(self.file_path)
 
 
-class JobOutputManager(models.Manager):
-    """ JobInput model Manager """
-    def get_by_natural_key(self, job, name):
-        return self.get(job=job, _name=name)
-
-    def create(self, **kwargs):
-        sout = kwargs.pop('srv_output', None)
-        if sout:
-            assert isinstance(sout, ServiceOutput)
-            kwargs.update(dict(_name=sout.name, type=sout.type, may_be_empty=sout.may_be_empty))
-        return super(JobOutputManager, self).create(**kwargs)
-
-
 class JobOutput(OrderAble, SlugAble, UrlMixin):
     """ JobOutput is association fro a Job, a ServiceOutput, and the effective value set for this Job
     """
@@ -838,16 +731,6 @@ class JobOutput(OrderAble, SlugAble, UrlMixin):
         return allow_display_online(self.file_path)
 
 
-class JobHistoryManager(models.Manager):
-    def create(self, **kwargs):
-        """ Force 'is_admin' flag for JobAdminHistory models objects
-        :return: a JobAdminHistory object
-        """
-        if 'message' not in kwargs:
-            kwargs['message'] = kwargs.get('job').message
-        return super(JobHistoryManager, self).create(**kwargs)
-
-
 class JobHistory(models.Model):
     """ Represents a job status history event
     """
@@ -870,22 +753,6 @@ class JobHistory(models.Model):
 
     def __str__(self):
         return '%s:%s:%s' % (self.get_status_display(), self.job, self.message) + ('(admin)' if self.is_admin else '')
-
-
-class JobAdminHistoryManager(JobHistoryManager):
-    def get_queryset(self):
-        """
-        Specific query set to filter only :class:`waves.models.jobs.JobAdminHistory` objects
-        :return: QuerySet
-        """
-        return super(JobAdminHistoryManager, self).get_queryset().filter(is_admin=True)
-
-    def create(self, **kwargs):
-        """ Force 'is_admin' flag for JobAdminHistory models objects
-        :return: a JobAdminHistory object
-        """
-        kwargs.update({'is_admin': True})
-        return super(JobAdminHistoryManager, self).create(**kwargs)
 
 
 class JobAdminHistory(JobHistory):

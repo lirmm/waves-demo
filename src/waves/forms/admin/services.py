@@ -2,43 +2,31 @@
 WAVES Service models forms
 """
 from __future__ import unicode_literals
+
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Field
 from django import forms
+from django.core import validators
+from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.forms import ModelForm, Textarea, TextInput
-from django.core import validators
-from crispy_forms.layout import Layout, Div, Field, Button
-from crispy_forms.helper import FormHelper
-from django.core.exceptions import NON_FIELD_ERRORS
-from waves.commands import get_commands_impl_list
-from waves.models.services import *
-from waves.models.samples import ServiceInputSample
+
 import waves.const as const
 import waves.settings
+from waves.commands import get_commands_impl_list
+from waves.models.samples import ServiceInputSample
+from waves.models.services import *
+from waves.models.submissions import ServiceSubmission, RelatedInput, ServiceOutput, ServiceInput
 
 __all__ = ['ServiceForm', 'ServiceCategoryForm', 'ImportForm', 'ServiceSubmissionForm', 'RelatedInputForm',
            'ServiceInputSampleForm', 'ServiceMetaForm', 'ServiceRunnerParamForm', 'ServiceOutputForm',
-           'ServiceInputForm', 'ServiceOutputFromInputSubmissionForm', 'ServiceSubmissionFormSet']
-
-
-class ServiceOutputFromInputSubmissionForm(ModelForm):
-    class Meta:
-        model = ServiceOutputFromInputSubmission
-        fields = '__all__'
-
-    # srv_input = AutoCompleteSelectField('related_input', required=True, help_text="Select related submission input")
-    def clean(self):
-        cleaned_data = super(ServiceOutputFromInputSubmissionForm, self).clean()
-        # print "cleaned_data:", cleaned_data['srv_input'], cleaned_data['srv_input'].mandatory
-        # print "Current instance", self.instance, self.instance.submission
-        # print self.data
-        # print "In form : srv_input ", self.instance.srv_input, ", mandatory ", self.instance.srv_input.mandatory, ', default ', self.instance.srv_input.default
-        return cleaned_data
+           'ServiceInputForm', 'ServiceSubmissionFormSet']
 
 
 class ServiceSubmissionForm(ModelForm):
     class Meta:
         model = ServiceSubmission
-        fields = '__all__'
+        exclude = ['id', 'slug']
         error_messages = {
             NON_FIELD_ERRORS: {
                 'unique_together': "Only one submission as 'default' for service",
@@ -192,7 +180,7 @@ class ServiceOutputForm(forms.ModelForm):
     class Meta:
         model = ServiceOutput
         exclude = ['id']
-        fields = ['name', 'from_input', 'description', 'short_description']
+        fields = ['name', 'related_from_input', 'description', 'short_description']
         widgets = {
             'description': Textarea(attrs={'rows': 1, 'class': 'input-xlarge'}),
             'short_description': Textarea(attrs={'rows': 1, 'class': 'input-xlarge'}),
@@ -201,16 +189,6 @@ class ServiceOutputForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(ServiceOutputForm, self).clean()
         return cleaned_data
-        # print self.cleaned_data
-        count_related_input = self.instance.from_input_submission.count()
-        submission_count = self.instance.service.submissions.count()
-
-        # print "comparing ", count_related_input, submission_count
-        if self.instance.from_input and count_related_input < submission_count:
-            raise ValidationError('If you set a pattern, please configure related input for each submission')
-        if 0 < count_related_input < submission_count:
-            raise ValidationError(
-                'If output is valuated from an input, please configure related input for each submission')
 
 
 class ServiceForm(forms.ModelForm):
@@ -257,4 +235,4 @@ class ServiceRunnerParamForm(ModelForm):
 class ServiceCategoryForm(ModelForm):
     class Meta:
         model = ServiceCategory
-        fields = ['name', 'parent', 'api_name', 'short_description', 'description', 'ref']
+        fields = '__all__'

@@ -12,8 +12,9 @@ from waves.api.serializers.services import ServiceSerializer as BaseServiceSeria
 from waves.models.serializers import RelatedSerializerMixin
 from .runners import RunnerSerializer, RunnerParamSerializer
 from .categories import CategorySerializer
-from waves.models import Service, ServiceOutput, ServiceOutputFromInputSubmission, ServiceMeta, \
-    ServiceExitCode, ServiceRunnerParam, ServiceSubmission, ServiceInput, RelatedInput, Runner
+from waves.models.services import Service, ServiceMeta, ServiceExitCode, ServiceRunnerParam
+from waves.models.runners import Runner
+from waves.models.submissions import ServiceSubmission, ServiceInput, RelatedInput, ServiceOutput
 
 __all__ = ['ServiceMetaSerializer', 'ServiceSubmissionSerializer', 'ExitCodeSerializer', 'ServiceSerializer']
 
@@ -90,22 +91,11 @@ class SubmissionOutputSerializer(serializers.ModelSerializer):
         return ServiceSubmission(api_name=validated_data.get('api_name'))
 
 
-class ServiceOutputFromInputSubmissionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ServiceOutputFromInputSubmission
-        fields = ('srv_input', 'submission')
-
-    srv_input = ServiceInputSerializer(many=False, fields=('name',))
-    submission = SubmissionOutputSerializer(many=False)
-
-
 class ServiceOutputSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceOutput
-        fields = ('order', 'name', 'related_from_input', 'ext', 'may_be_empty', 'from_input_submission', 'description',
+        fields = ('order', 'name', 'related_from_input', 'ext', 'may_be_empty', 'description',
                   'short_description', 'from_input', 'file_pattern')
-
-    from_input_submission = ServiceOutputFromInputSubmissionSerializer(many=True, required=False)
 
     def create(self, validated_data):
         # retrieve related input

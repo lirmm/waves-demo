@@ -20,11 +20,14 @@ LOGGING = {
     'disable_existing_loggers': True,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(name)s.%(funcName)s line %(lineno)s %(message)s',
+            'format': '[%(levelname)s][%(asctime)s][%(name)s.%(funcName)s:line %(lineno)s] - %(message)s',
             'datefmt': "%d/%b/%Y %H:%M:%S"
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '[%(levelname)s] - %(message)s'
+        },
+        'trace': {
+            'format': '%(message)s'
         },
     },
     'handlers': {
@@ -32,6 +35,12 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
+        'trace_import': {
+            'class': 'logging.FileHandler',
+            'mode': 'w',
+            'filename': join(LOG_ROOT, 'trace_import.log'),
+            'formatter': 'trace'
+        }
     },
     'loggers': {
         'root': {
@@ -41,11 +50,17 @@ LOGGING = {
         'django': {
             'handlers': ['console'],
             'propagate': False,
-            'level': 'INFO',
+            'level': 'WARNING',
         },
         'waves': {
             'handlers': ['console'],
             'level': 'DEBUG',
+            'propagate': False,
+        },
+        'waves.adaptors.importers':
+        {
+            'handlers': ['trace_import'],
+            'level': 'INFO',
             'propagate': False,
         },
     }
@@ -67,3 +82,4 @@ WAVES_TEST_SSH_USER_PASS = env.str('WAVES_TEST_SSH_USER_PASS', default='your-tes
 WAVES_TEST_SSH_PUB_KEY = env.str('WAVES_TEST_SSH_PUB_KEY', default='path-to-ssh-user-public-key')
 WAVES_TEST_SSH_PRI_KEY = env.str('WAVES_TEST_SSH_PRI_KEY', default='path-to-ssh-user-private-key')
 WAVES_TEST_SSH_PASS_KEY = env.str('WAVES_TEST_SSH_PASS_KEY', default='your-test-ssh-user-key-pass-phrase')
+WAVES_ADAPTORS_MODS = env.list('WAVES_ADAPTORS_MODS')

@@ -131,8 +131,7 @@ class RunnerTestConnectionView(JSONDetailView):
         context = {'connection_result': 'Failed :'}
         try:
             self.object.connect()
-            print self.object.dump_config()
-            context['connection_result'] = 'Success !' if self.object.connected else 'Failed :'
+            context['connection_result'] = 'Connection Success !' if self.object.connected else 'Failed :'
         except AdaptorConnectException as e:
-            context['connection_result'] += '%s ' % e
+            context['connection_result'] += 'Connection Error: <br/> %s ' % e
         return context

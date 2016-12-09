@@ -11,7 +11,8 @@ from waves.tests.base import WavesBaseTestCase
 from waves.adaptors.base import JobRunnerAdaptor
 from waves.adaptors.exceptions import *
 from waves.exceptions.jobs import *
-from waves.models import Service, Job, JobInput, Runner, RunnerParam, ServiceSubmission
+from waves.models import Service, Job, JobInput, Runner, RunnerParam
+from waves.models.submissions import ServiceSubmission
 from waves.tests.mocks.adaptor import MockJobRunnerAdaptor
 import waves.settings
 import logging

@@ -20,6 +20,7 @@ class RunnerParamInline(TabularInline):
     extra = 0
     fields = ['name', 'prevent_override', 'default']
     readonly_fields = ('name',)
+    classes = ('collapse grp-collapse grp-closed',)
 
     def has_delete_permission(self, request, obj=None):
         """ No delete permission for runners params
@@ -34,7 +35,7 @@ class RunnerParamInline(TabularInline):
         return False
 
 
-class RunnerAdmin(ExportInMassMixin, MarkPublicInMassMixin):
+class RunnerAdmin(ExportInMassMixin):
     """ Admin for Job Runner """
     model = Runner
     form = RunnerForm
@@ -42,13 +43,17 @@ class RunnerAdmin(ExportInMassMixin, MarkPublicInMassMixin):
         RunnerParamInline,
     )
 
-    list_display = ('name', 'clazz', 'available', 'short_description')
-    list_filter = ('name', 'available')
+    list_display = ('name', 'clazz', 'short_description')
+    list_filter = ('name', )
     fieldsets = [
         ('General', {
-            'fields': ['name', 'available', 'clazz', 'description', 'update_init_params']
-        }
-         ),
+            'fields': ['name', 'clazz', 'update_init_params']
+
+        }),
+        ('Details', {
+            'fields': ['short_description', 'description'],
+            'classes': ('collapse grp-collapse grp-closed',),
+        }),
     ]
 
     def save_model(self, request, obj, form, change):

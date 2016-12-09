@@ -28,7 +28,7 @@ build
 *.log
 
 # Environment variables
-config/waves.env
+docs/user_doc/config/waves.env
 
 # Django stuff:
 *.mo

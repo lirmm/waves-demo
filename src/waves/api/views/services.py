@@ -8,7 +8,8 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.core.exceptions import ValidationError
 from rest_framework.decorators import detail_route
-from waves.models import Service, Job, ServiceSubmission
+from waves.models import Service, Job
+from waves.models.submissions import ServiceSubmission
 from waves.exceptions.jobs import JobException
 from waves.api.serializers import ServiceSerializer, JobSerializer, ServiceFormSerializer, ServiceMetaSerializer, \
     ServiceSubmissionSerializer

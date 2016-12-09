@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 
 import environ
 # monkey patch to be sure saga is loaded first (before any logging)
-import saga
 from os.path import join, dirname
 from django.conf import settings
 
