@@ -16,7 +16,7 @@ from django.contrib.auth.signals import user_logged_in
 from ipware.ip import get_real_ip
 from waves.models.base import ApiAble
 from waves.models.jobs import Job, JobHistory, JobAdminHistory, JobOutput
-from waves.models.samples import ServiceInputSample
+from waves.models import ServiceInputSample
 from waves.models.services import *
 from waves.models.submissions import *
 from waves.models.runners import Runner, RunnerParam
@@ -202,8 +202,8 @@ def runner_post_save_handler(sender, instance, created, **kwargs):
 def runner_param_pre_save_handler(sender, instance, **kwargs):
     """ Runner param pre save handler """
     if instance.name.startswith('crypt_') and instance.default:
-        from waves.utils.encrypt import EncryptedValue
-        instance.default = EncryptedValue.encrypt(instance.default)
+        from waves.utils.encrypt import Encrypt
+        instance.default = Encrypt.encrypt(instance.default)
 
 
 @receiver(post_save, sender=RunnerParam)

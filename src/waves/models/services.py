@@ -18,7 +18,7 @@ from waves.models.profiles import WavesProfile
 from waves.models.runners import RunnerParam, Runner
 
 logger = logging.getLogger(__name__)
-__all__ = ['ServiceRunnerParam', 'ServiceCategory', 'Service', 'ServiceExitCode', 'ServiceMeta']
+__all__ = ['ServiceRunnerParam', 'ServiceCategory', 'Service', 'ServiceMeta']
 
 
 class ServiceRunnerParam(models.Model):
@@ -31,7 +31,7 @@ class ServiceRunnerParam(models.Model):
         verbose_name = 'Service\'s adaptor init param'
         unique_together = ('service', 'param')
 
-    service = models.ForeignKey('Service', null=False, related_name='service_run_params', on_delete=models.CASCADE,
+    service = models.ForeignKey('waves.Service', null=False, related_name='service_run_params', on_delete=models.CASCADE,
                                 help_text='Runner init param for this service')
     param = models.ForeignKey(RunnerParam, null=False, on_delete=models.CASCADE, related_name='param_srv',
                               help_text='Initial adaptor param')
@@ -318,24 +318,6 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin):
         self.save()
 
 
-class ServiceExitCode(models.Model):
-    """ Services Extended exit code, when non 0/1 usual ones"""
-    class Meta:
-        db_table = 'waves_service_exitcode'
-        verbose_name = 'Service Exit Code'
-        unique_together = ('exit_code', 'service')
-
-    exit_code = models.IntegerField('Exit code value')
-    message = models.CharField('Exit code message', max_length=255)
-    service = models.ForeignKey(Service, related_name='service_exit_codes',
-                                on_delete=models.CASCADE)
-
-    def duplicate(self, service):
-        self.pk = None
-        self.service = service
-        return self
-
-
 class ServiceMeta(OrderAble, DescribeAble):
     """
     Represents all meta information associated with a ATGC service service.
@@ -358,3 +340,6 @@ class ServiceMeta(OrderAble, DescribeAble):
         self.service = service
         self.save()
         return self
+
+    def __str__(self):
+        return '%s [%s]' % (self.title, self.type)

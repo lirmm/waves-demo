@@ -14,7 +14,7 @@ from .runners import RunnerSerializer, RunnerParamSerializer
 from .categories import CategorySerializer
 from waves.models.services import Service, ServiceMeta, ServiceExitCode, ServiceRunnerParam
 from waves.models.runners import Runner
-from waves.models.submissions import ServiceSubmission, ServiceInput, RelatedInput, ServiceOutput
+from waves.models.submissions import ServiceSubmission, ServiceInput, RelatedInput, ServiceOutput, ServiceExitCode
 
 __all__ = ['ServiceMetaSerializer', 'ServiceSubmissionSerializer', 'ExitCodeSerializer', 'ServiceSerializer']
 

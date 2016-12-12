@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 import waves.const
 from waves.models.base import DescribeAble, ExportAbleMixin
 from waves.models.managers.runners import RunnerManager, RunnerParamManager
-from waves.utils.encrypt import EncryptedValue
+from waves.utils.encrypt import Encrypt
 
 __all__ = ['Runner', 'RunnerParam']
 
@@ -101,7 +101,6 @@ class RunnerParam(models.Model):
     """
     Parameters used by related class object (see: waves.runners) for self initialization
     """
-
     class Meta:
         db_table = 'waves_runner_param'
         unique_together = ('name', 'runner')
@@ -137,5 +136,5 @@ class RunnerParam(models.Model):
     def from_db(cls, db, field_names, values):
         instance = super(RunnerParam, cls).from_db(db, field_names, values)
         if instance.name.startswith('encrypt_'):
-            instance.default = EncryptedValue.decrypt(instance.default)
+            instance.default = Encrypt.decrypt(instance.default)
         return instance

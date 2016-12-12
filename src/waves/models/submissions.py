@@ -11,8 +11,14 @@ import waves.const
 from waves.models import TimeStampable, ApiAble, OrderAble, SlugAble, Service, DescribeAble
 from waves.models.managers.submissions import SubmissionManager
 from waves.models.services import logger
+from waves.models.storage import waves_storage
 
-__all__ = ['ServiceSubmission', 'ServiceInput', 'ServiceOutput', 'RelatedInput']
+__all__ = ['ServiceSubmission', 'ServiceInput', 'ServiceOutput', 'RelatedInput', 'ServiceExitCode',
+           'ServiceInputSample', 'ServiceSampleDependentInput']
+
+
+def service_sample_directory(instance, filename):
+    return 'sample/{0}/{1}'.format(instance.service.api_name, filename)
 
 
 class ServiceSubmission(TimeStampable, ApiAble, OrderAble, SlugAble):
@@ -70,12 +76,10 @@ class ServiceSubmission(TimeStampable, ApiAble, OrderAble, SlugAble):
         return self
 
 
-class BaseInput(DescribeAble, TimeStampable, OrderAble):
+class SubmissionInput(DescribeAble, TimeStampable, OrderAble):
+    """ A classic submission param to setup a service run """
     class Meta:
         unique_together = ('label', 'name', 'default', 'service')
-        abstract = True
-
-    # _base_manager = models.Manager()
 
     label = models.CharField('Label', max_length=100, blank=False, null=False, help_text='Input displayed label')
     name = models.CharField('Name', max_length=50, blank=False, null=False, help_text='Input runner\'s job param name')
@@ -101,6 +105,17 @@ class BaseInput(DescribeAble, TimeStampable, OrderAble):
                                help_text='Input list display mode (for type list only)')
     edam_formats = models.CharField('Edam format(s)', max_length=255, null=True, blank=True,
                                     help_text="comma separated list of supported edam format")
+    service = models.ForeignKey(ServiceSubmission, related_name='service_inputs', on_delete=models.CASCADE)
+    when_value = models.CharField('When condition',
+                                  max_length=255,
+                                  null=False,
+                                  blank=False,
+                                  help_text='Input is treated only for this parent value')
+    related_to = models.ForeignKey('waves.SubmissionInput',
+                                   related_name="dependents",
+                                   on_delete=models.CASCADE,
+                                   null=False,
+                                   help_text='Input is associated to')
     value = None
 
     def natural_key(self):
@@ -109,7 +124,7 @@ class BaseInput(DescribeAble, TimeStampable, OrderAble):
     def save(self, *args, **kwargs):
         if not self.short_description and self.description:
             self.short_description = strip_tags(self.description)
-        super(BaseInput, self).save(*args, **kwargs)
+        super(SubmissionInput, self).save(*args, **kwargs)
 
     def get_choices(self):
         choice_list = []
@@ -173,13 +188,10 @@ class BaseInput(DescribeAble, TimeStampable, OrderAble):
         return self
 
 
-class ServiceInput(BaseInput):
+class ServiceInput(SubmissionInput):
     class Meta:
         verbose_name = 'Base Input parameter'
-        db_table = 'waves_service_base_input'
-        unique_together = ('name', 'service', 'editable', 'param_type')
-
-    service = models.ForeignKey(ServiceSubmission, related_name='service_inputs', on_delete=models.CASCADE)
+        proxy = True
 
     def save(self, *args, **kwargs):
         if self.type == waves.const.TYPE_LIST:
@@ -248,21 +260,11 @@ class ServiceInput(BaseInput):
         return self
 
 
-class RelatedInput(BaseInput):
+class RelatedInput(SubmissionInput):
     class Meta:
         verbose_name = 'Dependent parameter'
         db_table = 'waves_service_related_input'
-
-    when_value = models.CharField('When condition',
-                                  max_length=255,
-                                  null=False,
-                                  blank=False,
-                                  help_text='Input is treated only for this parent value')
-    related_to = models.ForeignKey(ServiceInput,
-                                   related_name="dependent_inputs",
-                                   on_delete=models.CASCADE,
-                                   null=False,
-                                   help_text='Input is associated to')
+        proxy = True
 
     def __str__(self):
         return '%s (%s - %s - issued from %s)' % (self.label, self.name, self.type, self.related_to.name)
@@ -294,9 +296,9 @@ class ServiceOutput(TimeStampable, OrderAble, DescribeAble):
 
     label = models.CharField('Label', max_length=255, null=True, blank=True, help_text="Label")
     name = models.CharField('Name', max_length=200, null=False, blank=False, help_text='Output file name')
-    service = models.ForeignKey(Service, related_name='service_outputs', on_delete=models.CASCADE,
+    service = models.ForeignKey(ServiceSubmission, related_name='outputs', on_delete=models.CASCADE,
                                 help_text='Output associated service')
-    related_from_input = models.ForeignKey('ServiceInput', null=True, blank=True,
+    related_from_input = models.ForeignKey(ServiceInput, null=True, blank=True,
                                            related_name='to_output',
                                            help_text='Output is valued from an input')
     ext = models.CharField('File extension', max_length=5, null=False, default="txt")
@@ -334,3 +336,47 @@ class ServiceOutput(TimeStampable, OrderAble, DescribeAble):
         self.related_from_input = related_to.duplicate(self)
         self.save()
         return self
+
+
+class ServiceExitCode(models.Model):
+    """ Services Extended exit code, when non 0/1 usual ones"""
+    class Meta:
+        db_table = 'waves_service_exitcode'
+        verbose_name = 'Service Exit Code'
+        unique_together = ('exit_code', 'service')
+
+    exit_code = models.IntegerField('Exit code value')
+    message = models.CharField('Exit code message', max_length=255)
+    service = models.ForeignKey(Service, related_name='service_exit_codes',
+                                on_delete=models.CASCADE)
+
+    def duplicate(self, service):
+        self.pk = None
+        self.service = service
+        return self
+
+
+class ServiceInputSample(models.Model):
+    class Meta:
+        ordering = ['name']
+        db_table = 'waves_service_sample'
+        unique_together = ('name', 'input', 'service')
+
+    name = models.CharField('Name', max_length=200, null=False)
+    file = models.FileField('File', upload_to=service_sample_directory, storage=waves_storage)
+    input = models.ForeignKey('waves.ServiceInput', on_delete=models.CASCADE, related_name='input_samples',
+                              help_text='Associated input')
+    service = models.ForeignKey('waves.ServiceSubmission', on_delete=models.CASCADE, related_name='services_sample',
+                                null=True)
+    dependent_inputs = models.ManyToManyField('waves.ServiceInput', through='waves.ServiceSampleDependentInput',
+                                              blank=True)
+
+
+class ServiceSampleDependentInput(models.Model):
+    class Meta:
+        db_table = 'waves_sample_dependent_input'
+
+    sample = models.ForeignKey('waves.ServiceInputSample', on_delete=models.CASCADE)
+    dependent_input = models.ForeignKey('waves.ServiceInput', on_delete=models.CASCADE)
+    set_value = models.CharField('When sample selected, set value to ', max_length=200, null=False, blank=False)
+
