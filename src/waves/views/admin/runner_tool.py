@@ -92,7 +92,7 @@ class RunnerImportToolView(FormView):
     def post(self, request, *args, **kwargs):
         if request.is_ajax():
             self.get_object(request)
-            if self.object is None:git
+            if self.object is None:
                 return super(FormView, self).get(request, *args, **kwargs)
             self.tool_list = self.get_tool_list()
             form = self.get_form()
