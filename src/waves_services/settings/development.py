@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
 
 import sys
-import logging.config
 from .base import *
+import logging.config
+
 
 DEBUG = True
 DEBUG404 = True

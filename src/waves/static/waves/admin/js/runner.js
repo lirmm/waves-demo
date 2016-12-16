@@ -27,18 +27,24 @@
             e.preventDefault();
             console.log('test_connect clicked ' + $(this).attr('href'));
             $.getJSON($(this).attr('href'), function (data) {
-                console.log(data);
-                $('#connect_result .modal-content').html(data['connection_result']);
-                console.log($('#connect_result .modal-content'));
-                $('#connect_result').dialog({
-                    modal: true,
-                    position: {my: 'top', at: 'top+100', of: window},
-                    minWidth: 300,
-                    resizable: false,
-                    dialogClass: "tool_import_modal",
-                    title: "Connection Test"
-                }).dialog('open');
+                $('#modal_alert .modal-content .modal-header > h4').html('Connection test');
+                $('#modal_alert .modal-content .modal-body').html(data['connection_result']);
+                $('#modal_alert').modal('toggle');
             })
+        });
+        $('#open_import_form').click(function (e) {
+            console.log('Launch an import ' + $(this).attr('href'));
+            e.preventDefault();
+            $('#popup_modal_content').load($(this).attr('href'), function () {
+                console.log('loaded')
+                $('#popup_modal').modal('toggle');
+            });
+        });
+        $('#popup_modal').on('toggle', function () {
+            console.log('show raised');
+            $(this).find('.modal-body').css({
+                'max-height': '100%'
+            });
         });
     })
 })(jQuery || django.jQuery);

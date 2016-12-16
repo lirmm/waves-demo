@@ -31,7 +31,7 @@ def sample_runner(runner_impl):
         Runner model instance
     """
     runner_model = Runner.objects.create(name=runner_impl.__class__.__name__,
-                                         description='Sample Runner %s' % runner_impl.__class__.__name__,
+                                         description='SubmissionSample Runner %s' % runner_impl.__class__.__name__,
                                          clazz='%s.%s' % (runner_impl.__module__, runner_impl.__class__.__name__),
                                          available=True)
     for name, value in runner_impl.init_params.items():
@@ -48,9 +48,9 @@ def sample_job(service):
     Returns:
         Job model instance
     """
-    job = Job.objects.create(title='Sample Job', service=service)
+    job = Job.objects.create(title='SubmissionSample Job', service=service)
     srv_submission = service.default_submission
-    for srv_input in srv_submission.service_inputs.all():
+    for srv_input in srv_submission.submission_inputs.all():
         job.job_inputs.add(JobInput.objects.create(srv_input=srv_input, job=job, value="fake_value"))
     return job
 
@@ -73,7 +73,7 @@ class TestBaseJobRunner(WavesBaseTestCase):
         except AttributeError:
             self.adaptor = MockJobRunnerAdaptor()
         self.runner_model = sample_runner(self.adaptor)
-        self.service = Service.objects.create(name="Sample Service", run_on=self.runner_model)
+        self.service = Service.objects.create(name="SubmissionSample Service", runner=self.runner_model)
         self.service.submissions.add(ServiceSubmission.objects.create(label='samplesub', available_online=True,
                                                                       available_api=True, service=self.service))
         self.current_job = None
@@ -171,7 +171,7 @@ class TestBaseJobRunner(WavesBaseTestCase):
             logger.debug("History timestamp %s", localtime(history.timestamp))
             logger.debug("Job status timestamp %s", self.current_job.status_time)
             self.assertTrue(self.current_job.results_available)
-            for output_job in self.current_job.job_outputs.filter(may_be_empty=False):
+            for output_job in self.current_job.job_outputs.filter(optional=False):
                 # TODO reactivate job output verification as soon as possible
                 if not os.path.isfile(output_job.file_path):
                     logger.warning("Job <<%s>> did not output expected %s (test_data/jobs/%s/) ",

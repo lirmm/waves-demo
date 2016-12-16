@@ -11,17 +11,6 @@
     {% endif %}
     {{ block.super }}
 {% endblock %}
-{% block modal_content %}
-    <div id="connect_result"
-         class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-
-            </div>
-        </div>
-    </div>
-{% endblock %}
 {% block object-tools-items %}
     <li>
         <a href="{% url 'admin:waves_service_changelist' %}?run_on__id__exact={{ original.pk }}"
@@ -40,9 +29,7 @@
         <li>
             <a type="button" href="{% url 'waves:runner_test_connection' original.pk %}"
                title="Connection Test"
-               class="btn btn-high btn-info"
-               data-toggle="modal"
-               data-target="#form-modal"
+               class="button"
                id="test_connect">
                 Test Connection
             </a>
@@ -51,12 +38,12 @@
     {% if original.adaptor.importer_clazz %}
         <li>
             <a type="button" href="{% url 'waves:runner_import_form' original.pk %}"
-               target="_blank"
                title="Import from adapter"
-               class="js-popup-link btn btn-high btn-info"
+               class="button"
                data-toggle="modal"
-               data-target="#connect_result"
-               id="launch_import">
+               data-target="#popup_modal_content"
+               data-tooltip
+                id="open_import_form">
                 Import a Service
             </a>
         </li>

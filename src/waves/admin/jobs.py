@@ -91,23 +91,22 @@ class JobAdmin(WavesTabbedModelAdmin):
         JobHistoryInline,
         JobInputInline,
         JobOutputInline,
+        # TODO add jobOutputExitCode
+        # TODO add JobRunDetails
     ]
     actions = [mark_rerun, delete_model]
-    list_filter = ('status', 'service', 'client', 'service__run_on')
+    list_filter = ('status', 'submission__service', 'client', 'submission__service__runner')
     list_display = ('get_slug', 'get_colored_status', 'service', 'get_run_on', 'get_client', 'created', 'updated')
     list_per_page = 30
-
-    search_fields = ('client__email', 'service__name', 'service__run_on__clazz', 'service__run_on__name')
-
-    # Suit form params (not used by default)
-    suit_form_tabs = (('general', 'General'), ('inputs', 'Inputs'), ('outputs', 'Outputs'), ('history', 'History'))
-
-    # grappelli list filter
-    change_list_template = "admin/change_list_filter_sidebar.html"
-    change_form_template = 'admin/waves/job/' + WavesTabbedModelAdmin.admin_template
+    search_fields = ('client__email', 'submission__service_name', 'submission__service__runner')
     readonly_fields = ('title', 'slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on',
                        'command_line')
 
+    # Suit form params (not used by default)
+    suit_form_tabs = (('general', 'General'), ('inputs', 'Inputs'), ('outputs', 'Outputs'), ('history', 'History'))
+    # grappelli list filter
+    # change_list_template = "admin/change_list_filter_sidebar.html"
+    # change_form_template = 'admin/waves/job/' + WavesTabbedModelAdmin.admin_template
     """
     fieldsets = [
         (None, {'classes': ('suit-tab', 'suit-tab-general',),
@@ -189,7 +188,7 @@ class JobAdmin(WavesTabbedModelAdmin):
         return form
 
     def get_run_on(self, obj):
-        return obj.service.run_on.name
+        return obj.service.runner.name
 
     def get_client(self, obj):
         return obj.client.user.email if obj.client else "Anonymous"

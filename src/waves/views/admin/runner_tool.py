@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from waves.models import Runner
 from django.views.generic import FormView
+from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 from crispy_forms.utils import render_crispy_form
 from django.core.exceptions import ValidationError
@@ -13,9 +14,12 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+from waves.models import Service, ServiceSubmission, SubmissionData
+
 from waves.forms.admin import ImportForm
 import logging
 from json_view import JSONDetailView
+
 logger = logging.getLogger(__name__)
 
 
@@ -29,6 +33,7 @@ class RunnerImportToolView(FormView):
     importer = None
     tool_list = ()
     object = None
+    context_object_name = 'context_object'
 
     def get_object(self, request):
         try:
@@ -39,17 +44,25 @@ class RunnerImportToolView(FormView):
 
     def get_context_data(self, **kwargs):
         context = super(FormView, self).get_context_data(**kwargs)
+        context['context_object_name'] = self.object.name
         return context
 
     def get_success_url(self):
         return reverse('admin:waves_service_change', args=[self.service.id])
+
+    def get_tool_list(self):
+        return [(x[0], [(y.remote_service_id, y.name + ' ' + y.version) for y in x[1]]) for x in
+                self.object.importer.list_services()]
 
     def get(self, request, *args, **kwargs):
         self.get_object(request)
         if self.object is None:
             return super(FormView, self).get(request, *args, **kwargs)
         try:
-            self.tool_list = self.object.importer.list_all_remote_services()
+            # print self.object.importer.list_services()
+            # base_list = self.object.importer.list_services()
+            self.tool_list = self.get_tool_list()
+            # self.tool_list = self.object.importer.list_services()
             if len(self.tool_list) == 0:
                 messages.info(request, "No tool retrieved")
         except RunnerException as exc:
@@ -67,7 +80,7 @@ class RunnerImportToolView(FormView):
     def get_form_kwargs(self):
         kwargs = super(FormView, self).get_form_kwargs()
         extra_kwargs = {
-            'tool': self.tool_list,
+            'tool': self.tool_list
         }
         extra_kwargs.update(kwargs)
         return extra_kwargs
@@ -75,27 +88,39 @@ class RunnerImportToolView(FormView):
     def remote_service_id(self, request):
         return request.POST.get('tool')
 
+
     def post(self, request, *args, **kwargs):
         if request.is_ajax():
             self.get_object(request)
-            if self.object is None:
+            if self.object is None:git
                 return super(FormView, self).get(request, *args, **kwargs)
-            self.tool_list = self.object.importer.list_all_remote_services()
+            self.tool_list = self.get_tool_list()
             form = self.get_form()
             if form.is_valid():
                 logger.debug('Form is valid')
                 try:
-                    self.service = self.object.importer.import_remote_service(self.remote_service_id(request),
-                                                                              self.object)
-                    self.service.created_by = self.request.user.profile
-                    self.service.category = form.cleaned_data['category']
-                    self.service.save()
+                    with transaction.atomic():
+                        service_dto = self.object.importer.import_service(self.remote_service_id(request))
+                        self.service = Service.objects.create()
+                        self.service.from_dto(service_dto)
+                        self.service.runner = self.object
+                        self.service.created_by = self.request.user.profile
+                        self.service.category = form.cleaned_data['category']
+                        submission = ServiceSubmission.objects.create(label='Imported submission', service=self.service)
+                        self.service.submissions.add(submission)
+                        for inp in service_dto.inputs:
+                            new_input = SubmissionData.objects.create(submission=submission)
+                            new_input.from_dto(inp)
+                            new_input.save()
+                            submission.submission_inputs.add(new_input)
+                        self.service.save()
                     data = {
                         'url_redirect': reverse('admin:waves_service_change', args=[self.service.id])
                     }
                     messages.add_message(request, level=messages.SUCCESS, message='Parameters successfully imported')
                     return JsonResponse(data, status=200)
                 except Exception as e:
+                    print e
                     form.add_error(None, ValidationError(message="Import Error: %s" % e))
                     form_html = render_crispy_form(form)
                     return JsonResponse({'form_html': form_html}, status=500)
@@ -120,18 +145,22 @@ class RunnerExportView(ModelExportView):
 class RunnerTestConnectionView(JSONDetailView):
     template_name = None
     model = Runner
+    runner_model = None
 
     def get_object(self, queryset=None):
-        runner_model = super(RunnerTestConnectionView, self).get_object(queryset)
-        if runner_model:
-            return runner_model.adaptor
+        self.runner_model = super(RunnerTestConnectionView, self).get_object(queryset)
+        if self.runner_model:
+            return self.runner_model.adaptor
         return None
 
     def get_data(self, context):
         context = {'connection_result': 'Failed :'}
+        message = '<ul class="messagelist"><li class="{}">{}</li></ul>'
         try:
             self.object.connect()
-            context['connection_result'] = 'Connection Success !' if self.object.connected else 'Failed :'
+            context['connection_result'] = message.format('success',
+                                                          'Connexion successful to %s' %
+                                                          self.runner_model.name)
         except AdaptorConnectException as e:
-            context['connection_result'] += 'Connection Error: <br/> %s ' % e
+            context['connection_result'] = message.format('error', e)
         return context

@@ -13,89 +13,51 @@ from mptt.models import MPTTModel, TreeForeignKey
 import waves.const
 import waves.settings
 from waves.models.base import *
-from waves.models.managers.services import ServiceCategoryManager, ServiceManager
+from waves.models.managers.services import ServiceCategoryManager, ServiceManager, ServiceRunParamManager
 from waves.models.profiles import WavesProfile
-from waves.models.runners import RunnerParam, Runner
+from waves.models.runners import AdaptorInitParam, Runner
 
 logger = logging.getLogger(__name__)
-__all__ = ['ServiceRunnerParam', 'ServiceCategory', 'Service', 'ServiceMeta']
+__all__ = ['ServiceRunParam', 'ServiceCategory', 'Service', 'ServiceMeta']
 
 
-class ServiceRunnerParam(models.Model):
-    """
-    Defined runner param for Service model objects
-    """
+class ServiceRunParam(AdaptorInitParam):
+    """ Defined runner param for Service model objects """
 
     class Meta:
         db_table = 'waves_service_runner_param'
-        verbose_name = 'Service\'s adaptor init param'
-        unique_together = ('service', 'param')
+        verbose_name = 'Run configuration'
+        verbose_name_plural = 'Default run configuration'
+        unique_together = ('service', 'name')
 
-    service = models.ForeignKey('waves.Service', null=False, related_name='service_run_params', on_delete=models.CASCADE,
-                                help_text='Runner init param for this service')
-    param = models.ForeignKey(RunnerParam, null=False, on_delete=models.CASCADE, related_name='param_srv',
-                              help_text='Initial adaptor param')
-    _value = models.CharField('Param value', max_length=255, null=True, blank=True, db_column='value',
-                              help_text='Runner init param value for this service')
-
-    def natural_key(self):
-        return self.service.natural_key(), self.param.natural_key()
-
-    @property
-    def value(self):
-        """ Getter for current Service Runner Param, return Runner default if not set """
-        return self._value if self._value is not None else self.param.default
-
-    def clean(self):
-        """
-        Check if value or related runner param has a default
-        :return:
-        """
-        if self.param and not (self._value or self.param.default):
-            raise ValidationError({'_value': 'You must set a value'})
-
-    def duplicate(self, service):
-        self.pk = None
-        self.service = service
-        return self
+    objects = ServiceRunParamManager()
+    service = models.ForeignKey('Service', null=False, related_name='service_run_params', on_delete=models.CASCADE)
 
 
 class ServiceCategory(MPTTModel, OrderAble, DescribeAble, ApiAble):
-    """
-    Categorized services
-    """
+    """ Service category """
 
     class Meta:
         db_table = 'waves_service_category'
-        verbose_name = 'Service\'s category'
-        verbose_name_plural = 'Services\' categories'
         unique_together = ('api_name',)
         ordering = ['name']
+        verbose_name_plural = "Categories"
+        verbose_name = "Category"
 
     class MPTTMeta:
         order_insertion_by = ['name']
 
     objects = ServiceCategoryManager()
-    name = models.CharField('Category Name',
-                            null=False,
-                            blank=False,
-                            max_length=255,
-                            help_text='Category displayed name')
-    ref = models.URLField('Reference',
-                          null=True,
-                          blank=True,
-                          help_text='Category description reference')
-    parent = TreeForeignKey('self', null=True, blank=True, help_text='This is parent category',
+    name = models.CharField('Category Name', null=False, blank=False, max_length=255, help_text='Category name')
+    ref = models.URLField('Reference', null=True, blank=True, help_text='Category online reference')
+    parent = TreeForeignKey('self', null=True, blank=True, help_text='Parent category',
                             related_name='children_category', db_index=True)
-
-    def natural_key(self):
-        return (self.api_name,)
 
     def __str__(self):
         return self.name
 
 
-class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin):
+class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin, DTOAble):
     """
     Represents a service on the platform
     """
@@ -112,15 +74,12 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin):
     objects = ServiceManager()
     _run_on = None
     __adaptor = None
-
     # fields
     name = models.CharField('Service name', max_length=255, help_text='Service displayed name')
     version = models.CharField('Current version', max_length=10, null=True, blank=True, default='1.0',
                                help_text='Service displayed version')
-    run_on = models.ForeignKey(Runner, related_name='runs', null=True, blank=True, on_delete=models.SET_NULL,
+    runner = models.ForeignKey(Runner, related_name='runs', null=True, blank=False, on_delete=models.SET_NULL,
                                help_text='Service job runs adapter')
-    runner_params = models.ManyToManyField(RunnerParam, through=ServiceRunnerParam, related_name='service_init_params',
-                                           help_text='Runner initial parameter')
     restricted_client = models.ManyToManyField(WavesProfile, related_name='restricted_services', blank=True,
                                                verbose_name='Restricted clients', db_table='waves_service_client',
                                                help_text='By default access is granted to everyone, '
@@ -133,29 +92,31 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin):
                                  help_text='Service online status')
     api_on = models.BooleanField('Available on API', default=True, help_text='Service is available for api calls')
     web_on = models.BooleanField('Available on WEB', default=True, help_text='Service is available for web front')
-    email_on = models.BooleanField('Notify results to client', default=True,
+    email_on = models.BooleanField('Notify results', default=True,
                                    help_text='This service sends notification email')
     partial = models.BooleanField('Dynamic outputs', default=False,
                                   help_text='Set whether some service outputs are dynamic (not known in advance)')
     created_by = models.ForeignKey(WavesProfile, on_delete=models.SET_NULL, null=True)
     remote_service_id = models.CharField('Remote service tool ID', max_length=255, editable=False, null=True)
-    edam_topics = models.TextField('Edam topics', null=True, help_text='Comma separated list of Edam ontology topics')
-    edam_operations = models.TextField('Edam operations', null=True,
+    edam_topics = models.TextField('Edam topics', null=True, blank=True,
+                                   help_text='Comma separated list of Edam ontology topics')
+    edam_operations = models.TextField('Edam operations', null=True, blank=True,
                                        help_text='Comma separated list of Edam ontology operations')
 
-    def natural_key(self):
-        """ Return natural key for a Service (Django Serializer)"""
-        return self.api_name, self.version, self.status
+    def clean(self):
+        cleaned_data = super(Service, self).clean()
+        # TODO check changed status with at least one submission available on each submission channel (web/api)
+        return cleaned_data
 
     def __init__(self, *args, **kwargs):
         super(Service, self).__init__(*args, **kwargs)
-        self._run_on = self.run_on
+        self._run_on = self.runner
 
     @classmethod
     def from_db(cls, db, field_names, values):
         """ Executed each time a Service is restored from DB layer"""
         instance = super(Service, cls).from_db(db, field_names, values)
-        instance._run_on = instance.run_on
+        instance._run_on = instance.runner
         return instance
 
     @property
@@ -164,19 +125,28 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin):
         Return true whether current object changed its runner related model
         :return: True / False
         """
-        return self._run_on != self.run_on
+        return self._run_on != self.runner
 
     def __str__(self):
         return "%s v(%s)" % (self.name, self.version)
 
-    def reset_default_params(self, params):
+    def reset_run_params(self):
         """
         Reset service runner init params with new default, erase unused params
         :param params:
         :return:
         """
-        for param in params:
-            ServiceRunnerParam.objects.update_or_create(param=param, service=self)
+        ServiceRunParam.objects.exclude(name__in=self.runner.adaptor.init_params.keys(), service=self).delete()
+        for param in self.runner.runner_params.filter(prevent_override=True):
+            ServiceRunParam.objects.update_or_create(defaults={'value': param.value,
+                                                               'prevent_override': True},
+                                                     name=param.name, service=self)
+
+    @property
+    def jobs(self):
+        """ Get current Service Jobs """
+        from waves.models import Job
+        return Job.objects.filter(submission__in=self.submissions.all())
 
     def run_params(self):
         """
@@ -197,26 +167,27 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin):
 
         :return: None
         """
-        if not self.run_on:
+        if not self.runner:
             raise ImportError(u'Unable to import if no adaptor is set')
 
     @property
     def adaptor(self):
         """ Return current adaptor for Service """
         if self.__adaptor is None:
-            if not self.run_on:
+            if not self.runner:
                 return None
             # try load it from clazz name
             from django.utils.module_loading import import_string
-            Adaptor = import_string(self.run_on.clazz)
+            Adaptor = import_string(self.runner.clazz)
             self.__adaptor = Adaptor(init_params=self.run_params())
         return self.__adaptor
 
     @adaptor.setter
     def adaptor(self, adaptor):
-        from waves.adaptors.base import BaseAdaptor
-        assert (isinstance(adaptor, BaseAdaptor))
-        self.__adaptor = adaptor
+        if adaptor is not None:
+            from waves.adaptors.base import BaseAdaptor
+            assert (isinstance(adaptor, BaseAdaptor))
+            self.__adaptor = adaptor
 
     @property
     def command(self):
@@ -240,8 +211,8 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin):
         :rtype: QuerySet
         """
         if not submission:
-            return self.default_submission.service_inputs
-        return submission.service_inputs
+            return self.default_submission.submission_inputs
+        return submission.submission_inputs
 
     @transaction.atomic
     def duplicate(self):
@@ -311,7 +282,7 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin):
 
     @property
     def importer(self):
-        return self.run_on.importer
+        return self.runner.importer
 
     def publishUnPublish(self):
         self.status = waves.const.SRV_DRAFT if waves.const.SRV_PUBLIC else waves.const.SRV_PUBLIC
@@ -326,12 +297,12 @@ class ServiceMeta(OrderAble, DescribeAble):
 
     class Meta:
         db_table = 'waves_service_meta'
-        verbose_name = 'Service Meta information'
+        verbose_name = 'Information'
         unique_together = ('type', 'title', 'order', 'service')
 
     type = models.CharField('Meta type', max_length=100, choices=waves.const.SERVICE_META)
-    title = models.CharField('Meta title', max_length=255, blank=True, null=True)
-    value = models.CharField('Meta value', max_length=500, blank=True, null=True)
+    title = models.CharField('Title', max_length=255, blank=True, null=True)
+    value = models.CharField('Link', max_length=500, blank=True, null=True)
     is_url = models.BooleanField('Is a url', editable=False, default=False)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='metas')
 

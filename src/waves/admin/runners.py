@@ -18,7 +18,7 @@ class RunnerParamInline(TabularInline):
     model = RunnerParam
     form = RunnerParamForm
     extra = 0
-    fields = ['name', 'prevent_override', 'default']
+    fields = ['name', 'value', 'prevent_override']
     readonly_fields = ('name',)
     classes = ('collapse grp-collapse grp-closed',)
 
@@ -39,22 +39,23 @@ class RunnerAdmin(ExportInMassMixin):
     """ Admin for Job Runner """
     model = Runner
     form = RunnerForm
-    inlines = (
-        RunnerParamInline,
-    )
-
-    list_display = ('name', 'clazz', 'short_description')
-    list_filter = ('name', )
+    inlines = (RunnerParamInline,)
+    list_display = ('name', 'clazz', 'short_description', 'nb_services')
+    list_filter = ('name', 'runs')
     fieldsets = [
-        ('General', {
+        (None, {
             'fields': ['name', 'clazz', 'update_init_params']
-
         }),
-        ('Details', {
+        ('Information', {
             'fields': ['short_description', 'description'],
             'classes': ('collapse grp-collapse grp-closed',),
         }),
     ]
+
+    def nb_services(self, obj):
+        return obj.runs.count()
+
+    nb_services.short_description = "Running Services"
 
     def save_model(self, request, obj, form, change):
         """ Add related Service / Jobs updates upon Runner modification """
@@ -64,13 +65,15 @@ class RunnerAdmin(ExportInMassMixin):
                 for service in obj.runs.all():
                     message = 'Related service %s has been reset' % service.name
                     service.status = waves.const.SRV_DRAFT
-                    service.reset_default_params(obj.runner_params.all())
+                    service.reset_run_params()
                     service.save()
-                    # service.reset_runner_params(init_params_keys=obj.adaptor.init_params.keys())
-                    jobs = Job.objects.filter(status__lte=waves.const.JOB_QUEUED, service=service)
-                    for job in jobs:
+                    # TODO sometime we should save runParams directly in jobs, so won't rely on db modification
+                    """for job in Job.objects.filter(status__lte=waves.const.JOB_QUEUED,
+                                                  submission__in=service.submissions.all()):
                         job.adaptor.cancel_job(job=job)
                         message += '<br/>- Related pending job %s has been cancelled' % job.title
-                    messages.warning(request, message)
+                    """
+                    messages.info(request, message)
+
 
 admin.site.register(Runner, RunnerAdmin)

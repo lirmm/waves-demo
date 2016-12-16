@@ -1,36 +1,26 @@
-"""
-Job Runners related models
-"""
+""" Job Runners related models """
 from __future__ import unicode_literals
 
 from django.db import models
 from django.utils.module_loading import import_string
 from django.core.exceptions import ValidationError
-import waves.const
 from waves.models.base import DescribeAble, ExportAbleMixin
 from waves.models.managers.runners import RunnerManager, RunnerParamManager
 from waves.utils.encrypt import Encrypt
-
-__all__ = ['Runner', 'RunnerParam']
+__all__ = ['Runner', 'RunnerParam', 'AdaptorInitParam']
 
 
 class Runner(DescribeAble, ExportAbleMixin):
-    """
-    Represents a generic job adaptor meta information (resolved at runtime via clazz attribute)
-    """
-
+    """ Represents a generic job adaptor meta information (resolved at runtime via clazz attribute) """
     class Meta:
         ordering = ['name']
         db_table = 'waves_runner'
-        verbose_name = 'Service runner'
-
+        verbose_name = 'Runner'
     #: private attribute to set if clazz have been modified before save
     _clazz = None
     objects = RunnerManager()
-
-    name = models.CharField('Runner name', max_length=50, null=False, help_text='Displayed name')
-    clazz = models.CharField('Class implementation', max_length=100, null=False,
-                             help_text='Runner adaptor')
+    name = models.CharField('Runner label', max_length=50, null=False, help_text='Displayed name')
+    clazz = models.CharField('Adaptor', max_length=100, null=False)
 
     def __str__(self):
         return self.name
@@ -77,7 +67,7 @@ class Runner(DescribeAble, ExportAbleMixin):
         :return: a dictionary (param_name=runner_param_default)
         :rtype: dict
         """
-        runner_params = self.runner_params.values_list('name', 'default')
+        runner_params = self.runner_params.values_list('name', 'value')
         returned = dict()
         for name, default in runner_params:
             returned[name] = default
@@ -97,40 +87,31 @@ class Runner(DescribeAble, ExportAbleMixin):
         return RunnerSerializer
 
 
-class RunnerParam(models.Model):
-    """
-    Parameters used by related class object (see: waves.runners) for self initialization
-    """
+class AdaptorInitParam(models.Model):
+    """ Base Class For adaptor initialization params """
+    class Meta:
+        abstract = True
+    name = models.CharField('Name', max_length=100, blank=True, null=True, help_text='Param name')
+    value = models.TextField('Value', max_length=500, null=True, blank=True, help_text='Default value')
+    prevent_override = models.BooleanField('Prevent override', help_text="Prevent override")
+
+
+class RunnerParam(AdaptorInitParam):
+    """ Parameters used by related class object (see: waves.runners) for self initialization """
     class Meta:
         db_table = 'waves_runner_param'
         unique_together = ('name', 'runner')
     objects = RunnerParamManager()
-
-    name = models.CharField('Name',
-                            max_length=100,
-                            blank=True,
-                            null=True,
-                            help_text='Runner init param name')
-    default = models.TextField('Default Value',
-                               max_length=500,
-                               null=True,
-                               blank=True,
-                               help_text='Runner init param default value')
-    runner = models.ForeignKey(Runner,
-                               related_name='runner_params',
-                               on_delete=models.CASCADE)
-
-    prevent_override = models.BooleanField('Prevent service override', default=True,
-                                           help_text="Prevent service to override this value ")
-
-    def __str__(self):
-        return self.name
+    runner = models.ForeignKey(Runner, related_name='runner_params', on_delete=models.CASCADE)
 
     def clean(self):
         cleaned_data = super(RunnerParam, self).clean()
-        if not self.default and self.prevent_override:
+        if not self.value and self.prevent_override:
             raise ValidationError('You can\'t prevent override with no default value')
         return cleaned_data
+
+    def __str__(self):
+        return self.name
 
     @classmethod
     def from_db(cls, db, field_names, values):

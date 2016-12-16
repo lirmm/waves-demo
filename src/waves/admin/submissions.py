@@ -6,39 +6,39 @@ from django.contrib.admin import StackedInline
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from jet.admin import CompactInline
-from nested_inline import admin as nested_admin
-
+import nested_admin
 import waves.const
 from waves.admin.base import WavesTabbedModelAdmin
-from waves.forms.admin import ServiceOutputForm, ServiceInputSampleForm, ServiceInputForm
-from waves.forms.admin.submissions import RelatedInputForm
+# from waves.forms.admin import ServiceOutputForm, ParamForm
+from waves.forms.admin.submissions import *
+from waves.models import SubmissionExitCode
 from waves.models.submissions import *
 
 
 class ServiceOutputInline(CompactInline):
-    model = ServiceOutput
-    form = ServiceOutputForm
+    model = SubmissionOutput
+    # form = ServiceOutputForm
     sortable = 'order'
     extra = 0
     classes = ('collapse',)
     sortable_field_name = "order"
     sortable_options = []
-    fk_name = 'service'
-    fields = ['name', 'file_pattern', 'short_description', 'may_be_empty', 'related_from_input', 'order']
-    verbose_name_plural = "Service outputs"
+    fk_name = 'submission'
+    fields = ['name', 'file_pattern', 'short_description', 'optional', 'from_input', 'order']
+    verbose_name_plural = "Outputs"
     show_change_link = True
 
 
 class ServiceSampleDependentInputInline(admin.TabularInline):
-    model = ServiceSampleDependentInput
+    model = SampleDependentParam
     fk_name = 'sample'
     extra = 0
     sortable_field_name = "order"
     sortable_options = []
 
-
+"""
 class ServiceSampleInline(CompactInline, nested_admin.NestedStackedInline):
-    model = ServiceInputSample
+    model = SubmissionSample
     form = ServiceInputSampleForm
     extra = 0
     fk_name = 'service'
@@ -52,17 +52,18 @@ class ServiceSampleInline(CompactInline, nested_admin.NestedStackedInline):
         field_queryset = super(ServiceSampleInline, self).get_field_queryset(db, db_field, request)
         if request.current_obj is not None:
             if db_field.name == 'input':
-                return ServiceInput.objects.filter(service=request.current_obj.default_submission,
-                                                   type=waves.const.TYPE_FILE)
+                return SubmissionParam.objects.filter(service=request.current_obj.default_submission,
+                                                      type=waves.const.TYPE_FILE)
             elif db_field.name == 'dependent_input':
-                return ServiceInput.objects.filter(service=request.current_obj.default_submission).exclude(
+                return SubmissionParam.objects.filter(service=request.current_obj.default_submission).exclude(
                     type=waves.const.TYPE_FILE)
         return field_queryset
 
+"""
 
 class RelatedInputInline(nested_admin.NestedStackedInline, StackedInline):
-    model = RelatedInput
-    form = RelatedInputForm
+    model = RelatedParam
+    # form = RelatedInputForm
     extra = 0
     sortable = 'order'
     fk_name = 'related_to'
@@ -75,32 +76,78 @@ class RelatedInputInline(nested_admin.NestedStackedInline, StackedInline):
         return True
 
 
-class ServiceInputInline(CompactInline, nested_admin.NestedStackedInline):
-    model = ServiceInput
-    form = ServiceInputForm
-    sortable = 'order'
+class SubmissionDataInline(CompactInline):
+    model = SubmissionData
+    fk_name = 'submission'
     extra = 0
-    fk_name = 'service'
-    classes = ('collapse', 'closed')
-    inlines = [RelatedInputInline, ]
-    sortable_field_name = "order"
-    verbose_name = 'Input'
-    verbose_name_plural = "Inputs"
-    show_change_link = True
+    exclude = ['id', 'order', 'description']
+    fields = ['label', 'name', 'cmd_line_type', '_type_format', 'required', 'multiple',
+              'submitted', 'short_description', 'edam_formats', 'edam_datas']
+
+
+class SubmissionParamInline(SubmissionDataInline):
+    model = SubmissionParam
+    form = ParamForm
+    verbose_name = 'Param'
+    verbose_name_plural = "Params"
+    fields = ['type', 'default', ] + SubmissionDataInline.fields
 
     def get_queryset(self, request):
-        qs = super(ServiceInputInline, self).get_queryset(request)
-        return qs  # .instance_of(ServiceInput)
+        qs = super(SubmissionParamInline, self).get_queryset(request)
+        return qs  # .instance_of(SubmissionParam)
 
 
-class ServiceSubmissionAdmin(WavesTabbedModelAdmin):
+class RelatedParamInline(SubmissionParamInline):
+    model = RelatedParam
+    fields = ['related_to', 'when_value'] + SubmissionParamInline.fields
+    verbose_name = 'Related param'
+    verbose_name_plural = "Related params"
+
+
+class SubmissionFileInputInline(SubmissionDataInline):
+    model = FileInput
+    form = FileInputForm
+    verbose_name = 'Input'
+    verbose_name_plural = "Inputs"
+    exclude = SubmissionDataInline.exclude + ['when_value', 'related_to', 'type', 'list_display', 'default']
+
+
+class RelatedFileInputInline(SubmissionParamInline):
+    model = RelatedFileInput
+    verbose_name = 'Related input'
+    verbose_name_plural = "Related inputs"
+    fields = ('related_to', 'label', 'name', 'cmd_line_type', '_type_format', 'required', 'multiple',
+              'short_description', 'edam_formats', 'edam_datas')
+    exclude = ('type', 'list_display', 'default')
+
+
+class ServiceExitCodeInline(CompactInline):
+    model = SubmissionExitCode
+    extra = 0
+    fk_name = 'submission'
+    is_nested = False
+    classes = ('grp-collapse', 'grp-open')
+    sortable_options = []
+
+
+class ServiceSubmissionAdmin(admin.ModelAdmin):
     """ Submission process administration -- Model ServiceSubmission """
-    inlines = [ServiceInputInline]
-    list_display = ['label',
-                    'available_online',
-                    'available_api',
-                    'service_link', ]
+    class Media:
+        js = ('waves/admin/services.js',)
 
+    inlines = [
+        SubmissionFileInputInline,
+        RelatedFileInputInline,
+        SubmissionParamInline,
+        RelatedParamInline,
+        ServiceOutputInline,
+        ServiceExitCodeInline
+    ]
+    fields = ('label', 'api_name', 'available_api', 'available_online')
+    readonly_fields = ('service', )
+    exclude = ['order']
+    change_form_template = 'admin/waves/submission/change_form.html'
+    list_display = ['label', 'available_online', 'available_api', 'service_link', ]
     list_filter = ['service', 'available_online', 'available_api']
 
     def service_link(self, obj):
@@ -108,4 +155,6 @@ class ServiceSubmissionAdmin(WavesTabbedModelAdmin):
             reverse("admin:waves_service_change", args=(obj.service.id,)),
             obj.service.name))
 
+
 admin.site.register(ServiceSubmission, ServiceSubmissionAdmin)
+

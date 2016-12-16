@@ -23,7 +23,7 @@ TYPE_TEXT = 'text'
 
 class ServiceInputValidator(object):
     """
-    Dynamic validation class for ServiceInput objects, according to ServiceInput type and format
+    Dynamic validation class for SubmissionParam objects, according to SubmissionParam type and format
     """
     invalid_message = '%s is not valid %s (%s) got: %s'
     specific_message = ''

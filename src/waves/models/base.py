@@ -4,6 +4,7 @@ import uuid
 from django.db import models
 from django.contrib.sites.models import Site
 from django.conf import settings
+from django.forms import Textarea
 import waves.settings
 import logging
 
@@ -16,7 +17,26 @@ else:
     # If ckeditor enabled, use RichTextField, if not, define simply TextField subclass
     from ckeditor.fields import RichTextField
 
-__all__ = ['TimeStampable', 'OrderAble', 'ExportAbleMixin', 'DescribeAble', 'SlugAble', 'ApiAble', 'UrlMixin']
+__all__ = ['DTOAble', 'TimeStampable', 'OrderAble', 'ExportAbleMixin', 'DescribeAble', 'SlugAble', 'ApiAble', 'UrlMixin']
+
+
+class DTOAble(object):
+    """ Some models (Service / Inputs / Outputs / ExitCodes / Jobs) need to be able to be loaded from Adaptors
+    """
+    def from_dto(self, dto):
+        """ Copy attributes from dto to current object, do not override current objects attributes with no
+        correspondence """
+        for var in dir(dto):
+            if not var.startswith('_'):
+                print "set attr ", var, getattr(dto, var)
+                setattr(self, var, getattr(dto, var))
+
+    def to_dto(self, dto):
+        # TODO check if really needed
+        """ Copy object attributes to a DTO """
+        for var in dir(self):
+            if not var.startswith('_'):
+                setattr(dto, var, getattr(self, var))
 
 
 class TimeStampable(models.Model):
@@ -61,8 +81,7 @@ class DescribeAble(models.Model):
     #: Text field to set up a complete description of model object, with HTML editor enabled
     description = RichTextField('Description', null=True, blank=True, help_text='Description (HTML)')
     #: text field for short version, no html
-    short_description = models.TextField('Short Description', null=True, blank=True,
-                                         help_text='Short description (Text)')
+    short_description = models.TextField('Short Description', null=True, blank=True, help_text='Short description (Text)')
 
 
 class SlugAble(models.Model):
@@ -74,7 +93,7 @@ class SlugAble(models.Model):
         abstract = True
 
     #: UUID field is base on uuid4 generator.
-    slug = models.UUIDField(default=uuid.uuid4, blank=True, editable=False)
+    slug = models.UUIDField(default=uuid.uuid4, blank=True, unique=True, editable=False)
 
 
 class ApiAble(models.Model):
@@ -143,6 +162,7 @@ class ExportAbleMixin(object):
     """ Some models object may be 'exportable' in order to be imported elsewhere in another WAVES app.
     Based on Django serializer, because we don't want to select fields to export
     """
+
     def serializer(self, context=None):
         """ Each sub class must implement this method to initialize its Serializer"""
         raise NotImplementedError('Sub classes must implements this method')
@@ -166,4 +186,3 @@ class ExportAbleMixin(object):
     def export_file_name(self):
         """ Create export file name, based on concrete class name"""
         return '%s_%s.json' % (self.__class__.__name__.lower(), str(self.pk))
-

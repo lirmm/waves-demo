@@ -14,6 +14,7 @@ import waves.const as const
 import waves.settings
 from waves.commands import get_commands_impl_list
 from waves.models.services import *
+from waves.models.submissions import SubmissionRunParam
 
 __all__ = ['ServiceForm', 'ServiceCategoryForm', 'ImportForm', 'ServiceMetaForm', 'ServiceRunnerParamForm']
 
@@ -34,7 +35,7 @@ class ImportForm(forms.Form):
             choices=tool_list,
             initial=selected,
             disabled=('disabled' if selected is not None else ''),
-            widget=forms.widgets.Select(attrs={'size': '10'}))
+            widget=forms.widgets.Select(attrs={'size': '15', 'style': 'width:100%; height: auto;'}))
 
         self.helper = FormHelper()
         self.helper.form_tag = False
@@ -56,7 +57,7 @@ class ServiceMetaForm(forms.ModelForm):
     class Meta:
         exclude = ['id']
         model = ServiceMeta
-        fields = ['type', 'value', 'description', 'order']
+        fields = '__all__'
 
     description = forms.CharField(widget=Textarea(attrs={'rows': 3, 'class': 'input-xlarge'}), required=False)
 
@@ -81,6 +82,8 @@ class ServiceForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'clazz': forms.Select(choices=get_commands_impl_list()),
+            'edam_topics': forms.TextInput(attrs={'size': 50}),
+            'edam_operations': forms.TextInput(attrs={'size': 50}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -102,10 +105,10 @@ class ServiceForm(forms.ModelForm):
 
 class ServiceRunnerParamForm(ModelForm):
     class Meta:
-        model = ServiceRunnerParam
-        fields = ['param', '_value']
+        model = SubmissionRunParam
+        fields = '__all__'
         widgets = {
-            '_value': TextInput(attrs={'size': 35})
+            'value': TextInput(attrs={'size': 50})
         }
 
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None, initial=None, **kwargs):

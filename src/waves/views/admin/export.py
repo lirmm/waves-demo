@@ -35,7 +35,7 @@ class ModelExportView(DownloadFileView):
         try:
             return super(ModelExportView, self).get(request, *args, **kwargs)
         except ExportError as e:
-            messages.error(self.request, 'Oups: %s' % e)
+            messages.error(self.request, 'Oops: %s' % e)
             return redirect(self.return_view)
 
     @property

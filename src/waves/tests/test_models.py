@@ -28,15 +28,15 @@ class TestRunners(WavesBaseTestCase):
 
 class TestServices(WavesBaseTestCase):
     def test_create_service(self):
-        runner = Runner.objects.create(name="Sample runner", clazz='waves.tests.mocks.adaptor.MockJobRunnerAdaptor')
-        srv = Service.objects.create(name="Sample Service", run_on=runner)
-        srv.submissions.add(ServiceSubmission.objects.create(service=srv, label="Sample submission"))
+        runner = Runner.objects.create(name="SubmissionSample runner", clazz='waves.tests.mocks.adaptor.MockJobRunnerAdaptor')
+        srv = Service.objects.create(name="SubmissionSample Service", runner=runner)
+        srv.submissions.add(ServiceSubmission.objects.create(service=srv, label="SubmissionSample submission"))
         self.assertEqual(srv.submissions.count(), 1)
 
     def test_service_run_param(self):
         services = Service.objects.all()
         for service in services:
-            obj_runner = import_string(service.run_on.clazz)
+            obj_runner = import_string(service.runner.clazz)
             expected_params = obj_runner().init_params
             runner_params = service.run_params()
             logger.debug(expected_params)
@@ -67,7 +67,7 @@ class TestJobs(WavesBaseTestCase):
         super(TestJobs, self).tearDown()
 
     def test_jobs_signals(self):
-        job = Job.objects.create(service=Service.objects.create(name='Sample Service'))
+        job = Job.objects.create(service=Service.objects.create(name='SubmissionSample Service'))
         self.assertIsNotNone(job.title)
         self.assertTrue(os.path.isdir(job.working_dir))
         logger.debug('Job directories has been created %s ', job.working_dir)
@@ -83,7 +83,7 @@ class TestJobs(WavesBaseTestCase):
         logger.debug('Job directories has been deleted')
 
     def test_job_history(self):
-        job = Job.objects.create(service=Service.objects.create(name='Sample Service'))
+        job = Job.objects.create(service=Service.objects.create(name='SubmissionSample Service'))
         job.job_history.add(JobAdminHistory.objects.create(job=job, message="Test Admin message", status=job.status))
         job.job_history.add(JobHistory.objects.create(job=job, message="Test public message", status=job.status))
         try:

@@ -61,7 +61,7 @@ class ShellRunnerTestCase(TestBaseJobRunner):
     @test_util.skip_unless_tool('physic_ist')
     def testPhysicIST(self, command_path='physic_ist'):
         jobs_params = self._loadServiceJobsParams(api_name='physic_ist')
-        self.service.run_on = self.runner_model
+        self.service.runner = self.runner_model
         self.service.adaptor = self.adaptor
         self._set_command(command_path)
         # service_submission = self.service.default_submission

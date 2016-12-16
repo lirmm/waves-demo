@@ -38,14 +38,14 @@ TYPE_FLOAT = 'float'
 #: Service Input Type 'text': no special check, except when used in outputs name, is such case, normalized value is stored
 TYPE_TEXT = 'text'
 
-IN_TYPE = (
+IN_TYPE = [
     (TYPE_FILE, 'Input file'),
     (TYPE_LIST, 'List of values'),
     (TYPE_BOOLEAN, 'Boolean'),
     (TYPE_INTEGER, 'Integer'),
     (TYPE_FLOAT, 'Float'),
     (TYPE_TEXT, 'Text')
-)
+]
 #: Service Input Command line parameter type 'positional'
 OPT_TYPE_NONE = 0
 #: Service Input Command line parameter type 'valuated' i.e: --param_name=value
@@ -59,23 +59,23 @@ OPT_TYPE_POSIX = 4
 #: Service Input Command line parameter type 'named option' i.e: --param_name
 OPT_TYPE_NAMED_OPTION = 5
 
-OPT_TYPE = (
+OPT_TYPE = [
     (OPT_TYPE_NONE, 'Not used in job submission'),
     (OPT_TYPE_VALUATED, 'Valuated param (--param_name=value)'),
     (OPT_TYPE_SIMPLE, 'Simple param (-param_name value)'),
     (OPT_TYPE_OPTION, 'Option param (-param_name)'),
     (OPT_TYPE_NAMED_OPTION, 'Option named param (--param_name)'),
     (OPT_TYPE_POSIX, 'Positional param (no name)')
-)
+]
 
 DISPLAY_SELECT = 'select'
 DISPLAY_RADIO = 'radio'
 DISPLAY_CHECKBOX = 'checkbox'
-LIST_DISPLAY_TYPE = (
+LIST_DISPLAY_TYPE = [
     (DISPLAY_SELECT, 'Select List'),
     (DISPLAY_RADIO, 'Radio buttons'),
     (DISPLAY_CHECKBOX, 'Check box')
-)
+]
 
 OUT_TYPE = (
     ('stout', 'Standard output'),

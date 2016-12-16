@@ -4,9 +4,12 @@ from django.db.models import Q
 import waves.const
 
 
-class ServiceRunnerParamManager(models.Manager):
+class ServiceRunParamManager(models.Manager):
     def get_by_natural_key(self, service, param):
         return self.get(service=service, param=param)
+
+    def get_queryset(self):
+        return super(ServiceRunParamManager, self).get_queryset()
 
 
 class ServiceCategoryManager(models.Manager):

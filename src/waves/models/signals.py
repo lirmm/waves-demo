@@ -16,10 +16,9 @@ from django.contrib.auth.signals import user_logged_in
 from ipware.ip import get_real_ip
 from waves.models.base import ApiAble
 from waves.models.jobs import Job, JobHistory, JobAdminHistory, JobOutput
-from waves.models import ServiceInputSample
 from waves.models.services import *
 from waves.models.submissions import *
-from waves.models.runners import Runner, RunnerParam
+from waves.models.runners import *
 from waves.models.profiles import WavesProfile, profile_directory
 
 logger = logging.getLogger(__name__)
@@ -66,16 +65,26 @@ def submission_pre_save_handler(sender, instance, **kwargs):
         instance.label = instance.service.name
 
 
-@receiver(post_delete, sender=ServiceInputSample)
+@receiver(post_save, sender=ServiceSubmission)
+def submission_pre_save_handler(sender, instance, created, **kwargs):
+    """ submission pre save """
+    if created and not kwargs.get('raw', False):
+        instance.exit_codes.add(SubmissionExitCode.objects.create(submission=instance, exit_code=0,
+                                                                  message='Process exit normally'))
+        instance.exit_codes.add(SubmissionExitCode.objects.create(submission=instance, exit_code=1,
+                                                                  message='Process exit error'))
+
+
+@receiver(post_delete, sender=SubmissionSample)
 def service_sample_post_delete_handler(sender, instance, **kwargs):
-    """ Sample delete handler """
+    """ SubmissionSample delete handler """
     if instance.file:
         instance.file.delete()
 
 
-@receiver(post_delete, sender=ServiceInput)
+@receiver(post_delete, sender=SubmissionParam)
 def service_input_post_delete_handler(sender, instance, **kwargs):
-    """ ServiceInput post delete handler"""
+    """ SubmissionParam post delete handler"""
     if instance.input_samples.count() > 0:
         for sample in instance.input_samples.all():
             sample.file.delete()
@@ -85,10 +94,11 @@ def service_input_post_delete_handler(sender, instance, **kwargs):
 def service_post_save_handler(sender, instance, created, **kwargs):
     """ Service post save handler"""
     if not kwargs.get('raw', False):
-        if instance.run_on and (instance.has_changed_runner or instance.service_run_params.count() == 0):
+        if instance.runner and (instance.has_changed_runner or instance.service_run_params.count() == 0):
             # create default service runner init params
-            for param in instance.run_on.runner_params.all():
-                obj = ServiceRunnerParam.objects.create(service=instance, param=param)
+            for param in instance.runner.runner_params.all():
+                obj = ServiceRunParam.objects.create(service=instance, value=param.value, name=param.name,
+                                                     prevent_override=param.prevent_override)
                 instance.service_run_params.add(obj)
 
 
@@ -157,53 +167,31 @@ def runner_pre_save_handler(sender, instance, **kwargs):
 def runner_post_save_handler(sender, instance, created, **kwargs):
     """ Runner saved instance handler, setup or update related RunnerParam according to clazz specified """
     if not kwargs.get('raw', False):
-        if created:
-            for name, initial in instance.adaptor.init_params.items():
-                prevent_override = False
-                if type(initial) == tuple:
-                    initial = initial[0][0]
-                    prevent_override = True
-                RunnerParam.objects.create(default=initial,
-                                           prevent_override=prevent_override,
-                                           runner=instance,
-                                           name=name)
-        elif instance.has_changed_clazz:
+        if created or instance.has_changed_clazz:
             # modified clazz instance.
             from django.utils.module_loading import import_string
             Adaptor = import_string(instance.clazz)
+            # delete all old run params related to previous init_params from instance (delete cascade service params)
+            instance.runner_params.exclude(name__in=Adaptor().init_params.keys()).delete()
             for name, initial in Adaptor().init_params.items():
                 prevent_override = False
                 if type(initial) == tuple:
                     initial = initial[0][0]
                     prevent_override = True
-                current, created = RunnerParam.objects.update_or_create(defaults={'default': initial,
-                                                                                  'prevent_override': prevent_override},
-                                                                        runner=instance,
-                                                                        name=name)
-                if created:
-                    for service in instance.runs.all():
-                        ServiceRunnerParam.objects.create(service=service, param=current)
-                else:
-                    # updated ?
-                    for service in instance.runs.all():
-                        try:
-                            current_srv = ServiceRunnerParam.objects.get(service=service, param__name=current.name)
-                            current_srv.param = current
-                            if current_srv.value == initial or current.prevent_override:
-                                current_srv._value = None
-                                current_srv.save()
-                        except ObjectDoesNotExist:
-                            ServiceRunnerParam.objects.create(service=service, param=current)
-            # delete all old run params related to previous init_params from instance (delete cascade service params)
-            instance.runner_params.exclude(name__in=Adaptor().init_params.keys()).delete()
+                RunnerParam.objects.update_or_create(defaults={'value': initial,
+                                                               'prevent_override': prevent_override},
+                                                     runner=instance,
+                                                     name=name)
+                for service in instance.runs.all():
+                    service.reset_run_params()
 
 
 @receiver(pre_save, sender=RunnerParam)
 def runner_param_pre_save_handler(sender, instance, **kwargs):
     """ Runner param pre save handler """
-    if instance.name.startswith('crypt_') and instance.default:
+    if instance.name.startswith('crypt_') and instance.value:
         from waves.utils.encrypt import Encrypt
-        instance.default = Encrypt.encrypt(instance.default)
+        instance.value = Encrypt.encrypt(instance.value)
 
 
 @receiver(post_save, sender=RunnerParam)
@@ -211,7 +199,7 @@ def runner_param_post_save_handler(sender, instance, created, **kwargs):
     """ Runner saved instance handler, setup or update related RunnerParam according to clazz specified """
     if instance.prevent_override:
         # Reset old upgrades values for related service to default
-        for service_param in ServiceRunnerParam.objects.filter(param=instance):
+        for service_param in ServiceRunParam.objects.filter(name=instance.name):
             service_param._value = None
             service_param.save()
 
@@ -232,6 +220,7 @@ def job_output_post_save_handler(sender, instance, created, **kwargs):
     if created and instance.value and not kwargs.get('raw', False):
         # Create empty file for expected outputs
         open(join(instance.job.working_dir, instance.value), 'a').close()
+
 
 # Connect all ApiAble subclass to pre_save_handler
 for subclass in ApiAble.__subclasses__():

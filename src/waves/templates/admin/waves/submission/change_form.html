@@ -1,0 +1,14 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_modify admin_urls admin_static waves_tags %}
+{% block object-tools-items %}
+    <li>
+        <a type="button" href="{% url 'admin:waves_service_change' original.service.pk %}"
+           target="_self"
+           title="Service"
+           class="btn btn-high btn-info"
+           id="service_link">
+            Back to Service
+        </a>
+    </li>
+    {{ block.super }}
+{% endblock %}

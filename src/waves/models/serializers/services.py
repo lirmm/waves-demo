@@ -12,9 +12,9 @@ from waves.api.serializers.services import ServiceSerializer as BaseServiceSeria
 from waves.models.serializers import RelatedSerializerMixin
 from .runners import RunnerSerializer, RunnerParamSerializer
 from .categories import CategorySerializer
-from waves.models.services import Service, ServiceMeta, ServiceExitCode, ServiceRunnerParam
-from waves.models.runners import Runner
-from waves.models.submissions import ServiceSubmission, ServiceInput, RelatedInput, ServiceOutput, ServiceExitCode
+from waves.models.services import *
+from waves.models.runners import *
+from waves.models.submissions import *
 
 __all__ = ['ServiceMetaSerializer', 'ServiceSubmissionSerializer', 'ExitCodeSerializer', 'ServiceSerializer']
 
@@ -26,10 +26,10 @@ class ServiceMetaSerializer(serializers.ModelSerializer):
 
 
 class RelatedInputSerializer(serializers.ModelSerializer):
-    """ Serialize a RelatedInput """
+    """ Serialize a RelatedParam """
 
     class Meta:
-        model = RelatedInput
+        model = RelatedParam
         fields = ('order', 'label', 'name', 'default', 'type', 'param_type', 'format',
                   'mandatory', 'multiple', 'editable', 'display', 'description', 'short_description',
                   'when_value')
@@ -39,7 +39,7 @@ class ServiceInputSerializer(DynamicFieldsModelSerializer, RelatedSerializerMixi
     """ Serialize a basic service input with its dependents parameters"""
 
     class Meta:
-        model = ServiceInput
+        model = SubmissionParam
         fields = ('order', 'label', 'name', 'default', 'type', 'param_type', 'format',
                   'mandatory', 'multiple', 'editable', 'display', 'description', 'short_description',
                   'dependent_inputs')
@@ -48,7 +48,7 @@ class ServiceInputSerializer(DynamicFieldsModelSerializer, RelatedSerializerMixi
 
     def create(self, validated_data):
         dependent_inputs = validated_data.pop('dependent_inputs')
-        srv_input = ServiceInput.objects.create(**validated_data)
+        srv_input = SubmissionParam.objects.create(**validated_data)
         self.create_related(foreign={'related_to': srv_input},
                             serializer=RelatedInputSerializer,
                             datas=dependent_inputs)
@@ -60,17 +60,17 @@ class ServiceSubmissionSerializer(BaseServiceSubmissionSerializer, RelatedSerial
 
     class Meta:
         model = ServiceSubmission
-        fields = ('api_name', 'order', 'label', 'available_online', 'available_api', 'export_service_inputs',
-                  'service_inputs')
+        fields = ('api_name', 'order', 'label', 'available_online', 'available_api', 'export_submission_inputs',
+                  'submission_inputs')
 
-    export_service_inputs = ServiceInputSerializer(many=True, required=False)
-    service_inputs = ServiceInputSerializer(many=True, required=False, write_only=True, source="export_service_inputs")
+    export_submission_inputs = ServiceInputSerializer(many=True, required=False)
+    submission_inputs = ServiceInputSerializer(many=True, required=False, write_only=True, source="export_submission_inputs")
 
     def create(self, validated_data):
-        service_inputs = validated_data.pop('export_service_inputs')
+        submission_inputs = validated_data.pop('export_submission_inputs')
         # validated_data['api_name'] = validated_data.get('service').api_name
         submission = ServiceSubmission.objects.create(**validated_data)
-        self.create_related(foreign={'service': submission}, serializer=ServiceInputSerializer, datas=service_inputs)
+        self.create_related(foreign={'service': submission}, serializer=ServiceInputSerializer, datas=submission_inputs)
         return submission
 
 
@@ -78,7 +78,7 @@ class ExitCodeSerializer(serializers.ModelSerializer):
     """ ExitCode export / import """
 
     class Meta:
-        model = ServiceExitCode
+        model = SubmissionExitCode
         fields = ('exit_code', 'message')
 
 
@@ -93,8 +93,8 @@ class SubmissionOutputSerializer(serializers.ModelSerializer):
 
 class ServiceOutputSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ServiceOutput
-        fields = ('order', 'name', 'related_from_input', 'ext', 'may_be_empty', 'description',
+        model = SubmissionOutput
+        fields = ('order', 'name', 'from_input', 'ext', 'optional', 'description',
                   'short_description', 'from_input', 'file_pattern')
 
     def create(self, validated_data):
@@ -104,7 +104,7 @@ class ServiceOutputSerializer(serializers.ModelSerializer):
         obj = super(ServiceOutputSerializer, self).create(validated_data)
         for sub in submission_from:
             submit = service.submissions.filter(api_name=sub['submission']['api_name']).first()
-            srv_input = submit.service_inputs.filter(name=sub['srv_input']['name']).first()
+            srv_input = submit.submission_inputs.filter(name=sub['srv_input']['name']).first()
             output_submission = ServiceOutputFromInputSubmission.objects.create(srv_input=srv_input,
                                                                                 submission=submit,
                                                                                 srv_output=obj)
@@ -120,7 +120,7 @@ class ServiceTmpSerializer(serializers.ModelSerializer):
 
 class ServiceRunnerParamSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ServiceRunnerParam
+        model = SubmissionRunParam
         fields = ('param', '_value', 'service')
 
     param = RunnerParamSerializer(many=False, required=False)
@@ -130,8 +130,8 @@ class ServiceRunnerParamSerializer(serializers.ModelSerializer):
         service = validated_data['service']
         param_dict = validated_data.pop('param')
         value = validated_data.pop('_value')
-        param = service.run_on.runner_params.get(name=param_dict['name'])
-        obj, created = ServiceRunnerParam.objects.update_or_create(defaults={'_value': value},
+        param = service.runner.runner_params.get(name=param_dict['name'])
+        obj, created = SubmissionRunParam.objects.update_or_create(defaults={'_value': value},
                                                                    param=param, service=service)
         return obj
 
@@ -141,15 +141,15 @@ class ServiceSerializer(BaseServiceSerializer, RelatedSerializerMixin):
 
     class Meta:
         model = Service
-        fields = ('db_version', 'name', 'version', 'description', 'short_description', 'metas', 'run_on', 'category',
-                  'service_run_params', 'submissions', 'service_outputs', 'service_exit_codes')
+        fields = ('db_version', 'name', 'version', 'description', 'short_description', 'metas', 'runner', 'category',
+                  'service_run_params', 'submissions', 'service_outputs', 'exit_codes')
 
     db_version = serializers.SerializerMethodField()
     metas = ServiceMetaSerializer(many=True, required=False)
     submissions = ServiceSubmissionSerializer(many=True, required=False)
-    service_exit_codes = ExitCodeSerializer(many=True, required=False)
+    exit_codes = ExitCodeSerializer(many=True, required=False)
     service_outputs = ServiceOutputSerializer(many=True, required=False)
-    run_on = RunnerSerializer(many=False, required=False)
+    runner = RunnerSerializer(many=False, required=False)
     category = CategorySerializer(many=False, required=False, validators=[])
     service_run_params = ServiceRunnerParamSerializer(many=True, required=False)
 
@@ -167,8 +167,8 @@ class ServiceSerializer(BaseServiceSerializer, RelatedSerializerMixin):
         metas_srv = validated_data.pop('metas')
         submissions = validated_data.pop('submissions')
         outputs = validated_data.pop('service_outputs')
-        ext_codes = validated_data.pop('service_exit_codes')
-        runner = validated_data.pop('run_on')
+        ext_codes = validated_data.pop('exit_codes')
+        runner = validated_data.pop('runner')
         category = validated_data.pop('category')
         srv_run_params = validated_data.pop('service_run_params')
         if not self.skip_runner:
@@ -183,7 +183,7 @@ class ServiceSerializer(BaseServiceSerializer, RelatedSerializerMixin):
         else:
             run_on = None
         srv_object = Service.objects.create(**validated_data)
-        srv_object.run_on = run_on
+        srv_object.runner = run_on
         if not self.skip_category:
             cat = CategorySerializer(data=category, many=False)
             if cat.is_valid():
@@ -199,6 +199,6 @@ class ServiceSerializer(BaseServiceSerializer, RelatedSerializerMixin):
                                                      serializer=ServiceSubmissionSerializer, datas=submissions)
         srv_object.service_outputs = self.create_related(foreign={'service': srv_object},
                                                          serializer=ServiceOutputSerializer, datas=outputs)
-        srv_object.service_exit_codes = self.create_related(foreign={'service': srv_object},
+        srv_object.exit_codes = self.create_related(foreign={'service': srv_object},
                                                             serializer=ExitCodeSerializer, datas=ext_codes)
         return srv_object

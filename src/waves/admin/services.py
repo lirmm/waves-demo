@@ -1,17 +1,12 @@
 from __future__ import unicode_literals
 
-import nested_inline.admin as nested_admin
-from django.contrib import admin
-from django.core.urlresolvers import reverse
 from django.template.defaultfilters import truncatechars
-from django.utils.safestring import mark_safe
-from jet.admin import CompactInline
 from mptt.admin import MPTTModelAdmin
 
-from base import WavesTabbedModelAdmin, ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin
-from waves.admin.submissions import ServiceOutputInline, ServiceSampleInline
+from base import ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin
+from waves.admin.submissions import *
+from waves.admin.submissions import ServiceExitCodeInline
 from waves.forms.admin.services import *
-from waves.forms.admin.submissions import ServiceSubmissionFormSet
 from waves.models.profiles import WavesProfile
 from waves.models.services import *
 from waves.models.submissions import *
@@ -24,20 +19,19 @@ class ServiceMetaInline(CompactInline):
     extra = 0
     suit_classes = 'suit-tab suit-tab-metas'
     classes = ('grp-collapse grp-open',)
-    fields = ['type', 'title', 'value', 'description', 'order']
+    fields = ['type', 'order', 'title', 'value', 'description']
     sortable_field_name = "order"
     sortable_options = []
-    is_nested = False
 
 
 class ServiceRunnerParamInLine(admin.TabularInline):
-    model = ServiceRunnerParam
+    model = ServiceRunParam
     form = ServiceRunnerParamForm
-    fields = ['param', '_value', 'param_default']
+    fields = ['name', 'value']
     extra = 0
     suit_classes = 'suit-tab suit-tab-adaptor'
     can_delete = False
-    readonly_fields = ['param', 'param_default']
+    readonly_fields = ['name']
     is_nested = False
     sortable_options = []
 
@@ -63,21 +57,7 @@ class ServiceRunnerParamInLine(admin.TabularInline):
         return request.current_obj is not None
 
     def get_queryset(self, request):
-        qs = super(ServiceRunnerParamInLine, self).get_queryset(request)
-        try:
-            parent_obj_id = request.resolver_match.args[0]
-            return qs.filter(param__prevent_override=False, service_id=parent_obj_id)
-        except IndexError:
-            return qs
-
-
-class ServiceExitCodeInline(CompactInline):
-    model = ServiceExitCode
-    extra = 1
-    fk_name = 'service'
-    is_nested = False
-    classes = ('grp-collapse', 'grp-open')
-    sortable_options = []
+        return super(ServiceRunnerParamInLine, self).get_queryset(request).filter(prevent_override=False)
 
 
 class ServiceSubmissionInline(admin.TabularInline):
@@ -90,73 +70,33 @@ class ServiceSubmissionInline(admin.TabularInline):
     classes = ('grp-collapse', 'grp-open')
     fields = ['label', 'available_online', 'available_api']
     show_change_link = True
-    # inlines = [ServiceInputInline, ]
+    # inlines = [SubmissionParamInline, ]
 
 
-class ServiceAdmin(nested_admin.NestedModelAdmin, ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin,
-                   WavesTabbedModelAdmin):
+class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin, WavesTabbedModelAdmin):
     """ Service model objects Admin"""
     inlines = (
         ServiceRunnerParamInLine,
         ServiceSubmissionInline,
         ServiceMetaInline,
-        ServiceExitCodeInline,
     )
     change_form_template = 'admin/waves/service/' + WavesTabbedModelAdmin.admin_template
     form = ServiceForm
     filter_horizontal = ['restricted_client']
-    readonly_fields = ['created', 'updated', 'submission_link']
-    list_display = ('name', 'api_name', 'run_on', 'api_on', 'web_on', 'version', 'category', 'status', 'created_by',
+    readonly_fields = ['remote_service_id', 'created', 'updated', 'submission_link']
+    list_display = ('name', 'api_name', 'runner', 'api_on', 'web_on', 'version', 'category', 'status', 'created_by',
                     'submission_link')
-    list_filter = ('status', 'name', 'run_on', 'category', 'created_by')
+    list_filter = ('status', 'name', 'runner', 'category', 'created_by')
 
-    tab_overview = (
-        (None, {
-            'fields': ['category', 'name', 'status', 'version',
-                       'short_description', 'description']
-        }),
-    )
-    tab_details = (
-        (None, {
-            'fields': ['api_name', 'created_by', 'restricted_client', 'email_on', 'api_on', 'web_on', 'created',
-                       'updated']
-            # TODO reintegrate 'clazz'
-        }),
-    )
-    tab_runner = (
-        (None, {
-            'fields': ['run_on', ]
-        }),
-        ServiceRunnerParamInLine,
-    )
     fieldsets = (
         ('General', {
-            'fields': ['category', 'name', 'status', 'version', 'short_description', 'description']
+            'fields': ['category', 'name', 'created_by', 'status', 'runner', 'version', 'api_on', 'web_on', 'email_on']
         }),
         ('Details', {
-            'fields': ['api_name', 'created_by', 'restricted_client', 'email_on', 'api_on', 'web_on', 'created',
-                       'updated']
-        }),
-        ('Run configuration', {
-            'fields': ['run_on', ],
+            'fields': ['api_name', 'short_description', 'description', 'restricted_client', 'edam_topics',
+                       'edam_operations', 'remote_service_id', 'created', 'updated', ]
         }),
     )
-
-    tab_submission = (ServiceSubmissionInline,)
-    tab_outputs = (
-        ServiceOutputInline,
-        ServiceExitCodeInline)
-    tab_metas = (ServiceMetaInline,)
-    tab_samples = (ServiceSampleInline,)
-    tabs = [
-        ('General', tab_overview),
-        ('Details', tab_details),
-        ('Metas', tab_metas),
-        ('Run configuration', tab_runner),
-        ('Submissions', tab_submission),
-        ('Outputs', tab_outputs),
-        ('Samples', tab_samples)
-    ]
 
     def submission_link(self, obj):
         return mark_safe('<a href="{}?service__id__exact={}">Submissions ({})</a>'.format(
@@ -212,4 +152,3 @@ class ServiceCategoryAdmin(MPTTModelAdmin):
 
 admin.site.register(Service, ServiceAdmin)
 admin.site.register(ServiceCategory, ServiceCategoryAdmin)
-

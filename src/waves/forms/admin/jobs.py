@@ -45,8 +45,9 @@ class JobOutputForm(ReadOnlyForm):
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
-        fields = ['title', 'service', 'status', 'client', 'email_to']
+        fields = ['title', 'submission', 'status', 'client', 'email_to']
         widgets = {
             'service': widgets.Select(attrs={'disabled': 'disabled'}),
             'client': widgets.Select(attrs={'disabled': 'disabled'})
         }
+

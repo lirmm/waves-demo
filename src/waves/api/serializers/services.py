@@ -6,8 +6,8 @@ from rest_framework.fields import empty
 from django.utils.html import strip_tags
 from rest_framework.reverse import reverse as reverse
 from dynamic import DynamicFieldsModelSerializer
-from waves.models import ServiceInput, ServiceOutput, ServiceMeta, Service, RelatedInput
-from waves.models.submissions import ServiceSubmission, ServiceInput, RelatedInput, ServiceOutput
+from waves.models import SubmissionParam, SubmissionOutput, ServiceMeta, Service, RelatedParam
+from waves.models.submissions import ServiceSubmission, SubmissionParam, RelatedParam, SubmissionOutput
 from django.contrib.staticfiles.storage import staticfiles_storage
 import waves.settings
 
@@ -29,8 +29,8 @@ class InputSerializer(DynamicFieldsModelSerializer):
     """ Serialize JobInput """
 
     class Meta:
-        model = ServiceInput
-        queryset = ServiceInput.objects.all()
+        model = SubmissionParam
+        queryset = SubmissionParam.objects.all()
         fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'short_description', 'multiple')
         extra_kwargs = {
             'url': {'view_name': 'waves:waves-services-detail', 'lookup_field': 'api_name'}
@@ -51,10 +51,10 @@ class InputSerializer(DynamicFieldsModelSerializer):
 
 
 class RelatedInputSerializer(InputSerializer):
-    """ Serialize a dependent Input (RelatedInput models) """
+    """ Serialize a dependent Input (RelatedParam models) """
 
     class Meta:
-        model = RelatedInput
+        model = RelatedParam
         fields = InputSerializer.Meta.fields
 
     def to_representation(self, instance):
@@ -67,7 +67,7 @@ class ConditionalInputSerializer(serializers.ModelSerializer):
     """ Serialize inputs if it's a conditional one """
 
     class Meta:
-        model = ServiceInput
+        model = SubmissionParam
         fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'short_description', 'description',
                   'multiple', 'when')
 
@@ -79,8 +79,8 @@ class OutputSerializer(DynamicFieldsModelSerializer):
     """ Serialize an service expected output """
 
     class Meta:
-        model = ServiceOutput
-        fields = ('name', 'ext', 'may_be_empty', 'file_pattern')
+        model = SubmissionOutput
+        fields = ('name', 'ext', 'optional', 'file_pattern')
 
 
 class MetaSerializer(serializers.ModelSerializer):
@@ -129,7 +129,7 @@ class ServiceSubmissionSerializer(DynamicFieldsModelSerializer, serializers.Hype
 
     view_name = 'waves:waves-services-submissions'
     submission_uri = serializers.SerializerMethodField()
-    inputs = InputSerializer(many=True, source="submitted_service_inputs")
+    inputs = InputSerializer(many=True, source="submitted_submission_inputs")
     form = serializers.SerializerMethodField()
     service = serializers.SerializerMethodField()
 

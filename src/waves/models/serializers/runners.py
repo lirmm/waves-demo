@@ -11,13 +11,13 @@ from . import RelatedSerializerMixin
 class RunnerParamSerializer(serializers.ModelSerializer):
     class Meta:
         model = RunnerParam
-        fields = ('name', 'default', 'prevent_override')
+        fields = ('name', 'value', 'prevent_override')
 
 
 class RunnerSerializer(serializers.ModelSerializer, RelatedSerializerMixin):
     class Meta:
         model = Runner
-        fields = ('name', 'clazz', 'available', 'runner_params')
+        fields = ('name', 'clazz', 'runner_params')
 
     runner_params = RunnerParamSerializer(many=True)
 
@@ -26,8 +26,7 @@ class RunnerSerializer(serializers.ModelSerializer, RelatedSerializerMixin):
         runner_params = validated_data.pop('runner_params')
         runner = Runner.objects.create(**validated_data)
         runner.runner_params.all().delete()
-        runner.runner_params = self.create_related(foreign={'runner':runner},
+        runner.runner_params = self.create_related(foreign={'runner': runner},
                                                    serializer=RunnerParamSerializer,
                                                    datas=runner_params)
-        print "in create ", runner
         return runner

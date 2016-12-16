@@ -25,15 +25,17 @@ class RunnerForm(ModelForm):
 
     class Media:
         """ Medias """
-        js = ('waves/js/runner.js',)
+        js = ('waves/admin/js/runner.js',
+              'waves/admin/js/modal.js')
+        css = {
+            'screen': ('waves/admin/css/modal.css',),
+        }
 
-    update_init_params = BooleanField(required=False, label='Reset associated services to default',
-                                      help_text='Reload from selected class implementation')
+    update_init_params = BooleanField(required=False, label='Reset related services')
 
     def __init__(self, *args, **kwargs):
         super(RunnerForm, self).__init__(*args, **kwargs)
-        self.fields['clazz'] = ChoiceField(choices=lazy(get_runners_list, tuple)())
-
+        self.fields['clazz'] = ChoiceField(label="Run on", choices=lazy(get_runners_list, tuple)())
         if self.instance.pk is None:
             # print "creation"
             self.fields['update_init_params'].widget = HiddenInput()
@@ -49,10 +51,9 @@ class RunnerParamForm(ModelForm):
     class Meta:
         """ Metas """
         model = RunnerParam
-        fields = ['name', 'default', 'prevent_override']
+        fields = ['name', "value", 'prevent_override']
         widgets = {
-            'name': TextInput(attrs={'readonly': True}),
-            'default': TextInput()
+            "value": TextInput(attrs={'size': 50})
         }
 
     def __init__(self, **kwargs):
@@ -67,15 +68,10 @@ class RunnerParamForm(ModelForm):
                 if adaptor_default.init_params.get(instance.name):
                     param_defaults = adaptor_default.init_params.get(instance.name)
                     default_value = None
-                    initial = instance.default if instance.default else default_value
+                    initial = instance.value if instance.value else default_value
                     if type(param_defaults) == tuple:
-                        self.fields['default'] = ChoiceField(choices=param_defaults, initial=initial)
+                        self.fields['value'] = ChoiceField(choices=param_defaults, initial=initial)
                 if instance.name.startswith('crypt_'):
-                    self.fields['default'].widget = PasswordInput(render_value=instance.default)
+                    self.fields['value'].widget = PasswordInput(render_value=instance.value)
             except ValueError:
                 pass
-
-
-
-
-

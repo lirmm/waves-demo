@@ -5,8 +5,8 @@ from django.utils.module_loading import import_string
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db.models import Q
 
-from waves.models import Service, ServiceInput
-from waves.models.submissions import ServiceSubmission, ServiceInput
+from waves.models import Service, SubmissionParam
+from waves.models.submissions import ServiceSubmission, SubmissionParam
 from waves.utils.validators import ServiceInputValidator
 import waves.const
 import waves.settings
@@ -34,7 +34,7 @@ class ServiceSubmissionForm(forms.ModelForm):
         self.helper.init_layout(fields=('title', 'email', 'slug'))
         self.fields['title'].initial = 'my %s job' % self.instance.service.name
         self.fields['slug'].initial = str(self.instance.slug)
-        self.list_inputs = list(self.instance.service_inputs.filter(editable=True).order_by('-mandatory', 'order'))
+        self.list_inputs = list(self.instance.submission_inputs.filter(editable=True).order_by('-mandatory', 'order'))
         extra_fields = []
         for service_input in self.list_inputs:
             if service_input.type == waves.const.TYPE_FILE and not service_input.multiple:
@@ -81,7 +81,7 @@ class ServiceSubmissionForm(forms.ModelForm):
         if service_input.input_samples.count() > 0:
             for input_sample in service_input.input_samples.all():
                 sample_field = copy.copy(service_input)
-                sample_field.label = "Sample: " + input_sample.name
+                sample_field.label = "SubmissionSample: " + input_sample.name
                 sample_field.value = input_sample.file.name
                 sample_field.name = 'sp_' + service_input.name + '_' + str(input_sample.pk)
                 sample_field.type = waves.const.TYPE_BOOLEAN

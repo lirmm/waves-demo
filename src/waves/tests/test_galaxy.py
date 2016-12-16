@@ -39,7 +39,7 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
         """
         Test listing of available galaxy tools
         """
-        tools = self.adaptor.importer.list_all_remote_services()
+        tools = self.adaptor.importer.list_services()
         self.assertGreater(len(tools), 0)
 
     @test_util.skip_unless_tool("MAF_To_Fasta1")
@@ -48,7 +48,7 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
 
         self.assertIsNotNone(service)
         self.assertIsNotNone(service.submissions)
-        self.assertGreater(service.submissions.first().service_inputs.count(), 0)
+        self.assertGreater(service.submissions.first().submission_inputs.count(), 0)
 
     @test_util.skip_unless_tool("toolshed.g2.bx.psu.edu/repos/rnateam/mafft/rbc_mafft/7.221.1")
     def test_import_mafft(self):
@@ -82,14 +82,14 @@ class GalaxyWorkFlowRunnerTestCase(TestBaseJobRunner):
         return self.adaptor.importer(for_runner=self.runner_model)
 
     def test_list_galaxy_workflow(self):
-        services = self.importer.list_all_remote_services()
+        services = self.importer.list_services()
         if len(services) > 0:
             self.assertGreaterEqual(len(services), 0)
         else:
             self.skipTest("No remote workflows ")
 
     def test_import_new_workflow(self):
-        workflows = self.importer.list_all_remote_services()
+        workflows = self.importer.list_services()
         if len(workflows) > 0:
             for remote_service in workflows:
                 self.importer.import_remote_service(remote_tool_id=remote_service[0])
@@ -98,7 +98,7 @@ class GalaxyWorkFlowRunnerTestCase(TestBaseJobRunner):
 
     @unittest.skip('WorkFlow not really available for now')
     def test_update_existing_workflow(self):
-        service = Service.objects.filter(run_on__clazz='waves.adaptors.api.galaxy.GalaxyWorkFlowAdaptor')
+        service = Service.objects.filter(runner__clazz='waves.adaptors.api.galaxy.GalaxyWorkFlowAdaptor')
         self.assertGreaterEqual(len(service), 0)
         for updated in service[0:1]:
             # just try for the the first one

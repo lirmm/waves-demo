@@ -15,10 +15,11 @@ import waves.const
 import waves.settings
 from waves.exceptions import WavesException
 from waves.exceptions.jobs import JobInconsistentStateError, JobRunException
-from waves.models import TimeStampable, SlugAble, OrderAble, UrlMixin, WavesProfile, Service
-from waves.models.submissions import ServiceSubmission, ServiceInput
+from waves.models import TimeStampable, SlugAble, OrderAble, UrlMixin, WavesProfile, DTOAble
+from waves.models.submissions import ServiceSubmission, SubmissionParam
 from waves.models.managers.jobs import JobManager, JobInputManager, JobOutputManager, JobHistoryManager, \
     JobAdminHistoryManager
+from waves.models.runners import AdaptorInitParam
 
 __license__ = "MIT"
 __revision__ = " $Id: actor.py 1586 2009-01-30 15:56:25Z cokelaer $ "
@@ -48,7 +49,12 @@ def allow_display_online(file_name):
     return False
 
 
-class Job(TimeStampable, SlugAble, UrlMixin):
+class JobRunParams(AdaptorInitParam):
+    """ Saved configuration for job runs """
+    job = models.ForeignKey('Job', related_name='job_run_params', on_delete=models.CASCADE)
+
+
+class Job(TimeStampable, SlugAble, UrlMixin, DTOAble):
     """
     A job represent a request for executing a service, it requires values from specified required input from related
     service
@@ -66,14 +72,14 @@ class Job(TimeStampable, SlugAble, UrlMixin):
     class Meta(TimeStampable.Meta):
         db_table = 'waves_job'
         verbose_name = 'Job'
-        unique_together = (('service', 'slug'),)
         ordering = ['-updated', '-created']
 
     objects = JobManager()
     #: Job Title, automatic or set by user upon submission
     title = models.CharField('Job title', max_length=255, null=True, blank=True)
     #: Job related Service - see :ref:`service-label`.
-    service = models.ForeignKey(Service, related_name='service_jobs', null=False, on_delete=models.CASCADE)
+    submission = models.ForeignKey(ServiceSubmission, related_name='service_jobs', null=True,
+                                   on_delete=models.SET_NULL)
     #: Job last known status - see :ref:`waves-const-label`.
     status = models.IntegerField('Job status', choices=waves.const.STATUS_LIST, default=waves.const.JOB_CREATED,
                                  help_text='Job current run status')
@@ -85,8 +91,7 @@ class Job(TimeStampable, SlugAble, UrlMixin):
     #: Email to notify job status to
     email_to = models.EmailField('Email results', null=True, blank=True, help_text='Notify results to this email')
     #: Job ExitCode (mainly for admin purpose)
-    exit_code = models.IntegerField('Job system exit code', null=False, default=0,
-                                    help_text="Job exit code on relative adaptor")
+    exit_code = models.IntegerField('Job system exit code', default=0, help_text="Job exit code on relative adaptor")
     #: Tell whether job results files are available for download from client
     results_available = models.BooleanField('Results are available', default=False, editable=False)
     #: Job last status retry count (max before Error set in conf)
@@ -95,8 +100,10 @@ class Job(TimeStampable, SlugAble, UrlMixin):
     remote_job_id = models.CharField('Remote job ID (on adaptor)', max_length=255, editable=False, null=True)
     #: Jobs sometime can gain access to a remote history, store the adaptor history identifier
     remote_history_id = models.CharField('Remote history ID (on adaptor)', max_length=255, editable=False, null=True)
-    #: Job was submitted by 'submission'
-    submission = models.ForeignKey(ServiceSubmission, null=True, blank=True, editable=False, on_delete=models.CASCADE)
+
+    @property
+    def service(self):
+        return self.submission.service
 
     def natural_key(self):
         return self.slug, self.service.natural_key()
@@ -321,7 +328,7 @@ class Job(TimeStampable, SlugAble, UrlMixin):
         :param service_submission:
         :return: None
         """
-        for service_input in service_submission.service_inputs.filter(editable=False) \
+        for service_input in service_submission.submission_inputs.filter(editable=False) \
                 .exclude(param_type=waves.const.OPT_TYPE_NONE):
             # Create fake "submitted_inputs" with non editable ones with default value if not already set
             logger.debug('Created non editable job input: %s (%s, %s)', service_input.label,
@@ -337,7 +344,7 @@ class Job(TimeStampable, SlugAble, UrlMixin):
         """ Create standard default outputs for job (stdout and stderr)
         :return: None
         """
-        output_dict = dict(job=self, value=self.stdout, may_be_empty=True, _name='Standard output', type="txt")
+        output_dict = dict(job=self, value=self.stdout, optional=False, _name='Standard output', type="txt")
         out = JobOutput.objects.create(**output_dict)
         self.job_outputs.add(out)
         output_dict['value'] = self.stderr
@@ -527,10 +534,17 @@ class Job(TimeStampable, SlugAble, UrlMixin):
         with open(join(self.working_dir, self.stderr), 'r') as fp:
             return fp.read()
 
+    def reset_run_params(self):
+        """ Should be used only for non already launched objects """
+        for param in self.service.runner.runner_params.filter(prevent_override=True):
+            JobRunParams.objects.update_or_create(defaults={'value': param.value,
+                                                            'prevent_override': True},
+                                                  name=param.name, job=self)
+
 
 class JobInput(OrderAble, SlugAble):
     """
-    Job Inputs is association between a Job, a ServiceInput, setting a value specific for this job
+    Job Inputs is association between a Job, a SubmissionParam, setting a value specific for this job
     """
 
     class Meta:
@@ -540,8 +554,8 @@ class JobInput(OrderAble, SlugAble):
     objects = JobInputManager()
     #: Reference to related :class:`waves.models.jobs.Job`
     job = models.ForeignKey(Job, related_name='job_inputs', on_delete=models.CASCADE)
-    #: Reference to related :class:`waves.models.services.ServiceInput`
-    # srv_input = models.ForeignKey('ServiceInput', null=True, on_delete=models.CASCADE)
+    #: Reference to related :class:`waves.models.services.SubmissionParam`
+    # srv_input = models.ForeignKey('SubmissionParam', null=True, on_delete=models.CASCADE)
     #: Value set to this service input for this job
     value = models.CharField('Input content', max_length=255, null=True, blank=True,
                              help_text='Input value (filename, boolean value, int value etc.)')
@@ -576,9 +590,9 @@ class JobInput(OrderAble, SlugAble):
 
     @property
     def validated_value(self):
-        """ May modify value (cast) according to related ServiceInput type
+        """ May modify value (cast) according to related SubmissionParam type
 
-        :return: determined from related ServiceInput type
+        :return: determined from related SubmissionParam type
         """
         if self.type == waves.const.TYPE_FILE:
             return self.value
@@ -600,7 +614,7 @@ class JobInput(OrderAble, SlugAble):
 
     @property
     def srv_input(self):
-        return self.job.submission.service_inputs.filter(name=self.name).first()
+        return self.job.submission.submission_inputs.filter(name=self.name).first()
 
     def clean(self):
         if self.srv_input.mandatory and not self.srv_input.default and not self.value:
@@ -609,7 +623,7 @@ class JobInput(OrderAble, SlugAble):
 
     @property
     def command_line_element(self, forced_value=None):
-        """For each job input, according to related ServiceInput, return command line part for this parameter
+        """For each job input, according to related SubmissionParam, return command line part for this parameter
 
         :param forced_value: Any forced value if needed
         :return: depends on parameter type
@@ -644,10 +658,10 @@ class JobInput(OrderAble, SlugAble):
     def get_label_for_choice(self):
         """ Try to get label for value issued from a service list input"""
         try:
-            srv_input = ServiceInput.objects.get(service=self.job.submission,
-                                                 editable=True,
-                                                 name=self.name)
-            return srv_input.get_value_for_choice(self.value)
+            srv_input = SubmissionParam.objects.get(service=self.job.submission,
+                                                    editable=True,
+                                                    name=self.name)
+            return srv_input.get_choises(self.value)
         except ObjectDoesNotExist:
             pass
         return self.value
@@ -658,20 +672,22 @@ class JobInput(OrderAble, SlugAble):
 
 
 class JobOutput(OrderAble, SlugAble, UrlMixin):
-    """ JobOutput is association fro a Job, a ServiceOutput, and the effective value set for this Job
+    """ JobOutput is association fro a Job, a SubmissionOutput, and the effective value set for this Job
     """
+
     class Meta:
         db_table = 'waves_job_output'
         unique_together = ('_name', 'job')
+
     objects = JobOutputManager()
     #: Related :class:`waves.models.jobs.Job`
     job = models.ForeignKey(Job, related_name='job_outputs', on_delete=models.CASCADE)
-    #: Related :class:`waves.models.services.ServiceOutput`
-    # srv_output = models.ForeignKey('ServiceOutput', null=True, on_delete=models.CASCADE)
+    #: Related :class:`waves.models.services.SubmissionOutput`
+    # srv_output = models.ForeignKey('SubmissionOutput', null=True, on_delete=models.CASCADE)
     #: Job Output value
     value = models.CharField('Output value', max_length=200, null=True, blank=True, default="")
     #: Set whether this output may be empty (no output from Service)
-    may_be_empty = models.BooleanField('MayBe empty', default=True)
+    optional = models.BooleanField('MayBe empty', default=True)
     #: Each output may have its own identifier on remote adaptor
     remote_output_id = models.CharField('Remote output ID (on adaptor)', max_length=255, editable=False, null=True)
     _name = models.CharField('Name', max_length=200, null=False, blank=False, help_text='Output displayed name')
@@ -734,10 +750,12 @@ class JobOutput(OrderAble, SlugAble, UrlMixin):
 class JobHistory(models.Model):
     """ Represents a job status history event
     """
+
     class Meta:
         db_table = 'waves_job_history'
         ordering = ['-timestamp', '-status']
         unique_together = ('job', 'timestamp', 'status', 'is_admin')
+
     objects = JobHistoryManager()
     #: Related :class:`waves.models.jobs.Job`
     job = models.ForeignKey(Job, related_name='job_history', on_delete=models.CASCADE, null=False)
@@ -758,6 +776,7 @@ class JobHistory(models.Model):
 class JobAdminHistory(JobHistory):
     """A Job Event intended only for Admin use
     """
+
     class Meta:
         proxy = True
 

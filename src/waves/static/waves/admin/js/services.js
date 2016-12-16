@@ -25,8 +25,9 @@
             }
         });
 
-        $('#launch_import').click(function () {
-            $('#form-modal-body').load('/launch_import/', function () {
+        $('#open_import_form').click(function () {
+            console.log('Launch an import')
+            $('#form-modal-body').load('/open_import_form/', function () {
                 $('#form-modal').modal('toggle');
             });
         });

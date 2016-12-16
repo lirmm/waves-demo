@@ -64,6 +64,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'jquery_ui',
+    'nested_admin',
     # WAVES required dependencies
     'waves.apps.WavesApp',
     'smart_selects',
@@ -172,3 +173,8 @@ JET_THEMES = [
         'title': 'Light Gray'
     }
 ]
+CKEDITOR_CONFIGS = {
+    'default': {
+        'height': 150,
+    },
+}
