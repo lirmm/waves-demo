@@ -52,9 +52,10 @@
                     // handle response errors here
                     console.log('errors ' + JSON.stringify(xhr.responseJSON['form_html']));
                     $('#form_import_fields').html(xhr.responseJSON['form_html'])
-                    $('.alert.alert-block.alert-danger > ul').addClass('grp-messagelist');
-                    $('.alert.alert-block.alert-danger > ul > li').addClass('grp-error');
+                    $('#form_import_fields > div.alert.alert-block.alert-danger > ul').addClass('messagelist');
+                    $('#form_import_fields > div.alert.alert-block.alert-danger > ul > li').addClass('error');
                     $('.help-block').css('display', 'none');
+
                 }).always(function (data) {
                     // console.log('always call ' + JSON.stringify(data));
                 });

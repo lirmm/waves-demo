@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import Q
-
+from mptt.managers import TreeManager
 import waves.const
 
 
@@ -12,7 +12,7 @@ class ServiceRunParamManager(models.Manager):
         return super(ServiceRunParamManager, self).get_queryset()
 
 
-class ServiceCategoryManager(models.Manager):
+class ServiceCategoryManager(TreeManager):
     def get_by_natural_key(self, api_name):
         return self.get(api_name=api_name)
 

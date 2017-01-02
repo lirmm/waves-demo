@@ -42,7 +42,7 @@ class SubmissionDataForm(forms.ModelForm):
     """ Base Class for submission forms """
     class Meta:
         widgets = {
-            '_type_format': Textarea(attrs={'rows': 3}),
+            'list_elements': Textarea(attrs={'rows': 3}),
             'short_description': Textarea(attrs={'rows': 4}),
         }
 
@@ -63,10 +63,6 @@ class ParamForm(SubmissionDataForm):
 
     def __init__(self, *args, **kwargs):
         super(ParamForm, self).__init__(*args, **kwargs)
-        self.fields['_type_format'].help_text = '<b>ONE PER LINE</b><br/>' \
-                                                'For List: label|value ..."<br/>' \
-                                                'For Number(optional]: min|max<br/>'\
-                                                'For Boolean(optional): labelTrue|LabelFalse'
         choices = waves.const.IN_TYPE[1:]
         choices.insert(0, ('', '----'))
         self.fields['type'] = forms.ChoiceField(choices=choices)
@@ -81,8 +77,8 @@ class FileInputForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(FileInputForm, self).__init__(*args, **kwargs)
-        self.fields['_type_format'].help_text = "One extension per line"
-        self.fields['_type_format'].label = "Authorized extensions"
+        self.fields['list_elements'].help_text = "One extension per line"
+        self.fields['list_elements'].label = "Authorized extensions"
 
 
 class RelatedInputForm(SubmissionDataForm):

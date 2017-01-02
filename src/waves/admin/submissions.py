@@ -81,7 +81,7 @@ class SubmissionDataInline(CompactInline):
     fk_name = 'submission'
     extra = 0
     exclude = ['id', 'order', 'description']
-    fields = ['label', 'name', 'cmd_line_type', '_type_format', 'required', 'multiple',
+    fields = ['label', 'name', 'cmd_line_type', 'list_elements', 'required', 'multiple',
               'submitted', 'short_description', 'edam_formats', 'edam_datas']
 
 
@@ -116,7 +116,7 @@ class RelatedFileInputInline(SubmissionParamInline):
     model = RelatedFileInput
     verbose_name = 'Related input'
     verbose_name_plural = "Related inputs"
-    fields = ('related_to', 'label', 'name', 'cmd_line_type', '_type_format', 'required', 'multiple',
+    fields = ('related_to', 'label', 'name', 'cmd_line_type', 'list_elements', 'required', 'multiple',
               'short_description', 'edam_formats', 'edam_datas')
     exclude = ('type', 'list_display', 'default')
 
@@ -133,7 +133,7 @@ class ServiceExitCodeInline(CompactInline):
 class ServiceSubmissionAdmin(admin.ModelAdmin):
     """ Submission process administration -- Model ServiceSubmission """
     class Media:
-        js = ('waves/admin/services.js',)
+        js = ('waves/admin/js/services.js',)
 
     inlines = [
         SubmissionFileInputInline,
@@ -143,8 +143,7 @@ class ServiceSubmissionAdmin(admin.ModelAdmin):
         ServiceOutputInline,
         ServiceExitCodeInline
     ]
-    fields = ('label', 'api_name', 'available_api', 'available_online')
-    readonly_fields = ('service', )
+    fields = ('label', 'api_name', 'service', 'available_api', 'available_online')
     exclude = ['order']
     change_form_template = 'admin/waves/submission/change_form.html'
     list_display = ['label', 'available_online', 'available_api', 'service_link', ]
@@ -154,6 +153,12 @@ class ServiceSubmissionAdmin(admin.ModelAdmin):
         return mark_safe('<a href="{}">{}</a>'.format(
             reverse("admin:waves_service_change", args=(obj.service.id,)),
             obj.service.name))
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = list(super(ServiceSubmissionAdmin, self).get_readonly_fields(request, obj))
+        if obj is not None:
+            readonly_fields.append('service')
+        return readonly_fields
 
 
 admin.site.register(ServiceSubmission, ServiceSubmissionAdmin)

@@ -28,7 +28,6 @@ class DTOAble(object):
         correspondence """
         for var in dir(dto):
             if not var.startswith('_'):
-                print "set attr ", var, getattr(dto, var)
                 setattr(self, var, getattr(dto, var))
 
     def to_dto(self, dto):

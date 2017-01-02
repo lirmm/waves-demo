@@ -25,9 +25,9 @@ class ServiceRunParam(AdaptorInitParam):
     """ Defined runner param for Service model objects """
 
     class Meta:
-        db_table = 'waves_service_runner_param'
+        db_table = 'waves_service_run_param'
         verbose_name = 'Run configuration'
-        verbose_name_plural = 'Default run configuration'
+        verbose_name_plural = 'Run configuration'
         unique_together = ('service', 'name')
 
     objects = ServiceRunParamManager()
@@ -45,6 +45,7 @@ class ServiceCategory(MPTTModel, OrderAble, DescribeAble, ApiAble):
         verbose_name = "Category"
 
     class MPTTMeta:
+        level_attr = 'mptt_level'
         order_insertion_by = ['name']
 
     objects = ServiceCategoryManager()

@@ -76,48 +76,106 @@ class ServiceSubmission(TimeStampable, ApiAble, OrderAble, SlugAble):
         return self
 
 
+class RepeatedGroup(models.Model, DTOAble):
+    """ Some input may be grouped, and group could be repeated"""
+
+    class Meta:
+        db_table = "waves_repeat_group"
+
+    submission = models.ForeignKey(ServiceSubmission, related_name='submission_groups', null=False,
+                                   on_delete=models.CASCADE)
+    name = models.CharField('Group name', max_length=255, null=False, blank=False)
+    title = models.CharField('Group title', max_length=255, null=False, blank=False)
+    max_repeat = models.IntegerField("Max repeat", null=True, blank=True)
+    min_repeat = models.IntegerField('Min repeat', default=0)
+    default = models.IntegerField('Default repeat', default=0)
+
+
 class SubmissionData(DescribeAble, TimeStampable, OrderAble, DTOAble):
     """ A classic submission param to setup a service run """
 
     class Meta:
-        unique_together = ('name', 'default', 'submission')
+        unique_together = ('name', 'default', 'type', 'submission')
 
+    submission = models.ForeignKey(ServiceSubmission, related_name='submission_inputs', on_delete=models.CASCADE)
     label = models.CharField('Label', max_length=100, blank=False, null=False, help_text='Input displayed label')
     name = models.CharField('Name', max_length=50, blank=False, null=False, help_text='Input runner\'s job param name')
-    default = models.CharField('Default', max_length=255, null=True, blank=True)
+    default = models.CharField('Default value', max_length=50, null=True, blank=True)
     type = models.CharField('Control Type', choices=waves.const.IN_TYPE, null=False, default=waves.const.TYPE_TEXT,
                             max_length=15, help_text='Input Form generation/control')
     cmd_line_type = models.IntegerField('Command line type', choices=waves.const.OPT_TYPE,
                                         default=waves.const.OPT_TYPE_POSIX,
                                         help_text='Input type (used in command line)')
-    _type_format = models.TextField('Type format', null=True, max_length=500, blank=True)
     required = models.BooleanField('Required', default=False)
+    submitted = models.BooleanField('Submitted', default=True)
     multiple = models.BooleanField('Multiple', default=False)
-    submitted = models.BooleanField('Submitted by user', default=True)
+    # Dedicated fields for Boolean Inputs
+    true_value = models.CharField('True value', default='True', max_length=50)
+    false_value = models.CharField('False value', default='False', max_length=50)
+    # // Dedicated fields for Boolean Inputs
+    # Dedicated fields for Number Inputs
+    min_val = models.DecimalField('Min value', decimal_places=3, max_digits=50, default=None, null=True, blank=True)
+    max_val = models.DecimalField('Max value', decimal_places=3, max_digits=50, default=None, null=True, blank=True)
+    # // Dedicated fields for Number Inputs
+    # Dedicated Fields for list Inputs
     list_display = models.CharField('List display type', choices=waves.const.LIST_DISPLAY_TYPE, default='select',
                                     max_length=100, null=True, blank=True,
                                     help_text='Input list display mode (for type list only)')
-    edam_formats = models.CharField('Edam format(s)', max_length=255, null=True, blank=True,
-                                    help_text="comma separated list of supported edam format")
-    edam_datas = models.CharField('Edam data(s)', max_length=255, null=True, blank=True,
-                                  help_text="comma separated list of supported edam data type")
-    submission = models.ForeignKey(ServiceSubmission, related_name='submission_inputs', on_delete=models.CASCADE)
-    # dedicated to relation ship with other Inputs
+    list_elements = models.TextField('List Elements', null=True, max_length=500, blank=True,
+                                     help_text="One Element per line label|value")
+    # // Dedicated Fields for list Inputs
+    # Dedicated Fields for File Inputs
+    extensions = models.TextField('Extensions', null=True, max_length=500, blank=True,
+                                  help_text="One extension per line")
+    max_size = models.IntegerField('File Max size', default=0)
+    # // Dedicated Fields for File Inputs
+    # Dedicated Fields for Dependent Inputs
     when_value = models.CharField('When condition', max_length=255, null=True, blank=False,
                                   help_text='Input is treated only for this parent value')
     related_to = models.ForeignKey('self', related_name="dependents_inputs", on_delete=models.CASCADE,
                                    null=True, blank=False, help_text='Input is associated to')
+    # // Dedicated Fields for Dependent Inputs
+    # Dedicated Fields for Repeated Input Group
+    repeat_group = models.ForeignKey(RepeatedGroup, null=True, blank=True, on_delete=models.SET_NULL,
+                                     help_text="Group and repeat items")
+    # // Dedicated Fields for Repeated Input Group
+    # __future__ :-) manage validators according to edam infos
+    edam_formats = models.CharField('Edam format(s)', max_length=255, null=True, blank=True,
+                                    help_text="comma separated list of supported edam format")
+    edam_datas = models.CharField('Edam data(s)', max_length=255, null=True, blank=True,
+                                  help_text="comma separated list of supported edam data type")
+    # // end __future__
 
     def __str__(self):
         return self.label
 
     @property
     def format(self):
-        return self._type_format
+        if self.type == waves.const.TYPE_FILE:
+            return self.max_size
+        elif self.type == waves.const.TYPE_TEXT:
+            return ''
+        elif self.type == waves.const.TYPE_BOOLEAN:
+            return self.true_value + '|' + self.false_value
+        elif self.type == waves.const.TYPE_LIST:
+            return self.list_elements
+        elif self.type == waves.const.TYPE_NUMBER:
+            return self.min_val + '|' + self.max_val
 
     @format.setter
     def format(self, type_format):
-        self._type_format = type_format
+        if self.type == waves.const.TYPE_FILE:
+            self.max_size = type_format
+        elif self.type == waves.const.TYPE_TEXT:
+            pass
+        elif self.type == waves.const.TYPE_BOOLEAN:
+            # self.true_value + '|' + self.false_value
+            pass
+        elif self.type == waves.const.TYPE_LIST:
+            self.list_elements = type_format
+        elif self.type == waves.const.TYPE_NUMBER:
+            # return self.min_val + '|' + self.max_val
+            pass
 
     def natural_key(self):
         return self.label, self.name, self.default, self.service.natural_key()
@@ -187,6 +245,12 @@ class SubmissionData(DescribeAble, TimeStampable, OrderAble, DTOAble):
         self.pk = None
         self.service = submission
         return self
+
+    def from_dto(self, dto):
+        super(SubmissionData, self).from_dto(dto)
+
+    def to_dto(self, dto):
+        super(SubmissionData, self).to_dto(dto)
 
 
 class FileInput(SubmissionData):
@@ -269,6 +333,8 @@ class SubmissionParam(SubmissionData):
 
 
 class RelatedParam(SubmissionParam):
+    """ Dependent parameter """
+
     class Meta:
         proxy = True
 
@@ -336,6 +402,7 @@ class SubmissionExitCode(models.Model):
 
 
 class SubmissionSample(models.Model):
+    """ Sample associated with submission files input """
     param = models.ForeignKey(FileInput, null=False, on_delete=models.CASCADE, blank=True, related_name='input_sample')
     sample = models.FileField('File', upload_to=service_sample_directory, storage=waves_storage, blank=True)
     label = models.CharField('Label', max_length=255, blank=True, null=False)

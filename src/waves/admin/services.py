@@ -75,11 +75,15 @@ class ServiceSubmissionInline(admin.TabularInline):
 
 class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin, WavesTabbedModelAdmin):
     """ Service model objects Admin"""
+    class Media:
+        js = ('waves/admin/js/services.js',)
+
     inlines = (
         ServiceRunnerParamInLine,
         ServiceSubmissionInline,
         ServiceMetaInline,
     )
+
     change_form_template = 'admin/waves/service/' + WavesTabbedModelAdmin.admin_template
     form = ServiceForm
     filter_horizontal = ['restricted_client']

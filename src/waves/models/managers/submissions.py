@@ -44,6 +44,7 @@ class RelatedFileManager(models.Manager):
         return super(RelatedFileManager, self).get_queryset().filter(type=waves.const.TYPE_FILE,
                                                                      related_to__isnull=False)
 
+
 class SubmissionRunParamManager(models.Manager):
     def get_queryset(self):
         return super(SubmissionRunParamManager, self).get_queryset().filter(prevent_override=False)

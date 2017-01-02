@@ -5,8 +5,9 @@
 
 (function ($) {
     $(document).ready(function () {
-
-        $("#id_run_on").focus(function () {
+        var prev_val = $("#id_runner").val();
+        $("#id_runner").select(function () {
+            console.log('focus !');
             prev_val = $(this).val();
             console.log('Prev val' + prev_val);
         }).change(function () {
@@ -25,10 +26,12 @@
             }
         });
 
-        $('#open_import_form').click(function () {
-            console.log('Launch an import')
-            $('#form-modal-body').load('/open_import_form/', function () {
-                $('#form-modal').modal('toggle');
+        $('#open_import_form').click(function (e) {
+            console.log('Launch an import ' + $(this).attr('href'));
+            e.preventDefault();
+            $('#popup_modal_content').load($(this).attr('href'), function () {
+                console.log('loaded');
+                $('#popup_modal').modal('toggle');
             });
         });
 

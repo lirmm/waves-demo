@@ -88,7 +88,6 @@ class RunnerImportToolView(FormView):
     def remote_service_id(self, request):
         return request.POST.get('tool')
 
-
     def post(self, request, *args, **kwargs):
         if request.is_ajax():
             self.get_object(request)
@@ -120,7 +119,6 @@ class RunnerImportToolView(FormView):
                     messages.add_message(request, level=messages.SUCCESS, message='Parameters successfully imported')
                     return JsonResponse(data, status=200)
                 except Exception as e:
-                    print e
                     form.add_error(None, ValidationError(message="Import Error: %s" % e))
                     form_html = render_crispy_form(form)
                     return JsonResponse({'form_html': form_html}, status=500)

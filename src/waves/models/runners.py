@@ -99,7 +99,7 @@ class AdaptorInitParam(models.Model):
 class RunnerParam(AdaptorInitParam):
     """ Parameters used by related class object (see: waves.runners) for self initialization """
     class Meta:
-        db_table = 'waves_runner_param'
+        db_table = 'waves_runner_run_param'
         unique_together = ('name', 'runner')
     objects = RunnerParamManager()
     runner = models.ForeignKey(Runner, related_name='runner_params', on_delete=models.CASCADE)

@@ -17,7 +17,7 @@ if 'tabbed_admin' in settings.INSTALLED_APPS:
             css = {
                 'screen': ('waves/css/tabbed_admin.css',)
             }
-            js = ('waves/admin/services.js',)
+            js = ('waves/admin/js/services.js',)
 
         admin_template = 'tabbed_change_form.html'
 
@@ -31,7 +31,7 @@ else:
         """ Tabbed faked model admin """
 
         class Media:
-            js = ('waves/admin/services.js',)
+            js = ('waves/admin/js/services.js',)
 
         admin_template = 'change_form.html'
 
