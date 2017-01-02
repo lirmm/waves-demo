@@ -168,3 +168,8 @@
 .affix {
   position: fixed;
 }
+
+#alert_modal_content > div.modal-body > img, #popup_modal_content > div.modal-body > img {
+  margin: 0 auto;
+  display: block;
+}

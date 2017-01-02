@@ -95,17 +95,8 @@ class AdaptorInitParam(models.Model):
     value = models.TextField('Value', max_length=500, null=True, blank=True, help_text='Default value')
     prevent_override = models.BooleanField('Prevent override', help_text="Prevent override")
 
-
-class RunnerParam(AdaptorInitParam):
-    """ Parameters used by related class object (see: waves.runners) for self initialization """
-    class Meta:
-        db_table = 'waves_runner_run_param'
-        unique_together = ('name', 'runner')
-    objects = RunnerParamManager()
-    runner = models.ForeignKey(Runner, related_name='runner_params', on_delete=models.CASCADE)
-
     def clean(self):
-        cleaned_data = super(RunnerParam, self).clean()
+        cleaned_data = super(AdaptorInitParam, self).clean()
         if not self.value and self.prevent_override:
             raise ValidationError('You can\'t prevent override with no default value')
         return cleaned_data
@@ -115,7 +106,18 @@ class RunnerParam(AdaptorInitParam):
 
     @classmethod
     def from_db(cls, db, field_names, values):
-        instance = super(RunnerParam, cls).from_db(db, field_names, values)
-        if instance.name.startswith('encrypt_'):
-            instance.default = Encrypt.decrypt(instance.default)
+        instance = super(AdaptorInitParam, cls).from_db(db, field_names, values)
+        if instance.name.startswith('crypt_'):
+            # FIXME: protect encrypted data from been read directly from here
+            instance.value = Encrypt.decrypt(instance.value)
         return instance
+
+
+class RunnerParam(AdaptorInitParam):
+    """ Parameters used by related class object (see: waves.runners) for self initialization """
+    class Meta:
+        db_table = 'waves_runner_run_param'
+        unique_together = ('name', 'runner')
+    objects = RunnerParamManager()
+    runner = models.ForeignKey(Runner, related_name='runner_params', on_delete=models.CASCADE)
+
