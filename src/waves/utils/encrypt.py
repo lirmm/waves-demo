@@ -25,7 +25,7 @@ class Encrypt(object):
                 raise RuntimeError('Encoded values must use a key at least a 32 chars length secret')
             cipher = XOR.new(secret)
         else:
-            cipher = settings.SECRET_KEY[0:32]
+            cipher = XOR.new(settings.SECRET_KEY[0:32])
         encoded = base64.b64encode(cipher.encrypt(to_encode))
         return encoded
 
@@ -41,5 +41,5 @@ class Encrypt(object):
                 raise RuntimeError('Encoded values must use a key at least a 32 chars length secret')
             cipher = XOR.new(secret)
         else:
-            cipher = settings.SECRET_KEY[0:32]
+            cipher = XOR.new(settings.SECRET_KEY[0:32])
         return cipher.decrypt(base64.b64decode(to_decode))
