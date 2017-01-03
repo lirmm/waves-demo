@@ -9,7 +9,7 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.core.exceptions import ValidationError
 from rest_framework.decorators import detail_route
 from waves.models import Service, Job
-from waves.models.submissions import ServiceSubmission
+from waves.models.submissions import Submission
 from waves.exceptions.jobs import JobException
 from waves.api.serializers import ServiceSerializer, JobSerializer, ServiceFormSerializer, ServiceMetaSerializer, \
     ServiceSubmissionSerializer
@@ -86,14 +86,14 @@ class MultipleFieldLookupMixin(object):
 class ServiceJobSubmissionView(MultipleFieldLookupMixin, generics.RetrieveAPIView, generics.CreateAPIView,
                                WavesBaseView):
     """ Service job Submission view """
-    queryset = ServiceSubmission.objects.all()
+    queryset = Submission.objects.all()
     serializer_class = ServiceSubmissionSerializer
     lookup_fields = ('service', 'api_name')
 
     def get_queryset(self):
         """ Retrieve for service, current submissions available for API """
-        return ServiceSubmission.objects.filter(api_name=self.kwargs.get('api_name'),
-                                                service__api_name=self.kwargs.get('service'), available_api=True)
+        return Submission.objects.filter(api_name=self.kwargs.get('api_name'),
+                                         service__api_name=self.kwargs.get('service'), available_api=True)
 
     def get_object(self):
         """ Retrieve object or redirect to 404 """

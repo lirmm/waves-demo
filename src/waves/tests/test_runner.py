@@ -12,7 +12,7 @@ from waves.adaptors.base import JobRunnerAdaptor
 from waves.adaptors.exceptions import *
 from waves.exceptions.jobs import *
 from waves.models import Service, Job, JobInput, Runner, RunnerParam
-from waves.models.submissions import ServiceSubmission
+from waves.models.submissions import Submission
 from waves.tests.mocks.adaptor import MockJobRunnerAdaptor
 import waves.settings
 import logging
@@ -74,8 +74,8 @@ class TestBaseJobRunner(WavesBaseTestCase):
             self.adaptor = MockJobRunnerAdaptor()
         self.runner_model = sample_runner(self.adaptor)
         self.service = Service.objects.create(name="SubmissionSample Service", runner=self.runner_model)
-        self.service.submissions.add(ServiceSubmission.objects.create(label='samplesub', available_online=True,
-                                                                      available_api=True, service=self.service))
+        self.service.submissions.add(Submission.objects.create(label='samplesub', available_online=True,
+                                                               available_api=True, service=self.service))
         self.current_job = None
         self.jobs = []
         self._result = self.defaultTestResult()

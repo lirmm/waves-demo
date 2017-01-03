@@ -5,6 +5,7 @@ from mptt.admin import MPTTModelAdmin
 
 from base import ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin
 from waves.admin.submissions import *
+from waves.apps import WavesCompactInline as CompactInline
 from waves.admin.submissions import ServiceExitCodeInline
 from waves.forms.admin.services import *
 from waves.models.profiles import WavesProfile
@@ -62,18 +63,22 @@ class ServiceRunnerParamInLine(admin.TabularInline):
 
 class ServiceSubmissionInline(admin.TabularInline):
     """ Service Submission Inline (included in ServiceAdmin) """
-    model = ServiceSubmission
+    model = Submission
     extra = 0
     fk_name = 'service'
     sortable = 'order'
     sortable_field_name = "order"
     classes = ('grp-collapse', 'grp-open')
     fields = ['label', 'available_online', 'available_api']
+    readonly_fields = ['available_online', 'available_api']
     show_change_link = True
     # inlines = [SubmissionParamInline, ]
 
+    def available_online(self, obj):
+        return obj.available_online
 
-class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin, WavesTabbedModelAdmin):
+
+class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin, WavesModelAdmin):
     """ Service model objects Admin"""
     class Media:
         js = ('waves/admin/js/services.js',)
@@ -84,7 +89,7 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
         ServiceMetaInline,
     )
 
-    change_form_template = 'admin/waves/service/' + WavesTabbedModelAdmin.admin_template
+    change_form_template = 'admin/waves/service/' + WavesModelAdmin.admin_template
     form = ServiceForm
     filter_horizontal = ['restricted_client']
     readonly_fields = ['remote_service_id', 'created', 'updated', 'submission_link']
@@ -104,7 +109,7 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
 
     def submission_link(self, obj):
         return mark_safe('<a href="{}?service__id__exact={}">Submissions ({})</a>'.format(
-            reverse("admin:waves_servicesubmission_changelist"),
+            reverse("admin:waves_submission_changelist"),
             obj.id, obj.submissions.count()))
 
     submission_link.short_description = 'Submissions'

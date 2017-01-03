@@ -59,7 +59,7 @@ class ServiceSubmissionSerializer(BaseServiceSubmissionSerializer, RelatedSerial
     """ Service Submission export / import """
 
     class Meta:
-        model = ServiceSubmission
+        model = Submission
         fields = ('api_name', 'order', 'label', 'available_online', 'available_api', 'export_submission_inputs',
                   'submission_inputs')
 
@@ -69,7 +69,7 @@ class ServiceSubmissionSerializer(BaseServiceSubmissionSerializer, RelatedSerial
     def create(self, validated_data):
         submission_inputs = validated_data.pop('export_submission_inputs')
         # validated_data['api_name'] = validated_data.get('service').api_name
-        submission = ServiceSubmission.objects.create(**validated_data)
+        submission = Submission.objects.create(**validated_data)
         self.create_related(foreign={'service': submission}, serializer=ServiceInputSerializer, datas=submission_inputs)
         return submission
 
@@ -84,11 +84,11 @@ class ExitCodeSerializer(serializers.ModelSerializer):
 
 class SubmissionOutputSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ServiceSubmission
+        model = Submission
         fields = ('api_name',)
 
     def create(self, validated_data):
-        return ServiceSubmission(api_name=validated_data.get('api_name'))
+        return Submission(api_name=validated_data.get('api_name'))
 
 
 class ServiceOutputSerializer(serializers.ModelSerializer):

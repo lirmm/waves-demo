@@ -16,10 +16,10 @@ import waves.settings
 from waves.exceptions import WavesException
 from waves.exceptions.jobs import JobInconsistentStateError, JobRunException
 from waves.models import TimeStampable, SlugAble, OrderAble, UrlMixin, WavesProfile, DTOAble
-from waves.models.submissions import ServiceSubmission, SubmissionParam
+from waves.models.submissions import Submission
 from waves.models.managers.jobs import JobManager, JobInputManager, JobOutputManager, JobHistoryManager, \
     JobAdminHistoryManager
-from waves.models.runners import AdaptorInitParam
+from waves.models.base import AdaptorInitParam
 
 __license__ = "MIT"
 __revision__ = " $Id: actor.py 1586 2009-01-30 15:56:25Z cokelaer $ "
@@ -78,7 +78,7 @@ class Job(TimeStampable, SlugAble, UrlMixin, DTOAble):
     #: Job Title, automatic or set by user upon submission
     title = models.CharField('Job title', max_length=255, null=True, blank=True)
     #: Job related Service - see :ref:`service-label`.
-    submission = models.ForeignKey(ServiceSubmission, related_name='service_jobs', null=True,
+    submission = models.ForeignKey(Submission, related_name='service_jobs', null=True,
                                    on_delete=models.SET_NULL)
     #: Job last known status - see :ref:`waves-const-label`.
     status = models.IntegerField('Job status', choices=waves.const.STATUS_LIST, default=waves.const.JOB_CREATED,
@@ -657,10 +657,10 @@ class JobInput(OrderAble, SlugAble):
     @property
     def get_label_for_choice(self):
         """ Try to get label for value issued from a service list input"""
+        from waves.models.inputs import BaseParam
         try:
-            srv_input = SubmissionParam.objects.get(service=self.job.submission,
-                                                    editable=True,
-                                                    name=self.name)
+            srv_input = BaseParam.objects.get(submission=self.job.submission,
+                                              name=self.name)
             return srv_input.get_choises(self.value)
         except ObjectDoesNotExist:
             pass
@@ -723,7 +723,7 @@ class JobOutput(OrderAble, SlugAble, UrlMixin):
         """ Reset attributes and mark job as CREATED to be re-run"""
         self.job_history.all().delete()
         self.message = "Job marked for re-run"
-        self.job_history.add(JobAdminHistory.objects.create(jo))
+        # self.job_history.add(JobAdminHistory.objects.create(jo))
         self.nb_retry = 0
         self.status = waves.const.JOB_CREATED
         for job_out in self.job_outputs.all():

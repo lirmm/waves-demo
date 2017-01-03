@@ -19,6 +19,7 @@ from waves.models.jobs import Job, JobHistory, JobAdminHistory, JobOutput
 from waves.models.services import *
 from waves.models.submissions import *
 from waves.models.runners import *
+from waves.models.inputs import *
 from waves.models.profiles import WavesProfile, profile_directory
 
 logger = logging.getLogger(__name__)
@@ -58,14 +59,14 @@ def service_post_delete_handler(sender, instance, **kwargs):
         shutil.rmtree(instance.sample_dir)
 
 
-@receiver(pre_save, sender=ServiceSubmission)
+@receiver(pre_save, sender=Submission)
 def submission_pre_save_handler(sender, instance, **kwargs):
     """ submission pre save """
     if not instance.label:
         instance.label = instance.service.name
 
 
-@receiver(post_save, sender=ServiceSubmission)
+@receiver(post_save, sender=Submission)
 def submission_pre_save_handler(sender, instance, created, **kwargs):
     """ submission pre save """
     if created and not kwargs.get('raw', False):
@@ -75,14 +76,14 @@ def submission_pre_save_handler(sender, instance, created, **kwargs):
                                                                   message='Process exit error'))
 
 
-@receiver(post_delete, sender=SubmissionSample)
+@receiver(post_delete, sender=FileInputSample)
 def service_sample_post_delete_handler(sender, instance, **kwargs):
     """ SubmissionSample delete handler """
     if instance.file:
         instance.file.delete()
 
 
-@receiver(post_delete, sender=SubmissionParam)
+@receiver(post_delete, sender=BaseParam)
 def service_input_post_delete_handler(sender, instance, **kwargs):
     """ SubmissionParam post delete handler"""
     if instance.input_samples.count() > 0:

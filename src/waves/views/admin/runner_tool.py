@@ -14,7 +14,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.core.urlresolvers import reverse
 from django.contrib import messages
-from waves.models import Service, ServiceSubmission, SubmissionData
+from waves.models import Service, Submission, BaseParam
 
 from waves.forms.admin import ImportForm
 import logging
@@ -105,7 +105,7 @@ class RunnerImportToolView(FormView):
                         self.service.runner = self.object
                         self.service.created_by = self.request.user.profile
                         self.service.category = form.cleaned_data['category']
-                        submission = ServiceSubmission.objects.create(label='Imported submission', service=self.service)
+                        submission = Submission.objects.create(label='Imported submission', service=self.service)
                         self.service.submissions.add(submission)
                         for inp in service_dto.inputs:
                             new_input = SubmissionData.objects.create(submission=submission)

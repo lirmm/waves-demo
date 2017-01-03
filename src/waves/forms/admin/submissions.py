@@ -9,7 +9,7 @@ from waves.models.submissions import *
 
 class ServiceSubmissionForm(ModelForm):
     class Meta:
-        model = ServiceSubmission
+        model = Submission
         exclude = ['id', 'slug']
         error_messages = {
             NON_FIELD_ERRORS: {
@@ -44,6 +44,7 @@ class SubmissionDataForm(forms.ModelForm):
         widgets = {
             'list_elements': Textarea(attrs={'rows': 3}),
             'short_description': Textarea(attrs={'rows': 4}),
+            'help_text': Textarea(attrs={'rows': 3})
         }
 
 
@@ -56,7 +57,7 @@ class ParamForm(SubmissionDataForm):
 
     def clean(self):
         cleaned_data = super(ParamForm, self).clean()
-        if self.instance.submitted is False and not cleaned_data.get('default', False):
+        if self.instance.required is False and not cleaned_data.get('default', False):
             raise ValidationError('Non editable fields must have a default value')
         cleaned_data.pop('baseinput_ptr', None)
         return cleaned_data
@@ -68,17 +69,8 @@ class ParamForm(SubmissionDataForm):
         self.fields['type'] = forms.ChoiceField(choices=choices)
 
 
-class FileInputForm(forms.ModelForm):
-    class Meta:
-        fields = '__all__'
-        widgets = {
-            '_type_format': Textarea(attrs={'rows': 3})
-        }
-
-    def __init__(self, *args, **kwargs):
-        super(FileInputForm, self).__init__(*args, **kwargs)
-        self.fields['list_elements'].help_text = "One extension per line"
-        self.fields['list_elements'].label = "Authorized extensions"
+class FileInputForm(SubmissionDataForm):
+    pass
 
 
 class RelatedInputForm(SubmissionDataForm):

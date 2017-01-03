@@ -7,7 +7,7 @@ from django.utils.html import strip_tags
 from rest_framework.reverse import reverse as reverse
 from dynamic import DynamicFieldsModelSerializer
 from waves.models import SubmissionParam, SubmissionOutput, ServiceMeta, Service, RelatedParam
-from waves.models.submissions import ServiceSubmission, SubmissionParam, RelatedParam, SubmissionOutput
+from waves.models.submissions import Submission, SubmissionParam, RelatedParam, SubmissionOutput
 from django.contrib.staticfiles.storage import staticfiles_storage
 import waves.settings
 
@@ -121,7 +121,7 @@ class ServiceSubmissionSerializer(DynamicFieldsModelSerializer, serializers.Hype
     """ Serialize a Service submission """
 
     class Meta:
-        model = ServiceSubmission
+        model = Submission
         fields = ('label', 'service', 'submission_uri', 'form', 'inputs')
         extra_kwargs = {
             'api_name': {'view_name': 'waves:waves-submission-detail', 'lookup_fields': {'api_name', 'api_name'}},
@@ -151,7 +151,7 @@ class ServiceSubmissionSerializer(DynamicFieldsModelSerializer, serializers.Hype
 
     def get_queryset(self):
         """ Filter api enabled submissions """
-        return ServiceSubmission.objects.filter(available_api=True)
+        return Submission.objects.filter(available_api=True)
 
 
 class ServiceSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsModelSerializer):
@@ -197,7 +197,7 @@ class ServiceFormSerializer(serializers.ModelSerializer):
     """ Service form serializer """
 
     class Meta:
-        model = ServiceSubmission
+        model = Submission
         fields = ('label', 'service', 'js', 'css', 'template_pack', 'post_uri', 'form')
 
     js = serializers.SerializerMethodField()

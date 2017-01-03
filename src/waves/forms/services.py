@@ -3,10 +3,8 @@ import copy
 from django import forms
 from django.utils.module_loading import import_string
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.db.models import Q
 
-from waves.models import Service, SubmissionParam
-from waves.models.submissions import ServiceSubmission, SubmissionParam
+from waves.models.submissions import Submission
 from waves.utils.validators import ServiceInputValidator
 import waves.const
 import waves.settings
@@ -19,7 +17,7 @@ class ServiceForm(forms.ModelForm):
 
 class ServiceSubmissionForm(forms.ModelForm):
     class Meta:
-        model = ServiceSubmission
+        model = Submission
         fields = ['title', 'email']
 
     slug = forms.CharField(widget=forms.HiddenInput())

@@ -30,7 +30,7 @@ TYPE_BOOLEAN = 'boolean'
 #: Service Input Type 'File': check if submitted values are files (or content to write to file)
 TYPE_FILE = 'file'
 #: Service Input Type 'List of choices': check if submitted values are in specified list
-TYPE_LIST = 'select'
+TYPE_LIST = 'list'
 #: Service Input Type 'integer': check if input type is a integer
 TYPE_NUMBER = 'number'
 #: Service Input Type 'text': no special check, except when used in outputs name, normalized value is stored
@@ -43,8 +43,6 @@ IN_TYPE = [
     (TYPE_NUMBER, 'Number'),
     (TYPE_TEXT, 'Text')
 ]
-#: Service Input Command line parameter type 'positional'
-OPT_TYPE_NONE = 0
 #: Service Input Command line parameter type 'valuated' i.e: --param_name=value
 OPT_TYPE_VALUATED = 1
 #: Service Input Command line parameter type 'simple' i.e: -param_name value
@@ -57,7 +55,6 @@ OPT_TYPE_POSIX = 4
 OPT_TYPE_NAMED_OPTION = 5
 
 OPT_TYPE = [
-    (OPT_TYPE_NONE, 'Not used in job submission'),
     (OPT_TYPE_VALUATED, 'Valuated param (--param_name=value)'),
     (OPT_TYPE_SIMPLE, 'Simple param (-param_name value)'),
     (OPT_TYPE_OPTION, 'Option param (-param_name)'),

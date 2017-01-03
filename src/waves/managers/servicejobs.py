@@ -11,7 +11,7 @@ from django.db.models import Q
 from itertools import chain
 import waves.const
 from waves.exceptions.jobs import JobMissingMandatoryParam
-from waves.models import SubmissionSample
+from waves.models import FileInputSample
 from waves.utils.normalize import normalize_value
 
 logger = logging.getLogger(__name__)

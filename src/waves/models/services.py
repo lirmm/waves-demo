@@ -15,7 +15,8 @@ import waves.settings
 from waves.models.base import *
 from waves.models.managers.services import ServiceCategoryManager, ServiceManager, ServiceRunParamManager
 from waves.models.profiles import WavesProfile
-from waves.models.runners import AdaptorInitParam, Runner
+from waves.models.runners import Runner
+from waves.models.base import AdaptorInitParam
 
 logger = logging.getLogger(__name__)
 __all__ = ['ServiceRunParam', 'ServiceCategory', 'Service', 'ServiceMeta']

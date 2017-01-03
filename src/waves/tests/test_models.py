@@ -7,7 +7,7 @@ from waves.tests.base import WavesBaseTestCase
 from django.utils.module_loading import import_string
 
 from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory
-from waves.models.submissions import ServiceSubmission
+from waves.models.submissions import Submission
 from waves.models.serializers.services import ServiceSerializer
 import waves.const
 
@@ -30,7 +30,7 @@ class TestServices(WavesBaseTestCase):
     def test_create_service(self):
         runner = Runner.objects.create(name="SubmissionSample runner", clazz='waves.tests.mocks.adaptor.MockJobRunnerAdaptor')
         srv = Service.objects.create(name="SubmissionSample Service", runner=runner)
-        srv.submissions.add(ServiceSubmission.objects.create(service=srv, label="SubmissionSample submission"))
+        srv.submissions.add(Submission.objects.create(service=srv, label="SubmissionSample submission"))
         self.assertEqual(srv.submissions.count(), 1)
 
     def test_service_run_param(self):

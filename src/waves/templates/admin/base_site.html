@@ -13,13 +13,14 @@
 {% endblock %}
 {% block javascripts %}
     {{ block.super }}
-    <script src="{% static "waves/js/admin.js" %}" type="text/javascript"></script>
-    <script src="{% static "admin/js/actions.js" %}" type="text/javascript"></script>
+    <script src="{% static "waves/admin/js/admin.js" %}" type="text/javascript"></script>
     <script src="{% static 'waves/admin/js/modal.js' %}" type="text/javascript"></script>
+    <script src="{% static 'waves/admin/js/collapse.js' %}" type="text/javascript"></script>
 {% endblock javascripts %}
 {% block extrastyle %}
     {{ block.super }}
 
+    <link href="{% static 'waves/admin/css/admin.css' %}" rel="stylesheet" media="screen">
     <link href="{% static 'waves/admin/css/modal.css' %}" rel="stylesheet" media="screen">
     <!--link href="{% static 'waves/css/waves.css' %}" rel="stylesheet"-->
     <!--link rel='stylesheet' type='text/css' href='{% static 'css/jquery-ui/pepper-grinder/jquery-ui.css' %}'/-->
@@ -27,7 +28,10 @@
 
 {% block extrahead %}
     <link rel="shortcut icon" type="image/png" href="{% static 'waves/ico/favicon.png' %}"/>
+    <script src="{% static "waves/admin/js/admin.js" %}" type="text/javascript"></script>
     <script src="{% static 'waves/admin/js/modal.js' %}" type="text/javascript"></script>
+    <script src="{% static 'waves/admin/js/collapse.js' %}" type="text/javascript"></script>
+
 {% endblock %}
 {% block footer %}
     {{ block.super }}

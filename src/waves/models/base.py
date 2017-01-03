@@ -1,12 +1,16 @@
 from __future__ import unicode_literals
 
 import uuid
+
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.sites.models import Site
 from django.conf import settings
 from django.forms import Textarea
 import waves.settings
 import logging
+
+from waves.utils.encrypt import Encrypt
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +111,7 @@ class ApiAble(models.Model):
     api_name = models.CharField(max_length=100, null=True, blank=True, help_text='Api short code, must be unique')
 
     def duplicate_api_name(self):
+        """ Check is another entity is set with same api_name """
         return self.__class__.objects.filter(api_name__startswith=self.api_name)
 
     def create_api_name(self):
@@ -116,7 +121,7 @@ class ApiAble(models.Model):
         """
         import inflection
         import re
-        return inflection.underscore(re.sub(r'[^\w\.]+', '_', getattr(self, self.field_api_name))).lower()
+        return inflection.underscore(re.sub(r'[^\w]+', '_', getattr(self, self.field_api_name))).lower()
 
 
 class UrlMixin(object):
@@ -185,3 +190,32 @@ class ExportAbleMixin(object):
     def export_file_name(self):
         """ Create export file name, based on concrete class name"""
         return '%s_%s.json' % (self.__class__.__name__.lower(), str(self.pk))
+
+
+class AdaptorInitParam(models.Model):
+    """ Base Class For adaptor initialization params """
+    class Meta:
+        abstract = True
+    name = models.CharField('Name', max_length=100, blank=True, null=True, help_text='Param name')
+    value = models.TextField('Value', max_length=500, null=True, blank=True, help_text='Default value')
+    prevent_override = models.BooleanField('Prevent override', help_text="Prevent override")
+
+    def clean(self):
+        """ Check that "prevent override" is set along with default value """
+        cleaned_data = super(AdaptorInitParam, self).clean()
+        if not self.value and self.prevent_override:
+            raise ValidationError('You can\'t prevent override with no default value')
+        return cleaned_data
+
+    def __str__(self):
+        return "%s|%s" % (self.name, self.value)
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        """ Decrypt encoded value if needed for params """
+        instance = super(AdaptorInitParam, cls).from_db(db, field_names, values)
+        if instance.name.startswith('crypt_') and instance.value:
+            # FIXME: protect encrypted data from been read directly from here
+            instance.value = Encrypt.decrypt(instance.value)
+            print instance.value
+        return instance

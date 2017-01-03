@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import Q
 
 import waves.const
-from waves.models.submissions import SubmissionParam, SubmissionOutput
+from waves.models.submissions import SubmissionOutput
 
 
 class JobManager(models.Manager):
@@ -94,7 +94,6 @@ class JobInputManager(models.Manager):
     def create(self, **kwargs):
         sin = kwargs.pop('srv_input', None)
         if sin:
-            assert isinstance(sin, SubmissionParam)
             kwargs.update(dict(name=sin.name, type=sin.type, param_type=sin.cmd_line_type, label=sin.label))
         return super(JobInputManager, self).create(**kwargs)
 

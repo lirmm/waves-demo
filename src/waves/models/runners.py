@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.utils.module_loading import import_string
-from django.core.exceptions import ValidationError
-from waves.models.base import DescribeAble, ExportAbleMixin
+
+from waves.models.base import DescribeAble, ExportAbleMixin, AdaptorInitParam
 from waves.models.managers.runners import RunnerManager, RunnerParamManager
-from waves.utils.encrypt import Encrypt
-__all__ = ['Runner', 'RunnerParam', 'AdaptorInitParam']
+
+__all__ = ['Runner', 'RunnerParam']
 
 
 class Runner(DescribeAble, ExportAbleMixin):
@@ -67,10 +67,14 @@ class Runner(DescribeAble, ExportAbleMixin):
         :return: a dictionary (param_name=runner_param_default)
         :rtype: dict
         """
+        from waves.utils.encrypt import Encrypt
         runner_params = self.runner_params.values_list('name', 'value')
         returned = dict()
         for name, default in runner_params:
-            returned[name] = default
+            if name.startswith('crypt_') and default:
+                returned[name] = Encrypt.decrypt(default)
+            else:
+                returned[name] = default
         return returned
 
     @property
@@ -85,32 +89,6 @@ class Runner(DescribeAble, ExportAbleMixin):
     def serializer(self):
         from waves.models.serializers.runners import RunnerSerializer
         return RunnerSerializer
-
-
-class AdaptorInitParam(models.Model):
-    """ Base Class For adaptor initialization params """
-    class Meta:
-        abstract = True
-    name = models.CharField('Name', max_length=100, blank=True, null=True, help_text='Param name')
-    value = models.TextField('Value', max_length=500, null=True, blank=True, help_text='Default value')
-    prevent_override = models.BooleanField('Prevent override', help_text="Prevent override")
-
-    def clean(self):
-        cleaned_data = super(AdaptorInitParam, self).clean()
-        if not self.value and self.prevent_override:
-            raise ValidationError('You can\'t prevent override with no default value')
-        return cleaned_data
-
-    def __str__(self):
-        return self.name
-
-    @classmethod
-    def from_db(cls, db, field_names, values):
-        instance = super(AdaptorInitParam, cls).from_db(db, field_names, values)
-        if instance.name.startswith('crypt_'):
-            # FIXME: protect encrypted data from been read directly from here
-            instance.value = Encrypt.decrypt(instance.value)
-        return instance
 
 
 class RunnerParam(AdaptorInitParam):

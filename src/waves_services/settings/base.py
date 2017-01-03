@@ -53,18 +53,21 @@ LOG_ROOT = dirname(BASE_DIR) + '/logs'
 STATIC_ROOT = join(dirname(BASE_DIR), 'staticfiles')
 # Application definition
 INSTALLED_APPS = (
+    'polymorphic',
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'authtools',
-    'jet.dashboard',
+    # 'jet.dashboard',
     'jet',
+    'adminsortable2',
     'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'jquery_ui',
+    # 'jquery_ui',
     'nested_admin',
+    # 'tabbed_admin',
     # WAVES required dependencies
     'waves.apps.WavesApp',
     'smart_selects',

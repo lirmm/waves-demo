@@ -7,7 +7,7 @@ import os
 import waves.const as const
 from waves.forms.admin import JobInputForm, JobOutputForm, JobForm
 from waves.models.jobs import *
-from base import WavesTabbedModelAdmin
+from waves.apps import WavesModelAdmin
 
 
 class JobInputInline(TabularInline):
@@ -84,7 +84,7 @@ mark_rerun.short_description = "Re-run jobs"
 delete_model.short_description = "Delete selected jobs"
 
 
-class JobAdmin(WavesTabbedModelAdmin):
+class JobAdmin(WavesModelAdmin):
     model = Job
     form = JobForm
     inlines = [
@@ -106,7 +106,7 @@ class JobAdmin(WavesTabbedModelAdmin):
     suit_form_tabs = (('general', 'General'), ('inputs', 'Inputs'), ('outputs', 'Outputs'), ('history', 'History'))
     # grappelli list filter
     # change_list_template = "admin/change_list_filter_sidebar.html"
-    # change_form_template = 'admin/waves/job/' + WavesTabbedModelAdmin.admin_template
+    # change_form_template = 'admin/waves/job/' + WavesModelAdmin.admin_template
     """
     fieldsets = [
         (None, {'classes': ('suit-tab', 'suit-tab-general',),

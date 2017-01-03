@@ -2,52 +2,49 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
-from django.contrib.admin import StackedInline
+from django.contrib.admin import StackedInline, TabularInline
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from jet.admin import CompactInline
 import nested_admin
-import waves.const
-from waves.admin.base import WavesTabbedModelAdmin
-# from waves.forms.admin import ServiceOutputForm, ParamForm
-from waves.forms.admin.submissions import *
-from waves.models import SubmissionExitCode
+from waves.apps import WavesModelAdmin, WavesCompactInline as CompactInline
+# from waves.forms.admin.submissions import *
 from waves.models.submissions import *
+from waves.models.inputs import *
+from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin, PolymorphicSortableAdminMixin
+from polymorphic.admin import PolymorphicInlineSupportMixin, StackedPolymorphicInline
 
 
-class ServiceOutputInline(CompactInline):
+class ServiceOutputInline(SortableInlineAdminMixin, CompactInline, admin.TabularInline):
+    """ Service Submission Outputs Inlines """
     model = SubmissionOutput
     # form = ServiceOutputForm
     sortable = 'order'
+    show_change_link = False
     extra = 0
     classes = ('collapse',)
     sortable_field_name = "order"
     sortable_options = []
     fk_name = 'submission'
-    fields = ['name', 'file_pattern', 'short_description', 'optional', 'from_input', 'order']
+    fields = ['name', 'file_pattern', 'optional', 'from_input', 'order']
     verbose_name_plural = "Outputs"
-    show_change_link = True
 
 
 class ServiceSampleDependentInputInline(admin.TabularInline):
-    model = SampleDependentParam
+    model = SampleDepParam
     fk_name = 'sample'
     extra = 0
-    sortable_field_name = "order"
-    sortable_options = []
 
-"""
-class ServiceSampleInline(CompactInline, nested_admin.NestedStackedInline):
-    model = SubmissionSample
-    form = ServiceInputSampleForm
+
+class ServiceSampleInline(CompactInline):
+    model = FileInputSample
+    # form = ServiceInputSampleForm
     extra = 0
-    fk_name = 'service'
+    fk_name = 'file_input__submission'
     is_nested = False
-    verbose_name_plural = "Service sample ('input' apply only to 'default' submission params)"
-    inlines = [
-        ServiceSampleDependentInputInline
-    ]
+    verbose_name = "Input Sample"
+    verbose_name_plural = "Input files samples"
 
+    """
     def get_field_queryset(self, db, db_field, request):
         field_queryset = super(ServiceSampleInline, self).get_field_queryset(db, db_field, request)
         if request.current_obj is not None:
@@ -58,11 +55,11 @@ class ServiceSampleInline(CompactInline, nested_admin.NestedStackedInline):
                 return SubmissionParam.objects.filter(service=request.current_obj.default_submission).exclude(
                     type=waves.const.TYPE_FILE)
         return field_queryset
+    """
 
-"""
 
-class RelatedInputInline(nested_admin.NestedStackedInline, StackedInline):
-    model = RelatedParam
+class RelatedInputInline(SortableInlineAdminMixin, StackedInline):
+    model = BaseParam
     # form = RelatedInputForm
     extra = 0
     sortable = 'order'
@@ -76,49 +73,41 @@ class RelatedInputInline(nested_admin.NestedStackedInline, StackedInline):
         return True
 
 
-class SubmissionDataInline(CompactInline):
-    model = SubmissionData
+class SubmissionDataInlineMixin(object):
+    fields = ['label', 'name', 'cmd_format', 'required', 'help_text', 'edam_formats',
+              'edam_datas', 'multiple', ]
     fk_name = 'submission'
     extra = 0
-    exclude = ['id', 'order', 'description']
-    fields = ['label', 'name', 'cmd_line_type', 'list_elements', 'required', 'multiple',
-              'submitted', 'short_description', 'edam_formats', 'edam_datas']
+    classes = ['collapse']
+    exclude = ['id']
 
 
-class SubmissionParamInline(SubmissionDataInline):
-    model = SubmissionParam
-    form = ParamForm
-    verbose_name = 'Param'
-    verbose_name_plural = "Params"
-    fields = ['type', 'default', ] + SubmissionDataInline.fields
+class RelatedParamInline(PolymorphicSortableAdminMixin, StackedPolymorphicInline):
+    class BooleanParamInline(StackedPolymorphicInline.Child):
+        model = BooleanRelatedParam
+        exclude = ['order']
 
-    def get_queryset(self, request):
-        qs = super(SubmissionParamInline, self).get_queryset(request)
-        return qs  # .instance_of(SubmissionParam)
+    class FileInputInline(StackedPolymorphicInline.Child):
+        model = FileRelatedParam
+        exclude = ['order']
 
+    class ListParamInline(StackedPolymorphicInline.Child):
+        model = ListRelatedParam
+        exclude = ['order']
 
-class RelatedParamInline(SubmissionParamInline):
-    model = RelatedParam
-    fields = ['related_to', 'when_value'] + SubmissionParamInline.fields
-    verbose_name = 'Related param'
-    verbose_name_plural = "Related params"
+    class NumberParamInline(StackedPolymorphicInline.Child):
+        model = NumberRelatedParam
+        exclude = ['order']
 
-
-class SubmissionFileInputInline(SubmissionDataInline):
-    model = FileInput
-    form = FileInputForm
-    verbose_name = 'Input'
-    verbose_name_plural = "Inputs"
-    exclude = SubmissionDataInline.exclude + ['when_value', 'related_to', 'type', 'list_display', 'default']
-
-
-class RelatedFileInputInline(SubmissionParamInline):
-    model = RelatedFileInput
-    verbose_name = 'Related input'
-    verbose_name_plural = "Related inputs"
-    fields = ('related_to', 'label', 'name', 'cmd_line_type', 'list_elements', 'required', 'multiple',
-              'short_description', 'edam_formats', 'edam_datas')
-    exclude = ('type', 'list_display', 'default')
+    class TextParamInline(StackedPolymorphicInline.Child):
+        model = TextRelatedParam
+        exclude = ['order']
+    model = BaseParam
+    fields = ['related_to', 'when_value'] + SubmissionDataInlineMixin.fields
+    verbose_name = 'Dependent param'
+    verbose_name_plural = "Dependent params"
+    list_display_links = None
+    list_display = ('related_to', 'when_value', 'default')
 
 
 class ServiceExitCodeInline(CompactInline):
@@ -126,28 +115,132 @@ class ServiceExitCodeInline(CompactInline):
     extra = 0
     fk_name = 'submission'
     is_nested = False
-    classes = ('grp-collapse', 'grp-open')
+    classes = ('collapse', 'grp-collapse', 'grp-open')
     sortable_options = []
 
 
-class ServiceSubmissionAdmin(admin.ModelAdmin):
-    """ Submission process administration -- Model ServiceSubmission """
+class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
+    model = BaseParam
+    fields = ['name', 'default', 'clazz_name', 'order']
+    readonly_fields = ['clazz_name', ]
+    verbose_name_plural = "Organize Inputs"
+    verbose_name = "Organize Inputs"
+    can_delete = False
+    extra = 0
+    show_change_link = True
+
+    def clazz_name(self, obj):
+        return obj.__class__.__name__
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def get_queryset(self, request):
+        return BaseParam.objects.not_instance_of(RelatedParam)
+
+
+class SubmitInputsInline(StackedPolymorphicInline):
+
+    class BooleanParamInline(StackedPolymorphicInline.Child):
+        model = BooleanParam
+        exclude = ['order']
+
+    class FileInputInline(StackedPolymorphicInline.Child):
+        model = FileInput
+        exclude = ['order']
+
+    class ListParamInline(StackedPolymorphicInline.Child):
+        model = ListParam
+        exclude = ['order']
+
+    class NumberParamInline(StackedPolymorphicInline.Child):
+        model = NumberParam
+        exclude = ['order']
+
+    class TextParamInline(StackedPolymorphicInline.Child):
+        model = TextParam
+        exclude = ['order']
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'repeat_group':
+            print "Yeahhhh"
+        return super(SubmitInputsInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+    model = BaseParam
+    exclude = ['order']
+    verbose_name = "Param"
+    verbose_name_plural = "Params"
+    child_inlines = (
+        BooleanParamInline,
+        FileInputInline,
+        ListParamInline,
+        NumberParamInline,
+        TextParamInline
+    )
+    list_display_links = None
+    list_display = ('name', 'default')
+
+
+# import nested_admin
+class FileInputSampleInline(SortableInlineAdminMixin, TabularInline):
+    model = FileInputSample
+    extra = 0
+    fk_name = 'submission'
+    verbose_name = "Input Sample"
+    verbose_name_plural = "Input files samples"
+
+class RepeatGroupAdmin(WavesModelAdmin):
+    # readonly_fields = ['submission']
+    # readonly_fields = ['submission']
+
+    def has_module_permission(self, request):
+        return False
+
+
+class RepeatGroupInline(CompactInline):
+    model = RepeatedGroup
+    extra = 0
+    verbose_name = "Repeat group"
+    verbose_name_plural = "Manage Repeat Group"
+
+class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
+    """ Submission process administration -- Model Submission """
+
     class Media:
         js = ('waves/admin/js/services.js',)
 
     inlines = [
-        SubmissionFileInputInline,
-        RelatedFileInputInline,
-        SubmissionParamInline,
-        RelatedParamInline,
+        SubmitInputsInline,
+        FileInputSampleInline,
         ServiceOutputInline,
-        ServiceExitCodeInline
+        ServiceExitCodeInline,
+        OrganizeInputInline,
+        RepeatGroupInline
     ]
-    fields = ('label', 'api_name', 'service', 'available_api', 'available_online')
+    # fields = ('label', 'api_name', 'service', 'available_api', 'available_online')
     exclude = ['order']
     change_form_template = 'admin/waves/submission/change_form.html'
     list_display = ['label', 'available_online', 'available_api', 'service_link', ]
-    list_filter = ['service', 'available_online', 'available_api']
+    readonly_fields = ['available_online', 'available_api']
+    list_filter = ['service', 'availability']
+    fieldsets = [
+        ('General', {
+            'fields': ('label', 'api_name', 'availability', 'service', 'available_api', 'available_online'),
+            'classes': ['collapse']
+        }),
+    ]
+    tabs = [
+        ('FileInputs', (
+            SubmitInputsInline,
+        )),
+        ('Outputs', (
+            ServiceOutputInline,
+            ServiceExitCodeInline
+        ))
+    ]
 
     def service_link(self, obj):
         return mark_safe('<a href="{}">{}</a>'.format(
@@ -160,6 +253,12 @@ class ServiceSubmissionAdmin(admin.ModelAdmin):
             readonly_fields.append('service')
         return readonly_fields
 
+    def available_api(self, obj):
+        return obj.available_api
 
-admin.site.register(ServiceSubmission, ServiceSubmissionAdmin)
+    def available_online(self, obj):
+        return obj.available_online
 
+
+admin.site.register(Submission, ServiceSubmissionAdmin)
+admin.site.register(RepeatedGroup, RepeatGroupAdmin)

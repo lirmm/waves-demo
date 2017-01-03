@@ -6,36 +6,6 @@ from django.contrib import admin, messages
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 
-if 'tabbed_admin' in settings.INSTALLED_APPS:
-    from tabbed_admin import TabbedModelAdmin
-
-
-    class WavesTabbedModelAdmin(TabbedModelAdmin):
-        """ Override TabbedModelAdmin admin_template """
-
-        class Media:
-            css = {
-                'screen': ('waves/css/tabbed_admin.css',)
-            }
-            js = ('waves/admin/js/services.js',)
-
-        admin_template = 'tabbed_change_form.html'
-
-        @property
-        def media(self):
-            # Overrides media class to skip first parent media import
-            media = super(admin.ModelAdmin, self).media
-            return media
-else:
-    class WavesTabbedModelAdmin(admin.ModelAdmin):
-        """ Tabbed faked model admin """
-
-        class Media:
-            js = ('waves/admin/js/services.js',)
-
-        admin_template = 'change_form.html'
-
-
 def duplicate_in_mass(modeladmin, request, queryset):
     from django.contrib import messages
     for obj in queryset.all():

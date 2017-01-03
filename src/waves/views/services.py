@@ -10,7 +10,7 @@ import waves.const as const
 from waves.forms.services import ServiceSubmissionForm
 from waves.exceptions.jobs import JobException
 from waves.models import ServiceCategory, Service
-from waves.models.submissions import ServiceSubmission
+from waves.models.submissions import Submission
 from waves.views.jobs import logger
 from waves.managers.servicejobs import ServiceJobManager
 from base import WavesBaseContextMixin
@@ -134,9 +134,9 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
     def _get_selected_submission(self):
         slug = self.request.POST.get('slug', None)
         if slug is None:
-            return self.get_object().default_submission # ServiceSubmission.objects.get(default=True, service=)
+            return self.get_object().default_submission # Submission.objects.get(default=True, service=)
         else:
-            return ServiceSubmission.objects.get(slug=UUID(slug), service=self.get_object())
+            return Submission.objects.get(slug=UUID(slug), service=self.get_object())
 
     def post(self, request, *args, **kwargs):
         self.user = self.request.user
