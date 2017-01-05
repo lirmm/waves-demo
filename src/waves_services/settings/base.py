@@ -57,7 +57,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'authtools',
-    # 'jet.dashboard',
+    'jet.dashboard',
     'jet',
     'adminsortable2',
     'django.contrib.admin',

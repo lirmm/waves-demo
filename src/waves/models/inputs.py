@@ -9,10 +9,7 @@ import waves.const
 from waves.models import OrderAble, DTOAble
 from waves.models.submissions import Submission
 __all__ = ['RepeatedGroup', 'BaseParam', 'FileInput', 'BooleanParam', 'NumberParam',
-           'ListParam', 'SampleDepParam', 'FileInputSample', 'TextParam',
-           'BooleanRelatedParam', 'FileRelatedParam', 'ListRelatedParam', 'NumberRelatedParam',
-           'TextRelatedParam', 'RelatedParam'
-           ]
+           'ListParam', 'SampleDepParam', 'FileInputSample', 'TextParam' ]
 
 
 def service_sample_directory(instance, filename):
@@ -25,7 +22,7 @@ class RepeatedGroup(DTOAble, OrderAble):
     class Meta:
         db_table = "waves_repeat_group"
 
-    submission = models.ForeignKey(Submission, related_name='submission_groups', null=False,
+    submission = models.ForeignKey(Submission, related_name='submission_groups', null=True,
                                    on_delete=models.CASCADE)
     name = models.CharField('Group name', max_length=255, null=False, blank=False)
     title = models.CharField('Group title', max_length=255, null=False, blank=False)
@@ -34,7 +31,7 @@ class RepeatedGroup(DTOAble, OrderAble):
     default = models.IntegerField('Default repeat', default=0)
 
     def __str__(self):
-        return '[%s|%s]' % (self.name, self.submission.label)
+        return '[%s]' % (self.name)
 
 
 class BaseParam(PolymorphicModel, OrderAble):
@@ -42,6 +39,7 @@ class BaseParam(PolymorphicModel, OrderAble):
         ordering = ['order']
         unique_together = ('name', 'default', 'polymorphic_ctype', 'submission')
 
+    class_label = "Undefined :-("
     """ Base Class representing a input for services submission / job submissions """
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, null=False, related_name='sub_inputs')
     #: Input Label
@@ -80,19 +78,24 @@ class BaseParam(PolymorphicModel, OrderAble):
             raise ValidationError('Not displayed parameters must have a default value %s:%s' % (self.name, self.label))
             # TODO add mode base controls
 
+    def __str__(self):
+        return self.name
+
 
 def validate_list_comma(value):
     import re
     return re.match("(\w,)*", value)
 
+
 class TextParam(BaseParam):
     class Meta:
         proxy = True
-class TextRelatedParam(TextParam):
-    class Meta:
-        proxy = True
+    class_label = "Text input"
+
 
 class FileInput(BaseParam):
+    class_label = "File Input"
+
     extensions = models.CharField('Extensions', null=True, max_length=200, blank=True,
                                   validators=[validate_list_comma, ],
                                   help_text="Comma separated list of extension")
@@ -101,12 +104,14 @@ class FileInput(BaseParam):
 
 
 class BooleanParam(BaseParam):
+    class_label = "Boolean"
     true_value = models.CharField('True value', default='True', max_length=50)
     false_value = models.CharField('False value', default='False', max_length=50)
 
 
 class NumberParam(BaseParam):
     # TODO add specific validator
+    class_label = "Number"
     min_val = models.DecimalField('Min value', decimal_places=3, max_digits=50, default=0, null=True, blank=True,
                                   help_text="Leave blank if no min")
     max_val = models.DecimalField('Max value', decimal_places=3, max_digits=50, default=None, null=True, blank=True,
@@ -117,19 +122,6 @@ class RelatedParam(models.Model):
         abstract = True
     pass
 
-class FileRelatedParam(FileInput, RelatedParam):
-    class Meta:
-        proxy = True
-    pass
-class BooleanRelatedParam(BooleanParam, RelatedParam):
-    class Meta:
-        proxy = True
-    pass
-class NumberRelatedParam(NumberParam, RelatedParam):
-    class Meta:
-        proxy = True
-    pass
-
 def validate_list_param(value):
     import re
     pattern = re.compile('^[\w ]+\|\w+$')
@@ -138,6 +130,7 @@ def validate_list_param(value):
 
 
 class ListParam(BaseParam):
+    class_label = "List"
     list_mode = models.CharField('List display mode', choices=waves.const.LIST_DISPLAY_TYPE, default='select',
                                  max_length=100)
     list_elements = models.TextField('Elements', max_length=500, validators=[validate_list_param, ],
@@ -155,12 +148,6 @@ class ListParam(BaseParam):
         except ValueError:
             raise RuntimeError('Wrong list element format')
 
-
-
-class ListRelatedParam(ListParam, RelatedParam):
-    class Meta:
-        proxy = True
-    pass
 
 class SampleDepParam(models.Model):
     """ When a file sample is selected, some params may be set accordingly. This class represent this behaviour"""
