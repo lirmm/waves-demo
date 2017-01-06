@@ -93,7 +93,7 @@ class SubmitInputsInline(StackedPolymorphicInline, CompactInline):
         exclude = ['order']
 
     class NumberParamInline(PolymorphicInputInlineChild):
-        model = NumberParam
+        model = DecimalParam
         exclude = ['order']
 
     class TextParamInline(PolymorphicInputInlineChild):

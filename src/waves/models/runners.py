@@ -15,12 +15,13 @@ class Runner(DescribeAble, ExportAbleMixin):
     class Meta:
         ordering = ['name']
         db_table = 'waves_runner'
-        verbose_name = 'Runner'
+        verbose_name = 'Execution environment'
+        verbose_name_plural = "Execution environments"
     #: private attribute to set if clazz have been modified before save
     _clazz = None
     objects = RunnerManager()
-    name = models.CharField('Runner label', max_length=50, null=False, help_text='Displayed name')
-    clazz = models.CharField('Adaptor', max_length=100, null=False)
+    name = models.CharField('Label', max_length=50, null=False, help_text='Displayed name')
+    clazz = models.CharField('Running adaptor', max_length=100, null=False)
 
     def __str__(self):
         return self.name

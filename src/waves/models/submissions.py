@@ -14,7 +14,7 @@ class Submission(TimeStampable, ApiAble, OrderAble, SlugAble):
     """ Represents a service submission parameter set for a service """
 
     class Meta:
-        db_table = 'waves_service_submission'
+        db_table = 'waves_submission'
         verbose_name = 'Submission'
         verbose_name_plural = 'Submissions'
         unique_together = ('service', 'api_name')
@@ -40,22 +40,13 @@ class Submission(TimeStampable, ApiAble, OrderAble, SlugAble):
         """ return whether submission is available for api calls """
         return self.availability >= 2
 
-    def duplicate_api_name(self):
-        return Submission.objects.filter(api_name__startswith=self.api_name, service=self.service)
-
-    def save(self, **kwargs):
-        """ Overridden save process to manage defaults submissions"""
-        super(Submission, self).save(**kwargs)
-
     def __str__(self):
         return '[%s|%s]' % (self.label, self.service)
 
     @property
-    def submitted_submission_inputs(self):
-        return self.submission_inputs.filter(editable=True).all()
-
-    def export_submission_inputs(self):
-        return SubmissionParam.objects.filter(service=self).order_by('order')
+    def expected_inputs(self):
+        """ Retrieve only expected inputs to submit a job """
+        return self.all_inputs.filter(required__in=(None, True)).all()
 
     def duplicate(self, service):
         """ Duplicate a submission with all its inputs """
@@ -75,7 +66,7 @@ class SubmissionOutput(TimeStampable, OrderAble):
     """
 
     class Meta:
-        db_table = 'waves_service_output'
+        db_table = 'waves_submission_output'
         verbose_name = 'Output'
         verbose_name_plural = 'Outputs'
         unique_together = ('name', 'submission')
@@ -87,8 +78,8 @@ class SubmissionOutput(TimeStampable, OrderAble):
     from_input = models.ForeignKey('BaseParam', null=True, blank=True, related_name='to_outputs',
                                    help_text='Valuated with input')
     ext = models.CharField('File extension', max_length=5, null=False, default=".txt")
-    optional = models.BooleanField('Optional', default=False)
-    file_pattern = models.CharField('File name', max_length=100, null=True, blank=True, default="%s",
+    optional = models.BooleanField('May be empty ?', default=False)
+    file_pattern = models.CharField('File name pattern', max_length=100, null=True, blank=True, default="%s",
                                     help_text="Format pattern '%s'")
     edam_format = models.CharField('Edam format', max_length=255, null=True, blank=True, help_text="Edam format")
     edam_data = models.CharField('Edam data', max_length=255, null=True, blank=True, help_text="Edam data")
@@ -98,15 +89,10 @@ class SubmissionOutput(TimeStampable, OrderAble):
             return '"%s" (%s) ' % (self.name, self.file_pattern)
         return '%s' % self.name
 
-    def save(self, *args, **kwargs):
-        if not self.from_input:
-            self.optional = False
-        super(SubmissionOutput, self).save(*args, **kwargs)
-
     def clean(self):
         cleaned_data = super(SubmissionOutput, self).clean()
-        if not self.from_input and not self.file_pattern:
-            raise ValidationError('If output is not issued from input, you must set a file name')
+        if not self.from_input and self.file_pattern == "%s":
+            raise ValidationError('You must set a file name')
         return cleaned_data
 
 

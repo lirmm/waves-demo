@@ -60,11 +60,11 @@ class ServiceSubmissionSerializer(BaseServiceSubmissionSerializer, RelatedSerial
 
     class Meta:
         model = Submission
-        fields = ('api_name', 'order', 'label', 'available_online', 'available_api', 'export_submission_inputs',
+        fields = ('api_name', 'order', 'label', 'available_online', 'available_api', 'all_inputs',
                   'submission_inputs')
 
     export_submission_inputs = ServiceInputSerializer(many=True, required=False)
-    submission_inputs = ServiceInputSerializer(many=True, required=False, write_only=True, source="export_submission_inputs")
+    submission_inputs = ServiceInputSerializer(many=True, required=False, write_only=True, source="all_inputs")
 
     def create(self, validated_data):
         submission_inputs = validated_data.pop('export_submission_inputs')

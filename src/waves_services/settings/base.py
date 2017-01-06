@@ -41,7 +41,7 @@ SECRET_KEY = env.str('SECRET_KEY')
 WAVES_ENV_FILE = env.str('WAVES_ENV_FILE', None)
 # DATABASE configuration
 DATABASES = {
-    'default': env.db(default='sqlite:///' + dirname(BASE_DIR) + '/waves.sqlite3'),
+    'default': env.db(default='sqlite:///' + dirname(BASE_DIR) + '/waves.sample.sqlite3'),
 }
 # patch to use in memory database for testing
 if 'test' in sys.argv:

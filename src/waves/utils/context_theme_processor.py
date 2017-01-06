@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from django.contrib.sites.shortcuts import get_current_site as current_site
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from waves.models.site import WavesApplicationConfiguration
+from waves.models.app_config import WavesApplicationConfiguration
 import waves.settings
 
 

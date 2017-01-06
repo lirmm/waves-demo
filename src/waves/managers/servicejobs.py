@@ -33,8 +33,7 @@ class ServiceJobManager(object):
         :rtype: :class:`waves.models.jobs.JobInput`
         """
         from waves.models import JobInput
-        from waves.models.submissions import RelatedParam
-        from waves.models.submissions import SubmissionParam
+        from waves.models.inputs import RelatedParam, BaseParam, FileInput, FileInputSample
         input_dict = dict(job=job,
                           order=order,
                           name=service_input.name,
@@ -43,7 +42,7 @@ class ServiceJobManager(object):
                           label=service_input.label,
                           value=str(submitted_input))
         try:
-            if isinstance(service_input, SubmissionParam) and service_input.to_outputss.filter(
+            if isinstance(service_input, FileInput) and service_input.to_outputss.filter(
                     submission=service_input.service).exists():
                 input_dict['value'] = normalize_value(input_dict['value'])
         except ObjectDoesNotExist:
@@ -58,7 +57,7 @@ class ServiceJobManager(object):
                         # input_dict.update(dict(value='inputs/' + submitted_input.name))
             elif type(submitted_input) is int:
                 # Manage sample data
-                input_sample = SubmissionSample.objects.get(pk=submitted_input)
+                input_sample = FileInputSample.objects.get(pk=submitted_input)
                 filename = path.join(job.working_dir, path.basename(input_sample.file.name))
                 # print "filename sample ", filename, input_sample.file.name
                 input_dict['value'] = path.basename(input_sample.file.name)
@@ -88,8 +87,7 @@ class ServiceJobManager(object):
         :rtype: :class:`waves.models.jobs.Job`
         """
         from waves.models import Job, JobOutput
-        from waves.models.submissions import RelatedParam
-        from waves.models.submissions import SubmissionParam
+        from waves.models.inputs import RelatedParam, BaseParam
         try:
             job_title = submitted_inputs.pop('title')
         except KeyError:
@@ -102,7 +100,7 @@ class ServiceJobManager(object):
         job = Job.objects.create(service=submission.service, email_to=email_to, client=client, title=job_title,
                                  submission=submission)
         job.create_non_editable_inputs(submission)
-        mandatory_params = submission.submitted_submission_inputs.filter(mandatory=True).filter(
+        mandatory_params = submission.inputs.filter(mandatory=True).filter(
             Q(default__isnull=True) | Q(default__exact=''))
         missings = {}
         for m in mandatory_params:
@@ -111,9 +109,10 @@ class ServiceJobManager(object):
         if len(missings) > 0:
             raise ValidationError(missings)
         # First create inputs
-        submission_inputs = SubmissionParam.objects.filter(name__in=submitted_inputs.keys(), editable=True,
-                                                        service=submission)
-        dependents_inputs = RelatedParam.objects.filter(name__in=submitted_inputs.keys(), related_to__in=submission_inputs)
+        submission_inputs = BaseParam.objects.filter(name__in=submitted_inputs.keys(), editable=True,
+                                                     service=submission)
+        dependents_inputs = RelatedParam.objects.filter(name__in=submitted_inputs.keys(),
+                                                        related_to__in=submission_inputs)
         all_inputs = list(chain(*[submission_inputs, dependents_inputs]))
         for service_input in all_inputs:
             # Treat only non dependent inputs first

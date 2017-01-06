@@ -4,13 +4,15 @@ from __future__ import unicode_literals
 from django.core.exceptions import ValidationError
 from django.db import models
 from polymorphic.models import PolymorphicModel
+
 import waves.const
 from waves.models.base import OrderAble, DTOAble
 from waves.models.submissions import Submission
 from waves.utils.storage import waves_storage, file_sample_directory
+from waves.utils.validators import validate_list_comma, validate_list_param
 
-__all__ = ['RepeatedGroup', 'BaseParam', 'FileInput', 'BooleanParam', 'NumberParam',
-           'ListParam', 'SampleDepParam', 'FileInputSample', 'TextParam' ]
+__all__ = ['RepeatedGroup', 'BaseParam', 'FileInput', 'BooleanParam', 'DecimalParam',
+           'ListParam', 'SampleDepParam', 'FileInputSample', 'TextParam']
 
 
 class RepeatedGroup(DTOAble, OrderAble):
@@ -32,13 +34,13 @@ class RepeatedGroup(DTOAble, OrderAble):
 
 
 class BaseParam(PolymorphicModel, OrderAble):
+    """ Main class for Basic data related to Service submissions inputs """
     class Meta:
         ordering = ['order']
-        unique_together = ('name', 'default', 'polymorphic_ctype', 'submission')
+        unique_together = ('name', 'default', 'submission')
 
-    class_label = "Undefined :-("
-    """ Base Class representing a input for services submission / job submissions """
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, null=False, related_name='sub_inputs')
+    class_label = "Undefined"
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, null=False, related_name='all_inputs')
     #: Input Label
     label = models.CharField('Label', max_length=100, blank=False, null=False, help_text='Input displayed label')
     #: Input submission name
@@ -69,6 +71,11 @@ class BaseParam(PolymorphicModel, OrderAble):
     related_to = models.ForeignKey('self', related_name="dependents_inputs", on_delete=models.CASCADE,
                                    null=True, blank=True, help_text='Input is associated to')
 
+    def save(self, *args, **kwargs):
+        if self.repeat_group is not None:
+            self.multiple = True
+        super(BaseParam, self).save(*args, **kwargs)
+
     def clean(self):
         if self.required is None and not self.default:
             # param is mandatory
@@ -79,54 +86,48 @@ class BaseParam(PolymorphicModel, OrderAble):
         return self.name
 
 
-def validate_list_comma(value):
-    import re
-    return re.match("(\w,)*", value)
-
-
 class TextParam(BaseParam):
+    """ Standard text input """
     class Meta:
         proxy = True
     class_label = "Text input"
 
 
-class FileInput(BaseParam):
-    class_label = "File Input"
-
-    extensions = models.CharField('Extensions', null=True, max_length=200, blank=True,
-                                  validators=[validate_list_comma, ],
-                                  help_text="Comma separated list of extension")
-    max_size = models.IntegerField('File Max size (Ko)', default=None, null=True, blank=True,
-                                   help_text="Leave blank for no max")
-
-
 class BooleanParam(BaseParam):
+    """ Boolean param (usually check box for a submission option)"""
     class_label = "Boolean"
     true_value = models.CharField('True value', default='True', max_length=50)
     false_value = models.CharField('False value', default='False', max_length=50)
 
 
-class NumberParam(BaseParam):
+class DecimalParam(BaseParam):
+    """ Number param (decimal or float) """
     # TODO add specific validator
     class_label = "Number"
-    min_val = models.DecimalField('Min value', decimal_places=3, max_digits=50, default=0, null=True, blank=True,
+    min_val = models.DecimalField('Min value', decimal_places=3, max_digits=50, default=None, null=True, blank=True,
                                   help_text="Leave blank if no min")
     max_val = models.DecimalField('Max value', decimal_places=3, max_digits=50, default=None, null=True, blank=True,
                                   help_text="Leave blank if no max")
 
-class RelatedParam(models.Model):
-    class Meta:
-        abstract = True
-    pass
 
-def validate_list_param(value):
-    import re
-    pattern = re.compile('^[\w ]+\|\w+$')
-    if not all([pattern.match(val) for val in value.splitlines()]):
-        raise ValidationError('Wrong format for list elements : spaces allowed for labels, not for values')
+class IntegerParam(BaseParam):
+    """ Integer param """
+    # TODO add specific validator
+    class_label = "Integer"
+    min_val = models.IntegerField('Min value', default=0, null=True, blank=True,
+                                  help_text="Leave blank if no min")
+    max_val = models.IntegerField('Max value', default=None, null=True, blank=True,
+                                  help_text="Leave blank if no max")
+
+
+class RelatedParam(BaseParam):
+    """ Proxy class for related params (dependents on other params) """
+    class Meta:
+        proxy = True
 
 
 class ListParam(BaseParam):
+    """ Param to be issued from a list of values (select / radio / check) """
     class_label = "List"
     list_mode = models.CharField('List display mode', choices=waves.const.LIST_DISPLAY_TYPE, default='select',
                                  max_length=100)
@@ -138,6 +139,13 @@ class ListParam(BaseParam):
             self.multiple = True
         super(ListParam, self).save(*args, **kwargs)
 
+    def clean(self):
+        super(ListParam, self).clean()
+        if self.list_mode == waves.const.DISPLAY_RADIO and self.multiple:
+            raise ValidationError('You can\'t use radio with multiple choices available')
+        elif self.list_mode == waves.const.DISPLAY_CHECKBOX and not self.multiple:
+            raise ValidationError('You can\'t use checkboxes with non multiple choices enabled')
+
     @property
     def choices(self):
         try:
@@ -146,26 +154,37 @@ class ListParam(BaseParam):
             raise RuntimeError('Wrong list element format')
 
 
+class FileInput(BaseParam):
+    class_label = "File Input"
+    extensions = models.CharField('Extensions', null=True, max_length=200, blank=True,
+                                  validators=[validate_list_comma, ],
+                                  help_text="Comma separated list of extension")
+    max_size = models.IntegerField('File Max size (Ko)', default=None, null=True, blank=True,
+                                   help_text="Leave blank for no max")
+
+
+class FileInputSample(OrderAble):
+    """ Any file input can provide samples """
+    #: only used to include input samples as inlines in admin
+    submission = models.ForeignKey(Submission)
+    file = models.FileField('Sample file', upload_to=file_sample_directory, storage=waves_storage, blank=False,
+                            null=False)
+    file_label = models.CharField('Sample file label', max_length=200, blank=True, null=True)
+    file_input = models.ForeignKey(FileInput, on_delete=models.CASCADE, related_name='input_samples')
+    dependent_params = models.ManyToManyField(BaseParam, blank=True, through='SampleDepParam')
+
+    @property
+    def label(self):
+        """ Label for displayed file """
+        return self.file_label if self.file_label else self.file.name
+
+
 class SampleDepParam(models.Model):
     """ When a file sample is selected, some params may be set accordingly. This class represent this behaviour"""
 
     class Meta:
         db_table = 'waves_sample_dependent_input'
 
-    sample = models.ForeignKey('FileInputSample', on_delete=models.CASCADE)
-    related_to = models.ForeignKey(BaseParam, on_delete=models.CASCADE, related_name='sp_dep_params')
+    sample = models.ForeignKey(FileInputSample, on_delete=models.CASCADE, related_name='dependents_inputs_sample')
+    related_to = models.ForeignKey(BaseParam, on_delete=models.CASCADE, related_name='dependents_params_sample')
     set_default = models.CharField('Set value to ', max_length=200, null=False, blank=False)
-
-
-class FileInputSample(OrderAble):
-    submission = models.ForeignKey(Submission)
-    file = models.FileField('Sample file', upload_to=file_sample_directory, storage=waves_storage,
-                            blank=False, null=False)
-    file_label = models.CharField('Sample file label', max_length=200, blank=True, null=True)
-    file_input = models.ForeignKey(FileInput, on_delete=models.CASCADE, related_name='input_samples')
-    label = models.CharField('Label', max_length=255, blank=True, null=False)
-    dependent_params = models.ManyToManyField(BaseParam, blank=True, through=SampleDepParam)
-
-    @property
-    def label(self):
-        return self.file_label if self.file_label else self.file.name

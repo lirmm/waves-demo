@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 import os
 import logging
 
+from django.core.exceptions import ValidationError
+
 import waves.const
 
 logger = logging.getLogger(__name__)
@@ -117,3 +119,15 @@ class ServiceInputValidator(object):
         assert isinstance(value, basestring) or value is None, 'value %s is not a valid string' % value
         self.specific_message = 'value %s is not a valid string' % value
         return True
+
+
+def validate_list_comma(value):
+    import re
+    return re.match("(\w,)*", value)
+
+
+def validate_list_param(value):
+    import re
+    pattern = re.compile('^[\w ]+\|\w+$')
+    if not all([pattern.match(val) for val in value.splitlines()]):
+        raise ValidationError('Wrong format for list elements : spaces allowed for labels, not for values')

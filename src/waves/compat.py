@@ -2,18 +2,18 @@
 from __future__ import unicode_literals
 from django.conf import settings
 
-if 'tabbed_admin' in settings.INSTALLED_APPS:
-    from tabbed_admin import TabbedModelAdmin
-
-    class WavesModelAdmin(TabbedModelAdmin):
-        """ Override TabbedModelAdmin admin_template """
-        admin_template = 'tabbed_change_form.html'
-else:
+if 'tabbed_admin' not in settings.INSTALLED_APPS:
     from django.contrib.admin import ModelAdmin
 
     class WavesModelAdmin(ModelAdmin):
         """ Tabbed faked model admin """
         admin_template = 'change_form.html'
+else:
+    from tabbed_admin import TabbedModelAdmin
+
+    class WavesModelAdmin(TabbedModelAdmin):
+        """ Override TabbedModelAdmin admin_template """
+        admin_template = 'tabbed_change_form.html'
 
 if 'jet' not in settings.INSTALLED_APPS:
     from django.contrib.admin import StackedInline
