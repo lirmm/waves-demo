@@ -33,7 +33,7 @@ class ServiceJobManager(object):
         :rtype: :class:`waves.models.jobs.JobInput`
         """
         from waves.models import JobInput
-        from waves.models.inputs import RelatedParam, BaseParam, FileInput, FileInputSample
+        from waves.models.inputs import RelatedParam, InputParam, FileInput, FileInputSample
         input_dict = dict(job=job,
                           order=order,
                           name=service_input.name,
@@ -87,7 +87,7 @@ class ServiceJobManager(object):
         :rtype: :class:`waves.models.jobs.Job`
         """
         from waves.models import Job, JobOutput
-        from waves.models.inputs import RelatedParam, BaseParam
+        from waves.models.inputs import RelatedParam, InputParam
         try:
             job_title = submitted_inputs.pop('title')
         except KeyError:
@@ -109,8 +109,8 @@ class ServiceJobManager(object):
         if len(missings) > 0:
             raise ValidationError(missings)
         # First create inputs
-        submission_inputs = BaseParam.objects.filter(name__in=submitted_inputs.keys(), editable=True,
-                                                     service=submission)
+        submission_inputs = InputParam.objects.filter(name__in=submitted_inputs.keys(), editable=True,
+                                                      service=submission)
         dependents_inputs = RelatedParam.objects.filter(name__in=submitted_inputs.keys(),
                                                         related_to__in=submission_inputs)
         all_inputs = list(chain(*[submission_inputs, dependents_inputs]))

@@ -45,7 +45,7 @@ class ServiceExitCodeInline(admin.TabularInline):
 
 
 class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
-    model = BaseParam
+    model = InputParam
     fields = ['name', 'default', 'class_label', 'related_to', 'order']
     readonly_fields = ['class_label', 'related_to']
     verbose_name_plural = "Organize Inputs"
@@ -65,7 +65,7 @@ class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
         return False
 
     def get_queryset(self, request):
-        return BaseParam.objects.all()
+        return InputParam.objects.all()
 
 
 class PolymorphicInputInlineChild(StackedPolymorphicInline.Child):
@@ -84,10 +84,6 @@ class SubmitInputsInline(StackedPolymorphicInline, CompactInline):
         exclude = ['order']
         classes = ['collapse']
 
-    class FileInputInline(PolymorphicInputInlineChild):
-        model = FileInput
-        exclude = ['order']
-
     class ListParamInline(PolymorphicInputInlineChild):
         model = ListParam
         exclude = ['order']
@@ -100,14 +96,13 @@ class SubmitInputsInline(StackedPolymorphicInline, CompactInline):
         model = TextParam
         exclude = ['order']
 
-    model = BaseParam
+    model = InputParam
     exclude = ['order']
     verbose_name = "Param"
     verbose_name_plural = "Params"
     classes = ['collapse', ]
     child_inlines = (
         BooleanParamInline,
-        FileInputInline,
         ListParamInline,
         NumberParamInline,
         TextParamInline
@@ -115,6 +110,10 @@ class SubmitInputsInline(StackedPolymorphicInline, CompactInline):
     list_display_links = None
     list_display = ('name', '__class__', 'default')
 
+
+class FileInputInline(CompactInline, SortableInlineAdminMixin):
+    model = FileInput
+    extra = 0
 
 # import nested_admin
 class FileInputSampleInline(SortableInlineAdminMixin, TabularInline):
@@ -149,7 +148,7 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, admin.ModelAdmin):
 
     inlines = [
         SubmitInputsInline,
-        FileInputSampleInline,
+        FileInputInline,
         ServiceOutputInline,
         ServiceExitCodeInline,
         OrganizeInputInline,

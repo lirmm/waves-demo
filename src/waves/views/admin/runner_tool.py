@@ -14,7 +14,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.core.urlresolvers import reverse
 from django.contrib import messages
-from waves.models import Service, Submission, BaseParam
+from waves.models import Service, Submission, InputParam
 
 from waves.forms.admin import ImportForm
 import logging

@@ -657,10 +657,10 @@ class JobInput(OrderAble, SlugAble):
     @property
     def get_label_for_choice(self):
         """ Try to get label for value issued from a service list input"""
-        from waves.models.inputs import BaseParam
+        from waves.models.inputs import InputParam
         try:
-            srv_input = BaseParam.objects.get(submission=self.job.submission,
-                                              name=self.name)
+            srv_input = InputParam.objects.get(submission=self.job.submission,
+                                               name=self.name)
             return srv_input.get_choises(self.value)
         except ObjectDoesNotExist:
             pass

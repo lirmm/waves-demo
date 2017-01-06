@@ -21,6 +21,7 @@ class WavesApp(AppConfig):
         Just import waves signals
         :return: None
         """
+        import waves.signals
 
 
 @register()

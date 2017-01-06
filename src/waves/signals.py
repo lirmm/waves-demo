@@ -84,7 +84,7 @@ def service_sample_post_delete_handler(sender, instance, **kwargs):
         instance.file.delete()
 
 
-@receiver(post_delete, sender=BaseParam)
+@receiver(post_delete, sender=InputParam)
 def service_input_post_delete_handler(sender, instance, **kwargs):
     """ SubmissionParam post delete handler"""
     if instance.input_samples.count() > 0:

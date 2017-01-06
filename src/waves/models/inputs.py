@@ -11,7 +11,7 @@ from waves.models.submissions import Submission
 from waves.utils.storage import waves_storage, file_sample_directory
 from waves.utils.validators import validate_list_comma, validate_list_param
 
-__all__ = ['RepeatedGroup', 'BaseParam', 'FileInput', 'BooleanParam', 'DecimalParam',
+__all__ = ['RepeatedGroup', 'InputParam', 'FileInput', 'BooleanParam', 'DecimalParam',
            'ListParam', 'SampleDepParam', 'FileInputSample', 'TextParam']
 
 
@@ -33,14 +33,11 @@ class RepeatedGroup(DTOAble, OrderAble):
         return '[%s]' % (self.name)
 
 
-class BaseParam(PolymorphicModel, OrderAble):
-    """ Main class for Basic data related to Service submissions inputs """
+class BaseParam(OrderAble):
     class Meta:
         ordering = ['order']
-        unique_together = ('name', 'default', 'submission')
+        abstract = True
 
-    class_label = "Undefined"
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, null=False, related_name='all_inputs')
     #: Input Label
     label = models.CharField('Label', max_length=100, blank=False, null=False, help_text='Input displayed label')
     #: Input submission name
@@ -65,6 +62,16 @@ class BaseParam(PolymorphicModel, OrderAble):
                                     help_text="comma separated list of supported edam format")
     edam_datas = models.CharField('Edam data(s)', max_length=255, null=True, blank=True,
                                   help_text="comma separated list of supported edam data type")
+
+
+class InputParam(BaseParam):
+    """ Main class for Basic data related to Service submissions inputs """
+    class Meta:
+        ordering = ['order']
+        unique_together = ('name', 'default', 'submission')
+
+    class_label = "Undefined"
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, null=False, related_name='all_inputs')
     # Dedicated Fields for Dependent Inputs
     when_value = models.CharField('When value', max_length=255, null=True, blank=True,
                                   help_text='Input is treated only for this parent value')
@@ -74,7 +81,7 @@ class BaseParam(PolymorphicModel, OrderAble):
     def save(self, *args, **kwargs):
         if self.repeat_group is not None:
             self.multiple = True
-        super(BaseParam, self).save(*args, **kwargs)
+        super(InputParam, self).save(*args, **kwargs)
 
     def clean(self):
         if self.required is None and not self.default:
@@ -86,21 +93,21 @@ class BaseParam(PolymorphicModel, OrderAble):
         return self.name
 
 
-class TextParam(BaseParam):
+class TextParam(InputParam):
     """ Standard text input """
     class Meta:
         proxy = True
     class_label = "Text input"
 
 
-class BooleanParam(BaseParam):
+class BooleanParam(InputParam):
     """ Boolean param (usually check box for a submission option)"""
     class_label = "Boolean"
     true_value = models.CharField('True value', default='True', max_length=50)
     false_value = models.CharField('False value', default='False', max_length=50)
 
 
-class DecimalParam(BaseParam):
+class DecimalParam(InputParam):
     """ Number param (decimal or float) """
     # TODO add specific validator
     class_label = "Number"
@@ -110,7 +117,7 @@ class DecimalParam(BaseParam):
                                   help_text="Leave blank if no max")
 
 
-class IntegerParam(BaseParam):
+class IntegerParam(InputParam):
     """ Integer param """
     # TODO add specific validator
     class_label = "Integer"
@@ -120,13 +127,13 @@ class IntegerParam(BaseParam):
                                   help_text="Leave blank if no max")
 
 
-class RelatedParam(BaseParam):
+class RelatedParam(InputParam):
     """ Proxy class for related params (dependents on other params) """
     class Meta:
         proxy = True
 
 
-class ListParam(BaseParam):
+class ListParam(InputParam):
     """ Param to be issued from a list of values (select / radio / check) """
     class_label = "List"
     list_mode = models.CharField('List display mode', choices=waves.const.LIST_DISPLAY_TYPE, default='select',
@@ -155,23 +162,23 @@ class ListParam(BaseParam):
 
 
 class FileInput(BaseParam):
+    class Meta:
+        db_table = 'waves_service_file'
+        ordering = ['order', ]
     class_label = "File Input"
-    extensions = models.CharField('Extensions', null=True, max_length=200, blank=True,
-                                  validators=[validate_list_comma, ],
-                                  help_text="Comma separated list of extension")
-    max_size = models.IntegerField('File Max size (Ko)', default=None, null=True, blank=True,
-                                   help_text="Leave blank for no max")
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, null=False, related_name='input_files')
+
+    def __str__(self):
+        return self.label
 
 
 class FileInputSample(OrderAble):
     """ Any file input can provide samples """
-    #: only used to include input samples as inlines in admin
-    submission = models.ForeignKey(Submission)
     file = models.FileField('Sample file', upload_to=file_sample_directory, storage=waves_storage, blank=False,
                             null=False)
     file_label = models.CharField('Sample file label', max_length=200, blank=True, null=True)
     file_input = models.ForeignKey(FileInput, on_delete=models.CASCADE, related_name='input_samples')
-    dependent_params = models.ManyToManyField(BaseParam, blank=True, through='SampleDepParam')
+    dependent_params = models.ManyToManyField(InputParam, blank=True, through='SampleDepParam')
 
     @property
     def label(self):
@@ -186,5 +193,5 @@ class SampleDepParam(models.Model):
         db_table = 'waves_sample_dependent_input'
 
     sample = models.ForeignKey(FileInputSample, on_delete=models.CASCADE, related_name='dependents_inputs_sample')
-    related_to = models.ForeignKey(BaseParam, on_delete=models.CASCADE, related_name='dependents_params_sample')
+    related_to = models.ForeignKey(InputParam, on_delete=models.CASCADE, related_name='dependents_params_sample')
     set_default = models.CharField('Set value to ', max_length=200, null=False, blank=False)

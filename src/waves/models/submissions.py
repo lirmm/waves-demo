@@ -75,7 +75,7 @@ class SubmissionOutput(TimeStampable, OrderAble):
     label = models.CharField('Label', max_length=255, null=True, blank=True, help_text="Label")
     name = models.CharField('Name', max_length=200, null=False, blank=False, help_text='Output file name')
     submission = models.ForeignKey(Submission, related_name='outputs', on_delete=models.CASCADE)
-    from_input = models.ForeignKey('BaseParam', null=True, blank=True, related_name='to_outputs',
+    from_input = models.ForeignKey('InputParam', null=True, blank=True, related_name='to_outputs',
                                    help_text='Valuated with input')
     ext = models.CharField('File extension', max_length=5, null=False, default=".txt")
     optional = models.BooleanField('May be empty ?', default=False)
