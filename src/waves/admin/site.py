@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
-from waves.models import WavesSite
+from waves.models import WavesApplicationConfiguration
 from django.utils.html import format_html
 from waves.forms.admin.site import SiteForm
 
@@ -60,4 +60,4 @@ class WavesSiteAdmin(admin.ModelAdmin):
         pass
 
 
-admin.site.register(WavesSite, WavesSiteAdmin)
+admin.site.register(WavesApplicationConfiguration, WavesSiteAdmin)

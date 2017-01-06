@@ -1,12 +1,12 @@
+""" Django models bases classes """
 from __future__ import unicode_literals
 
 import uuid
-
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.sites.models import Site
 from django.conf import settings
-from django.forms import Textarea
+from waves.compat import RichTextField
 import waves.settings
 import logging
 
@@ -14,12 +14,6 @@ from waves.utils.encrypt import Encrypt
 
 logger = logging.getLogger(__name__)
 
-if 'ckeditor' not in settings.INSTALLED_APPS:
-    class RichTextField(models.TextField):
-        pass
-else:
-    # If ckeditor enabled, use RichTextField, if not, define simply TextField subclass
-    from ckeditor.fields import RichTextField
 
 __all__ = ['DTOAble', 'TimeStampable', 'OrderAble', 'ExportAbleMixin', 'DescribeAble', 'SlugAble', 'ApiAble', 'UrlMixin']
 

@@ -20,7 +20,8 @@ from waves.models.services import *
 from waves.models.submissions import *
 from waves.models.runners import *
 from waves.models.inputs import *
-from waves.models.profiles import WavesProfile, profile_directory
+from waves.models.profiles import WavesProfile
+from waves.utils.storage import profile_directory
 
 logger = logging.getLogger(__name__)
 

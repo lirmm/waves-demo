@@ -22,19 +22,6 @@ logger = logging.getLogger(__name__)
 __all__ = ['ServiceRunParam', 'ServiceCategory', 'Service', 'ServiceMeta']
 
 
-class ServiceRunParam(AdaptorInitParam):
-    """ Defined runner param for Service model objects """
-
-    class Meta:
-        db_table = 'waves_service_run_param'
-        verbose_name = 'Run configuration'
-        verbose_name_plural = 'Run configuration'
-        unique_together = ('service', 'name')
-
-    objects = ServiceRunParamManager()
-    service = models.ForeignKey('Service', null=False, related_name='service_run_params', on_delete=models.CASCADE)
-
-
 class ServiceCategory(MPTTModel, OrderAble, DescribeAble, ApiAble):
     """ Service category """
 
@@ -57,6 +44,19 @@ class ServiceCategory(MPTTModel, OrderAble, DescribeAble, ApiAble):
 
     def __str__(self):
         return self.name
+
+
+class ServiceRunParam(AdaptorInitParam):
+    """ Defined runner param for Service model objects """
+
+    class Meta:
+        db_table = 'waves_service_run_param'
+        verbose_name = 'Run configuration'
+        verbose_name_plural = 'Run configuration'
+        unique_together = ('service', 'name')
+
+    objects = ServiceRunParamManager()
+    service = models.ForeignKey('Service', null=False, related_name='service_run_params', on_delete=models.CASCADE)
 
 
 class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin, DTOAble):

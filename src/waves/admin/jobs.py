@@ -7,7 +7,7 @@ import os
 import waves.const as const
 from waves.forms.admin import JobInputForm, JobOutputForm, JobForm
 from waves.models.jobs import *
-from waves.apps import WavesModelAdmin
+from waves.compat import WavesModelAdmin
 
 
 class JobInputInline(TabularInline):

@@ -1,19 +1,16 @@
 """ All Input related models """
 from __future__ import unicode_literals
 
-from waves.models.storage import waves_storage
 from django.core.exceptions import ValidationError
 from django.db import models
 from polymorphic.models import PolymorphicModel
 import waves.const
-from waves.models import OrderAble, DTOAble
+from waves.models.base import OrderAble, DTOAble
 from waves.models.submissions import Submission
+from waves.utils.storage import waves_storage, file_sample_directory
+
 __all__ = ['RepeatedGroup', 'BaseParam', 'FileInput', 'BooleanParam', 'NumberParam',
            'ListParam', 'SampleDepParam', 'FileInputSample', 'TextParam' ]
-
-
-def service_sample_directory(instance, filename):
-    return 'sample/{0}/{1}'.format(str(instance.submission.slug), filename)
 
 
 class RepeatedGroup(DTOAble, OrderAble):
@@ -162,7 +159,7 @@ class SampleDepParam(models.Model):
 
 class FileInputSample(OrderAble):
     submission = models.ForeignKey(Submission)
-    file = models.FileField('Sample file', upload_to=service_sample_directory, storage=waves_storage,
+    file = models.FileField('Sample file', upload_to=file_sample_directory, storage=waves_storage,
                             blank=False, null=False)
     file_label = models.CharField('Sample file label', max_length=200, blank=True, null=True)
     file_input = models.ForeignKey(FileInput, on_delete=models.CASCADE, related_name='input_samples')

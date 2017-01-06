@@ -5,7 +5,7 @@ from mptt.admin import MPTTModelAdmin
 
 from base import ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin
 from waves.admin.submissions import *
-from waves.apps import WavesCompactInline as CompactInline
+from waves.compat import CompactInline
 from waves.admin.submissions import ServiceExitCodeInline
 from waves.forms.admin.services import *
 from waves.models.profiles import WavesProfile

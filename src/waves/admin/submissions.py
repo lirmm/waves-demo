@@ -6,7 +6,7 @@ from django.contrib.admin import StackedInline, TabularInline
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 import nested_admin
-from waves.apps import WavesModelAdmin, WavesCompactInline as CompactInline
+from waves.compat import WavesModelAdmin, CompactInline
 # from waves.forms.admin.submissions import *
 from waves.models.submissions import *
 from waves.models.inputs import *

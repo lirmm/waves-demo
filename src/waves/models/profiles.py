@@ -1,17 +1,16 @@
 from __future__ import unicode_literals
 
+import logging
+
 from django.conf import settings
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django_countries.fields import CountryField
+
 from waves.models.base import SlugAble
-from waves.models.storage import waves_storage
-import logging
+from waves.utils.storage import waves_storage, profile_directory
+
 logger = logging.getLogger(__name__)
-
-
-def profile_directory(instance, filename):
-    return 'profile/{0}/{1}'.format(instance.slug, filename)
 
 
 @python_2_unicode_compatible

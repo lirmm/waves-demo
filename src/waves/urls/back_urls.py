@@ -4,22 +4,22 @@ from __future__ import unicode_literals
 
 from django.conf.urls import url
 from waves.views.admin import *
-from django.contrib.auth.decorators import login_required
+
+from django.contrib.admin.views.decorators import staff_member_required
 
 urlpatterns = [
-    url(r'^service/(?P<service_id>\d+)/import$', login_required(ServiceParamImportView.as_view()),
+    url(r'^service/(?P<service_id>\d+)/import$', staff_member_required(ServiceParamImportView.as_view()),
         name="service_import_form"),
-    url(r'^runner/(?P<runner_id>\d+)/import$', login_required(RunnerImportToolView.as_view()),
+    url(r'^runner/(?P<runner_id>\d+)/import$', staff_member_required(RunnerImportToolView.as_view()),
         name="runner_import_form"),
-    url(r'^service/(?P<service_id>\d+)/duplicate$', login_required(ServiceDuplicateView.as_view()),
+    url(r'^service/(?P<service_id>\d+)/duplicate$', staff_member_required(ServiceDuplicateView.as_view()),
         name="service_duplicate"),
-    url(r'^job/(?P<job_id>[0-9]+)/cancel/$', login_required(JobCancelView.as_view()),
+    url(r'^job/(?P<job_id>[0-9]+)/cancel/$', staff_member_required(JobCancelView.as_view()),
         name='job_cancel'),
-    url(r'^service/(?P<pk>\d+)/export$', login_required(ServiceExportView.as_view()),
+    url(r'^service/(?P<pk>\d+)/export$', staff_member_required(ServiceExportView.as_view()),
         name="service_export_form"),
-    url(r'^runner/(?P<pk>\d+)/export$', login_required(RunnerExportView.as_view()),
+    url(r'^runner/(?P<pk>\d+)/export$', staff_member_required(RunnerExportView.as_view()),
         name="runner_export_form"),
-    url(r'^runner/(?P<pk>\d+)/check$', login_required(RunnerTestConnectionView.as_view()),
+    url(r'^runner/(?P<pk>\d+)/check$', staff_member_required(RunnerTestConnectionView.as_view()),
         name="runner_test_connection"),
-
 ]

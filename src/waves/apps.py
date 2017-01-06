@@ -6,35 +6,6 @@ from __future__ import unicode_literals
 
 from django.apps import AppConfig
 from django.core.checks import Error, register
-from django.conf import settings
-
-if 'tabbed_admin' in settings.INSTALLED_APPS:
-    from tabbed_admin import TabbedModelAdmin
-
-
-    class WavesModelAdmin(TabbedModelAdmin):
-        """ Override TabbedModelAdmin admin_template """
-        admin_template = 'tabbed_change_form.html'
-else:
-    from django.contrib import admin
-
-    class WavesModelAdmin(admin.ModelAdmin):
-        """ Tabbed faked model admin """
-        admin_template = 'change_form.html'
-
-if 'jet' not in settings.INSTALLED_APPS:
-    from django.contrib.admin import StackedInline
-
-    class WavesCompactInline(StackedInline):
-        """ Inherit base class"""
-        pass
-else:
-    from jet.admin import CompactInline
-
-    class WavesCompactInline(CompactInline):
-        """ inherit if exists"""
-        pass
-
 
 
 class WavesApp(AppConfig):
@@ -50,7 +21,6 @@ class WavesApp(AppConfig):
         Just import waves signals
         :return: None
         """
-        from waves.models import signals
 
 
 @register()
