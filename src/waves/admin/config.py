@@ -3,23 +3,29 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
-from waves.models import WavesApplicationConfiguration
+from django.contrib.admin import register
+from waves.models import WavesConfiguration
 from django.utils.html import format_html
 from waves.forms.admin.site import SiteForm
+from django.contrib.sites.models import Site
 
 
 # TODO add button action for queue (stop / start / restart)
 # TODO add action button to invoke command 'dump' for WAVES config
+
 class WavesSiteAdmin(admin.ModelAdmin):
     """ Admin WAVES application parameters """
-    list_display = ('site', 'get_name', 'theme', 'current_queue_state')
+    list_display = ('domain', 'name', 'theme', 'current_queue_state')
     fieldsets = [
         ('Site', {
             'classes': ('suit-tab', 'suit-tab-general',),
-            'fields': ['site', ]
+            'fields': ['domain', 'name']
         }),
         ('Frontend configuration', {
-            'fields': ['theme', 'get_name', ]
+            'fields': ['theme',
+                       'allow_registration',
+                       'allow_submits',
+                       'maintenance']
         }),
         ('Queue', {
             'fields': ['current_queue_state']
@@ -27,18 +33,13 @@ class WavesSiteAdmin(admin.ModelAdmin):
         })
 
     ]
-    readonly_fields = ('get_name', 'current_queue_state',)
+    readonly_fields = ('current_queue_state',)
     form = SiteForm
 
     class Media:
         css = {
             'screen': ('waves/css/site.css',)
         }
-
-    def get_name(self, obj):
-        return obj.site.name
-
-    get_name.short_description = 'Global name'
 
     def current_queue_state(self, obj):
         from waves.management.waves_commands import JobQueueCommand
@@ -60,4 +61,5 @@ class WavesSiteAdmin(admin.ModelAdmin):
         pass
 
 
-admin.site.register(WavesApplicationConfiguration, WavesSiteAdmin)
+admin.site.unregister(Site)
+admin.site.register(WavesConfiguration, WavesSiteAdmin)

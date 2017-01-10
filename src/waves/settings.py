@@ -79,7 +79,7 @@ WAVES_SERVICES_EMAIL = __init_setting('WAVES_SERVICES_EMAIL', default='waves@atg
 
 # ---- WAVES WORKING DIRS ----
 # - Base dir for uploaded data and job results
-#: WAVES data base dir (store jobs /profiles / sample contents)
+#: WAVES data base dir (store jobs and sample contents)
 WAVES_DATA_ROOT = __init_setting('WAVES_DATA_ROOT', default=str(join(dirname(settings.BASE_DIR), 'data')))
 # - Jobs working dir (default is relative to WAVES_DATA_ROOT
 #: WAVES Jobs working dir

@@ -1,23 +1,23 @@
-from __future__ import unicode_literals
 from braces.views import LoginRequiredMixin
 from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
-from django.views import generic
-from waves.forms.profiles import UserForm, ProfileForm
 from django.contrib.auth import logout
-from base import WavesBaseContextMixin
-import waves.models
+from django.shortcuts import render, get_object_or_404, redirect
+
+# Create your views here.
+from django.views import generic
+import models
+from forms import UserForm, FrontUserForm, FrontProfileForm, ProfileForm
 
 
-class ShowProfile(LoginRequiredMixin, generic.TemplateView, WavesBaseContextMixin):
+class ShowProfile(LoginRequiredMixin, generic.TemplateView):
     """ WAVES user Profile show page """
-    template_name = "profiles/show_profile.html"
+    template_name = "templates/profiles/show_profile.html"
     http_method_names = ['get', 'post']
 
     def get(self, request, *args, **kwargs):
         slug = self.kwargs.get('slug')
         if slug:
-            profile = get_object_or_404(waves.models.profiles.WavesProfile, slug=slug)
+            profile = get_object_or_404(models.UserProfile, slug=slug)
             user = profile.user
         else:
             user = self.request.user
@@ -35,9 +35,9 @@ class ShowProfile(LoginRequiredMixin, generic.TemplateView, WavesBaseContextMixi
         return redirect("home")
 
 
-class EditProfile(LoginRequiredMixin, generic.TemplateView, WavesBaseContextMixin):
+class EditProfile(LoginRequiredMixin, generic.TemplateView):
     """ WAVES user Profile edit page """
-    template_name = "profiles/edit_profile.html"
+    template_name = "templates/profiles/edit_profile.html"
     http_method_names = ['get', 'post']
 
     def get(self, request, *args, **kwargs):
@@ -54,7 +54,7 @@ class EditProfile(LoginRequiredMixin, generic.TemplateView, WavesBaseContextMixi
             user.delete()
             logout(request)
             messages.success(request, 'Your profile has been deleted !')
-            return redirect('waves:home')
+            return redirect('home')
         user = self.request.user
         user_form = UserForm(request.POST, instance=user)
         profile_form = ProfileForm(request.POST,
@@ -74,4 +74,4 @@ class EditProfile(LoginRequiredMixin, generic.TemplateView, WavesBaseContextMixi
         profile.user = user
         profile.save()
         messages.success(request, "Profile details saved!")
-        return redirect("waves:show_self")
+        return redirect("profile:show_self")

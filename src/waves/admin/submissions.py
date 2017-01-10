@@ -88,8 +88,12 @@ class SubmitInputsInline(StackedPolymorphicInline, CompactInline):
         model = ListParam
         exclude = ['order']
 
-    class NumberParamInline(PolymorphicInputInlineChild):
+    class DecimalParamInline(PolymorphicInputInlineChild):
         model = DecimalParam
+        exclude = ['order']
+
+    class IntegerParamInline(PolymorphicInputInlineChild):
+        model = IntegerParam
         exclude = ['order']
 
     class TextParamInline(PolymorphicInputInlineChild):
@@ -102,10 +106,11 @@ class SubmitInputsInline(StackedPolymorphicInline, CompactInline):
     verbose_name_plural = "Params"
     classes = ['collapse', ]
     child_inlines = (
+        TextParamInline,
         BooleanParamInline,
         ListParamInline,
-        NumberParamInline,
-        TextParamInline
+        IntegerParamInline,
+        DecimalParamInline,
     )
     list_display_links = None
     list_display = ('name', '__class__', 'default')

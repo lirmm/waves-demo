@@ -8,7 +8,7 @@ import os
 from django.utils.timezone import localtime
 import waves.const
 from waves.tests.base import WavesBaseTestCase
-from waves.adaptors.base import JobRunnerAdaptor
+from waves.adaptors.base import BaseAdaptor
 from waves.adaptors.exceptions import *
 from waves.exceptions.jobs import *
 from waves.models import Service, Job, JobInput, Runner, RunnerParam
@@ -32,8 +32,7 @@ def sample_runner(runner_impl):
     """
     runner_model = Runner.objects.create(name=runner_impl.__class__.__name__,
                                          description='SubmissionSample Runner %s' % runner_impl.__class__.__name__,
-                                         clazz='%s.%s' % (runner_impl.__module__, runner_impl.__class__.__name__),
-                                         available=True)
+                                         clazz='%s.%s' % (runner_impl.__module__, runner_impl.__class__.__name__))
     for name, value in runner_impl.init_params.items():
         # print 'name', name, 'value', value
         RunnerParam.objects.update_or_create(name=name, runner=runner_model, defaults={'default': value})
@@ -74,8 +73,7 @@ class TestBaseJobRunner(WavesBaseTestCase):
             self.adaptor = MockJobRunnerAdaptor()
         self.runner_model = sample_runner(self.adaptor)
         self.service = Service.objects.create(name="SubmissionSample Service", runner=self.runner_model)
-        self.service.submissions.add(Submission.objects.create(label='samplesub', available_online=True,
-                                                               available_api=True, service=self.service))
+        self.service.submissions.add(Submission.objects.create(label='samplesub', service=self.service))
         self.current_job = None
         self.jobs = []
         self._result = self.defaultTestResult()
@@ -106,7 +104,7 @@ class TestBaseJobRunner(WavesBaseTestCase):
         self.current_job = sample_job(self.service)
 
         with self.assertRaises(AdaptorInitError):
-            self.adaptor = JobRunnerAdaptor(init_params=dict(unexpected_param='unexpected value'))
+            self.adaptor = BaseAdaptor(init_params=dict(unexpected_param='unexpected value'))
 
         self.jobs.append(self.current_job)
         self._debug_job_state()

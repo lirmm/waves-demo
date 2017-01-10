@@ -8,13 +8,14 @@ import os
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models, transaction
+from django.contrib.auth import get_user_model
+from django.conf import settings
 from mptt.models import MPTTModel, TreeForeignKey
 
 import waves.const
 import waves.settings
 from waves.models.base import *
 from waves.models.managers.services import ServiceCategoryManager, ServiceManager, ServiceRunParamManager
-from waves.models.profiles import WavesProfile
 from waves.models.runners import Runner
 from waves.models.base import AdaptorInitParam
 
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 __all__ = ['ServiceRunParam', 'ServiceCategory', 'Service', 'ServiceMeta']
 
 
-class ServiceCategory(MPTTModel, OrderAble, DescribeAble, ApiAble):
+class ServiceCategory(MPTTModel, Ordered, Described, ApiModel):
     """ Service category """
 
     class Meta:
@@ -56,10 +57,10 @@ class ServiceRunParam(AdaptorInitParam):
         unique_together = ('service', 'name')
 
     objects = ServiceRunParamManager()
-    service = models.ForeignKey('Service', null=False, related_name='service_run_params', on_delete=models.CASCADE)
+    service = models.ForeignKey('Service', null=False, related_name='srv_run_params', on_delete=models.CASCADE)
 
 
-class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin, DTOAble):
+class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin):
     """
     Represents a service on the platform
     """
@@ -82,7 +83,7 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin, DTOAble):
                                help_text='Service displayed version')
     runner = models.ForeignKey(Runner, related_name='runs', null=True, blank=False, on_delete=models.SET_NULL,
                                help_text='Service job runs adapter')
-    restricted_client = models.ManyToManyField(WavesProfile, related_name='restricted_services', blank=True,
+    restricted_client = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='restricted_services', blank=True,
                                                verbose_name='Restricted clients', db_table='waves_service_client',
                                                help_text='By default access is granted to everyone, '
                                                          'you may restrict access here.')
@@ -98,7 +99,7 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin, DTOAble):
                                    help_text='This service sends notification email')
     partial = models.BooleanField('Dynamic outputs', default=False,
                                   help_text='Set whether some service outputs are dynamic (not known in advance)')
-    created_by = models.ForeignKey(WavesProfile, on_delete=models.SET_NULL, null=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     remote_service_id = models.CharField('Remote service tool ID', max_length=255, editable=False, null=True)
     edam_topics = models.TextField('Edam topics', null=True, blank=True,
                                    help_text='Comma separated list of Edam ontology topics')
@@ -139,7 +140,7 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin, DTOAble):
         :return:
         """
         ServiceRunParam.objects.exclude(name__in=self.runner.adaptor.init_params.keys(), service=self).delete()
-        for param in self.runner.runner_params.filter(prevent_override=True):
+        for param in self.runner.runner_run_params.filter(prevent_override=True):
             ServiceRunParam.objects.update_or_create(defaults={'value': param.value,
                                                                'prevent_override': True},
                                                      name=param.name, service=self)
@@ -150,6 +151,7 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin, DTOAble):
         from waves.models import Job
         return Job.objects.filter(submission__in=self.submissions.all())
 
+    @property
     def run_params(self):
         """
         Return a list of tuples representing current service adaptor init params
@@ -157,7 +159,7 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin, DTOAble):
         :return: a Dictionary (param_name=param_service_value or runner_param_default if not set
         :rtype: dict
         """
-        runner_params = self.service_run_params.all().values_list('param__name', '_value', 'param__default')
+        runner_params = self.srv_run_params.all().values_list('name', '_value', 'default')
         returned = dict()
         for name, value, default in runner_params:
             logger.debug("service run_params %s:%s:%s" % (name, value, default))
@@ -241,7 +243,7 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin, DTOAble):
     def default_submission(self):
         """ Return Service default submission for web forms """
         try:
-            return self.submissions.filter(available_online=True).first()
+            return self.submissions.filter(availability__in=(1, 3)).first()
         except ObjectDoesNotExist:
             return None
 
@@ -249,19 +251,19 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin, DTOAble):
     def default_submission_api(self):
         """ Return Service default submission for api """
         try:
-            return self.submissions.filter(available_api=True).first()
+            return self.submissions.filter(availability__gt=2).first()
         except ObjectDoesNotExist:
             return None
 
     @property
     def submissions_web(self):
         """ Returned submissions available on WEB forms """
-        return self.submissions.filter(available_online=True)
+        return self.submissions.filter(availability__in=(1, 3))
 
     @property
     def submissions_api(self):
         """ Returned submissions available on API """
-        return self.submissions.filter(available_api=True)
+        return self.submissions.filter(availability__gt=2)
 
     def available_for_user(self, user):
         """ Access rules for submission form according to user
@@ -272,10 +274,10 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin, DTOAble):
             return self.status == waves.const.SRV_PUBLIC
         # RULES to set if user can access submissions
         return (self.status == waves.const.SRV_PUBLIC) or \
-               (self.status == waves.const.SRV_DRAFT and self.created_by == user.profile) or \
+               (self.status == waves.const.SRV_DRAFT and self.created_by == user) or \
                (self.status == waves.const.SRV_TEST and user.is_staff) or \
                (self.status == waves.const.SRV_RESTRICTED and (
-                   user.profile in self.restricted_client.all() or user.is_staff)) or user.is_superuser
+                   user in self.restricted_client.all() or user.is_staff)) or user.is_superuser
 
     @property
     def serializer(self):
@@ -291,7 +293,7 @@ class Service(TimeStampable, DescribeAble, ApiAble, ExportAbleMixin, DTOAble):
         self.save()
 
 
-class ServiceMeta(OrderAble, DescribeAble):
+class ServiceMeta(Ordered, Described):
     """
     Represents all meta information associated with a ATGC service service.
     Ex : website, documentation, download, related paper etc...

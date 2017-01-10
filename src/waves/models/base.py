@@ -15,10 +15,11 @@ from waves.utils.encrypt import Encrypt
 logger = logging.getLogger(__name__)
 
 
-__all__ = ['DTOAble', 'TimeStampable', 'OrderAble', 'ExportAbleMixin', 'DescribeAble', 'SlugAble', 'ApiAble', 'UrlMixin']
+__all__ = ['DTOMixin', 'TimeStamped', 'Ordered', 'ExportAbleMixin', 'Described', 'Slugged', 'ApiModel',
+           'UrlMixin']
 
 
-class DTOAble(object):
+class DTOMixin(object):
     """ Some models (Service / Inputs / Outputs / ExitCodes / Jobs) need to be able to be loaded from Adaptors
     """
     def from_dto(self, dto):
@@ -36,7 +37,14 @@ class DTOAble(object):
                 setattr(dto, var, getattr(self, var))
 
 
-class TimeStampable(models.Model):
+class BaseModel(models.Model):
+    class Meta:
+        abstract = True
+
+    sites = models.ManyToManyField(Site)
+
+
+class TimeStamped(models.Model):
     """Time stamped 'able' models objects, add fields to inherited objects
 
     .. note::
@@ -53,7 +61,7 @@ class TimeStampable(models.Model):
     updated = models.DateTimeField('Last Update', auto_now=True, editable=False, help_text='Last update timestamp')
 
 
-class OrderAble(models.Model):
+class Ordered(models.Model):
     """ Order-able models objects,
 
     .. note::
@@ -68,7 +76,7 @@ class OrderAble(models.Model):
     order = models.PositiveIntegerField(default=0)
 
 
-class DescribeAble(models.Model):
+class Described(models.Model):
     """ A model object which inherit from this class add two description fields to model objects
     """
 
@@ -81,7 +89,7 @@ class DescribeAble(models.Model):
     short_description = models.TextField('Short Description', null=True, blank=True, help_text='Short description (Text)')
 
 
-class SlugAble(models.Model):
+class Slugged(models.Model):
     """ Add a 'slug' field to models Objects, based on uuid.uuid4 field generator, this field is mainly used for models
     objects urls
     """
@@ -93,7 +101,7 @@ class SlugAble(models.Model):
     slug = models.UUIDField(default=uuid.uuid4, blank=True, unique=True, editable=False)
 
 
-class ApiAble(models.Model):
+class ApiModel(models.Model):
     """ An API-able model object need a 'api_name', in order to setup dedicated url for this model object
     """
 

@@ -9,9 +9,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import override_settings, TestCase
 from waves.tests.utils import get_sample_dir
-import waves.settings
-from waves.models.services import ServiceOutput
-from waves.models.submissions import SubmissionParam, SubmissionOutput
+from django.urls import reverse
 
 
 @override_settings(
@@ -22,7 +20,7 @@ from waves.models.submissions import SubmissionParam, SubmissionOutput
 )
 class WavesBaseTestCase(TestCase):
     current_result = None
-    fixtures = ['waves/tests/fixtures/init.json']
+    # fixtures = ['waves/tests/fixtures/init.json']
 
     @classmethod
     def setUpClass(cls):
@@ -79,3 +77,15 @@ class WavesBaseTestCase(TestCase):
                 submitted_input.update({key: job_params['params'][key]})
             jobs_submitted_input.append(submitted_input)
         return jobs_submitted_input
+
+
+class PageOpenTestCase(TestCase):
+    def test_home_page_exists(self):
+        url = reverse('home')
+        r = self.client.get(url)
+        self.assertEqual(r.status_code, 200)
+
+    def test_about_page_exists(self):
+        url = reverse('waves:about')
+        r = self.client.get(url)
+        self.assertEqual(r.status_code, 200)

@@ -1,4 +1,4 @@
-<li {% if active_link == "home" %}class="active"{% endif %}><a href="{% url 'waves:home' %}">Home</a></li>
+<li {% if active_link == "home" %}class="active"{% endif %}><a href="{% url 'home' %}">Home</a></li>
 <li {% if active_link == "services" %}class="active"{% endif %}><a href="{% url 'waves:services_list' %}">Online
     services</a></li>
 <li {% if active_link == "rest_api" %}class="active"{% endif %}><a href="{% url 'waves:rest_services' %}">REST
@@ -10,5 +10,5 @@
 {% endif %}
 {% if user.is_staff %}
     {% load waves_tags %}
-    <li><a href="{% url 'admin:index' %}">{% get_app_name %} Admin</a></li>
+    <li><a href="{% url 'admin:index' %}">Admin</a></li>
 {% endif %}

@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.core.files.storage import FileSystemStorage
+
 import waves.settings
 
 
@@ -22,10 +23,6 @@ def job_file_directory(instance, filename):
     """ Submitted job input files """
     return 'jobs/{0}/{1}'.format(str(instance.job.slug), filename)
 
-
-def profile_directory(instance, filename):
-    """ User Profile images directory """
-    return 'profile/{0}/{1}'.format(instance.slug, filename)
 
 waves_storage = WavesStorage()
 

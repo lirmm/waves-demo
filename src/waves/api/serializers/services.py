@@ -6,8 +6,9 @@ from rest_framework.fields import empty
 from django.utils.html import strip_tags
 from rest_framework.reverse import reverse as reverse
 from dynamic import DynamicFieldsModelSerializer
-from waves.models import SubmissionParam, SubmissionOutput, ServiceMeta, Service, RelatedParam
-from waves.models.submissions import Submission, SubmissionParam, RelatedParam, SubmissionOutput
+from waves.models.inputs import *
+from waves.models.submissions import *
+from waves.models.services import *
 from django.contrib.staticfiles.storage import staticfiles_storage
 import waves.settings
 
@@ -29,8 +30,8 @@ class InputSerializer(DynamicFieldsModelSerializer):
     """ Serialize JobInput """
 
     class Meta:
-        model = SubmissionParam
-        queryset = SubmissionParam.objects.all()
+        model = InputParam
+        queryset = InputParam.objects.all()
         fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'short_description', 'multiple')
         extra_kwargs = {
             'url': {'view_name': 'waves:waves-services-detail', 'lookup_field': 'api_name'}
@@ -67,7 +68,7 @@ class ConditionalInputSerializer(serializers.ModelSerializer):
     """ Serialize inputs if it's a conditional one """
 
     class Meta:
-        model = SubmissionParam
+        model = InputParam
         fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'short_description', 'description',
                   'multiple', 'when')
 
@@ -108,7 +109,7 @@ class ServiceMetaSerializer(serializers.HyperlinkedModelSerializer, DynamicField
     """ Serialize list of Service related metas """
 
     class Meta:
-        model = Service
+        model = ServiceMeta
         fields = ('url', 'name', 'metas')
         extra_kwargs = {
             'url': {'view_name': 'waves:waves-services-detail', 'lookup_field': 'api_name'}
@@ -129,7 +130,7 @@ class ServiceSubmissionSerializer(DynamicFieldsModelSerializer, serializers.Hype
 
     view_name = 'waves:waves-services-submissions'
     submission_uri = serializers.SerializerMethodField()
-    inputs = InputSerializer(many=True, source="inputs")
+    inputs = InputSerializer(many=True, source="submission_inputs")
     form = serializers.SerializerMethodField()
     service = serializers.SerializerMethodField()
 
@@ -151,7 +152,7 @@ class ServiceSubmissionSerializer(DynamicFieldsModelSerializer, serializers.Hype
 
     def get_queryset(self):
         """ Filter api enabled submissions """
-        return Submission.objects.filter(available_api=True)
+        return Submission.objects.filter(availability__gt=2)
 
 
 class ServiceSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsModelSerializer):

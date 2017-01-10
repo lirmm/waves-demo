@@ -102,6 +102,6 @@ class GalaxyWorkFlowRunnerTestCase(TestBaseJobRunner):
         self.assertGreaterEqual(len(service), 0)
         for updated in service[0:1]:
             # just try for the the first one
-            remote_tool_param = updated.service_run_params.get(param__name='remote_tool_id')
+            remote_tool_param = updated.srv_run_params.get(name='remote_tool_id')
             logger.debug('Remote too id for service %s : %s', updated, remote_tool_param.value)
             self.importer.import_remote_service(remote_tool_id=remote_tool_param.value)

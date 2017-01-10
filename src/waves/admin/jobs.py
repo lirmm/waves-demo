@@ -71,7 +71,7 @@ def mark_rerun(modeladmin, request, queryset):
 
 def delete_model(modeladmin, request, queryset):
     for obj in queryset.all():
-        if obj.client == request.user.profile or obj.service.created_by == request.user.profile or request.user.is_superuser:
+        if obj.client == request.user or obj.service.created_by == request.user or request.user.is_superuser:
             try:
                 obj.delete()
                 messages.success(request, message="Jobs %s successfully deleted" % obj)
@@ -139,8 +139,8 @@ class JobAdmin(WavesModelAdmin):
             return super(JobAdmin, self).get_queryset(request)
         else:
             qs = Job.objects.filter(
-                Q(service__created_by=request.user.profile) |
-                Q(client=request.user.profile) |
+                Q(service__created_by=request.user) |
+                Q(client=request.user) |
                 Q(email_to=request.user.email))
             ordering = self.get_ordering(request)
             if ordering:
@@ -152,7 +152,7 @@ class JobAdmin(WavesModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser or (
-            obj is not None and (obj.client == request.user.profile or obj.service.created_by == request.user.profile))
+            obj is not None and (obj.client == request.user or obj.service.created_by == request.user))
 
     def get_actions(self, request):
         actions = super(JobAdmin, self).get_actions(request)

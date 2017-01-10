@@ -1,29 +1,28 @@
-from __future__ import unicode_literals
-
-from braces import views as bracesviews
+""" User Accounts views """
+from smtplib import SMTPException
 
 from authtools import views as authviews
-from django.core import signing
+from braces import views as bracesviews
 from django.conf import settings
-from django.db import transaction
 from django.contrib import auth, messages
 from django.contrib.auth import get_user_model
-from smtplib import SMTPException
-from django.core.urlresolvers import reverse_lazy
-from django.views import generic
-from django.shortcuts import render, redirect
+from django.core import signing
+from django.db import transaction
 
+# Create your views here.
+from django.urls import reverse_lazy
+from django.views import generic
+from .forms import *
 from registration.backends.hmac.views import RegistrationView, ActivationView as BaseActivationView
-from base import WavesBaseContextMixin
-from waves.forms.accounts import *
-import waves.settings
 User = get_user_model()
+import waves.settings
 
 
 class LoginView(bracesviews.AnonymousRequiredMixin,
-                authviews.LoginView, WavesBaseContextMixin):
+                authviews.LoginView):
     """ Login view """
     template_name = "accounts/login.html"
+    # success_url = reverse_lazy("home")
     form_class = LoginForm
 
     def form_valid(self, form):
@@ -37,9 +36,9 @@ class LoginView(bracesviews.AnonymousRequiredMixin,
         return redirect
 
 
-class LogoutView(authviews.LogoutView, WavesBaseContextMixin):
+class LogoutView(authviews.LogoutView):
     """ User logout view """
-    url = reverse_lazy('waves:home')
+    url = reverse_lazy('home')
 
     def get(self, *args, **kwargs):
         """ logout user from WAVES """
@@ -49,7 +48,7 @@ class LogoutView(authviews.LogoutView, WavesBaseContextMixin):
 
 
 class SignUpView(bracesviews.AnonymousRequiredMixin, bracesviews.FormValidMessageMixin, generic.CreateView,
-                 RegistrationView, WavesBaseContextMixin):
+                 RegistrationView):
     """ User Registration view """
     form_class = SignupForm
     model = User
@@ -91,11 +90,11 @@ class SignUpView(bracesviews.AnonymousRequiredMixin, bracesviews.FormValidMessag
         return context
 
 
-class PasswordChangeView(authviews.PasswordChangeView, WavesBaseContextMixin):
+class PasswordChangeView(authviews.PasswordChangeView):
     """ User password change view """
     form_class = PasswordChangeForm
     template_name = 'accounts/password_change.html'
-    success_url = reverse_lazy('waves:home')
+    success_url = reverse_lazy('home')
 
     def form_valid(self, form):
         """ Form process when valid"""
@@ -106,27 +105,27 @@ class PasswordChangeView(authviews.PasswordChangeView, WavesBaseContextMixin):
         return super(PasswordChangeView, self).form_valid(form)
 
 
-class PasswordResetView(authviews.PasswordResetView, WavesBaseContextMixin):
+class PasswordResetView(authviews.PasswordResetView):
     """ User password reset form view """
     form_class = PasswordResetForm
     template_name = 'accounts/password_reset.html'
-    success_url = reverse_lazy('waves:password-reset-done')
+    success_url = reverse_lazy('account:password-reset-done')
     subject_template_name = 'accounts/emails/password_reset_subject.txt'
     email_template_name = 'accounts/emails/password_reset_email.html'
 
 
-class PasswordResetDoneView(authviews.PasswordResetDoneView, WavesBaseContextMixin):
+class PasswordResetDoneView(authviews.PasswordResetDoneView):
     """ Reset password done view """
     template_name = 'accounts/password_reset_done.html'
 
 
-class PasswordResetConfirmView(authviews.PasswordResetConfirmAndLoginView, WavesBaseContextMixin):
+class PasswordResetConfirmView(authviews.PasswordResetConfirmAndLoginView):
     """ Reset password confirmation """
     template_name = 'accounts/password_reset_confirm.html'
     form_class = SetPasswordForm
 
 
-class ActivationView(BaseActivationView, WavesBaseContextMixin):
+class ActivationView(BaseActivationView):
     """ User account activation view """
     template_name = 'accounts/activate.html'
     error_reason = ''

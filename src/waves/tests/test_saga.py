@@ -10,10 +10,9 @@ from django.conf import settings
 import waves.const
 import waves.tests.utils.shell_util as test_util
 from waves.tests.test_runner import TestBaseJobRunner, sample_job
-from waves.adaptors.sge import SGEJobAdaptor
-from waves.adaptors.saga.shell.local import ShellJobAdaptor
-from waves.adaptors.saga.cluster.ssh import SshUserPassClusterJobAdaptor
-from waves.adaptors.saga.shell.ssh import SshUserPassJobAdaptor
+from waves.adaptors.saga.shell.local import LocalShellAdaptor
+from waves.adaptors.saga.cluster.ssh import SshUserPassClusterAdaptor
+from waves.adaptors.saga.shell.ssh import SshUserPassShellAdaptor
 from waves.models import JobInput, JobOutput, Service, Job
 from waves.managers.servicejobs import ServiceJobManager
 from waves.tests.utils import get_sample_dir
@@ -25,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class ShellRunnerTestCase(TestBaseJobRunner):
     def _set_command(self, command):
-        service_command = self.service.service_run_params.get(param__name='command')
+        service_command = self.service.srv_run_params.get(name='command')
         service_command._value = command
         service_command.save()
         self.service.adaptor.command = command
@@ -36,7 +35,7 @@ class ShellRunnerTestCase(TestBaseJobRunner):
         try:
             getattr(self, 'adaptor')
         except AttributeError:
-            self.adaptor = ShellJobAdaptor()
+            self.adaptor = LocalShellAdaptor()
         super(ShellRunnerTestCase, self).setUp()
 
     def _prepare_hello_world(self):
@@ -117,11 +116,11 @@ class ShellRunnerTestCase(TestBaseJobRunner):
 class SshRunnerTestCase(ShellRunnerTestCase):
     def setUp(self):
         try:
-            self.adaptor = SshUserPassJobAdaptor(init_params=dict(protocol='sge',
-                                                                  user_id=settings.WAVES_TEST_SSH_USER_ID,
-                                                                  crypt_user_pass=settings.WAVES_TEST_SSH_USER_PASS,
-                                                                  basedir="/data/http/www/exec/waves/",
-                                                                  host=settings.WAVES_TEST_SSH_HOST))
+            self.adaptor = SshUserPassShellAdaptor(init_params=dict(protocol='sge',
+                                                                    user_id=settings.WAVES_TEST_SSH_USER_ID,
+                                                                    crypt_user_pass=settings.WAVES_TEST_SSH_USER_PASS,
+                                                                    basedir="/data/http/www/exec/waves/",
+                                                                    host=settings.WAVES_TEST_SSH_HOST))
         except KeyError:
             self.skipTest("Missing one or more SSH_TEST_* environment variable")
         super(SshRunnerTestCase, self).setUp()
@@ -138,26 +137,14 @@ class SshRunnerTestCase(ShellRunnerTestCase):
         super(SshRunnerTestCase, self).testSimpleCP()
 
 
-@test_util.skip_unless_sge()
-class SgeRunnerTestCase(ShellRunnerTestCase):
-    def setUp(self):
-        self.adaptor = SGEJobAdaptor(init_params=dict(queue=waves.settings.WAVES_TEST_SGE_CELL))
-        super(SgeRunnerTestCase, self).setUp()
-
-    def testSimpleCP(self):
-        self.adaptor.connect()
-        self.adaptor.command = 'cp'
-        super(SgeRunnerTestCase, self).testSimpleCP()
-
-
 class SGESshUserPassRunnerTestCase(ShellRunnerTestCase):
     def setUp(self):
-        self.adaptor = SshUserPassClusterJobAdaptor(init_params=dict(protocol='sge',
-                                                                     queue=settings.WAVES_TEST_SGE_CELL,
-                                                                     user_id=settings.WAVES_TEST_SSH_USER_ID,
-                                                                     crypt_user_pass=settings.WAVES_TEST_SSH_USER_PASS,
-                                                                     basedir="/data/http/www/exec/waves/",
-                                                                     host=settings.WAVES_TEST_SSH_HOST))
+        self.adaptor = SshUserPassClusterAdaptor(init_params=dict(protocol='sge',
+                                                                  queue=settings.WAVES_TEST_SGE_CELL,
+                                                                  user_id=settings.WAVES_TEST_SSH_USER_ID,
+                                                                  crypt_user_pass=settings.WAVES_TEST_SSH_USER_PASS,
+                                                                  basedir="/data/http/www/exec/waves/",
+                                                                  host=settings.WAVES_TEST_SSH_HOST))
         super(SGESshUserPassRunnerTestCase, self).setUp()
 
     def testSimpleCP(self):

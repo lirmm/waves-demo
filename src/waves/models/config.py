@@ -8,21 +8,25 @@ import waves.settings
 from waves.compat import list_themes
 
 
-class WavesApplicationConfiguration(models.Model):
+class WavesConfiguration(Site):
     """
     Main application configuration entity
     # TODO add
     """
     class Meta:
-        verbose_name = "WAVES Application"
+        db_table = "waves_configuration"
+        verbose_name = "Application config"
 
-    site = models.OneToOneField(Site, on_delete=models.CASCADE)
     theme = models.CharField('Bootstrap theme', max_length=255, default=waves.settings.WAVES_BOOTSTRAP_THEME,
                              choices=list_themes(), )
-    objects = models.Manager()
-    on_site = CurrentSiteManager('site')
+    allow_registration = models.BooleanField('Allow registration', default=True)
+    allow_submits = models.BooleanField('Allow job submissions', default=True)
+    maintenance = models.BooleanField('Maintenance flag', default=False, help_text="If checked, all user actions"
+                                                                                   " redirect to maintenance")
+    # objects = models.Manager()
+    # objects = CurrentSiteManager()
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         """ Clear Site cache upon saving """
         Site.objects.clear_cache()
-        super(WavesApplicationConfiguration, self).save(force_insert, force_update, using, update_fields)
+        super(WavesConfiguration, self).save(force_insert, force_update, using, update_fields)

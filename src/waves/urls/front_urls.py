@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 from django.conf.urls import url
-from django.views.generic import TemplateView
 from waves.views.jobs import *
 from waves.views.services import *
 from waves.views.base import *
@@ -17,4 +16,5 @@ urlpatterns = [
     url(r'^jobs/inputs/(?P<slug>[\w-]+)/$', JobInputView.as_view(), name="job_input"),
     url(r'^jobs/outputs/(?P<slug>[\w-]+)/$', JobOutputView.as_view(), name="job_output"),
     url(r'^rest-services/$', RestServices.as_view(), name='rest_services'),
+    url(r'^jobs/$', JobListView.as_view(), name="job_list"),
 ]

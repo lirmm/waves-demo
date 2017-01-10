@@ -93,7 +93,7 @@ class ServiceJobSubmissionView(MultipleFieldLookupMixin, generics.RetrieveAPIVie
     def get_queryset(self):
         """ Retrieve for service, current submissions available for API """
         return Submission.objects.filter(api_name=self.kwargs.get('api_name'),
-                                         service__api_name=self.kwargs.get('service'), available_api=True)
+                                         service__api_name=self.kwargs.get('service'), availability__gt=2)
 
     def get_object(self):
         """ Retrieve object or redirect to 404 """

@@ -14,6 +14,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
+            join(BASE_DIR, 'profiles', 'templates'),
+            join(BASE_DIR, 'accounts', 'templates'),
             join(BASE_DIR, 'waves', 'templates'),
         ],
         'APP_DIRS': True,
@@ -66,19 +68,21 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.sites',
     # 'jquery_ui',
-    'nested_admin',
+    # 'nested_admin',
     # 'tabbed_admin',
     # WAVES required dependencies
     'waves.apps.WavesApp',
-    'smart_selects',
+    'profiles.apps.ProfileConfig',
+    'accounts.apps.AccountsConfig',
+    # 'smart_selects',
     'mptt',
     'django_countries',
     'crispy_forms',
     'easy_thumbnails',
     'mail_templated',
     'rest_framework',
-    'rest_framework_docs',
-    'corsheaders',
+    # 'rest_framework_docs',
+    # 'corsheaders',
     'ckeditor',
     'bootstrap_themes',
 )
@@ -111,7 +115,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'waves.api.authentication.auth.WavesAPIKeyAuthBackend',
+        'waves.api.authentication.auth.APIKeyAuthBackend',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PARSER_CLASSES': (

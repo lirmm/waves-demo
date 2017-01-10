@@ -41,7 +41,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="{% url 'waves:home' %}">
+            <a class="navbar-brand" href="{% url 'home' %}">
                 {% block navbar-brand %}
                     <img src="{% static 'waves/logos/waves.png' %}" alt="logo" id="navbar-logo"/>
                 {% endblock %}
@@ -64,12 +64,12 @@
                                     <span class="caret"></span>
                                 </li>
                                 <ul class="dropdown-menu" aria-labelledby="dropdownAuthenticated">
-                                    <li><a href="{% url 'waves:show_self' %}">Your Profile</a></li>
-                                    <li><a href="{% url 'waves:logout' %}">Logout</a></li>
+                                    <li><a href="{% url 'profile:show_self' %}">Your Profile</a></li>
+                                    <li><a href="{% url 'account:logout' %}">Logout</a></li>
                                 </ul>
                             </ul>
                         {% else %}
-                            <a class="btn btn-default" href="{% url 'waves:login' %}" role="button">Log in</a>
+                            <a class="btn btn-default" href="{% url 'account:login' %}" role="button">Log in</a>
                         {% endif %}
                     </div>
                 {% endblock %}

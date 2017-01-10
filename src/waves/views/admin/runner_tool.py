@@ -103,7 +103,7 @@ class RunnerImportToolView(FormView):
                         self.service = Service.objects.create()
                         self.service.from_dto(service_dto)
                         self.service.runner = self.object
-                        self.service.created_by = self.request.user.profile
+                        self.service.created_by = self.request.user
                         self.service.category = form.cleaned_data['category']
                         submission = Submission.objects.create(label='Imported submission', service=self.service)
                         self.service.submissions.add(submission)

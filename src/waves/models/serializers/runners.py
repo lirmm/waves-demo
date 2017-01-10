@@ -25,8 +25,8 @@ class RunnerSerializer(serializers.ModelSerializer, RelatedSerializerMixin):
     def create(self, validated_data):
         runner_params = validated_data.pop('runner_params')
         runner = Runner.objects.create(**validated_data)
-        runner.runner_params.all().delete()
-        runner.runner_params = self.create_related(foreign={'runner': runner},
-                                                   serializer=RunnerParamSerializer,
-                                                   datas=runner_params)
+        runner.runner_run_params.all().delete()
+        runner.runner_run_params = self.create_related(foreign={'runner': runner},
+                                                       serializer=RunnerParamSerializer,
+                                                       datas=runner_params)
         return runner

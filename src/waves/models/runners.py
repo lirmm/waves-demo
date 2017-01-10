@@ -4,13 +4,13 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils.module_loading import import_string
 
-from waves.models.base import DescribeAble, ExportAbleMixin, AdaptorInitParam
+from waves.models.base import Described, ExportAbleMixin, AdaptorInitParam
 from waves.models.managers.runners import RunnerManager, RunnerParamManager
 
 __all__ = ['Runner', 'RunnerParam']
 
 
-class Runner(DescribeAble, ExportAbleMixin):
+class Runner(Described, ExportAbleMixin):
     """ Represents a generic job adaptor meta information (resolved at runtime via clazz attribute) """
     class Meta:
         ordering = ['name']
@@ -69,7 +69,7 @@ class Runner(DescribeAble, ExportAbleMixin):
         :rtype: dict
         """
         from waves.utils.encrypt import Encrypt
-        runner_params = self.runner_params.values_list('name', 'value')
+        runner_params = self.runner_run_params.values_list('name', 'value')
         returned = dict()
         for name, default in runner_params:
             if name.startswith('crypt_') and default:
@@ -91,6 +91,16 @@ class Runner(DescribeAble, ExportAbleMixin):
         from waves.models.serializers.runners import RunnerSerializer
         return RunnerSerializer
 
+    @property
+    def run_params(self):
+        runner_params = self.runner_run_params.all().values_list('name', '_value', 'default')
+        # return dict(name=value if value else default for name, value, default in runner_params)
+        returned = dict()
+        for name, value, default in runner_params:
+            returned[name] = value if value else default
+        return returned
+
+
 
 class RunnerParam(AdaptorInitParam):
     """ Parameters used by related class object (see: waves.runners) for self initialization """
@@ -98,5 +108,5 @@ class RunnerParam(AdaptorInitParam):
         db_table = 'waves_runner_run_param'
         unique_together = ('name', 'runner')
     objects = RunnerParamManager()
-    runner = models.ForeignKey(Runner, related_name='runner_params', on_delete=models.CASCADE)
+    runner = models.ForeignKey(Runner, related_name='runner_run_params', on_delete=models.CASCADE)
 

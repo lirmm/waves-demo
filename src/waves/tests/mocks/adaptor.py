@@ -2,7 +2,7 @@
 """
 from __future__ import unicode_literals
 
-from waves.adaptors.base import JobRunnerAdaptor
+from waves.adaptors.base import BaseAdaptor
 import waves.const
 # TODO implements missing methods
 import random, string
@@ -12,7 +12,7 @@ class MockConnector(object):
     pass
 
 
-class MockJobRunnerAdaptor(JobRunnerAdaptor):
+class MockJobRunnerAdaptor(BaseAdaptor):
     def _job_status(self, job):
         # time.sleep()
         if job.status == waves.const.JOB_RUNNING:

@@ -6,16 +6,16 @@ from django.db import models
 from polymorphic.models import PolymorphicModel
 
 import waves.const
-from waves.models.base import OrderAble, DTOAble
+from waves.models.base import Ordered, DTOMixin
 from waves.models.submissions import Submission
 from waves.utils.storage import waves_storage, file_sample_directory
 from waves.utils.validators import validate_list_comma, validate_list_param
 
-__all__ = ['RepeatedGroup', 'InputParam', 'FileInput', 'BooleanParam', 'DecimalParam',
-           'ListParam', 'SampleDepParam', 'FileInputSample', 'TextParam']
+__all__ = ['BaseParam', 'RepeatedGroup', 'InputParam', 'FileInput', 'BooleanParam', 'DecimalParam',
+           'ListParam', 'SampleDepParam', 'FileInputSample', 'TextParam', 'RelatedParam', 'IntegerParam']
 
 
-class RepeatedGroup(DTOAble, OrderAble):
+class RepeatedGroup(DTOMixin, Ordered):
     """ Some input may be grouped, and group could be repeated"""
 
     class Meta:
@@ -33,10 +33,10 @@ class RepeatedGroup(DTOAble, OrderAble):
         return '[%s]' % (self.name)
 
 
-class BaseParam(OrderAble):
+class BaseParam(PolymorphicModel):
     class Meta:
         ordering = ['order']
-        abstract = True
+        unique_together = ('name', 'default', 'submission')
 
     #: Input Label
     label = models.CharField('Label', max_length=100, blank=False, null=False, help_text='Input displayed label')
@@ -58,25 +58,23 @@ class BaseParam(OrderAble):
     repeat_group = models.ForeignKey(RepeatedGroup, null=True, blank=True, on_delete=models.SET_NULL,
                                      help_text="Group and repeat items")
     # __future__ :-) manage validators according to edam infos
+    #: positive integer field (default to 0)
+    order = models.PositiveIntegerField(default=0)
     edam_formats = models.CharField('Edam format(s)', max_length=255, null=True, blank=True,
                                     help_text="comma separated list of supported edam format")
     edam_datas = models.CharField('Edam data(s)', max_length=255, null=True, blank=True,
                                   help_text="comma separated list of supported edam data type")
-
-
-class InputParam(BaseParam):
-    """ Main class for Basic data related to Service submissions inputs """
-    class Meta:
-        ordering = ['order']
-        unique_together = ('name', 'default', 'submission')
-
-    class_label = "Undefined"
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, null=False, related_name='all_inputs')
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, null=False, related_name='submission_inputs')
     # Dedicated Fields for Dependent Inputs
     when_value = models.CharField('When value', max_length=255, null=True, blank=True,
                                   help_text='Input is treated only for this parent value')
     related_to = models.ForeignKey('self', related_name="dependents_inputs", on_delete=models.CASCADE,
                                    null=True, blank=True, help_text='Input is associated to')
+
+
+class InputParam(BaseParam):
+    """ Main class for Basic data related to Service submissions inputs """
+    class_label = "Undefined"
 
     def save(self, *args, **kwargs):
         if self.repeat_group is not None:
@@ -166,13 +164,12 @@ class FileInput(BaseParam):
         db_table = 'waves_service_file'
         ordering = ['order', ]
     class_label = "File Input"
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, null=False, related_name='input_files')
 
     def __str__(self):
         return self.label
 
 
-class FileInputSample(OrderAble):
+class FileInputSample(Ordered):
     """ Any file input can provide samples """
     file = models.FileField('Sample file', upload_to=file_sample_directory, storage=waves_storage, blank=False,
                             null=False)

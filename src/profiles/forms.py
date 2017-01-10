@@ -1,14 +1,43 @@
+""" User Profiles forms """
 from __future__ import unicode_literals
-from django import forms
+
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, Field, Fieldset
+from crispy_forms.layout import Layout, Field, Fieldset, Div, Submit
+from django import forms
+from django_countries.widgets import CountrySelectWidget
+from profiles.models import UserProfile
 from django.contrib.auth import get_user_model
-from waves.models import WavesProfile
 
 User = get_user_model()
 
 
 class UserForm(forms.ModelForm):
+    """ Front end model User Form """
+    def __init__(self, *args, **kwargs):
+        super(UserForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Field('name'),
+        )
+
+    class Meta:
+        model = User
+        fields = ['name']
+
+
+class ProfileForm(forms.ModelForm):
+    """ Front end Admin Form """
+    class Meta:
+        model = UserProfile
+        fields = ['api_key', 'registered_for_api', 'banned', 'comment', 'ip', 'country', 'comment', 'institution']
+
+    widgets = {
+        'country': CountrySelectWidget()
+    }
+
+
+class FrontUserForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(UserForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
@@ -26,7 +55,12 @@ class UserForm(forms.ModelForm):
         fields = ['name', 'email']
 
 
-class ProfileForm(forms.ModelForm):
+class FrontProfileForm(forms.ModelForm):
+
+    class Meta:
+        model = UserProfile
+        fields = ['registered_for_api', 'country', 'comment', 'institution', 'phone', 'picture']
+
     delete_profile = forms.BooleanField(required=False)
 
     def __init__(self, *args, **kwargs):
@@ -53,9 +87,5 @@ class ProfileForm(forms.ModelForm):
                 Submit('update', 'Update', css_class="btn btn-md btn-primary center"),
                 css_class='pull-right',
                 style='margin-top:1%; margin-right:1%'
-                )
+            )
         )
-
-    class Meta:
-        model = WavesProfile
-        fields = ['registered_for_api', 'country', 'comment', 'institution', 'phone', 'picture']

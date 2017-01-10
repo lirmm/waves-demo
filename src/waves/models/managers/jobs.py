@@ -31,9 +31,9 @@ class JobManager(models.Manager):
         if user.is_superuser:
             return self.all()
         if user.is_staff:
-            return self.filter(Q(service__created_by=user.profile) | Q(client=user) | Q(email_to=user.email))
+            return self.filter(Q(service__created_by=user) | Q(client=user) | Q(email_to=user.email))
         # return self.filter(Q(client=user) | Q(email_to=user.email))
-        return self.filter(client=user.profile)
+        return self.filter(client=user)
 
     def get_service_job(self, user, service):
         """

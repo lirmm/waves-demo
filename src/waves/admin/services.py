@@ -6,11 +6,12 @@ from mptt.admin import MPTTModelAdmin
 from base import ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin
 from waves.admin.submissions import *
 from waves.compat import CompactInline
+from django.contrib.auth import get_user_model
 from waves.admin.submissions import ServiceExitCodeInline
 from waves.forms.admin.services import *
-from waves.models.profiles import WavesProfile
 from waves.models.services import *
 from waves.models.submissions import *
+User = get_user_model()
 
 
 class ServiceMetaInline(CompactInline):
@@ -69,13 +70,19 @@ class ServiceSubmissionInline(admin.TabularInline):
     sortable = 'order'
     sortable_field_name = "order"
     classes = ('grp-collapse', 'grp-open')
-    fields = ['label', 'available_online', 'available_api']
-    readonly_fields = ['available_online', 'available_api']
+    fields = ['label', 'availability', 'api_name']
+    readonly_fields = ['api_name']
     show_change_link = True
+
+    def get_extra(self, request, obj=None, **kwargs):
+        if obj is None:
+            return 1
+        return super(ServiceSubmissionInline, self).get_extra(request, obj, **kwargs)
+
     # inlines = [SubmissionParamInline, ]
 
-    def available_online(self, obj):
-        return obj.available_online
+
+
 
 
 class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin, WavesModelAdmin):
@@ -119,7 +126,7 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
         readonly_fields = super(ServiceAdmin, self).get_readonly_fields(request, obj)
         if not request.user.is_superuser:
             readonly_fields.append('created_by')
-        if obj is not None and obj.created_by != request.user.profile:
+        if obj is not None and obj.created_by != request.user:
             readonly_fields.append('api_name')
             readonly_fields.append('clazz')
             readonly_fields.append('version')
@@ -135,7 +142,7 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         """ Filter runner and created_by list """
         if db_field.name == "created_by":
-            kwargs['queryset'] = WavesProfile.objects.filter(user__is_staff=True)
+            kwargs['queryset'] = User.objects.filter(is_staff=True)
         return super(ServiceAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 

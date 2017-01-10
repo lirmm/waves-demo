@@ -6,7 +6,6 @@ Author : Marc Chakiachvili
 import unittest
 import bioblend
 from bioblend.galaxy.client import ConnectionError
-from django.conf import settings
 import waves.settings
 
 

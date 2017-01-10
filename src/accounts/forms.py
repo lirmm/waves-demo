@@ -32,7 +32,7 @@ class LoginForm(AuthenticationForm):
             Field('username', placeholder="Enter Email", autofocus=""),
             Field('password', placeholder="Enter Password"),
             HTML('<a href="{}">Forgot Password?</a>'.format(
-                reverse("waves:password-reset"))),
+                reverse("account:password-reset"))),
             Field('remember_me'),
             Submit('sign_in', 'Log in',
                    css_class="btn btn-lg btn-primary btn-block"),

@@ -3,14 +3,14 @@ from __future__ import unicode_literals
 from django.core.exceptions import ValidationError
 from django.db import models
 import logging
-from waves.models import TimeStampable, ApiAble, OrderAble, SlugAble, Service, DescribeAble, DTOAble
+from waves.models import TimeStamped, ApiModel, Ordered, Slugged, Service, Described, DTOMixin
 from waves.models.base import AdaptorInitParam
 from waves.models.managers.submissions import *
 logger = logging.getLogger(__name__)
 __all__ = ['Submission', 'SubmissionOutput', 'SubmissionExitCode', 'SubmissionRunParam']
 
 
-class Submission(TimeStampable, ApiAble, OrderAble, SlugAble):
+class Submission(TimeStamped, ApiModel, Ordered, Slugged):
     """ Represents a service submission parameter set for a service """
 
     class Meta:
@@ -27,7 +27,7 @@ class Submission(TimeStampable, ApiAble, OrderAble, SlugAble):
                                                 (1, "Available on web only"),
                                                 (2, "Available on api only"),
                                                 (3, "Available on both")])
-    label = models.CharField('Submission title', max_length=255, null=True)
+    label = models.CharField('Submission title', max_length=255, null=True, blank=False)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, related_name='submissions')
 
     @property
@@ -39,6 +39,18 @@ class Submission(TimeStampable, ApiAble, OrderAble, SlugAble):
     def available_api(self):
         """ return whether submission is available for api calls """
         return self.availability >= 2
+
+    @property
+    def run_params(self):
+        """ Return overriden run params if exists, else service's default """
+        if self.sub_run_params is not None:
+            runner_params = self.sub_run_params.values_list('name', '_value', 'default')
+            returned = dict()
+            for name, value, default in runner_params:
+                logger.debug("service run_params %s:%s:%s" % (name, value, default))
+                returned[name] = value if value else default
+            return returned
+        return self.service.run_params
 
     def __str__(self):
         return '[%s|%s]' % (self.label, self.service)
@@ -60,7 +72,7 @@ class Submission(TimeStampable, ApiAble, OrderAble, SlugAble):
         return self
 
 
-class SubmissionOutput(TimeStampable, OrderAble):
+class SubmissionOutput(TimeStamped, Ordered):
     """
     Represents usual service parameters output values (share same attributes with ServiceParameters)
     """
@@ -117,9 +129,10 @@ class SubmissionRunParam(AdaptorInitParam):
     """ Defined runner param for Service model objects """
 
     class Meta:
+        db_table = "waves_submission_run_params"
         verbose_name = 'Submission\'s adaptor init param'
         unique_together = ('submission', 'name')
 
     objects = SubmissionRunParamManager()
     submission = models.ForeignKey(Submission, null=False, related_name='sub_run_params',
-                                   on_delete=models.CASCADE, help_text='Runner init param for this service')
+                                   on_delete=models.CASCADE, help_text='Submission overrides services run params')

@@ -36,13 +36,13 @@ class ServiceManager(models.Manager):
             elif user.is_staff:
                 # Staff user have access their own Services and to all 'Test / Restricted / Public' made by others
                 queryset = self.filter(
-                    Q(status=waves.const.SRV_DRAFT, created_by=user.profile) |
+                    Q(status=waves.const.SRV_DRAFT, created_by=user) |
                     Q(status__in=(waves.const.SRV_TEST, waves.const.SRV_RESTRICTED, waves.const.SRV_PUBLIC))
                 )
             else:
                 # Simply registered user have access only to "Public" and configured restricted access
                 queryset = self.filter(
-                    Q(status=waves.const.SRV_RESTRICTED, restricted_client__in=(user.profile,)) |
+                    Q(status=waves.const.SRV_RESTRICTED, restricted_client__in=(user,)) |
                     Q(status=waves.const.SRV_PUBLIC)
                 )
         # Non logged in user have only access to public services

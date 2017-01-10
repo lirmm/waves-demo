@@ -96,9 +96,8 @@ class ServiceJobManager(object):
             logger.debug('Received data :')
             for key in submitted_inputs:
                 logger.debug('Param %s: %s', key, submitted_inputs[key])
-        client = user.profile if user is not None and not user.is_anonymous() else None
-        job = Job.objects.create(service=submission.service, email_to=email_to, client=client, title=job_title,
-                                 submission=submission)
+        client = user if user is not None and not user.is_anonymous() else None
+        job = Job.objects.create(email_to=email_to, client=client, title=job_title, submission=submission)
         job.create_non_editable_inputs(submission)
         mandatory_params = submission.inputs.filter(mandatory=True).filter(
             Q(default__isnull=True) | Q(default__exact=''))

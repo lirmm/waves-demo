@@ -1,20 +1,17 @@
+""" Profile update model """
 from __future__ import unicode_literals
-
-import logging
 
 from django.conf import settings
 from django.db import models
+
 from django.utils.encoding import python_2_unicode_compatible
 from django_countries.fields import CountryField
-
-from waves.models.base import SlugAble
-from waves.utils.storage import waves_storage, profile_directory
-
-logger = logging.getLogger(__name__)
+from .storage import profile_storage, profile_directory
 
 
 @python_2_unicode_compatible
-class WavesProfile(SlugAble):
+class UserProfile(models.Model):
+    """ Added data to standard Django AuthModel to add some information """
     class Meta:
         unique_together = ('user', 'api_key')
 
@@ -23,7 +20,7 @@ class WavesProfile(SlugAble):
                                 on_delete=models.CASCADE)
     picture = models.ImageField('Profile picture',
                                 upload_to=profile_directory,
-                                storage=waves_storage,
+                                storage=profile_storage,
                                 null=True,
                                 blank=True,
                                 help_text='Users\'s avatar')
@@ -62,7 +59,7 @@ class WavesProfile(SlugAble):
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if self.user.is_staff or self.user.is_superuser:
             self.registered_for_api = True
-        super(WavesProfile, self).save(force_insert, force_update, using, update_fields)
+        super(UserProfile, self).save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
         return "{}".format(self.user.name)

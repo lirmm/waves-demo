@@ -8,14 +8,17 @@ from os.path import join
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from django.db import models
 from django.utils.html import format_html
+
 from waves.adaptors.exceptions import AdaptorException
 import waves.const
 import waves.settings
 from waves.exceptions import WavesException
 from waves.exceptions.jobs import JobInconsistentStateError, JobRunException
-from waves.models import TimeStampable, SlugAble, OrderAble, UrlMixin, WavesProfile, DTOAble
+from waves.models import TimeStamped, Slugged, Ordered, UrlMixin, DTOMixin
+from django.contrib.auth import get_user_model
 from waves.models.submissions import Submission
 from waves.models.managers.jobs import JobManager, JobInputManager, JobOutputManager, JobHistoryManager, \
     JobAdminHistoryManager
@@ -26,7 +29,6 @@ __revision__ = " $Id: actor.py 1586 2009-01-30 15:56:25Z cokelaer $ "
 __docformat__ = 'reStructuredText'
 
 logger = logging.getLogger(__name__)
-
 __all__ = ['allow_display_online', 'Job', 'JobInput', 'JobOutput', 'JobHistory', 'JobAdminHistory']
 
 
@@ -54,7 +56,7 @@ class JobRunParams(AdaptorInitParam):
     job = models.ForeignKey('Job', related_name='job_run_params', on_delete=models.CASCADE)
 
 
-class Job(TimeStampable, SlugAble, UrlMixin, DTOAble):
+class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     """
     A job represent a request for executing a service, it requires values from specified required input from related
     service
@@ -69,7 +71,7 @@ class Job(TimeStampable, SlugAble, UrlMixin, DTOAble):
     #: Job run details retrieved or not
     _run_details = None
 
-    class Meta(TimeStampable.Meta):
+    class Meta(TimeStamped.Meta):
         db_table = 'waves_job'
         verbose_name = 'Job'
         ordering = ['-updated', '-created']
@@ -86,7 +88,7 @@ class Job(TimeStampable, SlugAble, UrlMixin, DTOAble):
     #: Job last status for which we sent a notification email
     status_mail = models.IntegerField(editable=False, default=9999)
     #: Job associated client, may be null for anonymous submission
-    client = models.ForeignKey(WavesProfile, blank=True, null=True, on_delete=models.CASCADE,
+    client = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.CASCADE,
                                related_name='clients_job', help_text='Associated registered user')
     #: Email to notify job status to
     email_to = models.EmailField('Email results', null=True, blank=True, help_text='Notify results to this email')
@@ -536,13 +538,13 @@ class Job(TimeStampable, SlugAble, UrlMixin, DTOAble):
 
     def reset_run_params(self):
         """ Should be used only for non already launched objects """
-        for param in self.service.runner.runner_params.filter(prevent_override=True):
+        for param in self.service.runner.runner_run_params.filter(prevent_override=True):
             JobRunParams.objects.update_or_create(defaults={'value': param.value,
                                                             'prevent_override': True},
                                                   name=param.name, job=self)
 
 
-class JobInput(OrderAble, SlugAble):
+class JobInput(Ordered, Slugged):
     """
     Job Inputs is association between a Job, a SubmissionParam, setting a value specific for this job
     """
@@ -671,7 +673,7 @@ class JobInput(OrderAble, SlugAble):
         return allow_display_online(self.file_path)
 
 
-class JobOutput(OrderAble, SlugAble, UrlMixin):
+class JobOutput(Ordered, Slugged, UrlMixin):
     """ JobOutput is association fro a Job, a SubmissionOutput, and the effective value set for this Job
     """
 

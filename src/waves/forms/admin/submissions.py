@@ -5,6 +5,7 @@ from django.core.exceptions import NON_FIELD_ERRORS, ValidationError, ObjectDoes
 from django.forms import ModelForm, Textarea
 import waves.const
 from waves.models.submissions import *
+from waves.models.inputs import *
 
 
 class ServiceSubmissionForm(ModelForm):
@@ -25,6 +26,7 @@ class ServiceSubmissionFormSet(forms.models.BaseInlineFormSet):
     def clean(self):
         if len(self.forms) == 0:
             raise ValidationError('Please setup a submission ')
+        """
         if self.instance.pk is not None or len(self.forms) > 0:
             nb_api = 0
             nb_web = 0
@@ -35,7 +37,7 @@ class ServiceSubmissionFormSet(forms.models.BaseInlineFormSet):
                 raise ValidationError('At least one submission must be available for api if service is')
             if nb_web == 0 and self.data.get('web_on') == 'on':
                 raise ValidationError('At least one submission must be available for web if service is')
-
+        """
 
 
 class SubmissionDataForm(forms.ModelForm):
@@ -52,7 +54,7 @@ class ParamForm(SubmissionDataForm):
     """ A SubmissionParam form part for inline insertion """
 
     class Meta(SubmissionDataForm.Meta):
-        model = SubmissionParam
+        model = BaseParam
         fields = '__all__'
 
     def clean(self):
@@ -99,7 +101,7 @@ class RelatedInputForm(SubmissionDataForm):
 
 class ServiceInputSampleForm(forms.ModelForm):
     class Meta:
-        model = SubmissionSample
+        model = FileInputSample
         fields = '__all__'
 
 
