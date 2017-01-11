@@ -30,17 +30,11 @@ class DaemonRunner(BaseDaemonRunner):
             import psutil
             running = psutil.pid_exists(self.pidfile.read_pid())
         except (OSError, TypeError):
-            if self._verbose:
-                emit_message(self.STATUS_UNKNOWN)
             return self.STATUS_UNKNOWN
         else:
             if running:
-                if self._verbose:
-                    emit_message(self.STATUS_RUNNING)
                 return self.STATUS_RUNNING
             else:
-                if self._verbose:
-                    emit_message(self.STATUS_STOPPED)
                 return self.STATUS_STOPPED
 
     def _start(self):

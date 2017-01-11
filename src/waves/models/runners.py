@@ -47,7 +47,7 @@ class Runner(Described, ExportAbleMixin):
         """
         if self.clazz:
             Adaptor = import_string(self.clazz)
-            return Adaptor(init_params=self.default_run_params())
+            return Adaptor(init_params=self.run_params)
         return None
 
     @property
@@ -93,13 +93,8 @@ class Runner(Described, ExportAbleMixin):
 
     @property
     def run_params(self):
-        runner_params = self.runner_run_params.all().values_list('name', '_value', 'default')
-        # return dict(name=value if value else default for name, value, default in runner_params)
-        returned = dict()
-        for name, value, default in runner_params:
-            returned[name] = value if value else default
-        return returned
-
+        runner_params = self.runner_run_params.all().values_list('name', 'value')
+        return dict({name: value for name, value in runner_params})
 
 
 class RunnerParam(AdaptorInitParam):
@@ -107,6 +102,6 @@ class RunnerParam(AdaptorInitParam):
     class Meta:
         db_table = 'waves_runner_run_param'
         unique_together = ('name', 'runner')
+
     objects = RunnerParamManager()
     runner = models.ForeignKey(Runner, related_name='runner_run_params', on_delete=models.CASCADE)
-

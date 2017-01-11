@@ -7,12 +7,23 @@ if 'tabbed_admin' not in settings.INSTALLED_APPS:
 
     class WavesModelAdmin(ModelAdmin):
         """ Tabbed faked model admin """
+        class Media:
+            js = (
+                'waves/admin/js/jquery-3.1.1.min.js',
+                'waves/admin/js/admin.js',
+                'waves/admin/js/modal.js'
+            )
         admin_template = 'change_form.html'
 else:
     from tabbed_admin import TabbedModelAdmin
 
     class WavesModelAdmin(TabbedModelAdmin):
         """ Override TabbedModelAdmin admin_template """
+        class Media:
+            js = (
+                'waves/admin/js/admin.js',
+                'waves/admin/js/modal.js'
+            )
         admin_template = 'tabbed_change_form.html'
 
 if 'jet' not in settings.INSTALLED_APPS:

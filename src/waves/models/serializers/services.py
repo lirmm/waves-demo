@@ -32,7 +32,7 @@ class RelatedInputSerializer(serializers.ModelSerializer):
     class Meta:
         model = RelatedParam
         fields = ('order', 'label', 'name', 'default', 'type', 'param_type', 'format',
-                  'mandatory', 'multiple', 'editable', 'display', 'description', 'short_description',
+                  'mandatory', 'multiple', 'display', 'description', 'short_description',
                   'when_value')
 
 
@@ -40,15 +40,15 @@ class ServiceInputSerializer(DynamicFieldsModelSerializer, RelatedSerializerMixi
     """ Serialize a basic service input with its dependents parameters"""
 
     class Meta:
-        model = InputParam
+        model = BaseParam
         fields = ('order', 'label', 'name', 'default', 'type', 'param_type', 'format',
-                  'mandatory', 'multiple', 'editable', 'display', 'description', 'short_description',
-                  'dependent_inputs')
+                  'mandatory', 'multiple', 'display', 'description', 'short_description',
+                  'dependents_inputs')
 
     dependent_inputs = RelatedInputSerializer(many=True, required=False)
 
     def create(self, validated_data):
-        dependent_inputs = validated_data.pop('dependent_inputs')
+        dependent_inputs = validated_data.pop('dependents_inputs')
         srv_input = BaseParam.objects.create(**validated_data)
         self.create_related(foreign={'related_to': srv_input},
                             serializer=RelatedInputSerializer,

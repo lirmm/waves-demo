@@ -30,8 +30,8 @@ class InputSerializer(DynamicFieldsModelSerializer):
     """ Serialize JobInput """
 
     class Meta:
-        model = InputParam
-        queryset = InputParam.objects.all()
+        model = BaseParam
+        queryset = BaseParam.objects.all()
         fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'short_description', 'multiple')
         extra_kwargs = {
             'url': {'view_name': 'waves:waves-services-detail', 'lookup_field': 'api_name'}
@@ -44,7 +44,7 @@ class InputSerializer(DynamicFieldsModelSerializer):
 
     def to_representation(self, instance):
         """ Return representation for an Input, including dependents inputs if needed """
-        if hasattr(instance, 'dependent_inputs') and instance.dependent_inputs.count() > 0:
+        if instance.dependents_inputs.count() > 0:
             representation = ConditionalInputSerializer(instance, context=self.context).to_representation(instance)
         else:
             representation = super(InputSerializer, self).to_representation(instance)
@@ -68,11 +68,11 @@ class ConditionalInputSerializer(serializers.ModelSerializer):
     """ Serialize inputs if it's a conditional one """
 
     class Meta:
-        model = InputParam
+        model = BaseParam
         fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'short_description', 'description',
                   'multiple', 'when')
 
-    when = RelatedInputSerializer(source='dependent_inputs', many=True, read_only=True)
+    when = RelatedInputSerializer(source='dependents_inputs', many=True, read_only=True)
     format = InputFormatField()
 
 

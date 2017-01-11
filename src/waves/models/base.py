@@ -198,6 +198,8 @@ class AdaptorInitParam(models.Model):
     """ Base Class For adaptor initialization params """
     class Meta:
         abstract = True
+        verbose_name = "Initial param"
+        verbose_name_plural = "Init params"
     name = models.CharField('Name', max_length=100, blank=True, null=True, help_text='Param name')
     value = models.TextField('Value', max_length=500, null=True, blank=True, help_text='Default value')
     prevent_override = models.BooleanField('Prevent override', help_text="Prevent override")

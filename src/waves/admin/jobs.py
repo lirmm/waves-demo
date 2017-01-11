@@ -20,6 +20,7 @@ class JobInputInline(TabularInline):
     can_delete = False
     ordering = ('order',)
     fields = ('name', 'value', 'file_path')
+    classes = ('grp-collapse grp-closed', 'collapse')
 
     def has_add_permission(self, request):
         return False
@@ -30,10 +31,12 @@ class JobOutputInline(TabularInline):
     form = JobOutputForm
     extra = 0
     suit_classes = 'suit-tab suit-tab-outputs'
+    classes = ('grp-collapse grp-closed', 'collapse')
     can_delete = False
     readonly_fields = ('name', 'value', 'file_path')
     ordering = ('order',)
     fields = ('name', 'value', 'file_path')
+
     # classes = ('grp-collapse grp-closed',)
 
     def has_add_permission(self, request):
@@ -43,7 +46,7 @@ class JobOutputInline(TabularInline):
 class JobHistoryInline(TabularInline):
     model = JobHistory
     suit_classes = 'suit-tab suit-tab-history'
-    # classes = ('grp-collapse grp-closed',)
+    classes = ('grp-collapse grp-closed', 'collapse')
     verbose_name = 'Job History'
     verbose_name_plural = "Job history events"
 
@@ -80,6 +83,7 @@ def delete_model(modeladmin, request, queryset):
         else:
             messages.warning(request, message="You are not authorized to delete this job %s" % obj)
 
+
 mark_rerun.short_description = "Re-run jobs"
 delete_model.short_description = "Delete selected jobs"
 
@@ -103,18 +107,18 @@ class JobAdmin(WavesModelAdmin):
                        'command_line')
 
     # Suit form params (not used by default)
+
     suit_form_tabs = (('general', 'General'), ('inputs', 'Inputs'), ('outputs', 'Outputs'), ('history', 'History'))
     # grappelli list filter
     # change_list_template = "admin/change_list_filter_sidebar.html"
     # change_form_template = 'admin/waves/job/' + WavesModelAdmin.admin_template
-    """
     fieldsets = [
-        (None, {'classes': ('suit-tab', 'suit-tab-general',),
-                'fields': ['service', 'status', 'created', 'updated', 'client', 'email_to', 'slug', 'get_run_on']
+        ('Main', {'classes': ('collapse', 'suit-tab', 'suit-tab-general',),
+                'fields': ['title', 'slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on',
+                           'command_line', 'client']
                 }
          ),
     ]
-    """
     tab_overview = (
         (None, {
             'fields': ['title', 'service', 'status', 'created', 'updated', 'client', 'email_to', 'slug', 'get_run_on',
@@ -130,6 +134,14 @@ class JobAdmin(WavesModelAdmin):
         ('Inputs', tab_inputs),
         ('Outputs', tab_outputs),
     ]
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['show_save_and_add_another'] = False
+        extra_context['show_save_and_continue'] = False
+        extra_context['show_save'] = False
+
+        return super(JobAdmin, self).change_view(request, object_id, form_url, extra_context)
 
     def get_slug(self, obj):
         return str(obj.slug)
@@ -191,7 +203,7 @@ class JobAdmin(WavesModelAdmin):
         return obj.service.runner.name
 
     def get_client(self, obj):
-        return obj.client.user.email if obj.client else "Anonymous"
+        return obj.client.email if obj.client else "Anonymous"
 
     def get_colored_status(self, obj):
         return obj.colored_status()

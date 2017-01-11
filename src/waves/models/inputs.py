@@ -11,7 +11,7 @@ from waves.models.submissions import Submission
 from waves.utils.storage import waves_storage, file_sample_directory
 from waves.utils.validators import validate_list_comma, validate_list_param
 
-__all__ = ['BaseParam', 'RepeatedGroup', 'InputParam', 'FileInput', 'BooleanParam', 'DecimalParam',
+__all__ = ['BaseParam', 'RepeatedGroup', 'FileInput', 'BooleanParam', 'DecimalParam',
            'ListParam', 'SampleDepParam', 'FileInputSample', 'TextParam', 'RelatedParam', 'IntegerParam']
 
 
@@ -37,6 +37,7 @@ class BaseParam(PolymorphicModel):
     class Meta:
         ordering = ['order']
         unique_together = ('name', 'default', 'submission')
+        base_manager_name = 'base_objects'
 
     #: Input Label
     label = models.CharField('Label', max_length=100, blank=False, null=False, help_text='Input displayed label')
@@ -71,15 +72,17 @@ class BaseParam(PolymorphicModel):
     related_to = models.ForeignKey('self', related_name="dependents_inputs", on_delete=models.CASCADE,
                                    null=True, blank=True, help_text='Input is associated to')
 
-
-class InputParam(BaseParam):
     """ Main class for Basic data related to Service submissions inputs """
     class_label = "Undefined"
+
+    @property
+    def param_type(self):
+        return waves.const.TYPE_TEXT
 
     def save(self, *args, **kwargs):
         if self.repeat_group is not None:
             self.multiple = True
-        super(InputParam, self).save(*args, **kwargs)
+        super(BaseParam, self).save(*args, **kwargs)
 
     def clean(self):
         if self.required is None and not self.default:
@@ -91,21 +94,25 @@ class InputParam(BaseParam):
         return self.name
 
 
-class TextParam(InputParam):
+class TextParam(BaseParam):
     """ Standard text input """
     class Meta:
         proxy = True
     class_label = "Text input"
 
 
-class BooleanParam(InputParam):
+class BooleanParam(BaseParam):
     """ Boolean param (usually check box for a submission option)"""
     class_label = "Boolean"
     true_value = models.CharField('True value', default='True', max_length=50)
     false_value = models.CharField('False value', default='False', max_length=50)
 
+    @property
+    def param_type(self):
+        return waves.const.TYPE_BOOLEAN
 
-class DecimalParam(InputParam):
+
+class DecimalParam(BaseParam):
     """ Number param (decimal or float) """
     # TODO add specific validator
     class_label = "Number"
@@ -114,8 +121,11 @@ class DecimalParam(InputParam):
     max_val = models.DecimalField('Max value', decimal_places=3, max_digits=50, default=None, null=True, blank=True,
                                   help_text="Leave blank if no max")
 
+    @property
+    def param_type(self):
+        return waves.const.TYPE_DECIMAL
 
-class IntegerParam(InputParam):
+class IntegerParam(BaseParam):
     """ Integer param """
     # TODO add specific validator
     class_label = "Integer"
@@ -124,14 +134,17 @@ class IntegerParam(InputParam):
     max_val = models.IntegerField('Max value', default=None, null=True, blank=True,
                                   help_text="Leave blank if no max")
 
+    @property
+    def param_type(self):
+        return waves.const.TYPE_INT
 
-class RelatedParam(InputParam):
+class RelatedParam(BaseParam):
     """ Proxy class for related params (dependents on other params) """
     class Meta:
         proxy = True
 
 
-class ListParam(InputParam):
+class ListParam(BaseParam):
     """ Param to be issued from a list of values (select / radio / check) """
     class_label = "List"
     list_mode = models.CharField('List display mode', choices=waves.const.LIST_DISPLAY_TYPE, default='select',
@@ -154,10 +167,13 @@ class ListParam(InputParam):
     @property
     def choices(self):
         try:
-            return list([(param[1], param[0]) for param in self.list_elements.splitlines()])
+            return list([(line.split('|')[1], line.split('|')[0]) for line in self.list_elements.splitlines()])
         except ValueError:
             raise RuntimeError('Wrong list element format')
 
+    @property
+    def param_type(self):
+        return waves.const.TYPE_LIST
 
 class FileInput(BaseParam):
     class Meta:
@@ -168,6 +184,9 @@ class FileInput(BaseParam):
     def __str__(self):
         return self.label
 
+    @property
+    def param_type(self):
+        return waves.const.TYPE_FILE
 
 class FileInputSample(Ordered):
     """ Any file input can provide samples """
@@ -175,7 +194,8 @@ class FileInputSample(Ordered):
                             null=False)
     file_label = models.CharField('Sample file label', max_length=200, blank=True, null=True)
     file_input = models.ForeignKey(FileInput, on_delete=models.CASCADE, related_name='input_samples')
-    dependent_params = models.ManyToManyField(InputParam, blank=True, through='SampleDepParam')
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='submission_samples')
+    dependent_params = models.ManyToManyField(BaseParam, blank=True, through='SampleDepParam')
 
     @property
     def label(self):
@@ -190,5 +210,5 @@ class SampleDepParam(models.Model):
         db_table = 'waves_sample_dependent_input'
 
     sample = models.ForeignKey(FileInputSample, on_delete=models.CASCADE, related_name='dependents_inputs_sample')
-    related_to = models.ForeignKey(InputParam, on_delete=models.CASCADE, related_name='dependents_params_sample')
+    related_to = models.ForeignKey(BaseParam, on_delete=models.CASCADE, related_name='dependents_params_sample')
     set_default = models.CharField('Set value to ', max_length=200, null=False, blank=False)

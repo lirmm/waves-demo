@@ -61,9 +61,9 @@ class ServiceInputValidator(object):
     def _validate_input_file(self, the_input, value):
         from django.core.files.base import File
         assert the_input.type == waves.const.TYPE_FILE
-        self.specific_message = 'allowed extension are %s' % str([e[1] for e in the_input.get_choices()])
+        self.specific_message = 'allowed extension are %s' % str([e[1] for e in the_input.choices])
         # TODO Check file consistency with BioPython ?
-        filter_extension = the_input.get_choices()
+        filter_extension = the_input.choices
         if filter_extension:
             if type(value) == list:
                 assert all(isinstance(_, File) for _ in value), '%s is not a valid File' % value
@@ -111,8 +111,8 @@ class ServiceInputValidator(object):
 
     def _validate_input_select(self, the_input, value):
         assert the_input.type == waves.const.TYPE_LIST
-        self.specific_message = 'allowed values are %s' % str([e[1] for e in the_input.get_choices()])
-        return any(e[0] == value for e in the_input.get_choices())
+        self.specific_message = 'allowed values are %s' % str([e[1] for e in the_input.choices])
+        return any(e[0] == value for e in the_input.choices)
 
     def _validate_input_text(self, the_input, value):
         assert the_input.type == waves.const.TYPE_TEXT

@@ -5,5 +5,4 @@ from .services import ServiceMetaInline, ServiceAdmin, \
     ServiceCategoryAdmin
 from waves.admin.submissions import *
 from .config import WavesSiteAdmin
-from django.conf import settings
 

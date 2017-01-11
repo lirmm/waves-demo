@@ -16,3 +16,12 @@
     padding: 4px 10px 0 0;
     width: 160px;
 }
+.polymorphic-type-menu {
+    z-index: 1500;
+}
+.inline-group h2 {
+    text-transform: none;
+}
+.modal-header h4 {
+    text-align: center;
+}

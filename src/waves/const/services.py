@@ -32,15 +32,17 @@ TYPE_FILE = 'file'
 #: Service Input Type 'List of choices': check if submitted values are in specified list
 TYPE_LIST = 'list'
 #: Service Input Type 'integer': check if input type is a integer
-TYPE_NUMBER = 'number'
+TYPE_DECIMAL = 'number'
 #: Service Input Type 'text': no special check, except when used in outputs name, normalized value is stored
 TYPE_TEXT = 'text'
+TYPE_INT = 'int'
 
 IN_TYPE = [
     (TYPE_FILE, 'Input file'),
     (TYPE_LIST, 'List of values'),
     (TYPE_BOOLEAN, 'Boolean'),
-    (TYPE_NUMBER, 'Number'),
+    (TYPE_DECIMAL, 'Decimal'),
+    (TYPE_INT, 'Integer'),
     (TYPE_TEXT, 'Text')
 ]
 #: Service Input Command line parameter type 'valuated' i.e: --param_name=value

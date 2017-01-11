@@ -20,7 +20,7 @@ class ServiceMetaInline(CompactInline):
     sortable = 'order'
     extra = 0
     suit_classes = 'suit-tab suit-tab-metas'
-    classes = ('grp-collapse grp-open',)
+    classes = ('grp-collapse grp-closed', 'collapse')
     fields = ['type', 'order', 'title', 'value', 'description']
     sortable_field_name = "order"
     sortable_options = []
@@ -31,6 +31,7 @@ class ServiceRunnerParamInLine(admin.TabularInline):
     form = ServiceRunnerParamForm
     fields = ['name', 'value']
     extra = 0
+    classes = ('grp-collapse grp-closed', 'collapse')
     suit_classes = 'suit-tab suit-tab-adaptor'
     can_delete = False
     readonly_fields = ['name']
@@ -69,7 +70,7 @@ class ServiceSubmissionInline(admin.TabularInline):
     fk_name = 'service'
     sortable = 'order'
     sortable_field_name = "order"
-    classes = ('grp-collapse', 'grp-open')
+    classes = ('grp-collapse grp-closed', 'collapse')
     fields = ['label', 'availability', 'api_name']
     readonly_fields = ['api_name']
     show_change_link = True
@@ -82,12 +83,9 @@ class ServiceSubmissionInline(admin.TabularInline):
     # inlines = [SubmissionParamInline, ]
 
 
-
-
-
 class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin, WavesModelAdmin):
     """ Service model objects Admin"""
-    class Media:
+    class Media(WavesModelAdmin):
         js = ('waves/admin/js/services.js',)
 
     inlines = (
@@ -106,9 +104,11 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
 
     fieldsets = (
         ('General', {
+            'classes': ('grp-collapse grp-closed', 'collapse'),
             'fields': ['category', 'name', 'created_by', 'status', 'runner', 'version', 'api_on', 'web_on', 'email_on']
         }),
         ('Details', {
+            'classes': ('grp-collapse grp-closed', 'collapse'),
             'fields': ['api_name', 'short_description', 'description', 'restricted_client', 'edam_topics',
                        'edam_operations', 'remote_service_id', 'created', 'updated', ]
         }),

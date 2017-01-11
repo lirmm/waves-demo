@@ -1,4 +1,4 @@
-{% extends "admin/base.html" %}
+{% extends "admin/base_site.html" %}
 {% load i18n waves_tags admin_static %}
 
 {% block admin_title %}
@@ -13,23 +13,24 @@
 {% endblock %}
 {% block javascripts %}
     {{ block.super }}
+    <!-- waves extra admin javascripts -->
     <script src="{% static "waves/admin/js/admin.js" %}" type="text/javascript"></script>
     <script src="{% static 'waves/admin/js/modal.js' %}" type="text/javascript"></script>
+    <!-- //waves extra admin javascripts -->
 {% endblock javascripts %}
 {% block extrastyle %}
     {{ block.super }}
-
+    <!-- waves extra admin styles -->
     <link href="{% static 'waves/admin/css/admin.css' %}" rel="stylesheet" media="screen">
     <link href="{% static 'waves/admin/css/modal.css' %}" rel="stylesheet" media="screen">
-    <!--link href="{% static 'waves/css/waves.css' %}" rel="stylesheet"-->
-    <!--link rel='stylesheet' type='text/css' href='{% static 'css/jquery-ui/pepper-grinder/jquery-ui.css' %}'/-->
+    <!-- //waves extra admin styles -->
 {% endblock extrastyle %}
 
 {% block extrahead %}
     <link rel="shortcut icon" type="image/png" href="{% static 'waves/ico/favicon.png' %}"/>
-    <script src="{% static "waves/admin/js/admin.js" %}" type="text/javascript"></script>
-    <script src="{% static 'waves/admin/js/modal.js' %}" type="text/javascript"></script>
-
+    {{ block.super }}
+    <!-- waves extra head js -->
+    <!-- //waves extra head js -->
 {% endblock %}
 {% block footer %}
     {{ block.super }}

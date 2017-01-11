@@ -159,12 +159,8 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin):
         :return: a Dictionary (param_name=param_service_value or runner_param_default if not set
         :rtype: dict
         """
-        runner_params = self.srv_run_params.all().values_list('name', '_value', 'default')
-        returned = dict()
-        for name, value, default in runner_params:
-            logger.debug("service run_params %s:%s:%s" % (name, value, default))
-            returned[name] = value if value else default
-        return returned
+        runner_params = self.srv_run_params.all().values_list('name', 'value')
+        return dict({name: value for name, value in runner_params})
 
     def import_service_params(self):
         """ Try to import service param configuration issued from adaptor
@@ -183,7 +179,7 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin):
             # try load it from clazz name
             from django.utils.module_loading import import_string
             Adaptor = import_string(self.runner.clazz)
-            self.__adaptor = Adaptor(init_params=self.run_params())
+            self.__adaptor = Adaptor(init_params=self.run_params)
         return self.__adaptor
 
     @adaptor.setter

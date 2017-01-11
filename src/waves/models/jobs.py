@@ -330,8 +330,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :param service_submission:
         :return: None
         """
-        for service_input in service_submission.submission_inputs.filter(editable=False) \
-                .exclude(param_type=waves.const.OPT_TYPE_NONE):
+        for service_input in service_submission.submission_inputs.filter(required=False):
             # Create fake "submitted_inputs" with non editable ones with default value if not already set
             logger.debug('Created non editable job input: %s (%s, %s)', service_input.label,
                          service_input.name, service_input.default)
@@ -602,9 +601,9 @@ class JobInput(Ordered, Slugged):
             return bool(self.value)
         elif self.type == waves.const.TYPE_TEXT:
             return self.value
-        elif self.type == waves.const.TYPE_INTEGER:
+        elif self.type == waves.const.TYPE_INT:
             return int(self.value)
-        elif self.type == waves.const.TYPE_FLOAT:
+        elif self.type == waves.const.TYPE_DECIMAL:
             return float(self.value)
         elif self.type == waves.const.TYPE_LIST:
             if self.value == 'None':
@@ -659,10 +658,10 @@ class JobInput(Ordered, Slugged):
     @property
     def get_label_for_choice(self):
         """ Try to get label for value issued from a service list input"""
-        from waves.models.inputs import InputParam
+        from waves.models.inputs import BaseParam
         try:
-            srv_input = InputParam.objects.get(submission=self.job.submission,
-                                               name=self.name)
+            srv_input = BaseParam.objects.get(submission=self.job.submission,
+                                              name=self.name)
             return srv_input.get_choises(self.value)
         except ObjectDoesNotExist:
             pass

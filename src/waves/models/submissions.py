@@ -44,12 +44,8 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged):
     def run_params(self):
         """ Return overriden run params if exists, else service's default """
         if self.sub_run_params is not None:
-            runner_params = self.sub_run_params.values_list('name', '_value', 'default')
-            returned = dict()
-            for name, value, default in runner_params:
-                logger.debug("service run_params %s:%s:%s" % (name, value, default))
-                returned[name] = value if value else default
-            return returned
+            runner_params = self.sub_run_params.values_list('name', 'value')
+            return dict({name: value for name, value in runner_params})
         return self.service.run_params
 
     def __str__(self):
@@ -72,7 +68,7 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged):
         return self
 
 
-class SubmissionOutput(TimeStamped, Ordered):
+class SubmissionOutput(TimeStamped):
     """
     Represents usual service parameters output values (share same attributes with ServiceParameters)
     """
@@ -82,17 +78,17 @@ class SubmissionOutput(TimeStamped, Ordered):
         verbose_name = 'Output'
         verbose_name_plural = 'Outputs'
         unique_together = ('name', 'submission')
-        ordering = ['order']
+        ordering = ['-created']
 
     label = models.CharField('Label', max_length=255, null=True, blank=True, help_text="Label")
     name = models.CharField('Name', max_length=200, null=False, blank=False, help_text='Output file name')
     submission = models.ForeignKey(Submission, related_name='outputs', on_delete=models.CASCADE)
-    from_input = models.ForeignKey('InputParam', null=True, blank=True, related_name='to_outputs',
+    from_input = models.ForeignKey('BaseParam', null=True, blank=True, related_name='to_outputs',
                                    help_text='Valuated with input')
     ext = models.CharField('File extension', max_length=5, null=False, default=".txt")
     optional = models.BooleanField('May be empty ?', default=False)
-    file_pattern = models.CharField('File name pattern', max_length=100, null=True, blank=True, default="%s",
-                                    help_text="Format pattern '%s'")
+    file_pattern = models.CharField('File name / pattern', max_length=100, null=False, blank=False, default="%s",
+                                    help_text="Pattern used when dependent on any input '%s'")
     edam_format = models.CharField('Edam format', max_length=255, null=True, blank=True, help_text="Edam format")
     edam_data = models.CharField('Edam data', max_length=255, null=True, blank=True, help_text="Edam data")
 

@@ -38,7 +38,7 @@ class TestServices(WavesBaseTestCase):
         for service in services:
             obj_runner = import_string(service.runner.clazz)
             expected_params = obj_runner().init_params
-            runner_params = service.run_params()
+            runner_params = service.run_params
             logger.debug(expected_params)
             logger.debug(runner_params)
             self.assertEquals(sorted(expected_params.keys()), sorted(runner_params.keys()))

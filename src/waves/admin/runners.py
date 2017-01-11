@@ -9,6 +9,7 @@ from django.contrib.admin import TabularInline
 from waves.forms.admin import RunnerParamForm, RunnerForm
 from waves.models import RunnerParam, Runner, Job
 from base import ExportInMassMixin, MarkPublicInMassMixin
+from waves.compat import WavesModelAdmin
 import waves.const
 
 
@@ -35,7 +36,7 @@ class RunnerParamInline(TabularInline):
         return False
 
 
-class RunnerAdmin(ExportInMassMixin):
+class RunnerAdmin(ExportInMassMixin, WavesModelAdmin):
     """ Admin for Job Runner """
     model = Runner
     form = RunnerForm
@@ -43,10 +44,10 @@ class RunnerAdmin(ExportInMassMixin):
     list_display = ('name', 'clazz', 'short_description', 'nb_services')
     list_filter = ('name', 'runs')
     fieldsets = [
-        (None, {
+        ('Main', {
             'fields': ['name', 'clazz', 'update_init_params']
         }),
-        ('Information', {
+        ('Description', {
             'fields': ['short_description', 'description'],
             'classes': ('collapse grp-collapse grp-closed',),
         }),
