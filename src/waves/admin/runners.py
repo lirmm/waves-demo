@@ -4,13 +4,15 @@ Admin pages for Runner and RunnerParam models objects
 from __future__ import unicode_literals
 
 from django.contrib import admin
+from django.contrib.admin import register
 from django.contrib import messages
 from django.contrib.admin import TabularInline
 from waves.forms.admin import RunnerParamForm, RunnerForm
 from waves.models import RunnerParam, Runner, Job
 from base import ExportInMassMixin, MarkPublicInMassMixin
-from waves.compat import WavesModelAdmin
+from waves.admin.base import WavesModelAdmin
 import waves.const
+__all__ = ['RunnerAdmin']
 
 
 class RunnerParamInline(TabularInline):
@@ -36,6 +38,7 @@ class RunnerParamInline(TabularInline):
         return False
 
 
+@register(Runner)
 class RunnerAdmin(ExportInMassMixin, WavesModelAdmin):
     """ Admin for Job Runner """
     model = Runner
@@ -75,6 +78,3 @@ class RunnerAdmin(ExportInMassMixin, WavesModelAdmin):
                         message += '<br/>- Related pending job %s has been cancelled' % job.title
                     """
                     messages.info(request, message)
-
-
-admin.site.register(Runner, RunnerAdmin)

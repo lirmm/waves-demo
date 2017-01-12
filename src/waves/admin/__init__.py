@@ -1,8 +1,7 @@
 """ Models admin packages """
-from .jobs import JobAdmin, JobHistoryInline, JobInputInline, JobOutputInline
-from .runners import RunnerAdmin, RunnerParamInline
-from .services import ServiceMetaInline, ServiceAdmin, \
-    ServiceCategoryAdmin
-from waves.admin.submissions import *
-from .config import WavesSiteAdmin
-
+from .config import *
+from .jobs import *
+from .runners import *
+from .services import *
+from .submissions import *
+from .inputs import *

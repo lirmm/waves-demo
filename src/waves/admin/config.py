@@ -9,9 +9,11 @@ from django.utils.html import format_html
 from waves.forms.admin.site import SiteForm
 from django.contrib.sites.models import Site
 
+__all__ = ['WavesSiteAdmin']
 
 # TODO add button action for queue (stop / start / restart)
 # TODO add action button to invoke command 'dump' for WAVES config
+
 
 class WavesSiteAdmin(admin.ModelAdmin):
     """ Admin WAVES application parameters """

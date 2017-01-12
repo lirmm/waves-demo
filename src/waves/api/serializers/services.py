@@ -1,16 +1,20 @@
 """ WAVES API services related serializers"""
 from __future__ import unicode_literals
+
 import logging
+
+from django.contrib.staticfiles.storage import staticfiles_storage
+from django.utils.html import strip_tags
 from rest_framework import serializers
 from rest_framework.fields import empty
-from django.utils.html import strip_tags
 from rest_framework.reverse import reverse as reverse
+
+import waves.settings
 from dynamic import DynamicFieldsModelSerializer
 from waves.models.inputs import *
-from waves.models.submissions import *
+from waves.models.metas import ServiceMeta
 from waves.models.services import *
-from django.contrib.staticfiles.storage import staticfiles_storage
-import waves.settings
+from waves.models.submissions import *
 
 __all__ = ['InputSerializer', 'InputSerializer', 'MetaSerializer', 'OutputSerializer', 'ServiceSerializer',
            'ServiceFormSerializer', 'ServiceSubmissionSerializer', 'ServiceMetaSerializer']

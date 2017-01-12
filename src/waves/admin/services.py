@@ -7,11 +7,13 @@ from base import ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin
 from waves.admin.submissions import *
 from waves.compat import CompactInline
 from django.contrib.auth import get_user_model
-from waves.admin.submissions import ServiceExitCodeInline
 from waves.forms.admin.services import *
 from waves.models.services import *
+from waves.models.metas import *
 from waves.models.submissions import *
 User = get_user_model()
+
+__all__ = ['ServiceAdmin', 'ServiceCategoryAdmin']
 
 
 class ServiceMetaInline(CompactInline):

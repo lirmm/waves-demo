@@ -6,10 +6,9 @@ from __future__ import unicode_literals
 import logging
 import os
 
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import models, transaction
-from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import models, transaction
 from mptt.models import MPTTModel, TreeForeignKey
 
 import waves.const
@@ -17,10 +16,9 @@ import waves.settings
 from waves.models.base import *
 from waves.models.managers.services import ServiceCategoryManager, ServiceManager, ServiceRunParamManager
 from waves.models.runners import Runner
-from waves.models.base import AdaptorInitParam
 
 logger = logging.getLogger(__name__)
-__all__ = ['ServiceRunParam', 'ServiceCategory', 'Service', 'ServiceMeta']
+__all__ = ['ServiceRunParam', 'ServiceCategory', 'Service']
 
 
 class ServiceCategory(MPTTModel, Ordered, Described, ApiModel):
@@ -287,30 +285,3 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin):
     def publishUnPublish(self):
         self.status = waves.const.SRV_DRAFT if waves.const.SRV_PUBLIC else waves.const.SRV_PUBLIC
         self.save()
-
-
-class ServiceMeta(Ordered, Described):
-    """
-    Represents all meta information associated with a ATGC service service.
-    Ex : website, documentation, download, related paper etc...
-    """
-
-    class Meta:
-        db_table = 'waves_service_meta'
-        verbose_name = 'Information'
-        unique_together = ('type', 'title', 'order', 'service')
-
-    type = models.CharField('Meta type', max_length=100, choices=waves.const.SERVICE_META)
-    title = models.CharField('Title', max_length=255, blank=True, null=True)
-    value = models.CharField('Link', max_length=500, blank=True, null=True)
-    is_url = models.BooleanField('Is a url', editable=False, default=False)
-    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='metas')
-
-    def duplicate(self, service):
-        self.pk = None
-        self.service = service
-        self.save()
-        return self
-
-    def __str__(self):
-        return '%s [%s]' % (self.title, self.type)

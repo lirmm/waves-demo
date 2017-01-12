@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 from django.contrib import admin, messages
+from django.contrib.admin import ModelAdmin
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 
@@ -69,3 +70,15 @@ class MarkPublicInMassMixin(admin.ModelAdmin):
         actions = super(MarkPublicInMassMixin, self).get_actions(request)
         actions['mark_public_in_mass'] = (mark_public_in_mass, 'mark_public_in_mass', "Publish/Un-publish selected")
         return actions
+
+
+class WavesModelAdmin(ModelAdmin):
+
+    class Media:
+        js = (
+            'waves/admin/js/jquery-3.1.1.min.js',
+            'waves/admin/js/admin.js',
+            'waves/admin/js/modal.js'
+        )
+
+    admin_template = 'change_form.html'

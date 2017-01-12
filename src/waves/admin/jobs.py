@@ -3,11 +3,13 @@ from __future__ import unicode_literals
 from django.contrib import admin, messages
 from django.contrib.admin import TabularInline
 from django.db.models import Q
-import os
+
 import waves.const as const
 from waves.forms.admin import JobInputForm, JobOutputForm, JobForm
 from waves.models.jobs import *
-from waves.compat import WavesModelAdmin
+from waves.admin.base import WavesModelAdmin
+
+__all__ = ['JobAdmin']
 
 
 class JobInputInline(TabularInline):

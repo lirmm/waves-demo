@@ -6,8 +6,8 @@ from django.contrib.admin import StackedInline, TabularInline
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 # import nested_admin
-from waves.compat import WavesModelAdmin, CompactInline
-# from waves.forms.admin.submissions import *
+from waves.admin.base import WavesModelAdmin
+from waves.compat import CompactInline
 from waves.models.submissions import *
 from waves.models.inputs import *
 from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin, PolymorphicSortableAdminMixin
@@ -29,13 +29,19 @@ class ServiceOutputInline(admin.TabularInline, ):
     classes = ('grp-collapse', 'grp-closed', 'collapse')
 
 
-class ServiceSampleDependentInputInline(admin.TabularInline):
+class SampleDependentInputInline(admin.TabularInline):
     model = SampleDepParam
-    fk_name = 'sample'
+    fk_name = 'submission'
     extra = 0
     classes = ('grp-collapse grp-closed', 'collapse')
 
-class ServiceExitCodeInline(admin.TabularInline):
+    def has_add_permission(self, request):
+        if request.current_obj is not None and request.current_obj.submission_inputs.instance_of(FileInput).count() > 0:
+            return True
+        return False
+
+
+class ExitCodeInline(admin.TabularInline):
     model = SubmissionExitCode
     extra = 0
     fk_name = 'submission'
@@ -78,8 +84,13 @@ class PolymorphicInputInlineChild(StackedPolymorphicInline.Child):
             kwargs['queryset'] = RepeatedGroup.objects.filter(submission=request.current_obj)
         return super(PolymorphicInputInlineChild, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
+    def get_fields(self, request, obj=None):
+        # TODO only use required fields
+        return super(PolymorphicInputInlineChild, self).get_fields(request, obj)
 
-class SubmitInputsInline(StackedPolymorphicInline, CompactInline):
+
+class SubmitInputsInline(StackedPolymorphicInline):
+
     class BooleanParamInline(PolymorphicInputInlineChild):
         model = BooleanParam
         exclude = ['order']
@@ -98,10 +109,14 @@ class SubmitInputsInline(StackedPolymorphicInline, CompactInline):
         exclude = ['order']
 
     class TextParamInline(PolymorphicInputInlineChild):
-        model = BaseParam
+        model = TextParam
         exclude = ['order']
         verbose_name = "Text param"
         verbose_name_plural = "Text params"
+
+    def get_formset(self, request, obj=None, **kwargs):
+        print "overhere ?"
+        return super(SubmitInputsInline, self).get_formset(request, obj, **kwargs)
 
     class FileInputInline(PolymorphicInputInlineChild):
         model = FileInput
@@ -112,6 +127,8 @@ class SubmitInputsInline(StackedPolymorphicInline, CompactInline):
     verbose_name = "Param"
     verbose_name_plural = "Params"
     classes = ['collapse', ]
+    show_change_link = True
+    show_full_result_count = True
     child_inlines = (
         TextParamInline,
         FileInputInline,
@@ -123,8 +140,11 @@ class SubmitInputsInline(StackedPolymorphicInline, CompactInline):
     list_display_links = None
     list_display = ('name', '__class__', 'default')
 
+    def get_fields(self, request, obj=None):
+        # TODO only use required fields
+        return super(SubmitInputsInline, self).get_fields(request, obj)
 
-# import nested_admin
+
 class FileInputSampleInline(TabularInline):
     model = FileInputSample
     extra = 0
@@ -161,11 +181,12 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
 
     inlines = [
         SubmitInputsInline,
-        FileInputSampleInline,
         OrgRepeatGroupInline,
-        ServiceExitCodeInline,
+        ExitCodeInline,
         OrganizeInputInline,
         ServiceOutputInline,
+        FileInputSampleInline,
+        SampleDependentInputInline,
     ]
 
     def get_inline_formsets(self, request, formsets, inline_instances, obj=None):
@@ -208,7 +229,7 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
         )),
         ('Outputs', (
             ServiceOutputInline,
-            ServiceExitCodeInline
+            ExitCodeInline
         ))
     ]
 

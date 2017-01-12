@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 __all__ = ['DTOMixin', 'TimeStamped', 'Ordered', 'ExportAbleMixin', 'Described', 'Slugged', 'ApiModel',
-           'UrlMixin']
+           'UrlMixin', 'AdaptorInitParam']
 
 
 class DTOMixin(object):

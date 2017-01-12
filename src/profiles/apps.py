@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.apps import AppConfig
 
 
-class ProfileConfig(AppConfig):
+class ProfileAppConfig(AppConfig):
     """ Profile Config """
     name = "profiles"
     verbose_name = 'User Profiles'

@@ -13,6 +13,7 @@ from django.forms import ModelForm, Textarea, TextInput
 import waves.const as const
 import waves.settings
 from waves.commands import get_commands_impl_list
+from waves.models.metas import ServiceMeta
 from waves.models.services import *
 from waves.models.submissions import SubmissionRunParam
 

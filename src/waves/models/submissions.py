@@ -6,6 +6,7 @@ import logging
 from waves.models import TimeStamped, ApiModel, Ordered, Slugged, Service, Described, DTOMixin
 from waves.models.base import AdaptorInitParam
 from waves.models.managers.submissions import *
+
 logger = logging.getLogger(__name__)
 __all__ = ['Submission', 'SubmissionOutput', 'SubmissionExitCode', 'SubmissionRunParam']
 
@@ -66,6 +67,23 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged):
             self.submission_inputs.add(init_input.duplicate(self))
         # raise TypeError("Fake")
         return self
+
+    @property
+    def file_inputs(self):
+        """ Only files inputs """
+        from .inputs import FileInput
+        return self.submission_inputs.instance_of(FileInput).all()
+
+    @property
+    def params(self):
+        """ Exclude files inputs """
+        from .inputs import FileInput
+        return self.submission_inputs.not_instance_of(FileInput).all()
+
+    @property
+    def required_params(self):
+        """ Return only required params """
+        return self.submission_inputs.filter(required=True)
 
 
 class SubmissionOutput(TimeStamped):

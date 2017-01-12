@@ -34,10 +34,13 @@ class RepeatedGroup(DTOMixin, Ordered):
 
 
 class BaseParam(PolymorphicModel):
+    """ Base class for services submission params """
     class Meta:
         ordering = ['order']
         unique_together = ('name', 'default', 'submission')
-        base_manager_name = 'base_objects'
+        # base_manager_name = 'base_objects'
+        verbose_name = "Submission param"
+        verbose_name_plural = "Submission params"
 
     #: Input Label
     label = models.CharField('Label', max_length=100, blank=False, null=False, help_text='Input displayed label')
@@ -73,7 +76,7 @@ class BaseParam(PolymorphicModel):
                                    null=True, blank=True, help_text='Input is associated to')
 
     """ Main class for Basic data related to Service submissions inputs """
-    class_label = "Undefined"
+    class_label = "Basic"
 
     @property
     def param_type(self):
@@ -101,6 +104,8 @@ class TextParam(BaseParam):
     class_label = "Text input"
 
 
+
+
 class BooleanParam(BaseParam):
     """ Boolean param (usually check box for a submission option)"""
     class_label = "Boolean"
@@ -125,6 +130,7 @@ class DecimalParam(BaseParam):
     def param_type(self):
         return waves.const.TYPE_DECIMAL
 
+
 class IntegerParam(BaseParam):
     """ Integer param """
     # TODO add specific validator
@@ -137,6 +143,7 @@ class IntegerParam(BaseParam):
     @property
     def param_type(self):
         return waves.const.TYPE_INT
+
 
 class RelatedParam(BaseParam):
     """ Proxy class for related params (dependents on other params) """
@@ -175,11 +182,19 @@ class ListParam(BaseParam):
     def param_type(self):
         return waves.const.TYPE_LIST
 
+
 class FileInput(BaseParam):
+    """ Submission file inputs """
     class Meta:
         db_table = 'waves_service_file'
         ordering = ['order', ]
     class_label = "File Input"
+
+    max_size = models.BigIntegerField('Maximum allowed file size ', default=None,  help_text="in Ko")
+    allowed_extensions = models.CharField('Filter by extensions', max_length=255,
+                                          help_text="Comma separated list, * means no filter",
+                                          default="*",
+                                          validators=[validate_list_comma, ])
 
     def __str__(self):
         return self.label
@@ -187,6 +202,7 @@ class FileInput(BaseParam):
     @property
     def param_type(self):
         return waves.const.TYPE_FILE
+
 
 class FileInputSample(Ordered):
     """ Any file input can provide samples """
@@ -209,6 +225,7 @@ class SampleDepParam(models.Model):
     class Meta:
         db_table = 'waves_sample_dependent_input'
 
-    sample = models.ForeignKey(FileInputSample, on_delete=models.CASCADE, related_name='dependents_inputs_sample')
-    related_to = models.ForeignKey(BaseParam, on_delete=models.CASCADE, related_name='dependents_params_sample')
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='sample_dependent_params')
+    sample = models.ForeignKey(FileInputSample, on_delete=models.CASCADE, related_name='dependent_inputs')
+    related_to = models.ForeignKey(BaseParam, on_delete=models.CASCADE, related_name='related_samples')
     set_default = models.CharField('Set value to ', max_length=200, null=False, blank=False)

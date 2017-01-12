@@ -1,52 +1,28 @@
-""" Compatility file to enable dependents apps behaviour """
+""" Compatibility file to enable dependents apps behaviour """
 from __future__ import unicode_literals
 from django.conf import settings
 
-if 'tabbed_admin' not in settings.INSTALLED_APPS:
-    from django.contrib.admin import ModelAdmin
 
-    class WavesModelAdmin(ModelAdmin):
-        """ Tabbed faked model admin """
-        class Media:
-            js = (
-                'waves/admin/js/jquery-3.1.1.min.js',
-                'waves/admin/js/admin.js',
-                'waves/admin/js/modal.js'
-            )
-        admin_template = 'change_form.html'
-else:
-    from tabbed_admin import TabbedModelAdmin
-
-    class WavesModelAdmin(TabbedModelAdmin):
-        """ Override TabbedModelAdmin admin_template """
-        class Media:
-            js = (
-                'waves/admin/js/admin.js',
-                'waves/admin/js/modal.js'
-            )
-        admin_template = 'tabbed_change_form.html'
-
-if 'jet' not in settings.INSTALLED_APPS:
+try:
+    if 'jet' in settings.INSTALLED_APPS:
+        from jet.admin import CompactInline
+    else:
+        raise ImportError
+except ImportError:
     from django.contrib.admin import StackedInline
 
     class CompactInline(StackedInline):
-        """ Inherit base class"""
+        """ Inherit base class """
         pass
-else:
-    from jet.admin import CompactInline
 
-if 'bootstrap_themes' not in settings.INSTALLED_APPS:
-    def list_themes():
-        return ()
-else:
-    from bootstrap_themes import list_themes
-
-
-if 'ckeditor' not in settings.INSTALLED_APPS:
+try:
+    if 'ckeditor' in settings.INSTALLED_APPS:
+        from ckeditor.fields import RichTextField
+    else:
+        raise ImportError
+except ImportError:
     from django.db import models
 
     class RichTextField(models.TextField):
-        """ Override RicheTextField """
+        """ Override RichTextField """
         pass
-else:
-    from ckeditor.fields import RichTextField

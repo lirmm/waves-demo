@@ -2,10 +2,10 @@
 from __future__ import unicode_literals
 
 from django.contrib.sites.models import Site
-from django.contrib.sites.managers import CurrentSiteManager
 from django.db import models
 import waves.settings
-from waves.compat import list_themes
+from bootstrap_themes import list_themes
+__all__ = ['WavesConfiguration']
 
 
 class WavesConfiguration(Site):
@@ -23,9 +23,6 @@ class WavesConfiguration(Site):
     allow_submits = models.BooleanField('Allow job submissions', default=True)
     maintenance = models.BooleanField('Maintenance flag', default=False, help_text="If checked, all user actions"
                                                                                    " redirect to maintenance")
-    # objects = models.Manager()
-    # objects = CurrentSiteManager()
-
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         """ Clear Site cache upon saving """
         Site.objects.clear_cache()
