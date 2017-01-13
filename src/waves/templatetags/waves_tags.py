@@ -42,3 +42,4 @@ def online_exec_button(context, service, label=None):
     """ for service, setup if current usr can submit jobs """
     return {'available_for_submission': service.available_for_user(context['user']),
             'label': label, 'service': service}
+

@@ -60,6 +60,7 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'authtools',
     'adminsortable2',
+    'jet',
     'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',

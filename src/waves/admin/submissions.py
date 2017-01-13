@@ -54,7 +54,7 @@ class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
     model = BaseParam
     fields = ['name', 'default', 'class_label', 'related_to', 'order']
     readonly_fields = ['class_label', 'related_to']
-    classes = ('grp-collapse grp-closed', 'collapse')
+    classes = ('grp-collapse', 'grp-closed', 'collapse', 'show-change-link-popup')
     verbose_name_plural = "Organize Inputs"
     verbose_name = "Organize Inputs"
     can_delete = False
@@ -88,6 +88,17 @@ class PolymorphicInputInlineChild(StackedPolymorphicInline.Child):
         # TODO only use required fields
         return super(PolymorphicInputInlineChild, self).get_fields(request, obj)
 
+from django import forms
+
+class TextParamForm(forms.ModelForm):
+    class Meta:
+        model = TextParam
+        exclude = ['order']
+
+    def save(self, commit=True):
+        self.instance.__class__ = TextParam
+        return super(TextParamForm, self).save(commit)
+
 
 class SubmitInputsInline(StackedPolymorphicInline):
 
@@ -108,15 +119,13 @@ class SubmitInputsInline(StackedPolymorphicInline):
         model = IntegerParam
         exclude = ['order']
 
-    class TextParamInline(PolymorphicInputInlineChild):
-        model = TextParam
-        exclude = ['order']
-        verbose_name = "Text param"
-        verbose_name_plural = "Text params"
+    class BaseParamInline(PolymorphicInputInlineChild):
+        model = BaseParam
 
-    def get_formset(self, request, obj=None, **kwargs):
-        print "overhere ?"
-        return super(SubmitInputsInline, self).get_formset(request, obj, **kwargs)
+    class TextParamInline(PolymorphicInputInlineChild):
+        model = BaseParam
+        exclude = ['order']
+        form = TextParamForm
 
     class FileInputInline(PolymorphicInputInlineChild):
         model = FileInput
@@ -144,6 +153,9 @@ class SubmitInputsInline(StackedPolymorphicInline):
         # TODO only use required fields
         return super(SubmitInputsInline, self).get_fields(request, obj)
 
+    def __init__(self, parent_model, admin_site):
+        super(SubmitInputsInline, self).__init__(parent_model, admin_site)
+
 
 class FileInputSampleInline(TabularInline):
     model = FileInputSample
@@ -159,6 +171,7 @@ class FileInputSampleInline(TabularInline):
         return False
 
 
+@admin.register(RepeatedGroup)
 class RepeatGroupAdmin(WavesModelAdmin):
     # readonly_fields = ['submission']
     # readonly_fields = ['submission']
@@ -173,6 +186,7 @@ class OrgRepeatGroupInline(CompactInline):
     classes = ('grp-collapse grp-closed', 'collapse')
 
 
+@admin.register(Submission)
 class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
     """ Submission process administration -- Model Submission """
 
@@ -189,40 +203,20 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
         SampleDependentInputInline,
     ]
 
-    def get_inline_formsets(self, request, formsets, inline_instances, obj=None):
-        return super(ServiceSubmissionAdmin, self).get_inline_formsets(request, formsets, inline_instances, obj)
-        """polymorphs = []
-        nested = []
-        standards = []
-        for inline_instance in inline_instances:
-
-            if isinstance(inline_instance, PolymorphicInlineModelAdmin):
-                print "added to polymorph ", inline_instance
-                polymorphs.append(inline_instance)
-            elif isinstance(inline_instance, nested_admin.NestedStackedInline):
-                print "added to nested ", inline_instance
-                nested.append(inline_instance)
-            else:
-                print "added to standard ", inline_instance
-                standards.append(inline_instance)
-        polymorph_formsets = PolymorphicInlineSupportMixin.get_inline_formsets(self, request, formsets, polymorphs, obj)
-        nested_formsets = nested_admin.NestedModelAdmin.get_inline_formsets(self, request, formsets, nested, obj)
-        std_formsets = admin.ModelAdmin.get_inline_formsets(self, request, formsets, standards, obj)
-        return polymorph_formsets + nested_formsets
-        """
-
     # fields = ('label', 'api_name', 'service', 'available_api', 'available_online')
     exclude = ['order']
+    save_on_top = True
     change_form_template = 'admin/waves/submission/change_form.html'
     list_display = ['label', 'available_online', 'available_api', 'service_link', ]
     readonly_fields = ['available_online', 'available_api']
     list_filter = ['service', 'availability']
     fieldsets = [
         ('General', {
-            'fields': ('label', 'api_name', 'availability', 'service', 'available_api', 'available_online'),
+            'fields': ['label', 'api_name', 'availability', 'service', 'available_api', 'available_online'],
             'classes': ['collapse']
         }),
     ]
+    show_full_result_count = True
     tabs = [
         ('FileInputs', (
             SubmitInputsInline,
@@ -233,12 +227,40 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
         ))
     ]
 
+    def get_inline_instances(self, request, obj=None):
+        if obj is None:
+            return []
+        inline_instances = super(ServiceSubmissionAdmin, self).get_inline_instances(request, obj)
+        new_list = []
+        for inline in inline_instances:
+            if obj is not None:
+                new_list.append(inline)
+
+        return inline_instances
+
+    def add_view(self, request, form_url='', extra_context=None):
+        context = extra_context or {}
+        context['show_save_as_new'] = False
+        context['show_save_and_add_another'] = False
+        context['show_save'] = False
+        return super(ServiceSubmissionAdmin, self).add_view(request, form_url, context)
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        return super(ServiceSubmissionAdmin, self).change_view(request, object_id, form_url, extra_context)
+
     def get_form(self, request, obj=None, **kwargs):
         request.current_obj = obj
         return super(ServiceSubmissionAdmin, self).get_form(request, obj, **kwargs)
 
-    #    def has_module_permission(self, request):
-    #        return False
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super(ServiceSubmissionAdmin, self).get_fieldsets(request, obj)
+        if obj is None: # i.e create mode
+            elem = fieldsets[0][1]
+            elem['classes'].append('open') if 'open' not in elem['classes'] else None
+            elem['fields'].remove('available_api') if 'available_api' in elem['fields'] else None
+            elem['fields'].remove('available_online') if 'available_online' in elem['fields'] else None
+            elem['fields'].remove('api_name') if 'api_name' in elem['fields'] else None
+        return fieldsets
 
     def service_link(self, obj):
         """ Back link to related service """
@@ -259,7 +281,3 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
 
     def available_online(self, obj):
         return obj.available_online
-
-
-admin.site.register(Submission, ServiceSubmissionAdmin)
-admin.site.register(RepeatedGroup, RepeatGroupAdmin)

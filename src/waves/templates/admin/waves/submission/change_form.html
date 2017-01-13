@@ -10,5 +10,16 @@
             Back to Service
         </a>
     </li>
+    <li>
+        <a type="button" href="{% url 'admin:waves_baseparam_add' %}?_popup=1"
+           onclick="return showRelatedObjectPopup(this);"
+           target="_self"
+           title="Service"
+           class="btn btn-high btn-info"
+           id="service_link">
+            Add a new param
+        </a>
+    </li>
+
     {{ block.super }}
 {% endblock %}

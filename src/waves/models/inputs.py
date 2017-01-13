@@ -39,8 +39,8 @@ class BaseParam(PolymorphicModel):
         ordering = ['order']
         unique_together = ('name', 'default', 'submission')
         # base_manager_name = 'base_objects'
-        verbose_name = "Submission param"
-        verbose_name_plural = "Submission params"
+        verbose_name = "Standard param"
+        verbose_name_plural = "Submissions params"
 
     #: Input Label
     label = models.CharField('Label', max_length=100, blank=False, null=False, help_text='Input displayed label')
@@ -101,10 +101,8 @@ class TextParam(BaseParam):
     """ Standard text input """
     class Meta:
         proxy = True
+        verbose_name = "Text input"
     class_label = "Text input"
-
-
-
 
 class BooleanParam(BaseParam):
     """ Boolean param (usually check box for a submission option)"""
@@ -134,6 +132,8 @@ class DecimalParam(BaseParam):
 class IntegerParam(BaseParam):
     """ Integer param """
     # TODO add specific validator
+    class Meta:
+        verbose_name = "Integer input"
     class_label = "Integer"
     min_val = models.IntegerField('Min value', default=0, null=True, blank=True,
                                   help_text="Leave blank if no min")
