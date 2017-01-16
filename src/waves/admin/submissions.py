@@ -15,7 +15,7 @@ from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin, P
 from polymorphic.admin import PolymorphicInlineSupportMixin, StackedPolymorphicInline, PolymorphicInlineModelAdmin
 
 
-class ServiceOutputInline(admin.TabularInline, ):
+class ServiceOutputInline(CompactInline):
     """ Service Submission Outputs Inlines """
     model = SubmissionOutput
     # form = ServiceOutputForm
@@ -24,9 +24,28 @@ class ServiceOutputInline(admin.TabularInline, ):
     sortable_field_name = "order"
     sortable_options = []
     fk_name = 'submission'
-    fields = ['name', 'file_pattern', 'optional', 'from_input']
+    # fields = ['label', 'name', 'optional', 'from_input', 'file_pattern', 'ext', 'edam_format', 'edam_data']
+    fieldsets = [
+        (None, {
+            'fields': ['label', 'name', 'optional', ],
+            'classes': ['collapse']
+        }),
+        ('Dependencies', {
+            'fields': ['from_input', 'file_pattern'],
+            'classes': ['']
+        }),
+        ('Format', {
+            'fields': ['ext', 'edam_format', 'edam_data'],
+            'classes': ['']
+        }),
+    ]
     verbose_name_plural = "Outputs"
     classes = ('grp-collapse', 'grp-closed', 'collapse')
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "from_input":
+            kwargs['queryset'] = BaseParam.objects.filter(submission=request.current_obj)
+        return super(ServiceOutputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class SampleDependentInputInline(admin.TabularInline):
@@ -40,6 +59,11 @@ class SampleDependentInputInline(admin.TabularInline):
             return True
         return False
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "related_to":
+            kwargs['queryset'] = BaseParam.objects.filter(submission=request.current_obj)
+        return super(SampleDependentInputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class ExitCodeInline(admin.TabularInline):
     model = SubmissionExitCode
@@ -52,12 +76,12 @@ class ExitCodeInline(admin.TabularInline):
 
 class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
     model = BaseParam
-    fields = ['name', 'default', 'class_label', 'related_to', 'order']
-    readonly_fields = ['class_label', 'related_to']
+    fields = ['class_label', 'label', 'name', 'required', 'default', 'related_to', 'when_value']
+    readonly_fields = ['class_label']
     classes = ('grp-collapse', 'grp-closed', 'collapse', 'show-change-link-popup')
-    verbose_name_plural = "Organize Inputs"
-    verbose_name = "Organize Inputs"
-    can_delete = False
+    verbose_name_plural = "Inputs"
+    verbose_name = "Input"
+    can_delete = True
     extra = 0
     show_change_link = True
 
@@ -67,9 +91,6 @@ class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
     class_label.short_description = "Input type"
 
     def has_add_permission(self, request):
-        return False
-
-    def has_change_permission(self, request, obj=None):
         return False
 
     def get_queryset(self, request):
@@ -88,7 +109,9 @@ class PolymorphicInputInlineChild(StackedPolymorphicInline.Child):
         # TODO only use required fields
         return super(PolymorphicInputInlineChild, self).get_fields(request, obj)
 
+
 from django import forms
+
 
 class TextParamForm(forms.ModelForm):
     class Meta:
@@ -101,7 +124,6 @@ class TextParamForm(forms.ModelForm):
 
 
 class SubmitInputsInline(StackedPolymorphicInline):
-
     class BooleanParamInline(PolymorphicInputInlineChild):
         model = BooleanParam
         exclude = ['order']
@@ -161,6 +183,8 @@ class FileInputSampleInline(TabularInline):
     model = FileInputSample
     extra = 0
     fk_name = 'submission'
+    fields = ['file_label', 'file', 'file_input']
+    exclude = ['order']
     verbose_name = "File Sample"
     verbose_name_plural = "Files samples"
     classes = ('grp-collapse grp-closed', 'collapse')
@@ -175,14 +199,18 @@ class FileInputSampleInline(TabularInline):
 class RepeatGroupAdmin(WavesModelAdmin):
     # readonly_fields = ['submission']
     # readonly_fields = ['submission']
-    exclude = ['submission', ]
+    exclude = ['order']
+
+    def get_model_perms(self, request):
+        return {}  # super(AllParamModelAdmin, self).get_model_perms(request)
 
 
 class OrgRepeatGroupInline(CompactInline):
     model = RepeatedGroup
     extra = 0
     verbose_name = "Input group"
-    verbose_name_plural = "Organize Groups"
+    exclude = ['order']
+    verbose_name_plural = "Input groups"
     classes = ('grp-collapse grp-closed', 'collapse')
 
 
@@ -194,10 +222,10 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
         js = ('waves/admin/js/services.js',)
 
     inlines = [
-        SubmitInputsInline,
+        # SubmitInputsInline,
+        OrganizeInputInline,
         OrgRepeatGroupInline,
         ExitCodeInline,
-        OrganizeInputInline,
         ServiceOutputInline,
         FileInputSampleInline,
         SampleDependentInputInline,
@@ -227,17 +255,6 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
         ))
     ]
 
-    def get_inline_instances(self, request, obj=None):
-        if obj is None:
-            return []
-        inline_instances = super(ServiceSubmissionAdmin, self).get_inline_instances(request, obj)
-        new_list = []
-        for inline in inline_instances:
-            if obj is not None:
-                new_list.append(inline)
-
-        return inline_instances
-
     def add_view(self, request, form_url='', extra_context=None):
         context = extra_context or {}
         context['show_save_as_new'] = False
@@ -254,7 +271,7 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = super(ServiceSubmissionAdmin, self).get_fieldsets(request, obj)
-        if obj is None: # i.e create mode
+        if obj is None:  # i.e create mode
             elem = fieldsets[0][1]
             elem['classes'].append('open') if 'open' not in elem['classes'] else None
             elem['fields'].remove('available_api') if 'available_api' in elem['fields'] else None

@@ -11,6 +11,7 @@ from waves.forms.admin.services import *
 from waves.models.services import *
 from waves.models.metas import *
 from waves.models.submissions import *
+
 User = get_user_model()
 
 __all__ = ['ServiceAdmin', 'ServiceCategoryAdmin']
@@ -82,11 +83,13 @@ class ServiceSubmissionInline(admin.TabularInline):
             return 1
         return super(ServiceSubmissionInline, self).get_extra(request, obj, **kwargs)
 
-    # inlines = [SubmissionParamInline, ]
+        # inlines = [SubmissionParamInline, ]
 
 
+@admin.register(Service)
 class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin, WavesModelAdmin):
     """ Service model objects Admin"""
+
     class Media(WavesModelAdmin):
         js = ('waves/admin/js/services.js',)
 
@@ -117,9 +120,13 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
     )
 
     def submission_link(self, obj):
-        return mark_safe('<a href="{}?service__id__exact={}">Submissions ({})</a>'.format(
-            reverse("admin:waves_submission_changelist"),
-            obj.id, obj.submissions.count()))
+        links = []
+        for submission in obj.submissions.all():
+            links.append(
+                '<a href="{}">Submission ({})</a>'.format(
+                    reverse("admin:waves_submission_change", args=[submission.pk]),
+                    submission.label))
+        return mark_safe("<br/>".join(links))
 
     submission_link.short_description = 'Submissions'
 
@@ -148,6 +155,7 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
         return super(ServiceAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
+@admin.register(ServiceCategory)
 class ServiceCategoryAdmin(MPTTModelAdmin):
     """ Model admin for ServiceCategory model objects"""
     form = ServiceCategoryForm
@@ -166,7 +174,3 @@ class ServiceCategoryAdmin(MPTTModelAdmin):
     def short(self, obj):
         """ Truncate short description in list display """
         return truncatechars(obj.short_description, 100)
-
-
-admin.site.register(Service, ServiceAdmin)
-admin.site.register(ServiceCategory, ServiceCategoryAdmin)

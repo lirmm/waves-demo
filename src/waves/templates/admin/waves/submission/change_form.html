@@ -2,22 +2,30 @@
 {% load i18n admin_modify admin_urls admin_static waves_tags %}
 {% block object-tools-items %}
     <li>
+        <a type="button" href="{% url 'admin:waves_baseparam_add' %}?for-submission={{  original.pk }}"
+           target="_self"
+           title="Service"
+           class="btn btn-high btn-primary"
+           id="add_submission_link">
+            Add a new param
+        </a>
+    </li>
+    <li>
         <a type="button" href="{% url 'admin:waves_service_change' original.service.pk %}"
            target="_self"
            title="Service"
            class="btn btn-high btn-info"
            id="service_link">
-            Back to Service
+            Edit Service
         </a>
     </li>
     <li>
-        <a type="button" href="{% url 'admin:waves_baseparam_add' %}?_popup=1"
-           onclick="return showRelatedObjectPopup(this);"
+        <a type="button" href="{% url 'admin:waves_service_changelist' %}"
            target="_self"
            title="Service"
            class="btn btn-high btn-info"
-           id="service_link">
-            Add a new param
+           id="service_list_link">
+            Service's list
         </a>
     </li>
 

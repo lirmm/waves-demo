@@ -117,7 +117,7 @@ class SubmissionOutput(TimeStamped):
 
     def clean(self):
         cleaned_data = super(SubmissionOutput, self).clean()
-        if not self.from_input and self.file_pattern == "%s":
+        if (not self.from_input and self.file_pattern == "%s") and not self.name:
             raise ValidationError('You must set a file name')
         return cleaned_data
 

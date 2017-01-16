@@ -45,7 +45,7 @@ class ServiceSubmissionForm(forms.ModelForm):
             for dependent_input in service_input.dependents_inputs.exclude(required=False):
                 # conditional parameters must not be required to use classic django form validation process
                 dependent_input.required = False
-                if dependent_input.type == waves.const.TYPE_FILE and not dependent_input.multiple:
+                if dependent_input.param_type == waves.const.TYPE_FILE and not dependent_input.multiple:
                     extra_fields.append(self._create_copy_paste_field(dependent_input))
                 self.helper.set_field(dependent_input, self)
                 self.helper.set_layout(dependent_input, self)

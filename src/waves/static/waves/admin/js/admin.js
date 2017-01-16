@@ -9,7 +9,12 @@
     };
     RelatedInlinePopup.prototype = {
         popupInline: function (href) {
-            console.log('I am called youpi!');
+            console.log (href.href, typeof href);
+            if (href.indexOf('?') === -1) {
+                href += '?_popup=1';
+            } else {
+                href += '&_popup=1';
+            }            console.log('I am called youpi!');
             var $document = $(window.top.document);
             var $container = $document.find('.related-popup-container');
             var $loading = $container.find('.loading-indicator');
@@ -39,7 +44,7 @@
             var self = this;
 
             (function ($) {
-                var $document = $(window.top.document);
+                var $document = $(window.parent.document);
                 var $popups = $document.find('.related-popup');
                 var $container = $document.find('.related-popup-container');
                 var $popup = $popups.last();
@@ -65,7 +70,8 @@
             })($);
         },
         processPopupResponse: function ($popup, response) {
-            console.log('need to process response ' + response)
+            console.log('need to process response ' + response + " document " + $popup);
+            window.parent.location.reload();
         },
         findPopupResponse: function () {
             var self = this;
@@ -104,23 +110,19 @@
             });
 
         $('fieldset.collapse.open').removeClass('collapsed');
-        var rel1 = new RelatedInlinePopup()
+        var rel1 = new RelatedInlinePopup();
         rel1.findPopupResponse();
         $('fieldset.show-change-link-popup a.inlinechangelink').click(function (e) {
-            var rel = new RelatedInlinePopup()
+            var rel = new RelatedInlinePopup();
             e.preventDefault();
-            rel.popupInline(e.target + '?_popup=1')
+            rel.popupInline(e.target.href)
         });
-        /*
-         $('fieldset.show-change-link-popup a.inlinechangelink').click(function(e){
-         e.preventDefault();
-         console.log("inline detected" + $(this) + " elem " + e.target + '/'+ e.target.href);
-         //return showAdminPopup(e.target, /^(change|add|delete)_/, false);
-         // return showPopup(e.target, e.target.href());
-         var rel = new jQuery.RelatedPopups();
-         rel.showPopup(e.target, e.target.href);
-         return showRelatedObjectLookupPopup(e.target);
-         })*/
+        $('#add_submission_link').click(function(e) {
+            e.preventDefault();
+            console.log("submussion link " + $(this) + ' / ' + e.target );
+            var rel = new RelatedInlinePopup();
+            rel.popupInline(e.target.href);
+        });
     });
 
 })(jQuery || django.jQuery);

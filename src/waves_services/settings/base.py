@@ -76,7 +76,7 @@ INSTALLED_APPS = (
     'easy_thumbnails',
     'mail_templated',
     'rest_framework',
-    # 'rest_framework_docs',
+    'rest_framework_docs',
     # 'corsheaders',
     'ckeditor',
     'bootstrap_themes',
@@ -110,7 +110,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'waves.api.authentication.auth.APIKeyAuthBackend',
+        'profiles.auth.APIKeyAuthBackend',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PARSER_CLASSES': (

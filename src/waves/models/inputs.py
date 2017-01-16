@@ -104,6 +104,7 @@ class TextParam(BaseParam):
         verbose_name = "Text input"
     class_label = "Text input"
 
+
 class BooleanParam(BaseParam):
     """ Boolean param (usually check box for a submission option)"""
     class_label = "Boolean"
@@ -214,10 +215,12 @@ class FileInputSample(Ordered):
     dependent_params = models.ManyToManyField(BaseParam, blank=True, through='SampleDepParam')
 
     @property
-    def label(self):
+    def name(self):
         """ Label for displayed file """
         return self.file_label if self.file_label else self.file.name
 
+    def __str__(self):
+        return self.name
 
 class SampleDepParam(models.Model):
     """ When a file sample is selected, some params may be set accordingly. This class represent this behaviour"""
