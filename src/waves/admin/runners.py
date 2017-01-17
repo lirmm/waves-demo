@@ -7,18 +7,19 @@ from django.contrib import admin
 from django.contrib.admin import register
 from django.contrib import messages
 from django.contrib.admin import TabularInline
+from django.contrib.contenttypes.admin import GenericTabularInline
 from waves.forms.admin import RunnerParamForm, RunnerForm
-from waves.models import RunnerParam, Runner, Job
+from waves.models import RunnerInitParam, Runner, Job
 from base import ExportInMassMixin, MarkPublicInMassMixin
 from waves.admin.base import WavesModelAdmin
 import waves.const
 __all__ = ['RunnerAdmin']
 
 
-class RunnerParamInline(TabularInline):
+class RunnerParamInline(GenericTabularInline):
     """ Job Runner class instantiation parameters insertion field
     Inline are automatically generated from effective implementation class 'init_params' property """
-    model = RunnerParam
+    model = RunnerInitParam
     form = RunnerParamForm
     extra = 0
     fields = ['name', 'value', 'prevent_override']
@@ -55,6 +56,14 @@ class RunnerAdmin(ExportInMassMixin, WavesModelAdmin):
             'classes': ('collapse grp-collapse grp-closed',),
         }),
     ]
+
+    def add_view(self, request, form_url='', extra_context=None):
+        context = extra_context or {}
+        context['show_save_as_new'] = False
+        context['show_save_and_add_another'] = False
+        context['show_save'] = False
+        return super(RunnerAdmin, self).add_view(request, form_url, context)
+
 
     def nb_services(self, obj):
         return obj.runs.count()

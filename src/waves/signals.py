@@ -12,6 +12,7 @@ from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 
 from waves.models.base import ApiModel
+from waves.models.adaptors import AdaptorInitParam, HasRunnerAdaptorParamsMixin
 from waves.models.inputs import *
 from waves.models.jobs import Job, JobOutput
 from waves.models.runners import *
@@ -87,26 +88,6 @@ def service_input_post_delete_handler(sender, instance, **kwargs):
             sample.file.delete()
 
 
-@receiver(post_save, sender=Service)
-def service_post_save_handler(sender, instance, created, **kwargs):
-    """ Service post save handler"""
-    if not kwargs.get('raw', False):
-        if instance.runner and (instance.has_changed_runner or instance.srv_run_params.count() == 0):
-            # create default service runner init params
-            for param in instance.runner.runner_run_params.all():
-                obj = ServiceRunParam.objects.create(service=instance, value=param.value, name=param.name,
-                                                     prevent_override=param.prevent_override)
-                instance.srv_run_params.add(obj)
-
-
-@receiver(pre_save, sender=Service)
-def service_pre_save_handler(sender, instance, **kwargs):
-    """ Pre save handler for Service model object, reset current Service Runner Init params if changed """
-    if instance.has_changed_runner:
-        # print "pre save "
-        instance.srv_run_params.all().delete()
-
-
 @receiver(pre_save, sender=Runner)
 def runner_pre_save_handler(sender, instance, **kwargs):
     if not kwargs.get('raw', False):
@@ -114,46 +95,61 @@ def runner_pre_save_handler(sender, instance, **kwargs):
             instance.name = instance.clazz.rsplit('.', 1)[1]
 
 
+@receiver(post_save, sender=HasRunnerAdaptorParamsMixin)
+def has_runner_post_save_handler(sender, instance, created, **kwargs):
+    if instance.has_changed_runner and not kwargs.get('raw', False):
+        print "in signal"
+        from django.utils.module_loading import import_string
+        from django.contrib.contenttypes.models import ContentType
+        object_ctype = ContentType.objects.get_for_model(instance)
+        Adaptor = import_string(instance.get_clazz())
+        instance.adaptor_params.exclude(name__in=Adaptor().init_params.keys()).delete()
+        # delete all old run params related to previous init_params from instance (delete cascade service params)
+        for name, initial in Adaptor().init_params.items():
+
+            prevent_override = False
+            if type(initial) in (tuple, list, dict):
+                initial = initial[0][0]
+                prevent_override = True
+            AdaptorInitParam.objects.update_or_create(defaults={'value': initial,
+                                                                'prevent_override': prevent_override},
+                                                      content_type=object_ctype, object_id=instance.pk,
+                                                      name=name)
+
+for subclass in HasRunnerAdaptorParamsMixin.__subclasses__():
+    post_save.connect(has_runner_post_save_handler, subclass)
+
+
 @receiver(post_save, sender=Runner)
 def runner_post_save_handler(sender, instance, created, **kwargs):
-    """ Runner saved instance handler, setup or update related RunnerParam according to clazz specified """
+    """ Runner saved instance handler, setup or update related RunnerInitParam according to clazz specified """
     if not kwargs.get('raw', False):
-        if created or instance.has_changed_clazz:
+        if created or instance.has_changed_runner:
             # modified clazz instance.
-            from django.utils.module_loading import import_string
-            Adaptor = import_string(instance.clazz)
-            # delete all old run params related to previous init_params from instance (delete cascade service params)
-            instance.runner_run_params.exclude(name__in=Adaptor().init_params.keys()).delete()
-            for name, initial in Adaptor().init_params.items():
-                prevent_override = False
-                if type(initial) == tuple:
-                    initial = initial[0][0]
-                    prevent_override = True
-                RunnerParam.objects.update_or_create(defaults={'value': initial,
-                                                               'prevent_override': prevent_override},
-                                                     runner=instance,
-                                                     name=name)
-                for service in instance.runs.all():
-                    service.reset_run_params()
+            for service in instance.runs.all():
+                service.reset_run_params()
 
 
-@receiver(pre_save, sender=RunnerParam)
-def runner_param_pre_save_handler(sender, instance, **kwargs):
+@receiver(pre_save, sender=AdaptorInitParam)
+def adaptor_param_pre_save_handler(sender, instance, **kwargs):
     """ Runner param pre save handler """
     if instance.name.startswith('crypt_') and instance.value:
         from waves.utils.encrypt import Encrypt
         instance.value = Encrypt.encrypt(instance.value)
 
-
-@receiver(post_save, sender=RunnerParam)
-def runner_param_post_save_handler(sender, instance, created, **kwargs):
-    """ Runner saved instance handler, setup or update related RunnerParam according to clazz specified """
+"""
+@receiver(post_save, sender=AdaptorInitParam)
+def adaptor_param_post_save_handler(sender, instance, created, **kwargs):
+    "" Runner saved instance handler, setup or update related RunnerInitParam according to clazz specified ""
     if instance.prevent_override:
-        # Reset old upgrades values for related service to default
-        for service_param in ServiceRunParam.objects.filter(name=instance.name):
-            service_param._value = None
-            service_param.save()
+        from django.contrib.contenttypes.models import ContentType
 
+        # Reset old upgrades values for related service to default
+        object_ctype = ContentType.objects.get_for_model(sender.__class__.__name__)
+        for service_param in AdaptorInitParam.objects.filter(name=instance.name, object_ctype=object_ctype):
+            service_param.value = instance.value
+            service_param.save()
+"""
 
 @receiver(pre_save, sender=ApiModel)
 def api_able_pre_save_handler(sender, instance, **kwargs):
@@ -176,3 +172,5 @@ def job_output_post_save_handler(sender, instance, created, **kwargs):
 # Connect all ApiModel subclass to pre_save_handler
 for subclass in ApiModel.__subclasses__():
     pre_save.connect(api_able_pre_save_handler, subclass)
+
+

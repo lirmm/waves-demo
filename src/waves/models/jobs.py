@@ -17,12 +17,10 @@ import waves.const
 import waves.settings
 from waves.exceptions import WavesException
 from waves.exceptions.jobs import JobInconsistentStateError, JobRunException
-from waves.models import TimeStamped, Slugged, Ordered, UrlMixin, DTOMixin
-from django.contrib.auth import get_user_model
+from waves.models import TimeStamped, Slugged, Ordered, UrlMixin
+from waves.models.adaptors import DTOMixin, AdaptorInitParam
 from waves.models.submissions import Submission
-from waves.models.managers.jobs import JobManager, JobInputManager, JobOutputManager, JobHistoryManager, \
-    JobAdminHistoryManager
-from waves.models.base import AdaptorInitParam
+from waves.models.managers.jobs import *
 
 __license__ = "MIT"
 __revision__ = " $Id: actor.py 1586 2009-01-30 15:56:25Z cokelaer $ "

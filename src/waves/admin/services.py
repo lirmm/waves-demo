@@ -4,10 +4,13 @@ from django.template.defaultfilters import truncatechars
 from mptt.admin import MPTTModelAdmin
 
 from base import ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin
+from django.contrib.contenttypes.admin import GenericTabularInline
+
 from waves.admin.submissions import *
 from waves.compat import CompactInline
 from django.contrib.auth import get_user_model
 from waves.forms.admin.services import *
+from waves.models.adaptors import AdaptorInitParam
 from waves.models.services import *
 from waves.models.metas import *
 from waves.models.submissions import *
@@ -20,19 +23,19 @@ __all__ = ['ServiceAdmin', 'ServiceCategoryAdmin']
 class ServiceMetaInline(CompactInline):
     model = ServiceMeta
     form = ServiceMetaForm
-    sortable = 'order'
+    exclude = ['order',]
     extra = 0
     suit_classes = 'suit-tab suit-tab-metas'
     classes = ('grp-collapse grp-closed', 'collapse')
-    fields = ['type', 'order', 'title', 'value', 'description']
-    sortable_field_name = "order"
-    sortable_options = []
+    fields = ['type', 'title', 'value', 'description']
+    # sortable_field_name = "order"
+    # sortable_options = []
 
 
-class ServiceRunnerParamInLine(admin.TabularInline):
-    model = ServiceRunParam
-    form = ServiceRunnerParamForm
-    fields = ['name', 'value']
+class ServiceRunnerParamInLine(GenericTabularInline):
+    model = AdaptorInitParam
+    # form = ServiceRunnerParamForm
+    fields = ['name', 'value', 'prevent_override']
     extra = 0
     classes = ('grp-collapse grp-closed', 'collapse')
     suit_classes = 'suit-tab suit-tab-adaptor'
@@ -40,30 +43,14 @@ class ServiceRunnerParamInLine(admin.TabularInline):
     readonly_fields = ['name']
     is_nested = False
     sortable_options = []
-
-    def param_default(self, obj):
-        return obj.param.default if obj.param.default else '--'
-
-    def get_max_num(self, request, obj=None, **kwargs):
-        if obj is not None:
-            return self.get_queryset(request).count()
-        else:
-            return 0
-
-    def get_min_num(self, request, obj=None, **kwargs):
-        if obj is not None:
-            return self.get_queryset(request).count()
-        else:
-            return 0
+    verbose_name = 'Execution param'
+    verbose_name_plural = "Execution parameters"
 
     def has_delete_permission(self, request, obj=None):
         return False
 
     def has_add_permission(self, request):
-        return request.current_obj is not None
-
-    def get_queryset(self, request):
-        return super(ServiceRunnerParamInLine, self).get_queryset(request).filter(prevent_override=False)
+        return False
 
 
 class ServiceSubmissionInline(admin.TabularInline):
@@ -74,7 +61,7 @@ class ServiceSubmissionInline(admin.TabularInline):
     sortable = 'order'
     sortable_field_name = "order"
     classes = ('grp-collapse grp-closed', 'collapse')
-    fields = ['label', 'availability', 'api_name']
+    fields = ['label', 'override_runner', 'availability', 'api_name']
     readonly_fields = ['api_name']
     show_change_link = True
 
@@ -84,6 +71,7 @@ class ServiceSubmissionInline(admin.TabularInline):
         return super(ServiceSubmissionInline, self).get_extra(request, obj, **kwargs)
 
         # inlines = [SubmissionParamInline, ]
+
 
 
 @admin.register(Service)
@@ -118,6 +106,21 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
                        'edam_operations', 'remote_service_id', 'created', 'updated', ]
         }),
     )
+
+    def add_view(self, request, form_url='', extra_context=None):
+        print "in add view"
+        context = extra_context or {}
+        context['show_save_as_new'] = False
+        context['show_save_and_add_another'] = False
+        context['show_save'] = False
+        # self.inlines = ()
+        return super(ServiceAdmin, self).add_view(request, form_url, context)
+
+    def get_inline_instances(self, request, obj=None):
+        print "in get inlines ", obj
+        if obj is None:
+            return []
+        return super(ServiceAdmin, self).get_inline_instances(request, obj)
 
     def submission_link(self, obj):
         links = []

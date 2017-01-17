@@ -2,53 +2,51 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from django.utils.module_loading import import_string
+from waves.models.base import Described, ExportAbleMixin
+from waves.models.adaptors import AdaptorInitParam, HasRunnerAdaptorParamsMixin
 
-from waves.models.base import Described, ExportAbleMixin, AdaptorInitParam
-from waves.models.managers.runners import RunnerManager, RunnerParamManager
-
-__all__ = ['Runner', 'RunnerParam']
+__all__ = ['Runner', 'RunnerInitParam']
 
 
-class Runner(Described, ExportAbleMixin):
+class Runner(Described, ExportAbleMixin, HasRunnerAdaptorParamsMixin):
     """ Represents a generic job adaptor meta information (resolved at runtime via clazz attribute) """
+    # TODO manage cleanly change in actual clazz value (when changed)
+
     class Meta:
         ordering = ['name']
         db_table = 'waves_runner'
         verbose_name = 'Execution environment'
         verbose_name_plural = "Execution environments"
-    #: private attribute to set if clazz have been modified before save
-    _clazz = None
-    objects = RunnerManager()
     name = models.CharField('Label', max_length=50, null=False, help_text='Displayed name')
     clazz = models.CharField('Running adaptor', max_length=100, null=False)
 
-    def __str__(self):
-        return self.name
+    @property
+    def runner(self):
+        return self.clazz
 
-    @classmethod
+    """@classmethod
     def from_db(cls, db, field_names, values):
-        """
-        Update _clazz attribute on model object loading from db
-        :param db:
-        :param field_names:
-        :param values:
-        :return:
-        """
+        "" Executed each time a Service is restored from DB layer""
+        # print "in base from_db"
         instance = super(Runner, cls).from_db(db, field_names, values)
-        instance._clazz = instance.clazz
+        # instance init setup loaded runner
+        instance._runner = instance.clazz
         return instance
+    """
 
     @property
-    def adaptor(self):
+    def has_changed_runner(self):
         """
-        Import and create a new instance of Runner related class implementation
-        :return: An waves.adaptors.* instance or None if no class specified
+        Return true whether current object changed its runner related model
+        :return: True / False
         """
-        if self.clazz:
-            Adaptor = import_string(self.clazz)
-            return Adaptor(init_params=self.run_params)
-        return None
+        return self._runner != self.clazz
+
+    def get_clazz(self):
+        return self.clazz
+
+    def __str__(self):
+        return self.name
 
     @property
     def importer(self):
@@ -61,47 +59,13 @@ class Runner(Described, ExportAbleMixin):
         else:
             raise NotImplementedError("Runner doesn't have import functionality")
 
-    def default_run_params(self):
-        """
-        Return a list of tuples representing current service adaptor init params
-
-        :return: a dictionary (param_name=runner_param_default)
-        :rtype: dict
-        """
-        from waves.utils.encrypt import Encrypt
-        runner_params = self.runner_run_params.values_list('name', 'value')
-        returned = dict()
-        for name, default in runner_params:
-            if name.startswith('crypt_') and default:
-                returned[name] = Encrypt.decrypt(default)
-            else:
-                returned[name] = default
-        return returned
-
-    @property
-    def has_changed_clazz(self):
-        """
-        Return True if current object has changed clazz before save
-        :return: True / False
-        """
-        return self._clazz != self.clazz
-
     @property
     def serializer(self):
         from waves.models.serializers.runners import RunnerSerializer
         return RunnerSerializer
 
-    @property
-    def run_params(self):
-        runner_params = self.runner_run_params.all().values_list('name', 'value')
-        return dict({name: value for name, value in runner_params})
 
-
-class RunnerParam(AdaptorInitParam):
+class RunnerInitParam(AdaptorInitParam):
     """ Parameters used by related class object (see: waves.runners) for self initialization """
     class Meta:
-        db_table = 'waves_runner_run_param'
-        unique_together = ('name', 'runner')
-
-    objects = RunnerParamManager()
-    runner = models.ForeignKey(Runner, related_name='runner_run_params', on_delete=models.CASCADE)
+        proxy = True

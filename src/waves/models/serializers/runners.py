@@ -4,13 +4,13 @@ from __future__ import unicode_literals
 import waves.settings
 from django.db import transaction
 from rest_framework import serializers
-from waves.models import Runner, RunnerParam
+from waves.models import Runner, RunnerInitParam
 from . import RelatedSerializerMixin
 
 
 class RunnerParamSerializer(serializers.ModelSerializer):
     class Meta:
-        model = RunnerParam
+        model = RunnerInitParam
         fields = ('name', 'value', 'prevent_override')
 
 

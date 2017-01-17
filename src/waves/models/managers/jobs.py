@@ -3,7 +3,7 @@ from django.db.models import Q
 
 import waves.const
 from waves.models.submissions import SubmissionOutput
-
+__all__ = ['JobAdminHistoryManager', 'JobHistoryManager', "JobInputManager", "JobManager", "JobOutputManager"]
 
 class JobManager(models.Manager):
     """ Job Manager add few shortcut function to default Django models objects Manager

@@ -20,14 +20,16 @@ class Encrypt(object):
         :param to_encode: value to encode
         :return: base64 based encoded string
         """
-        if secret:
-            if len(secret) < 32:
-                raise RuntimeError('Encoded values must use a key at least a 32 chars length secret')
-            cipher = XOR.new(secret)
-        else:
-            cipher = XOR.new(settings.SECRET_KEY[0:32])
-        encoded = base64.b64encode(cipher.encrypt(to_encode))
-        return encoded
+        if to_encode:
+            if secret:
+                if len(secret) < 32:
+                    raise RuntimeError('Encoded values must use a key at least a 32 chars length secret')
+                cipher = XOR.new(secret)
+            else:
+                cipher = XOR.new(settings.SECRET_KEY[0:32])
+            encoded = base64.b64encode(cipher.encrypt(to_encode))
+            return encoded
+        return None
 
     @staticmethod
     def decrypt(to_decode, secret=None):
@@ -36,10 +38,12 @@ class Encrypt(object):
         :param to_decode: value to decode
         :return: string initial value
         """
-        if secret:
-            if len(secret) < 32:
-                raise RuntimeError('Encoded values must use a key at least a 32 chars length secret')
-            cipher = XOR.new(secret)
-        else:
-            cipher = XOR.new(settings.SECRET_KEY[0:32])
-        return cipher.decrypt(base64.b64decode(to_decode))
+        if to_decode:
+            if secret:
+                if len(secret) < 32:
+                    raise RuntimeError('Encoded values must use a key at least a 32 chars length secret')
+                cipher = XOR.new(secret)
+            else:
+                cipher = XOR.new(settings.SECRET_KEY[0:32])
+            return cipher.decrypt(base64.b64decode(to_decode))
+        return ""

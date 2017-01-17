@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from django.forms import ModelForm, PasswordInput, TextInput, CheckboxInput, BooleanField, ChoiceField, HiddenInput
 from django.utils.functional import lazy
 
-from waves.models import Runner, RunnerParam
+from waves.models import Runner, RunnerInitParam
 from waves.utils.runners import get_runners_list
 
 __all__ = ['RunnerForm', 'RunnerParamForm']
@@ -46,7 +46,7 @@ class RunnerParamForm(ModelForm):
     """
     class Meta:
         """ Metas """
-        model = RunnerParam
+        model = RunnerInitParam
         fields = ['name', "value", 'prevent_override']
         widgets = {
             "value": TextInput(attrs={'size': 50})
@@ -58,7 +58,7 @@ class RunnerParamForm(ModelForm):
         if instance:
             try:
                 from django.utils.module_loading import import_string
-                Adaptor = import_string(instance.runner.clazz)
+                Adaptor = import_string(instance.content_object.get_clazz())
                 adaptor_default = Adaptor()
                 from ast import literal_eval
                 if adaptor_default.init_params.get(instance.name):

@@ -10,11 +10,11 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from mptt.models import MPTTModel, TreeForeignKey
-
 import waves.const
 import waves.settings
 from waves.models.base import *
-from waves.models.managers.services import ServiceCategoryManager, ServiceManager, ServiceRunParamManager
+from waves.models.adaptors import *
+from waves.models.managers.services import *
 from waves.models.runners import Runner
 
 logger = logging.getLogger(__name__)
@@ -49,16 +49,10 @@ class ServiceRunParam(AdaptorInitParam):
     """ Defined runner param for Service model objects """
 
     class Meta:
-        db_table = 'waves_service_run_param'
-        verbose_name = 'Run configuration'
-        verbose_name_plural = 'Run configuration'
-        unique_together = ('service', 'name')
-
-    objects = ServiceRunParamManager()
-    service = models.ForeignKey('Service', null=False, related_name='srv_run_params', on_delete=models.CASCADE)
+        proxy = True
 
 
-class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin):
+class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRunnerAdaptorParamsMixin):
     """
     Represents a service on the platform
     """
@@ -73,8 +67,6 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin):
 
     # manager
     objects = ServiceManager()
-    _run_on = None
-    __adaptor = None
     # fields
     name = models.CharField('Service name', max_length=255, help_text='Service displayed name')
     version = models.CharField('Current version', max_length=10, null=True, blank=True, default='1.0',
@@ -109,56 +101,14 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin):
         # TODO check changed status with at least one submission available on each submission channel (web/api)
         return cleaned_data
 
-    def __init__(self, *args, **kwargs):
-        super(Service, self).__init__(*args, **kwargs)
-        self._run_on = self.runner
-
-    @classmethod
-    def from_db(cls, db, field_names, values):
-        """ Executed each time a Service is restored from DB layer"""
-        instance = super(Service, cls).from_db(db, field_names, values)
-        instance._run_on = instance.runner
-        return instance
-
-    @property
-    def has_changed_runner(self):
-        """
-        Return true whether current object changed its runner related model
-        :return: True / False
-        """
-        return self._run_on != self.runner
-
     def __str__(self):
         return "%s v(%s)" % (self.name, self.version)
-
-    def reset_run_params(self):
-        """
-        Reset service runner init params with new default, erase unused params
-        :param params:
-        :return:
-        """
-        ServiceRunParam.objects.exclude(name__in=self.runner.adaptor.init_params.keys(), service=self).delete()
-        for param in self.runner.runner_run_params.filter(prevent_override=True):
-            ServiceRunParam.objects.update_or_create(defaults={'value': param.value,
-                                                               'prevent_override': True},
-                                                     name=param.name, service=self)
 
     @property
     def jobs(self):
         """ Get current Service Jobs """
         from waves.models import Job
         return Job.objects.filter(submission__in=self.submissions.all())
-
-    @property
-    def run_params(self):
-        """
-        Return a list of tuples representing current service adaptor init params
-
-        :return: a Dictionary (param_name=param_service_value or runner_param_default if not set
-        :rtype: dict
-        """
-        runner_params = self.srv_run_params.all().values_list('name', 'value')
-        return dict({name: value for name, value in runner_params})
 
     def import_service_params(self):
         """ Try to import service param configuration issued from adaptor
@@ -167,25 +117,6 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin):
         """
         if not self.runner:
             raise ImportError(u'Unable to import if no adaptor is set')
-
-    @property
-    def adaptor(self):
-        """ Return current adaptor for Service """
-        if self.__adaptor is None:
-            if not self.runner:
-                return None
-            # try load it from clazz name
-            from django.utils.module_loading import import_string
-            Adaptor = import_string(self.runner.clazz)
-            self.__adaptor = Adaptor(init_params=self.run_params)
-        return self.__adaptor
-
-    @adaptor.setter
-    def adaptor(self, adaptor):
-        if adaptor is not None:
-            from waves.adaptors.base import BaseAdaptor
-            assert (isinstance(adaptor, BaseAdaptor))
-            self.__adaptor = adaptor
 
     @property
     def command(self):

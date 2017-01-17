@@ -224,7 +224,7 @@ class JobAdmin(WavesModelAdmin):
     get_slug.short_description = 'identifier'
     get_slug.admin_order_field = 'slug'
     get_colored_status.admin_order_field = 'status'
-    get_run_on.admin_order_field = 'service__run_on'
+    get_run_on.admin_order_field = 'service__runner'
     get_client.admin_order_field = 'client'
 
 

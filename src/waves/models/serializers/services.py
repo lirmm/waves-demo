@@ -12,10 +12,7 @@ from waves.api.serializers.services import ServiceSerializer as BaseServiceSeria
 from waves.models.serializers import RelatedSerializerMixin
 from .runners import RunnerSerializer, RunnerParamSerializer
 from .categories import CategorySerializer
-from waves.models.services import *
-from waves.models.runners import *
-from waves.models.submissions import *
-from waves.models.inputs import *
+from waves.models import *
 
 __all__ = ['ServiceMetaSerializer', 'ServiceSubmissionSerializer', 'ExitCodeSerializer', 'ServiceSerializer']
 

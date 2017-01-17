@@ -211,7 +211,7 @@ class InitDbCommand(BaseCommand):
                     self.stdout.write('Creating runners ...')
                     from waves.utils.runners import get_runners_list
                     for runner_clazz in get_runners_list(raw=True):
-                        Runner.objects.create(clazz=runner_clazz, description='Runner Adaptor: %s' % runner_clazz)
+                        Runner.objects.create(runner=runner_clazz, description='Runner Adaptor: %s' % runner_clazz)
                     self.stdout.write("... Done")
 
                 # TODO add ask for import sample services ?

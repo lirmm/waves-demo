@@ -13,7 +13,7 @@
 {% endblock %}
 {% block object-tools-items %}
     <li>
-        <a href="{% url 'admin:waves_service_changelist' %}?run_on__id__exact={{ original.pk }}"
+        <a href="{% url 'admin:waves_service_changelist' %}?runner__id__exact={{ original.pk }}"
            class="link">{% trans "Associated Services" %}</a>
     </li>
     {{ block.super }}

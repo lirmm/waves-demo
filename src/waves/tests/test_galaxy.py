@@ -98,7 +98,7 @@ class GalaxyWorkFlowRunnerTestCase(TestBaseJobRunner):
 
     @unittest.skip('WorkFlow not really available for now')
     def test_update_existing_workflow(self):
-        service = Service.objects.filter(runner__clazz='waves.adaptors.api.galaxy.GalaxyWorkFlowAdaptor')
+        service = Service.objects.filter(runner__runner='waves.adaptors.api.galaxy.GalaxyWorkFlowAdaptor')
         self.assertGreaterEqual(len(service), 0)
         for updated in service[0:1]:
             # just try for the the first one

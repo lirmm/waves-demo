@@ -3,15 +3,16 @@ from __future__ import unicode_literals
 from django.core.exceptions import ValidationError
 from django.db import models
 import logging
-from waves.models import TimeStamped, ApiModel, Ordered, Slugged, Service, Described, DTOMixin
-from waves.models.base import AdaptorInitParam
+from waves.models import TimeStamped, ApiModel, Ordered, Slugged, Service, Described
+from waves.models.adaptors import AdaptorInitParam, HasRunnerAdaptorParamsMixin
+from waves.models.runners import Runner
 from waves.models.managers.submissions import *
 
 logger = logging.getLogger(__name__)
 __all__ = ['Submission', 'SubmissionOutput', 'SubmissionExitCode', 'SubmissionRunParam']
 
 
-class Submission(TimeStamped, ApiModel, Ordered, Slugged):
+class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerAdaptorParamsMixin):
     """ Represents a service submission parameter set for a service """
 
     class Meta:
@@ -30,6 +31,15 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged):
                                                 (3, "Available on both")])
     label = models.CharField('Submission title', max_length=255, null=True, blank=False)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, related_name='submissions')
+    override_runner = models.ForeignKey(Runner, related_name='submission_runs', null=True, blank=True,
+                                        on_delete=models.SET_NULL,
+                                        help_text='Override service runs parameters')
+
+    @property
+    def runner(self):
+        if self.override_runner:
+            return self.override_runner
+        return self.service.runner
 
     @property
     def available_online(self):
@@ -40,14 +50,6 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged):
     def available_api(self):
         """ return whether submission is available for api calls """
         return self.availability >= 2
-
-    @property
-    def run_params(self):
-        """ Return overriden run params if exists, else service's default """
-        if self.sub_run_params is not None:
-            runner_params = self.sub_run_params.values_list('name', 'value')
-            return dict({name: value for name, value in runner_params})
-        return self.service.run_params
 
     def __str__(self):
         return '[%s|%s]' % (self.label, self.service)
@@ -143,10 +145,4 @@ class SubmissionRunParam(AdaptorInitParam):
     """ Defined runner param for Service model objects """
 
     class Meta:
-        db_table = "waves_submission_run_params"
-        verbose_name = 'Submission\'s adaptor init param'
-        unique_together = ('submission', 'name')
-
-    objects = SubmissionRunParamManager()
-    submission = models.ForeignKey(Submission, null=False, related_name='sub_run_params',
-                                   on_delete=models.CASCADE, help_text='Submission overrides services run params')
+        proxy = True

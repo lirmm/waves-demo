@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import Q
 from mptt.managers import TreeManager
 import waves.const
-
+__all__ = ['ServiceRunParamManager', 'ServiceCategoryManager', 'ServiceManager']
 
 class ServiceRunParamManager(models.Manager):
     def get_by_natural_key(self, service, param):

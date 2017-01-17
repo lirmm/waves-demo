@@ -1,40 +1,21 @@
 """ Django models bases classes """
 from __future__ import unicode_literals
 
-import uuid
-from django.core.exceptions import ValidationError
-from django.db import models
-from django.contrib.sites.models import Site
-from django.conf import settings
-from waves.compat import RichTextField
-import waves.settings
 import logging
+import uuid
 
-from waves.utils.encrypt import Encrypt
+from django.conf import settings
+from django.contrib.sites.models import Site
+from django.db import models
+
+import waves.settings
+from waves.compat import RichTextField
 
 logger = logging.getLogger(__name__)
 
 
-__all__ = ['DTOMixin', 'TimeStamped', 'Ordered', 'ExportAbleMixin', 'Described', 'Slugged', 'ApiModel',
-           'UrlMixin', 'AdaptorInitParam']
-
-
-class DTOMixin(object):
-    """ Some models (Service / Inputs / Outputs / ExitCodes / Jobs) need to be able to be loaded from Adaptors
-    """
-    def from_dto(self, dto):
-        """ Copy attributes from dto to current object, do not override current objects attributes with no
-        correspondence """
-        for var in dir(dto):
-            if not var.startswith('_'):
-                setattr(self, var, getattr(dto, var))
-
-    def to_dto(self, dto):
-        # TODO check if really needed
-        """ Copy object attributes to a DTO """
-        for var in dir(self):
-            if not var.startswith('_'):
-                setattr(dto, var, getattr(self, var))
+__all__ = ['TimeStamped', 'Ordered', 'ExportAbleMixin', 'Described', 'Slugged', 'ApiModel',
+           'UrlMixin']
 
 
 class BaseModel(models.Model):
@@ -194,32 +175,3 @@ class ExportAbleMixin(object):
         return '%s_%s.json' % (self.__class__.__name__.lower(), str(self.pk))
 
 
-class AdaptorInitParam(models.Model):
-    """ Base Class For adaptor initialization params """
-    class Meta:
-        abstract = True
-        verbose_name = "Initial param"
-        verbose_name_plural = "Init params"
-    name = models.CharField('Name', max_length=100, blank=True, null=True, help_text='Param name')
-    value = models.TextField('Value', max_length=500, null=True, blank=True, help_text='Default value')
-    prevent_override = models.BooleanField('Prevent override', help_text="Prevent override")
-
-    def clean(self):
-        """ Check that "prevent override" is set along with default value """
-        cleaned_data = super(AdaptorInitParam, self).clean()
-        if not self.value and self.prevent_override:
-            raise ValidationError('You can\'t prevent override with no default value')
-        return cleaned_data
-
-    def __str__(self):
-        return "%s|%s" % (self.name, self.value)
-
-    @classmethod
-    def from_db(cls, db, field_names, values):
-        """ Decrypt encoded value if needed for params """
-        instance = super(AdaptorInitParam, cls).from_db(db, field_names, values)
-        if instance.name.startswith('crypt_') and instance.value:
-            # FIXME: protect encrypted data from been read directly from here
-            instance.value = Encrypt.decrypt(instance.value)
-            print instance.value
-        return instance

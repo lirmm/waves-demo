@@ -6,7 +6,8 @@ from django.db import models
 from polymorphic.models import PolymorphicModel
 
 import waves.const
-from waves.models.base import Ordered, DTOMixin
+from waves.models.base import Ordered
+from waves.models.adaptors import DTOMixin
 from waves.models.submissions import Submission
 from waves.utils.storage import waves_storage, file_sample_directory
 from waves.utils.validators import validate_list_comma, validate_list_param

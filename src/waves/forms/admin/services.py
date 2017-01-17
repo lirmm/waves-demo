@@ -56,7 +56,7 @@ class ServiceMetaForm(forms.ModelForm):
     """
 
     class Meta:
-        exclude = ['id']
+        # exclude = ['id']
         model = ServiceMeta
         fields = '__all__'
 

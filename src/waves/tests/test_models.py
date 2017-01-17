@@ -8,19 +8,31 @@ from django.utils.module_loading import import_string
 
 from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory
 from waves.models.submissions import Submission
-from waves.models.serializers.services import ServiceSerializer
+
 import waves.const
 
 logger = logging.getLogger(__name__)
 
 
 class TestRunners(WavesBaseTestCase):
+
+    def test_create_runner(self):
+        from waves.adaptors import CURRENT_IMPLEMENTATION
+        for clazz in CURRENT_IMPLEMENTATION:
+            logger.info('Current class: %s - %s', clazz.name, clazz.clazz)
+            test_runner = Runner.objects.create(name='%s runner' % clazz.name , clazz=clazz.clazz)
+            from waves.adaptors.base import BaseAdaptor
+            adaptor = test_runner.adaptor
+            self.assertIsInstance(adaptor, BaseAdaptor)
+            self.assertEqual(test_runner.run_params.__len__(), adaptor.init_params.__len__())
+            self.assertListEqual(sorted(test_runner.run_params.keys()), sorted(adaptor.init_params.keys()))
+
     def test_runners_defaults(self):
         for runner in Runner.objects.all():
             obj_runner = import_string(runner.clazz)
             logger.debug("Clazz %s", runner.clazz)
             expected_params = obj_runner().init_params
-            runner_params = runner.default_run_params()
+            runner_params = runner.run_params
             logger.debug("Expected %s", expected_params)
             logger.debug("Defaults %s", runner_params)
             self.assertEquals(sorted(expected_params), sorted(runner_params))
@@ -45,6 +57,7 @@ class TestServices(WavesBaseTestCase):
 
     def test_load_service(self):
         from os.path import join
+        from waves.models.serializers.services import ServiceSerializer
         import json
         from django.conf import settings
         init_count = Service.objects.all().count()

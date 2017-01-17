@@ -11,7 +11,7 @@ from waves.tests.base import WavesBaseTestCase
 from waves.adaptors.base import BaseAdaptor
 from waves.adaptors.exceptions import *
 from waves.exceptions.jobs import *
-from waves.models import Service, Job, JobInput, Runner, RunnerParam
+from waves.models import Service, Job, JobInput, Runner, RunnerInitParam
 from waves.models.submissions import Submission
 from waves.tests.mocks.adaptor import MockJobRunnerAdaptor
 import waves.settings
@@ -35,7 +35,7 @@ def sample_runner(runner_impl):
                                          clazz='%s.%s' % (runner_impl.__module__, runner_impl.__class__.__name__))
     for name, value in runner_impl.init_params.items():
         # print 'name', name, 'value', value
-        RunnerParam.objects.update_or_create(name=name, runner=runner_model, defaults={'default': value})
+        RunnerInitParam.objects.update_or_create(name=name, runner=runner_model, defaults={'default': value})
     return runner_model
 
 

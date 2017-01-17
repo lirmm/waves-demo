@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.contrib.admin import StackedInline, TabularInline
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-# import nested_admin
+from django.contrib.contenttypes.admin import GenericTabularInline
 from waves.admin.base import WavesModelAdmin
 from waves.compat import CompactInline
 from waves.models.submissions import *
@@ -13,6 +13,30 @@ from waves.models.inputs import *
 from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin, PolymorphicSortableAdminMixin
 
 from polymorphic.admin import PolymorphicInlineSupportMixin, StackedPolymorphicInline, PolymorphicInlineModelAdmin
+
+
+class SubmissionRunnerParamInLine(GenericTabularInline):
+    model = SubmissionRunParam
+    # form = ServiceRunnerParamForm
+    fields = ['name', 'value']
+    extra = 0
+    classes = ('grp-collapse grp-closed', 'collapse')
+    suit_classes = 'suit-tab suit-tab-adaptor'
+    can_delete = False
+    readonly_fields = ['name']
+    is_nested = False
+    sortable_options = []
+    verbose_name_plural = "Run configuration"
+    verbose_name = "Run configuration"
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+    def get_queryset(self, request):
+        return super(SubmissionRunnerParamInLine, self).get_queryset(request).filter(prevent_override=False)
 
 
 class ServiceOutputInline(CompactInline):
@@ -222,6 +246,7 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
         js = ('waves/admin/js/services.js',)
 
     inlines = [
+        SubmissionRunnerParamInLine,
         # SubmitInputsInline,
         OrganizeInputInline,
         OrgRepeatGroupInline,
@@ -240,7 +265,7 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
     list_filter = ['service', 'availability']
     fieldsets = [
         ('General', {
-            'fields': ['label', 'api_name', 'availability', 'service', 'available_api', 'available_online'],
+            'fields': ['label', 'api_name', 'availability', 'service', 'override_runner', 'available_api', 'available_online'],
             'classes': ['collapse']
         }),
     ]
@@ -262,12 +287,22 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
         context['show_save'] = False
         return super(ServiceSubmissionAdmin, self).add_view(request, form_url, context)
 
+    def get_inline_instances(self, request, obj=None):
+        print "in get inlines ", obj
+        if obj is None:
+            return []
+        return super(ServiceSubmissionAdmin, self).get_inline_instances(request, obj)
+
     def change_view(self, request, object_id, form_url='', extra_context=None):
         return super(ServiceSubmissionAdmin, self).change_view(request, object_id, form_url, extra_context)
 
     def get_form(self, request, obj=None, **kwargs):
         request.current_obj = obj
-        return super(ServiceSubmissionAdmin, self).get_form(request, obj, **kwargs)
+        form = super(ServiceSubmissionAdmin, self).get_form(request, obj, **kwargs)
+        form.base_fields['override_runner'].widget.can_add_related = False
+        form.base_fields['override_runner'].widget.can_change_related = False
+        form.base_fields['override_runner'].widget.can_delete_related = False
+        return form
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = super(ServiceSubmissionAdmin, self).get_fieldsets(request, obj)
