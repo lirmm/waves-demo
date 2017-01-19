@@ -5,10 +5,10 @@ from django.contrib.sites.models import Site
 from django.db import models
 import waves.settings
 from bootstrap_themes import list_themes
-__all__ = ['WavesConfiguration']
+__all__ = ['WavesSite']
 
 
-class WavesConfiguration(Site):
+class WavesSite(Site):
     """
     Main application configuration entity
     # TODO add
@@ -16,6 +16,7 @@ class WavesConfiguration(Site):
     class Meta:
         db_table = "waves_configuration"
         verbose_name = "Application config"
+
 
     theme = models.CharField('Bootstrap theme', max_length=255, default=waves.settings.WAVES_BOOTSTRAP_THEME,
                              choices=list_themes(), )
@@ -26,4 +27,4 @@ class WavesConfiguration(Site):
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         """ Clear Site cache upon saving """
         Site.objects.clear_cache()
-        super(WavesConfiguration, self).save(force_insert, force_update, using, update_fields)
+        super(WavesSite, self).save(force_insert, force_update, using, update_fields)

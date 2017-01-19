@@ -85,15 +85,17 @@ class SubcommandDispatcher(BaseCommand):
         # Parse argv just to count how many non-option args there are:
         self._called_from_command_line = True
         parser = self.create_parser(argv[0], argv[1])
+        options = parser.parse_args(argv[2:3])
+        cmd_options = vars(options)
+        # Move positional args out of options to mimic legacy optparse
+        args = cmd_options.pop('args', ())
+        """
         if self.use_argparse:
             # only parse current
-            options = parser.parse_args(argv[2:3])
-            cmd_options = vars(options)
-            # Move positional args out of options to mimic legacy optparse
-            args = cmd_options.pop('args', ())
         else:
             options, args = parser.parse_args(argv[2:])
             cmd_options = vars(options)
+        """
         # options, args = parser.parse_args(argv[2:])
         if 'subcommand' in cmd_options:  # You specified a subcommand.
             program, dispatcher, subcommand_name = argv[:3]

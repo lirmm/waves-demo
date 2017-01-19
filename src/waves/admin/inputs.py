@@ -19,6 +19,7 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
     """ Base Input admin """
     base_model = BaseParam
     exclude = ['order']
+
     base_fieldsets = (
         ('General', {
             'fields': ('label', 'name', 'default', 'required', 'submission'),
@@ -46,19 +47,19 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         # TODO when non popup access disabled, following if would be obsolete
         if request.current_obj:
-            print "Editmode", request.submission
+            # print "Editmode", request.submission
             if db_field.name == 'repeat_group':
                 kwargs['queryset'] = RepeatedGroup.objects.filter(submission=request.current_obj.submission)
             elif db_field.name == "related_to":
                 kwargs['queryset'] = BaseParam.objects.filter(submission=request.current_obj.submission).exclude(
                     pk=request.current_obj.pk)
         if request.submission:
-            print "request submission set ", request.submission
+            # print "request submission set ", request.submission
             if db_field.name == 'repeat_group':
                 kwargs['queryset'] = RepeatedGroup.objects.filter(submission=request.submission)
             elif db_field.name == "related_to":
                 pk = self._object.pk if self._object else -1
-                kwargs['queryset'] = BaseParam.objects.filter(submission=request.submission).exclude(pk=pk)
+                kwargs['queryset'] = BaseParam.objects.filter(submission=request.submission).not_instance_of(FileInput).exclude(pk=pk)
             elif db_field.name == 'submission':
                 print "dbfield name sub "
                 kwargs['queryset'] = Submission.objects.filter(pk=request.submission.pk)

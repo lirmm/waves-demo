@@ -6,78 +6,18 @@ import logging
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.utils.html import strip_tags
 from rest_framework import serializers
-from rest_framework.fields import empty
 from rest_framework.reverse import reverse as reverse
 
 import waves.settings
 from dynamic import DynamicFieldsModelSerializer
-from waves.models.inputs import *
+from waves.api.serializers.inputs import InputSerializer
 from waves.models.metas import ServiceMeta
 from waves.models.services import *
 from waves.models.submissions import *
 
-__all__ = ['InputSerializer', 'InputSerializer', 'MetaSerializer', 'OutputSerializer', 'ServiceSerializer',
+__all__ = ['MetaSerializer', 'OutputSerializer', 'ServiceSerializer',
            'ServiceFormSerializer', 'ServiceSubmissionSerializer', 'ServiceMetaSerializer']
 logger = logging.getLogger(__name__)
-
-
-class InputFormatField(serializers.Field):
-
-    def to_representation(self, instance):
-        return ', '.join(instance.splitlines()) if instance is not None else ''
-
-    def to_internal_value(self, data):
-        return data.replace(', ', '\n') if data else ''
-
-
-class InputSerializer(DynamicFieldsModelSerializer):
-    """ Serialize JobInput """
-
-    class Meta:
-        model = BaseParam
-        queryset = BaseParam.objects.all()
-        fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'short_description', 'multiple')
-        extra_kwargs = {
-            'url': {'view_name': 'waves:waves-services-detail', 'lookup_field': 'api_name'}
-        }
-
-    format = InputFormatField()
-
-    def __init__(self, instance=None, data=empty, **kwargs):
-        super(InputSerializer, self).__init__(instance, data, **kwargs)
-
-    def to_representation(self, instance):
-        """ Return representation for an Input, including dependents inputs if needed """
-        if instance.dependents_inputs.count() > 0:
-            representation = ConditionalInputSerializer(instance, context=self.context).to_representation(instance)
-        else:
-            representation = super(InputSerializer, self).to_representation(instance)
-        return representation
-
-
-class RelatedInputSerializer(InputSerializer):
-    """ Serialize a dependent Input (RelatedParam models) """
-
-    class Meta:
-        model = RelatedParam
-        fields = InputSerializer.Meta.fields
-
-    def to_representation(self, instance):
-        """ Return representation of a Related Input """
-        initial_repr = super(RelatedInputSerializer, self).to_representation(instance)
-        return {instance.when_value: initial_repr}
-
-
-class ConditionalInputSerializer(serializers.ModelSerializer):
-    """ Serialize inputs if it's a conditional one """
-
-    class Meta:
-        model = BaseParam
-        fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'short_description', 'description',
-                  'multiple', 'when')
-
-    when = RelatedInputSerializer(source='dependents_inputs', many=True, read_only=True)
-    format = InputFormatField()
 
 
 class OutputSerializer(DynamicFieldsModelSerializer):

@@ -5,7 +5,7 @@ from django.contrib.sites.shortcuts import get_current_site as current_site
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.views import generic
 import waves.settings
-from waves.models import WavesConfiguration
+from waves.models import WavesSite
 __all__ = ['WavesBaseContextMixin', 'HomePage', 'AboutPage', 'HTML403', 'RestServices', 'css_theme']
 
 
@@ -13,7 +13,7 @@ def css_theme(request):
     """ Define current setup for WAVES bootstrap theme """
     try:
         site = current_site(request)
-        wave_site = WavesConfiguration.get(site=site)
+        wave_site = WavesSite.get(site=site)
         if wave_site:
             current_theme = wave_site.theme
     except (ObjectDoesNotExist, MultipleObjectsReturned, AttributeError):

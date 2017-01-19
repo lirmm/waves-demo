@@ -2,17 +2,17 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
-from django.contrib.admin import StackedInline, TabularInline
+from django.contrib.admin import TabularInline
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.contrib.contenttypes.admin import GenericTabularInline
+from django import forms
 from waves.admin.base import WavesModelAdmin
 from waves.compat import CompactInline
 from waves.models.submissions import *
 from waves.models.inputs import *
-from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin, PolymorphicSortableAdminMixin
-
-from polymorphic.admin import PolymorphicInlineSupportMixin, StackedPolymorphicInline, PolymorphicInlineModelAdmin
+from adminsortable2.admin import SortableInlineAdminMixin
+from polymorphic.admin import PolymorphicInlineSupportMixin, StackedPolymorphicInline
 
 
 class SubmissionRunnerParamInLine(GenericTabularInline):
@@ -79,13 +79,13 @@ class SampleDependentInputInline(admin.TabularInline):
     classes = ('grp-collapse grp-closed', 'collapse')
 
     def has_add_permission(self, request):
-        if request.current_obj is not None and request.current_obj.submission_inputs.instance_of(FileInput).count() > 0:
+        if request.current_obj is not None and request.current_obj.submission_samples.count() > 0:
             return True
         return False
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "related_to":
-            kwargs['queryset'] = BaseParam.objects.filter(submission=request.current_obj)
+            kwargs['queryset'] = BaseParam.objects.filter(submission=request.current_obj).not_instance_of(FileInput)
         return super(SampleDependentInputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -98,9 +98,20 @@ class ExitCodeInline(admin.TabularInline):
     sortable_options = []
 
 
+class InputInlineForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(InputInlineForm, self).__init__(*args, **kwargs)
+        if isinstance(self.instance, BooleanParam) or isinstance(self.instance, ListParam):
+            self.fields['default'] = forms.ChoiceField(choices=self.instance.choices)
+            self.fields['default'].required = False
+        elif isinstance(self.instance, FileInput):
+            self.fields['default'].widget.attrs['disabled'] = True
+
+
 class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
     model = BaseParam
-    fields = ['class_label', 'label', 'name', 'required', 'default', 'related_to', 'when_value']
+    form = InputInlineForm
+    fields = ['class_label', 'label', 'name', 'required', 'default', ]
     readonly_fields = ['class_label']
     classes = ('grp-collapse', 'grp-closed', 'collapse', 'show-change-link-popup')
     verbose_name_plural = "Inputs"
@@ -132,9 +143,6 @@ class PolymorphicInputInlineChild(StackedPolymorphicInline.Child):
     def get_fields(self, request, obj=None):
         # TODO only use required fields
         return super(PolymorphicInputInlineChild, self).get_fields(request, obj)
-
-
-from django import forms
 
 
 class TextParamForm(forms.ModelForm):
@@ -209,8 +217,6 @@ class FileInputSampleInline(TabularInline):
     fk_name = 'submission'
     fields = ['file_label', 'file', 'file_input']
     exclude = ['order']
-    verbose_name = "File Sample"
-    verbose_name_plural = "Files samples"
     classes = ('grp-collapse grp-closed', 'collapse')
 
     def has_add_permission(self, request):
@@ -260,12 +266,17 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
     exclude = ['order']
     save_on_top = True
     change_form_template = 'admin/waves/submission/change_form.html'
-    list_display = ['label', 'available_online', 'available_api', 'service_link', ]
+    list_display = ['label', 'available_online', 'available_api', 'service_link', 'runner']
     readonly_fields = ['available_online', 'available_api']
-    list_filter = ['service', 'availability']
+    list_filter = (
+        'service__name',
+        'availability'
+    )
+    search_fields = ('service__name', 'label', 'override_runner__name', 'service__runner__name')
     fieldsets = [
         ('General', {
-            'fields': ['label', 'api_name', 'availability', 'service', 'override_runner', 'available_api', 'available_online'],
+            'fields': ['label', 'api_name', 'availability', 'service', 'override_runner', 'available_api',
+                       'available_online'],
             'classes': ['collapse']
         }),
     ]
@@ -286,12 +297,6 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
         context['show_save_and_add_another'] = False
         context['show_save'] = False
         return super(ServiceSubmissionAdmin, self).add_view(request, form_url, context)
-
-    def get_inline_instances(self, request, obj=None):
-        print "in get inlines ", obj
-        if obj is None:
-            return []
-        return super(ServiceSubmissionAdmin, self).get_inline_instances(request, obj)
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         return super(ServiceSubmissionAdmin, self).change_view(request, object_id, form_url, extra_context)
@@ -316,9 +321,8 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
 
     def service_link(self, obj):
         """ Back link to related service """
-        return mark_safe('<a href="{}">{}</a>'.format(
-            reverse("admin:waves_service_change", args=(obj.service.id,)),
-            obj.service.name))
+        return mark_safe('<a class="button btn" href="{}">Edit Service</a>'.format(
+            reverse("admin:waves_service_change", args=(obj.service.id,))))
 
     service_link.short_description = "Related Service"
 

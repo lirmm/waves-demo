@@ -16,7 +16,7 @@ from shutil import rmtree
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import BaseCommand, CommandError
 from django.conf import settings
-from django.utils.six.moves import input
+# from django.utils.six.moves import input
 from django.core.urlresolvers import reverse
 from rest_framework.exceptions import ValidationError
 import waves.exceptions
@@ -25,7 +25,6 @@ from waves import const as const
 from .daemon.command import DaemonCommand
 from waves.models import Job
 from waves.models.serializers.services import ServiceSerializer
-from waves.models.serializers.runners import RunnerSerializer
 
 __all__ = ['JobQueueCommand', 'PurgeDaemonCommand', 'InitDbCommand', 'CleanUpCommand', 'ImportCommand',
            'DumpConfigCommand']
@@ -175,7 +174,7 @@ class InitDbCommand(BaseCommand):
 
     def handle(self, *args, **options):
         """ Handle InitDB command """
-        from waves.models import Service, Runner, WavesConfiguration, ServiceCategory
+        from waves.models import Service, Runner, WavesSite, ServiceCategory
         from bootstrap_themes import available_themes
         process = True
         if Service.objects.all().count() > 0 or Runner.objects.all().count() > 0:
@@ -188,7 +187,7 @@ class InitDbCommand(BaseCommand):
             ServiceCategory.objects.all().delete()
             Service.objects.all().delete()
             Runner.objects.all().delete()
-            WavesConfiguration.objects.all().delete()
+            WavesSite.objects.all().delete()
             Job.objects.all().delete()
             try:
                 self.stdout.write("Configuring WAVES site:")
@@ -205,7 +204,7 @@ class InitDbCommand(BaseCommand):
                 current_site.domain = site_url
                 current_site.name = site_name
                 current_site.save()
-                WavesConfiguration.objects.create(site=current_site, theme=available_themes[site_theme - 1][0])
+                WavesSite.objects.create(site=current_site, theme=available_themes[site_theme - 1][0])
                 self.stdout.write("... Done")
                 if boolean_input('Do you want to init your job runners ? [y/N]', False):
                     self.stdout.write('Creating runners ...')

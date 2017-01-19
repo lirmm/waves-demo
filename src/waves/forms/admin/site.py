@@ -6,11 +6,11 @@ Admin site for WAVES application configuration
 from __future__ import unicode_literals
 
 from django.forms import ModelForm
-from waves.models import WavesConfiguration
+from waves.models import WavesSite
 
 
 class SiteForm(ModelForm):
     class Meta:
-        model = WavesConfiguration
+        model = WavesSite
         fields = '__all__'
 

@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 from django.contrib import admin
 from django.contrib.admin import register
-from waves.models import WavesConfiguration
+from waves.models import WavesSite
 from django.utils.html import format_html
 from waves.forms.admin.site import SiteForm
 from django.contrib.sites.models import Site
@@ -29,7 +29,7 @@ class WavesSiteAdmin(admin.ModelAdmin):
                        'allow_submits',
                        'maintenance']
         }),
-        ('Queue', {
+        ('Job queue', {
             'fields': ['current_queue_state']
 
         })
@@ -37,11 +37,6 @@ class WavesSiteAdmin(admin.ModelAdmin):
     ]
     readonly_fields = ('current_queue_state',)
     form = SiteForm
-
-    class Media:
-        css = {
-            'screen': ('waves/css/site.css',)
-        }
 
     def current_queue_state(self, obj):
         from waves.management.waves_commands import JobQueueCommand
@@ -64,4 +59,4 @@ class WavesSiteAdmin(admin.ModelAdmin):
 
 
 admin.site.unregister(Site)
-admin.site.register(WavesConfiguration, WavesSiteAdmin)
+admin.site.register(WavesSite, WavesSiteAdmin)

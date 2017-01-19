@@ -27,10 +27,9 @@ class BaseHelper(object):
                 form_field = forms.FileField(**field_dict)
         elif isinstance(service_input, BooleanParam):
             field_dict.update(dict(required=False,
-                                   initial=form.data.get(service_input.name, service_input.eval_default)))
+                                   initial=form.data.get(service_input.name, service_input.default)))
             form_field = forms.BooleanField(**field_dict)
         elif isinstance(service_input, ListParam):
-            print "choices ", service_input.choices
             field_dict.update(dict(choices=service_input.choices))
             if not service_input.multiple:
                 form_field = forms.ChoiceField(**field_dict)

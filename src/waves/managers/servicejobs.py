@@ -42,8 +42,8 @@ class ServiceJobManager(object):
                           label=service_input.label,
                           value=str(submitted_input))
         try:
-            if isinstance(service_input, FileInput) and service_input.to_outputss.filter(
-                    submission=service_input.service).exists():
+            if isinstance(service_input, FileInput) and service_input.to_outputs.filter(
+                    submission=service_input.submission).exists():
                 input_dict['value'] = normalize_value(input_dict['value'])
         except ObjectDoesNotExist:
             pass
@@ -159,6 +159,5 @@ class ServiceJobManager(object):
             logger.debug('%s', job.command_line)
             logger.debug('Expected outputs will be:')
             for j_output in job.job_outputs.all():
-                logger.debug('Output %s: %s (maybe_empty: %s)', j_output.name, j_output.value)
-
+                logger.debug('Output %s: %s (maybe_empty: %s)', j_output.name, j_output.value, j_output.optional)
         return job

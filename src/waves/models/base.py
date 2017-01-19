@@ -7,7 +7,7 @@ import uuid
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db import models
-
+from waves.models.config import WavesSite
 import waves.settings
 from waves.compat import RichTextField
 
@@ -22,7 +22,7 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
-    sites = models.ManyToManyField(Site)
+    sites = models.ManyToManyField(WavesSite)
 
 
 class TimeStamped(models.Model):
@@ -121,7 +121,7 @@ class UrlMixin(object):
         """
         path = self.get_absolute_url()
         protocol = getattr(settings, "PROTOCOL", "http")
-        domain = Site.objects.get_current().domain
+        domain = WavesSite.objects.get_current().domain
         port = getattr(settings, "PORT", "")
         if port:
             assert port.startswith(":"), "The PORT setting must have a preceeding ':'."

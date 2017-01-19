@@ -2,9 +2,8 @@
 from __future__ import unicode_literals
 
 from django.db import transaction
-from rest_framework import serializers
+from rest_framework import serializers as rest_serializer
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework.exceptions import ValidationError
 import waves.settings
 from waves.api.serializers.dynamic import DynamicFieldsModelSerializer
 from waves.api.serializers.services import ServiceSerializer as BaseServiceSerializer, \
@@ -17,13 +16,13 @@ from waves.models import *
 __all__ = ['ServiceMetaSerializer', 'ServiceSubmissionSerializer', 'ExitCodeSerializer', 'ServiceSerializer']
 
 
-class ServiceMetaSerializer(serializers.ModelSerializer):
+class ServiceMetaSerializer(rest_serializer.ModelSerializer):
     class Meta:
         model = ServiceMeta
         fields = ('type', 'title', 'value', 'is_url', 'order')
 
 
-class RelatedInputSerializer(serializers.ModelSerializer):
+class RelatedInputSerializer(rest_serializer.ModelSerializer):
     """ Serialize a RelatedParam """
 
     class Meta:
@@ -72,7 +71,7 @@ class ServiceSubmissionSerializer(BaseServiceSubmissionSerializer, RelatedSerial
         return submission
 
 
-class ExitCodeSerializer(serializers.ModelSerializer):
+class ExitCodeSerializer(rest_serializer.ModelSerializer):
     """ ExitCode export / import """
 
     class Meta:
@@ -80,7 +79,7 @@ class ExitCodeSerializer(serializers.ModelSerializer):
         fields = ('exit_code', 'message')
 
 
-class SubmissionOutputSerializer(serializers.ModelSerializer):
+class SubmissionOutputSerializer(rest_serializer.ModelSerializer):
     class Meta:
         model = Submission
         fields = ('api_name',)
@@ -89,7 +88,7 @@ class SubmissionOutputSerializer(serializers.ModelSerializer):
         return Submission(api_name=validated_data.get('api_name'))
 
 
-class ServiceOutputSerializer(serializers.ModelSerializer):
+class ServiceOutputSerializer(rest_serializer.ModelSerializer):
     class Meta:
         model = SubmissionOutput
         fields = ('order', 'name', 'from_input', 'ext', 'optional', 'description',
@@ -110,13 +109,13 @@ class ServiceOutputSerializer(serializers.ModelSerializer):
         return obj
 
 
-class ServiceTmpSerializer(serializers.ModelSerializer):
+class ServiceTmpSerializer(rest_serializer.ModelSerializer):
     class Meta:
         model = Service
         fields = ('name',)
 
 
-class ServiceRunnerParamSerializer(serializers.ModelSerializer):
+class ServiceRunnerParamSerializer(rest_serializer.ModelSerializer):
     class Meta:
         model = SubmissionRunParam
         fields = ('param', '_value', 'service')
@@ -142,7 +141,7 @@ class ServiceSerializer(BaseServiceSerializer, RelatedSerializerMixin):
         fields = ('db_version', 'name', 'version', 'description', 'short_description', 'metas', 'runner', 'category',
                   'srv_run_params', 'submissions', 'service_outputs', 'exit_codes')
 
-    db_version = serializers.SerializerMethodField()
+    db_version = rest_serializer.SerializerMethodField()
     metas = ServiceMetaSerializer(many=True, required=False)
     submissions = ServiceSubmissionSerializer(many=True, required=False)
     exit_codes = ExitCodeSerializer(many=True, required=False)

@@ -36,6 +36,7 @@ class RepeatedGroup(DTOMixin, Ordered):
 
 class BaseParam(PolymorphicModel):
     """ Base class for services submission params """
+
     class Meta:
         ordering = ['order']
         unique_together = ('name', 'default', 'submission')
@@ -80,6 +81,11 @@ class BaseParam(PolymorphicModel):
     class_label = "Basic"
 
     @property
+    def type(self):
+        """ Backward compatibility with old property """
+        return self.param_type
+
+    @property
     def param_type(self):
         return waves.const.TYPE_TEXT
 
@@ -89,20 +95,34 @@ class BaseParam(PolymorphicModel):
         super(BaseParam, self).save(*args, **kwargs)
 
     def clean(self):
-        if self.required is None and not self.default:
+        if self.required is False and not self.default:
             # param is mandatory
             raise ValidationError('Not displayed parameters must have a default value %s:%s' % (self.name, self.label))
-            # TODO add mode base controls
+        if self.related_to and not self.when_value:
+            raise ValidationError({'when_value': 'If you set a dependency, you must set this value'})
+        if (isinstance(self.related_to, BooleanParam) or isinstance(self.related_to, ListParam)) \
+                and self.when_value not in self.related_to.values:
+            raise ValidationError({'when_value': 'This value is not possible for related input [%s]' % ', '.join(
+                self.related_to.values)})
+        for dep in self.dependents_inputs.all():
+            if isinstance(self, ListParam) or isinstance(self, BooleanParam) and dep.when_value not in self.values:
+                raise ValidationError('Input "%s" depends on missing value: \'%s\'  ' % (dep.label, dep.when_value))
 
     def __str__(self):
         return self.name
 
+    @property
+    def mandatory(self):
+        return self.required == True
+
 
 class TextParam(BaseParam):
     """ Standard text input """
+
     class Meta:
         proxy = True
         verbose_name = "Text input"
+
     class_label = "Text input"
 
 
@@ -115,6 +135,23 @@ class BooleanParam(BaseParam):
     @property
     def param_type(self):
         return waves.const.TYPE_BOOLEAN
+
+    @property
+    def choices(self):
+        try:
+            return [(None, '----'),
+                    (self.true_value, True),
+                    (self.false_value, False)]
+        except ValueError:
+            raise RuntimeError('Wrong list element format')
+
+    @property
+    def labels(self):
+        return []
+
+    @property
+    def values(self):
+        return [self.true_value, self.false_value]
 
 
 class DecimalParam(BaseParam):
@@ -130,12 +167,21 @@ class DecimalParam(BaseParam):
     def param_type(self):
         return waves.const.TYPE_DECIMAL
 
+    def clean(self):
+        super(DecimalParam, self).clean()
+        if self.min_val > self.max_val:
+            raise ValidationError({'min_val': 'Minimum value can\'t exceed maximum value'})
+        elif self.min_val == self.max_val:
+            raise ValidationError({'min_val': 'Minimum value can\'t equal maximum value'})
+
 
 class IntegerParam(BaseParam):
     """ Integer param """
+
     # TODO add specific validator
     class Meta:
         verbose_name = "Integer input"
+
     class_label = "Integer"
     min_val = models.IntegerField('Min value', default=0, null=True, blank=True,
                                   help_text="Leave blank if no min")
@@ -146,9 +192,18 @@ class IntegerParam(BaseParam):
     def param_type(self):
         return waves.const.TYPE_INT
 
+    def clean(self):
+        super(IntegerParam, self).clean()
+        if self.min_val and self.max_val:
+            if self.min_val > self.max_val:
+                raise ValidationError({'min_val': 'Minimum value can\'t exceed maximum value'})
+            elif self.min_val == self.max_val:
+                raise ValidationError({'min_val': 'Minimum value can\'t equal maximum value'})
+
 
 class RelatedParam(BaseParam):
     """ Proxy class for related params (dependents on other params) """
+
     class Meta:
         proxy = True
 
@@ -172,11 +227,15 @@ class ListParam(BaseParam):
             raise ValidationError('You can\'t use radio with multiple choices available')
         elif self.list_mode == waves.const.DISPLAY_CHECKBOX and not self.multiple:
             raise ValidationError('You can\'t use checkboxes with non multiple choices enabled')
+        if self.default and self.default not in self.values:
+            raise ValidationError(
+                {'default': 'Default value "%s" is not present in list [%s]' % (self.default, ', '.join(self.values))})
 
     @property
     def choices(self):
         try:
-            return list([(line.split('|')[1], line.split('|')[0]) for line in self.list_elements.splitlines()])
+            return [(None, '----')] + \
+                   [(line.split('|')[1], line.split('|')[0]) for line in self.list_elements.splitlines()]
         except ValueError:
             raise RuntimeError('Wrong list element format')
 
@@ -184,15 +243,25 @@ class ListParam(BaseParam):
     def param_type(self):
         return waves.const.TYPE_LIST
 
+    @property
+    def labels(self):
+        return [line.split('|')[0] for line in self.list_elements.splitlines()]
+
+    @property
+    def values(self):
+        return [line.split('|')[1] for line in self.list_elements.splitlines()]
+
 
 class FileInput(BaseParam):
     """ Submission file inputs """
+
     class Meta:
         db_table = 'waves_service_file'
         ordering = ['order', ]
+
     class_label = "File Input"
 
-    max_size = models.BigIntegerField('Maximum allowed file size ', default=None,  help_text="in Ko")
+    max_size = models.BigIntegerField('Maximum allowed file size ', default=None, help_text="in Ko")
     allowed_extensions = models.CharField('Filter by extensions', max_length=255,
                                           help_text="Comma separated list, * means no filter",
                                           default="*",
@@ -207,6 +276,10 @@ class FileInput(BaseParam):
 
 
 class FileInputSample(Ordered):
+    class Meta:
+        verbose_name_plural = "File samples"
+        verbose_name = "File sample"
+
     """ Any file input can provide samples """
     file = models.FileField('Sample file', upload_to=file_sample_directory, storage=waves_storage, blank=False,
                             null=False)
@@ -223,13 +296,22 @@ class FileInputSample(Ordered):
     def __str__(self):
         return self.name
 
+
 class SampleDepParam(models.Model):
     """ When a file sample is selected, some params may be set accordingly. This class represent this behaviour"""
 
     class Meta:
         db_table = 'waves_sample_dependent_input'
+        verbose_name_plural = "Sample dependencies"
+        verbose_name = "Sample dependency"
 
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='sample_dependent_params')
     sample = models.ForeignKey(FileInputSample, on_delete=models.CASCADE, related_name='dependent_inputs')
     related_to = models.ForeignKey(BaseParam, on_delete=models.CASCADE, related_name='related_samples')
     set_default = models.CharField('Set value to ', max_length=200, null=False, blank=False)
+
+    def clean(self):
+        if (isinstance(self.related_to, BooleanParam) or isinstance(self.related_to, ListParam)) \
+                and self.set_default not in self.related_to.values:
+            raise ValidationError({'set_default': 'This value is not possible for related input [%s]' % ', '.join(
+                self.related_to.values)})
