@@ -152,3 +152,7 @@ ul.errorlist {
     background: #e75e40;
     color: #fff;
 }
+td ul.errorlist {
+    border-radius: 6px !important;
+    padding: 10px !important;
+}

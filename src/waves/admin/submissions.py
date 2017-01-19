@@ -111,7 +111,7 @@ class InputInlineForm(forms.ModelForm):
 class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
     model = BaseParam
     form = InputInlineForm
-    fields = ['class_label', 'label', 'name', 'required', 'default', ]
+    fields = ['class_label', 'label', 'name', 'required', 'default', 'order']
     readonly_fields = ['class_label']
     classes = ('grp-collapse', 'grp-closed', 'collapse', 'show-change-link-popup')
     verbose_name_plural = "Inputs"
@@ -121,6 +121,9 @@ class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
     show_change_link = True
 
     def class_label(self, obj):
+
+        # if obj.related_to:
+        #    return "-- %s (%s)" % (obj.class_label, obj.related_to.label)
         return obj.class_label
 
     class_label.short_description = "Input type"
@@ -129,6 +132,7 @@ class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
         return False
 
     def get_queryset(self, request):
+        # TODO order fields according to related also (display first level items just followed by their dependents)
         return BaseParam.objects.all()
 
 
@@ -253,9 +257,8 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
 
     inlines = [
         SubmissionRunnerParamInLine,
-        # SubmitInputsInline,
         OrganizeInputInline,
-        OrgRepeatGroupInline,
+        # OrgRepeatGroupInline,
         ExitCodeInline,
         ServiceOutputInline,
         FileInputSampleInline,

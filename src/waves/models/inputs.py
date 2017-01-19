@@ -105,7 +105,7 @@ class BaseParam(PolymorphicModel):
             raise ValidationError({'when_value': 'This value is not possible for related input [%s]' % ', '.join(
                 self.related_to.values)})
         for dep in self.dependents_inputs.all():
-            if isinstance(self, ListParam) or isinstance(self, BooleanParam) and dep.when_value not in self.values:
+            if (isinstance(self, ListParam) or isinstance(self, BooleanParam)) and dep.when_value not in self.values:
                 raise ValidationError('Input "%s" depends on missing value: \'%s\'  ' % (dep.label, dep.when_value))
 
     def __str__(self):

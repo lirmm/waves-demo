@@ -30,10 +30,17 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
             'classes': ['collapse']
         }),
         ('Dependencies', {
-            'fields': ('related_to', 'when_value', 'repeat_group'),
+            'fields': ('related_to', 'when_value'),
             'classes': ['collapse']
         }),
     )
+    # TODO NEXT VERSION
+    """
+    ('Grouping', {
+        'fields': ('repeat_group',),
+        'classes': ['collapse']
+    })
+    """
     readonly_fields = []
     _object = None
 
@@ -82,9 +89,9 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
         form.base_fields['related_to'].widget.can_change_related = False
         form.base_fields['related_to'].widget.can_delete_related = False
         # TODO reactivate repeat_group management from inside inputs
-        form.base_fields['repeat_group'].widget.can_add_related = False
-        form.base_fields['repeat_group'].widget.can_change_related = False
-        form.base_fields['repeat_group'].widget.can_delete_related = False
+        # form.base_fields['repeat_group'].widget.can_add_related = False
+        # form.base_fields['repeat_group'].widget.can_change_related = False
+        # form.base_fields['repeat_group'].widget.can_delete_related = False
         form.base_fields['submission'].widget = forms.HiddenInput()
         if request.submission or (obj and obj.submission):
             form.base_fields['submission'].initial = request.submission.pk if request.submission else obj.submission.pk
@@ -150,7 +157,6 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
 @admin.register(FileInput)
 class FileInputAdmin(BaseParamAdmin):
     base_model = FileInput
-    # fields = ('allowed_extensions', 'max_size')
     show_in_index = False
     extra_fieldset_title = 'File params'
 
