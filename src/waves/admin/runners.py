@@ -3,17 +3,16 @@ Admin pages for Runner and RunnerParam models objects
 """
 from __future__ import unicode_literals
 
-from django.contrib import admin
-from django.contrib.admin import register
 from django.contrib import messages
-from django.contrib.admin import TabularInline
+from django.contrib.admin import register
 from django.contrib.admin.options import IS_POPUP_VAR
 from django.contrib.contenttypes.admin import GenericTabularInline
-from waves.forms.admin import RunnerParamForm, RunnerForm
-from waves.models import RunnerInitParam, Runner, Job
-from base import ExportInMassMixin, MarkPublicInMassMixin
-from waves.admin.base import WavesModelAdmin
+
 import waves.const
+from base import ExportInMassMixin
+from waves.admin.base import WavesModelAdmin
+from waves.admin.forms.runners import RunnerParamForm, RunnerForm
+from waves.models import RunnerInitParam, Runner
 __all__ = ['RunnerAdmin']
 
 

@@ -26,7 +26,7 @@ class WavesBaseContextMixin(generic.base.ContextMixin):
     """ Uses of css_theme in templates """
     def get_context_data(self, **kwargs):
         context = super(WavesBaseContextMixin, self).get_context_data(**kwargs)
-        context['css_theme'] = css_theme(self.request)
+        # context['css_theme'] = css_theme(self.request)
         return context
 
 

@@ -6,52 +6,36 @@ import logging
 import os
 from os.path import join
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
-from django.conf import settings
 from django.db import models
 from django.utils.html import format_html
-
 from waves.adaptors.exceptions import AdaptorException
+
 import waves.const
 import waves.settings
 from waves.exceptions import WavesException
 from waves.exceptions.jobs import JobInconsistentStateError, JobRunException
 from waves.models import TimeStamped, Slugged, Ordered, UrlMixin
 from waves.models.adaptors import DTOMixin, AdaptorInitParam
-from waves.models.submissions import Submission
 from waves.models.managers.jobs import *
+from waves.models.submissions import Submission
+from waves.utils.jobs import default_run_details
+from waves.utils.storage import allow_display_online
 
 __license__ = "MIT"
 __revision__ = " $Id: actor.py 1586 2009-01-30 15:56:25Z cokelaer $ "
 __docformat__ = 'reStructuredText'
 
 logger = logging.getLogger(__name__)
-__all__ = ['allow_display_online', 'Job', 'JobInput', 'JobOutput', 'JobHistory', 'JobAdminHistory']
-
-
-def default_run_details(job):
-    return waves.const.JobRunDetails(job.id, str(job.slug), job.remote_job_id, job.title, job.exit_code, job.created,
-                                     '', '', '')
-
-
-def allow_display_online(file_name):
-    """
-    Determine if current 'input' or 'output' may be displayed online, maximum file size is set to '1Mo'
-    :param file_name: file name to test for size
-    :return: bool
-    """
-    display_file_online = 1024 * 1024 * 1
-    try:
-        return os.path.getsize(file_name) <= display_file_online
-    except os.error:
-        return False
-    return False
+__all__ = ['Job', 'JobInput', 'JobOutput', 'JobHistory', 'JobAdminHistory']
 
 
 class JobRunParams(AdaptorInitParam):
     """ Saved configuration for job runs """
-    job = models.ForeignKey('Job', related_name='job_run_params', on_delete=models.CASCADE)
+    class Meta:
+        proxy = True
 
 
 class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):

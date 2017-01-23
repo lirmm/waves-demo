@@ -5,9 +5,9 @@ from django.contrib.admin import TabularInline
 from django.db.models import Q
 
 import waves.const as const
-from waves.forms.admin import JobInputForm, JobOutputForm, JobForm
-from waves.models.jobs import *
 from waves.admin.base import WavesModelAdmin
+from waves.admin.forms.jobs import JobInputForm, JobOutputForm, JobForm
+from waves.models.jobs import *
 
 __all__ = ['JobAdmin']
 

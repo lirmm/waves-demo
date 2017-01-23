@@ -6,18 +6,12 @@ from __future__ import unicode_literals
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field
 from django import forms
-from django.core import validators
-from django.core.exceptions import ValidationError
-from django.forms import ModelForm, Textarea, TextInput
-
-import waves.const as const
 import waves.settings
 from waves.commands import get_commands_impl_list
-from waves.models.metas import ServiceMeta
+from waves.models import BooleanParam, ListParam, FileInput, TextParam
 from waves.models.services import *
-from waves.models.submissions import SubmissionRunParam
 
-__all__ = ['ServiceForm', 'ServiceCategoryForm', 'ImportForm', 'ServiceMetaForm', 'ServiceRunnerParamForm']
+__all__ = ['ServiceForm', 'ImportForm', 'ServiceMetaForm']
 
 
 class ImportForm(forms.Form):
@@ -48,29 +42,6 @@ class ImportForm(forms.Form):
             Field('tool'),
         )
         self.helper.disable_csrf = True
-
-
-class ServiceMetaForm(forms.ModelForm):
-    """
-    A ServiceMeta form part for inline insertion
-    """
-
-    class Meta:
-        # exclude = ['id']
-        model = ServiceMeta
-        fields = '__all__'
-
-    description = forms.CharField(widget=Textarea(attrs={'rows': 3, 'class': 'input-xlarge'}), required=False)
-
-    def clean(self):
-        try:
-            validator = validators.URLValidator()
-            validator(self.cleaned_data['value'])
-            self.instance.is_url = True
-        except ValidationError as e:
-            if self.instance.type in (const.META_WEBSITE, const.META_DOC, const.META_DOWNLOAD):
-                raise e
-        return super(ServiceMetaForm, self).clean()
 
 
 class ServiceForm(forms.ModelForm):
@@ -104,19 +75,37 @@ class ServiceForm(forms.ModelForm):
             return self.cleaned_data.get('email_on')
 
 
-class ServiceRunnerParamForm(ModelForm):
+class SampleDepForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(SampleDepForm, self).__init__(*args, **kwargs)
+        self.fields['related_to'].widget.can_delete_related = False
+        self.fields['related_to'].widget.can_add_related = False
+        self.fields['related_to'].widget.can_change_related = False
+
+
+class InputInlineForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(InputInlineForm, self).__init__(*args, **kwargs)
+        if isinstance(self.instance, BooleanParam) or isinstance(self.instance, ListParam):
+            self.fields['default'] = forms.ChoiceField(choices=self.instance.choices)
+            self.fields['default'].required = False
+        elif isinstance(self.instance, FileInput):
+            self.fields['default'].widget.attrs['disabled'] = True
+
+
+class TextParamForm(forms.ModelForm):
     class Meta:
-        model = SubmissionRunParam
-        fields = '__all__'
-        widgets = {
-            'value': TextInput(attrs={'size': 50})
-        }
+        model = TextParam
+        exclude = ['order']
 
-    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None, initial=None, **kwargs):
-        super(ServiceRunnerParamForm, self).__init__(data, files, auto_id, prefix, initial, **kwargs)
+    def save(self, commit=True):
+        self.instance.__class__ = TextParam
+        return super(TextParamForm, self).save(commit)
 
 
-class ServiceCategoryForm(ModelForm):
-    class Meta:
-        model = ServiceCategory
-        fields = '__all__'
+class InputSampleForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(InputSampleForm, self).__init__(*args, **kwargs)
+        self.fields['file_input'].widget.can_delete_related = False
+        self.fields['file_input'].widget.can_add_related = False
+        self.fields['file_input'].widget.can_change_related = False

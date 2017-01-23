@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 from django.db import models
 import waves.const
+from django.core import validators
+from django.core.exceptions import ValidationError
 from waves.models import Ordered, Described, Service
 __all__ = ['ServiceMeta']
 
@@ -34,3 +36,12 @@ class ServiceMeta(Ordered, Described):
 
     def __str__(self):
         return '%s [%s]' % (self.title, self.type)
+
+    def clean(self):
+        try:
+            validator = validators.URLValidator()
+            validator(self.cleaned_data['value'])
+            self.instance.is_url = True
+        except ValidationError as e:
+            if self.instance.type in (waves.const.META_WEBSITE, waves.const.META_DOC, waves.const.META_DOWNLOAD):
+                raise e

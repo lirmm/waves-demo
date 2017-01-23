@@ -1,10 +1,11 @@
 from __future__ import unicode_literals
+
 from crispy_forms.helper import FormHelper as BaseFormHelper
 from crispy_forms.layout import *
-from waves.forms.lib import BaseHelper
 from crispy_forms.utils import get_template_pack
+
 from waves.models.inputs import *
-import waves.const as const
+from waves.views.forms.lib import BaseHelper
 
 if 'bootstrap' in get_template_pack():
     from crispy_forms.bootstrap import *

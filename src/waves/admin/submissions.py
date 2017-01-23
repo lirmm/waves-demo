@@ -1,18 +1,18 @@
 """ Service Submission administration classes """
 from __future__ import unicode_literals
 
+from adminsortable2.admin import SortableInlineAdminMixin
 from django.contrib import admin
-from django.contrib.admin import TabularInline
+from django.contrib.contenttypes.admin import GenericTabularInline
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from django.contrib.contenttypes.admin import GenericTabularInline
-from django import forms
-from waves.admin.base import WavesModelAdmin
-from waves.compat import CompactInline
-from waves.models.submissions import *
-from waves.models.inputs import *
-from adminsortable2.admin import SortableInlineAdminMixin
 from polymorphic.admin import PolymorphicInlineSupportMixin, StackedPolymorphicInline
+
+from waves.admin.base import WavesModelAdmin
+from waves.admin.forms.services import SampleDepForm, InputInlineForm, TextParamForm, InputSampleForm
+from waves.compat import CompactInline
+from waves.models.inputs import *
+from waves.models.submissions import *
 
 
 class SubmissionRunnerParamInLine(GenericTabularInline):
@@ -58,14 +58,6 @@ class ServiceOutputInline(CompactInline):
         return super(ServiceOutputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class SampleDepForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(SampleDepForm, self).__init__(*args, **kwargs)
-        self.fields['related_to'].widget.can_delete_related = False
-        self.fields['related_to'].widget.can_add_related = False
-        self.fields['related_to'].widget.can_change_related = False
-
-
 class SampleDependentInputInline(CompactInline):
     model = SampleDepParam
     form = SampleDepForm
@@ -91,16 +83,6 @@ class ExitCodeInline(admin.TabularInline):
     is_nested = False
     classes = ('grp-collapse grp-closed', 'collapse')
     sortable_options = []
-
-
-class InputInlineForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(InputInlineForm, self).__init__(*args, **kwargs)
-        if isinstance(self.instance, BooleanParam) or isinstance(self.instance, ListParam):
-            self.fields['default'] = forms.ChoiceField(choices=self.instance.choices)
-            self.fields['default'].required = False
-        elif isinstance(self.instance, FileInput):
-            self.fields['default'].widget.attrs['disabled'] = True
 
 
 class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
@@ -140,16 +122,6 @@ class PolymorphicInputInlineChild(StackedPolymorphicInline.Child):
     def get_fields(self, request, obj=None):
         # TODO only use required fields
         return super(PolymorphicInputInlineChild, self).get_fields(request, obj)
-
-
-class TextParamForm(forms.ModelForm):
-    class Meta:
-        model = TextParam
-        exclude = ['order']
-
-    def save(self, commit=True):
-        self.instance.__class__ = TextParam
-        return super(TextParamForm, self).save(commit)
 
 
 class SubmitInputsInline(StackedPolymorphicInline):
@@ -206,14 +178,6 @@ class SubmitInputsInline(StackedPolymorphicInline):
 
     def __init__(self, parent_model, admin_site):
         super(SubmitInputsInline, self).__init__(parent_model, admin_site)
-
-
-class InputSampleForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(InputSampleForm, self).__init__(*args, **kwargs)
-        self.fields['file_input'].widget.can_delete_related = False
-        self.fields['file_input'].widget.can_add_related = False
-        self.fields['file_input'].widget.can_change_related = False
 
 
 class FileInputSampleInline(CompactInline):

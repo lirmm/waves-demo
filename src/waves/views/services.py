@@ -1,19 +1,21 @@
 from __future__ import unicode_literals
-import logging
 
-from django.core.urlresolvers import reverse
-from django.views import generic
-from django.db.models import Prefetch
-from django.contrib import messages
+import logging
 from uuid import UUID
+
+from django.contrib import messages
+from django.core.urlresolvers import reverse
+from django.db.models import Prefetch
+from django.views import generic
+
 import waves.const as const
-from waves.forms.services import ServiceSubmissionForm
+from base import WavesBaseContextMixin
 from waves.exceptions.jobs import JobException
+from waves.managers.servicejobs import ServiceJobManager
 from waves.models import ServiceCategory, Service
 from waves.models.submissions import Submission
+from waves.views.forms.services import ServiceSubmissionForm
 from waves.views.jobs import logger
-from waves.managers.servicejobs import ServiceJobManager
-from base import WavesBaseContextMixin
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,5 @@
 <li>
-    <a type="button" href="{% url 'waves-admin:waves_service_change' original.service.id %}"
+    <a type="button" href="{% url 'admin:waves_service_change' original.service.id %}"
        title="View online"
        class="btn btn-high btn-info"
        id="view_service">
@@ -7,7 +7,7 @@
     </a>
 </li>
 <li>
-    <a type="button" href="{% url 'waves-admin:job_details' original.slug %}"
+    <a type="button" href="{% url 'waves:job_details' original.slug %}"
        title="View online"
        class="btn btn-high btn-info"
        id="view_online">

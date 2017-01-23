@@ -1,19 +1,18 @@
 from __future__ import unicode_literals
 
+from django.contrib.auth import get_user_model
 from django.template.defaultfilters import truncatechars
 from mptt.admin import MPTTModelAdmin
 
 from base import ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin
-from django.contrib.contenttypes.admin import GenericTabularInline
-
 from waves.admin.submissions import *
 from waves.compat import CompactInline
-from django.contrib.auth import get_user_model
-from waves.forms.admin.services import *
 from waves.models.adaptors import AdaptorInitParam
-from waves.models.services import *
 from waves.models.metas import *
+from waves.admin.forms.services import ServiceForm
+from waves.models.services import *
 from waves.models.submissions import *
+
 
 User = get_user_model()
 
@@ -22,7 +21,7 @@ __all__ = ['ServiceAdmin', 'ServiceCategoryAdmin']
 
 class ServiceMetaInline(CompactInline):
     model = ServiceMeta
-    form = ServiceMetaForm
+    # form = ServiceMetaForm
     exclude = ['order',]
     extra = 0
     suit_classes = 'suit-tab suit-tab-metas'
@@ -167,7 +166,6 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
 @admin.register(ServiceCategory)
 class ServiceCategoryAdmin(MPTTModelAdmin):
     """ Model admin for ServiceCategory model objects"""
-    form = ServiceCategoryForm
     list_display = ('name', 'parent', 'api_name', 'short', 'ref')
     sortable_field_name = 'order'
     mptt_indent_field = 'name'

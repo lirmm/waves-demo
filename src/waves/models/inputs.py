@@ -160,6 +160,7 @@ class BooleanParam(BaseParam):
 
 
 class NumberParam(BaseParam):
+    """ Abstract Base class for 'number' validation """
     class Meta:
         abstract = True
 
@@ -280,12 +281,13 @@ class FileInput(BaseParam):
 
 
 class FileInputSample(AParam):
+    """ Any file input can provide samples """
+
     class Meta:
         verbose_name_plural = "File samples"
         verbose_name = "File sample"
 
     class_label = "File Input Sample"
-    """ Any file input can provide samples """
     file = models.FileField('Sample file', upload_to=file_sample_directory, storage=waves_storage, blank=False,
                             null=False)
     file_input = models.ForeignKey(FileInput, on_delete=models.CASCADE, related_name='input_samples')
@@ -298,6 +300,10 @@ class FileInputSample(AParam):
         self.name = self.file_input.name
         self.required = None
         super(FileInputSample, self).save_base(*args, **kwargs)
+
+    @property
+    def param_type(self):
+        return waves.const.TYPE_FILE
 
 
 class SampleDepParam(models.Model):

@@ -10,10 +10,10 @@
     <meta name="author" content="Marc Chakiachvili"/>
     <link rel="shortcut icon" href="{% static 'waves/ico/favicon.ico' %}" type="image/x-icon"/>
 
-    <title>{% block title %} :: {% include "_brandname.html" %} :: {% endblock %}</title>
+    <title>{% block title %} :: {{ css_theme }} {% include "_brandname.html" %} :: {% endblock %}</title>
 
     <!-- Bootstrap core CSS -->
-    {% bootstrap_styles theme=css_theme type='css' %}
+    {% bootstrap_styles theme=css_theme type='min.css' %}
     <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
     <!-- Custom styles for this site -->
     {% block styles %}

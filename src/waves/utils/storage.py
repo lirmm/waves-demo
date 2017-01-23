@@ -1,6 +1,8 @@
 """ WAVES Files storage engine parameters """
 from __future__ import unicode_literals
 
+import os
+
 from django.core.files.storage import FileSystemStorage
 
 import waves.settings
@@ -27,3 +29,15 @@ def job_file_directory(instance, filename):
 waves_storage = WavesStorage()
 
 
+def allow_display_online(file_name):
+    """
+    Determine if current 'input' or 'output' may be displayed online, maximum file size is set to '1Mo'
+    :param file_name: file name to test for size
+    :return: bool
+    """
+    display_file_online = 1024 * 1024 * 1
+    try:
+        return os.path.getsize(file_name) <= display_file_online
+    except os.error:
+        return False
+    return False

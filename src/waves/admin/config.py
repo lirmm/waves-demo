@@ -3,11 +3,9 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
-from django.contrib.admin import register
-from waves.models import WavesSite
 from django.utils.html import format_html
-from waves.forms.admin.site import SiteForm
-from django.contrib.sites.models import Site
+
+from waves.models import WavesSite
 
 __all__ = ['WavesSiteAdmin']
 
