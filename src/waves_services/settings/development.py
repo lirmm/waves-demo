@@ -84,3 +84,8 @@ WAVES_TEST_SSH_PUB_KEY = env.str('WAVES_TEST_SSH_PUB_KEY', default='path-to-ssh-
 WAVES_TEST_SSH_PRI_KEY = env.str('WAVES_TEST_SSH_PRI_KEY', default='path-to-ssh-user-private-key')
 WAVES_TEST_SSH_PASS_KEY = env.str('WAVES_TEST_SSH_PASS_KEY', default='your-test-ssh-user-key-pass-phrase')
 WAVES_ADAPTORS_MODS = env.list('WAVES_ADAPTORS_MODS')
+
+REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
+    'rest_framework.permissions.AllowAny',
+]
+REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = []

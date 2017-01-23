@@ -3,6 +3,7 @@ import copy
 from django import forms
 from django.utils.module_loading import import_string
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from multiupload.fields import MultiFileField
 from waves.models.inputs import *
 from waves.models.submissions import Submission
 from waves.utils.validators import ServiceInputValidator
@@ -30,28 +31,71 @@ class ServiceSubmissionForm(forms.ModelForm):
         # print 'Is Bound', self.is_bound
         self.helper = self.get_helper(form_tag=True)
         self.helper.init_layout(fields=('title', 'email', 'slug'))
+        # Always add "title" / "slug" to submitted jobs
         self.fields['title'].initial = 'my %s job' % self.instance.service.name
         self.fields['slug'].initial = str(self.instance.slug)
-        self.list_inputs = list(self.instance.submission_inputs.exclude(required=False).order_by('-required', 'order'))
+        self.list_inputs = list(self.instance.expected_inputs.order_by('-required', 'order'))
         extra_fields = []
         for service_input in self.list_inputs:
-            assert isinstance(service_input, BaseParam)
+            assert isinstance(service_input, AParam)
             if isinstance(service_input, FileInput) and not service_input.multiple:
-                extra_fields.append(self._create_copy_paste_field(service_input))
-                extra_fields.extend(self._create_sample_fields(service_input))
+                pass
+                # extra_fields.append(self._create_copy_paste_field(service_input))
+                # extra_fields.extend(self._create_sample_fields(service_input))
 
-            self.helper.set_field(service_input, self)
+            self.add_field(service_input)
             self.helper.set_layout(service_input, self)
             for dependent_input in service_input.dependents_inputs.exclude(required=False):
                 # conditional parameters must not be required to use classic django form validation process
                 dependent_input.required = False
                 if dependent_input.param_type == waves.const.TYPE_FILE and not dependent_input.multiple:
                     extra_fields.append(self._create_copy_paste_field(dependent_input))
-                self.helper.set_field(dependent_input, self)
+                self.add_field(dependent_input, self)
                 self.helper.set_layout(dependent_input, self)
                 # extra_fields.append(dependent_input)
         self.list_inputs.extend(extra_fields)
         self.helper.end_layout()
+
+    def add_field(self, service_input):
+        assert isinstance(service_input, AParam)
+        field_dict = dict(
+            label=service_input.label,
+            required=service_input.required is True,
+            help_text=service_input.help_text,
+            initial=self.data.get(service_input.name)
+        )
+        field_name = service_input.name
+        if isinstance(service_input, FileInput):
+            field_dict.update(dict(allow_empty_file=False, required=False))
+            if service_input.multiple:
+                field_dict.update(dict(min_num=1, max_file_size=waves.settings.WAVES_UPLOAD_MAX_SIZE))
+                form_field = MultiFileField(**field_dict)
+            else:
+                form_field = forms.FileField(**field_dict)
+        elif isinstance(service_input, BooleanParam):
+            field_dict.update(dict(required=False))
+            form_field = forms.BooleanField(**field_dict)
+        elif isinstance(service_input, ListParam):
+            field_dict.update(dict(choices=service_input.choices))
+            if not service_input.multiple:
+                form_field = forms.ChoiceField(**field_dict)
+                if service_input.list_mode == waves.const.DISPLAY_RADIO:
+                    form_field.widget = forms.RadioSelect()
+            else:
+                form_field = forms.MultipleChoiceField(**field_dict)
+                if service_input.list_mode == waves.const.DISPLAY_CHECKBOX:
+                    form_field.widget = forms.CheckboxSelectMultiple()
+            form_field.css_class = 'text-left'
+        elif isinstance(service_input, IntegerParam) or isinstance(service_input, DecimalParam):
+            field_dict.update(dict(min_value=service_input.min_val,
+                                   max_value=service_input.max_val))
+            form_field = forms.IntegerField(**field_dict)
+        elif isinstance(service_input, FileInputSample):
+            form_field = forms.BooleanField(**field_dict)
+            field_name = 'sp_%s_%s' % (service_input.name, service_input.pk)
+        else:
+            form_field = forms.CharField(**field_dict)
+        self.fields[field_name] = form_field
 
     @staticmethod
     def get_helper(**kwargs):
@@ -70,7 +114,7 @@ class ServiceSubmissionForm(forms.ModelForm):
         cp_service.description = ''
         cp_service.required = False
         cp_service.name = 'cp_' + service_input.name
-        self.helper.set_field(cp_service, self)
+        self.helper.add_field(cp_service, self)
         self.fields[cp_service.name].widget = forms.Textarea(attrs={'cols': 20, 'rows': 10})
         return cp_service
 
@@ -78,15 +122,17 @@ class ServiceSubmissionForm(forms.ModelForm):
         extra_fields = []
         if service_input.input_samples.count() > 0:
             for input_sample in service_input.input_samples.all():
-                sample_field = copy.copy(service_input)
-                sample_field.label = "SubmissionSample: " + input_sample.name
+                # sample_field = forms.ChoiceField()
+                """
+                sample_field.label = "Sample: " + input_sample.name
                 sample_field.value = input_sample.file.name
                 sample_field.name = 'sp_' + service_input.name + '_' + str(input_sample.pk)
                 sample_field.description = ''
                 sample_field.required = False
                 extra_fields.append(sample_field)
-                self.helper.set_field(sample_field, self)
-                self.fields[sample_field.name].initial = False
+                """
+                self.helper.add_field(input_sample, self)
+                self.fields['sp_' + service_input.name + '_' + str(input_sample.pk)].initial = False
         return extra_fields
 
     def clean(self):

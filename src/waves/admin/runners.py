@@ -7,6 +7,7 @@ from django.contrib import admin
 from django.contrib.admin import register
 from django.contrib import messages
 from django.contrib.admin import TabularInline
+from django.contrib.admin.options import IS_POPUP_VAR
 from django.contrib.contenttypes.admin import GenericTabularInline
 from waves.forms.admin import RunnerParamForm, RunnerForm
 from waves.models import RunnerInitParam, Runner, Job
@@ -59,9 +60,9 @@ class RunnerAdmin(ExportInMassMixin, WavesModelAdmin):
 
     def add_view(self, request, form_url='', extra_context=None):
         context = extra_context or {}
-        context['show_save_as_new'] = False
+        context['show_save_as_new'] = IS_POPUP_VAR in request.GET
         context['show_save_and_add_another'] = False
-        context['show_save'] = False
+        context['show_save'] = IS_POPUP_VAR in request.GET
         return super(RunnerAdmin, self).add_view(request, form_url, context)
 
 

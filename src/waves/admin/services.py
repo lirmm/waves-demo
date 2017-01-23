@@ -91,18 +91,22 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
     form = ServiceForm
     filter_horizontal = ['restricted_client']
     readonly_fields = ['remote_service_id', 'created', 'updated', 'submission_link']
-    list_display = ('name', 'api_name', 'runner', 'api_on', 'web_on', 'version', 'category', 'status', 'created_by',
+    list_display = ('name', 'api_name', 'runner', 'version', 'category', 'status', 'created_by',
                     'submission_link')
     list_filter = ('status', 'name', 'runner', 'category', 'created_by')
 
     fieldsets = (
         ('General', {
             'classes': ('grp-collapse grp-closed', 'collapse'),
-            'fields': ['category', 'name', 'created_by', 'status', 'runner', 'version', 'api_on', 'web_on', 'email_on']
+            'fields': ['category', 'name', 'created_by', 'runner', 'version', 'api_on', 'web_on', 'email_on']
+        }),
+        ('Accesses', {
+            'classes': ('grp-collapse grp-closed', 'collapse'),
+            'fields': ['status', 'restricted_client', ]
         }),
         ('Details', {
             'classes': ('grp-collapse grp-closed', 'collapse'),
-            'fields': ['api_name', 'short_description', 'description', 'restricted_client', 'edam_topics',
+            'fields': ['api_name', 'short_description', 'description', 'edam_topics',
                        'edam_operations', 'remote_service_id', 'created', 'updated', ]
         }),
     )
@@ -149,6 +153,8 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
         request.current_obj = obj
         form = super(ServiceAdmin, self).get_form(request, obj, **kwargs)
         form.current_user = request.user
+        # form.base_fields['runner'].widget.can_add_related = False
+        form.base_fields['runner'].widget.can_delete_related = False
         return form
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):

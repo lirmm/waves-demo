@@ -61,6 +61,7 @@ INSTALLED_APPS = (
     'authtools',
     'adminsortable2',
     'jet',
+    'jet.dashboard',
     'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -77,6 +78,7 @@ INSTALLED_APPS = (
     'mail_templated',
     'rest_framework',
     'rest_framework_docs',
+    'rest_framework_swagger',
     # 'corsheaders',
     'ckeditor',
     'bootstrap_themes',
@@ -145,9 +147,9 @@ JET_SIDE_MENU_COMPACT = True
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 JET_THEMES = [
     {
-        'theme': 'default', # theme folder name
-        'color': '#47bac1', # color of the theme's button in user menu
-        'title': 'Default' # theme title
+        'theme': 'default',  # theme folder name
+        'color': '#47bac1',  # color of the theme's button in user menu
+        'title': 'Default'  # theme title
     },
     {
         'theme': 'green',
@@ -180,3 +182,6 @@ CKEDITOR_CONFIGS = {
         'height': 150,
     },
 }
+# TODO in order to enable sibling, either overwrite to set-it up per model, or add custom filter for submissions
+# (keep current service)
+JET_CHANGE_FORM_SIBLING_LINKS = False

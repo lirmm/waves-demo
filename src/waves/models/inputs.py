@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.conf import settings
 from polymorphic.models import PolymorphicModel
-
 import waves.const
 from waves.models.base import Ordered
 from waves.models.adaptors import DTOMixin
@@ -12,7 +12,7 @@ from waves.models.submissions import Submission
 from waves.utils.storage import waves_storage, file_sample_directory
 from waves.utils.validators import validate_list_comma, validate_list_param
 
-__all__ = ['BaseParam', 'RepeatedGroup', 'FileInput', 'BooleanParam', 'DecimalParam',
+__all__ = ['AParam', 'BaseParam', 'RepeatedGroup', 'FileInput', 'BooleanParam', 'DecimalParam',
            'ListParam', 'SampleDepParam', 'FileInputSample', 'TextParam', 'RelatedParam', 'IntegerParam']
 
 
@@ -34,49 +34,54 @@ class RepeatedGroup(DTOMixin, Ordered):
         return '[%s]' % (self.name)
 
 
-class BaseParam(PolymorphicModel):
-    """ Base class for services submission params """
-
+class AParam(PolymorphicModel):
     class Meta:
         ordering = ['order']
-        unique_together = ('name', 'default', 'submission')
-        # base_manager_name = 'base_objects'
-        verbose_name = "Standard param"
-        verbose_name_plural = "Submissions params"
 
+    order = models.PositiveIntegerField(default=0)
     #: Input Label
     label = models.CharField('Label', max_length=100, blank=False, null=False, help_text='Input displayed label')
     #: Input submission name
     name = models.CharField('Name', max_length=50, blank=False, null=False, help_text='Input runner\'s job param name')
-    # TODO validate name with no space
-    #: Input default value
-    default = models.CharField('Default value', max_length=50, null=True, blank=True)
-    #: Input Type
-    cmd_format = models.IntegerField('Command line format', choices=waves.const.OPT_TYPE,
-                                     default=waves.const.OPT_TYPE_POSIX,
-                                     help_text='Command line pattern')
+    help_text = models.TextField('Help Text', null=True, blank=True)
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, null=False, related_name='submission_inputs')
     required = models.NullBooleanField('Required', choices={(None, "Optional"), (True, "Required"),
                                                             (False, "Not submitted")},
                                        default=True, help_text="Submitted and/or Required")
-    multiple = models.BooleanField('Multiple', default=False, help_text="Can hold multiple values")
-    # TODO remote multiple from base class, only needed for list / file inputs
-    help_text = models.TextField('Help Text', null=True, blank=True)
-    repeat_group = models.ForeignKey(RepeatedGroup, null=True, blank=True, on_delete=models.SET_NULL,
-                                     help_text="Group and repeat items")
-    # __future__ :-) manage validators according to edam infos
-    #: positive integer field (default to 0)
-    order = models.PositiveIntegerField(default=0)
-    edam_formats = models.CharField('Edam format(s)', max_length=255, null=True, blank=True,
-                                    help_text="comma separated list of supported edam format")
-    edam_datas = models.CharField('Edam data(s)', max_length=255, null=True, blank=True,
-                                  help_text="comma separated list of supported edam data type")
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, null=False, related_name='submission_inputs')
     # Dedicated Fields for Dependent Inputs
     when_value = models.CharField('When value', max_length=255, null=True, blank=True,
                                   help_text='Input is treated only for this parent value')
     related_to = models.ForeignKey('self', related_name="dependents_inputs", on_delete=models.CASCADE,
                                    null=True, blank=True, help_text='Input is associated to')
 
+
+class BaseParam(AParam):
+    """ Base class for services submission params """
+
+    class Meta:
+        ordering = ['order']
+        # base_manager_name = 'base_objects'
+        verbose_name = "Submission param"
+        verbose_name_plural = "Submission params"
+
+    # TODO validate name with no space
+    #: Input default value
+    default = models.CharField('Default value', max_length=50, null=True, blank=True)
+    multiple = models.BooleanField('Multiple', default=False, help_text="Can hold multiple values")
+    # __future__ :-) manage validators according to edam infos
+    #: positive integer field (default to 0)
+    edam_formats = models.CharField('Edam format(s)', max_length=255, null=True, blank=True,
+                                    help_text="comma separated list of supported edam format")
+    edam_datas = models.CharField('Edam data(s)', max_length=255, null=True, blank=True,
+                                  help_text="comma separated list of supported edam data type")
+    #: Input Type
+    cmd_format = models.IntegerField('Command line format', choices=waves.const.OPT_TYPE,
+                                     default=waves.const.OPT_TYPE_POSIX,
+                                     help_text='Command line pattern')
+
+    # TODO remote multiple from base class, only needed for list / file inputs
+    repeat_group = models.ForeignKey(RepeatedGroup, null=True, blank=True, on_delete=models.SET_NULL,
+                                     help_text="Group and repeat items")
     """ Main class for Basic data related to Service submissions inputs """
     class_label = "Basic"
 
@@ -154,10 +159,23 @@ class BooleanParam(BaseParam):
         return [self.true_value, self.false_value]
 
 
+class NumberParam(BaseParam):
+    class Meta:
+        abstract = True
+
+    def clean(self):
+        super(DecimalParam, self).clean()
+        if self.min_val and self.max_val:
+            if self.min_val > self.max_val:
+                raise ValidationError({'min_val': 'Minimum value can\'t exceed maximum value'})
+            elif self.min_val == self.max_val:
+                raise ValidationError({'min_val': 'Minimum value can\'t equal maximum value'})
+
+
 class DecimalParam(BaseParam):
     """ Number param (decimal or float) """
     # TODO add specific validator
-    class_label = "Number"
+    class_label = "Decimal"
     min_val = models.DecimalField('Min value', decimal_places=3, max_digits=50, default=None, null=True, blank=True,
                                   help_text="Leave blank if no min")
     max_val = models.DecimalField('Max value', decimal_places=3, max_digits=50, default=None, null=True, blank=True,
@@ -166,13 +184,6 @@ class DecimalParam(BaseParam):
     @property
     def param_type(self):
         return waves.const.TYPE_DECIMAL
-
-    def clean(self):
-        super(DecimalParam, self).clean()
-        if self.min_val > self.max_val:
-            raise ValidationError({'min_val': 'Minimum value can\'t exceed maximum value'})
-        elif self.min_val == self.max_val:
-            raise ValidationError({'min_val': 'Minimum value can\'t equal maximum value'})
 
 
 class IntegerParam(BaseParam):
@@ -191,14 +202,6 @@ class IntegerParam(BaseParam):
     @property
     def param_type(self):
         return waves.const.TYPE_INT
-
-    def clean(self):
-        super(IntegerParam, self).clean()
-        if self.min_val and self.max_val:
-            if self.min_val > self.max_val:
-                raise ValidationError({'min_val': 'Minimum value can\'t exceed maximum value'})
-            elif self.min_val == self.max_val:
-                raise ValidationError({'min_val': 'Minimum value can\'t equal maximum value'})
 
 
 class RelatedParam(BaseParam):
@@ -261,7 +264,8 @@ class FileInput(BaseParam):
 
     class_label = "File Input"
 
-    max_size = models.BigIntegerField('Maximum allowed file size ', default=None, help_text="in Ko")
+    max_size = models.BigIntegerField('Maximum allowed file size ', default=settings.WAVES_UPLOAD_MAX_SIZE / 1024,
+                                      help_text="in Ko")
     allowed_extensions = models.CharField('Filter by extensions', max_length=255,
                                           help_text="Comma separated list, * means no filter",
                                           default="*",
@@ -275,26 +279,25 @@ class FileInput(BaseParam):
         return waves.const.TYPE_FILE
 
 
-class FileInputSample(Ordered):
+class FileInputSample(AParam):
     class Meta:
         verbose_name_plural = "File samples"
         verbose_name = "File sample"
 
+    class_label = "File Input Sample"
     """ Any file input can provide samples """
     file = models.FileField('Sample file', upload_to=file_sample_directory, storage=waves_storage, blank=False,
                             null=False)
-    file_label = models.CharField('Sample file label', max_length=200, blank=True, null=True)
     file_input = models.ForeignKey(FileInput, on_delete=models.CASCADE, related_name='input_samples')
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='submission_samples')
     dependent_params = models.ManyToManyField(BaseParam, blank=True, through='SampleDepParam')
 
-    @property
-    def name(self):
-        """ Label for displayed file """
-        return self.file_label if self.file_label else self.file.name
-
     def __str__(self):
-        return self.name
+        return self.name + "/" + self.label
+
+    def save_base(self, *args, **kwargs):
+        self.name = self.file_input.name
+        self.required = None
+        super(FileInputSample, self).save_base(*args, **kwargs)
 
 
 class SampleDepParam(models.Model):

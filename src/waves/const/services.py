@@ -61,7 +61,7 @@ OPT_TYPE = [
     (OPT_TYPE_SIMPLE, 'Simple param (-param_name value)'),
     (OPT_TYPE_OPTION, 'Option param (-param_name)'),
     (OPT_TYPE_NAMED_OPTION, 'Option named param (--param_name)'),
-    (OPT_TYPE_POSIX, 'Positional param (no name)')
+    (OPT_TYPE_POSIX, 'Positional param (name not used)')
 ]
 
 DISPLAY_SELECT = 'select'

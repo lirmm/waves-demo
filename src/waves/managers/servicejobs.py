@@ -99,8 +99,7 @@ class ServiceJobManager(object):
         client = user if user is not None and not user.is_anonymous() else None
         job = Job.objects.create(email_to=email_to, client=client, title=job_title, submission=submission)
         job.create_non_editable_inputs(submission)
-        mandatory_params = submission.submission_inputs.filter(required=True).filter(
-            Q(default__isnull=True) | Q(default__exact=''))
+        mandatory_params = submission.expected_inputs
         missings = {}
         for m in mandatory_params:
             if m.name not in submitted_inputs.keys():

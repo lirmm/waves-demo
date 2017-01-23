@@ -29,7 +29,7 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerAdaptorParams
                                                 (1, "Available on web only"),
                                                 (2, "Available on api only"),
                                                 (3, "Available on both")])
-    label = models.CharField('Submission title', max_length=255, null=True, blank=False)
+    label = models.CharField('Submission title', max_length=255, null=True, blank=False, default='default')
     service = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, related_name='submissions')
     override_runner = models.ForeignKey(Runner, related_name='submission_runs', null=True, blank=True,
                                         on_delete=models.SET_NULL,
@@ -57,7 +57,7 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerAdaptorParams
     @property
     def expected_inputs(self):
         """ Retrieve only expected inputs to submit a job """
-        return self.all_inputs.filter(required__in=(None, True)).all()
+        return self.submission_inputs.exclude(required=False).all()
 
     def duplicate(self, service):
         """ Duplicate a submission with all its inputs """
@@ -87,6 +87,11 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerAdaptorParams
         """ Return only required params """
         return self.submission_inputs.filter(required=True)
 
+    @property
+    def submission_samples(self):
+        from .inputs import FileInputSample
+        return self.submission_inputs.instance_of(FileInputSample).all()
+
 
 class SubmissionOutput(TimeStamped):
     """
@@ -100,27 +105,27 @@ class SubmissionOutput(TimeStamped):
         unique_together = ('name', 'submission')
         ordering = ['-created']
 
-    label = models.CharField('Label', max_length=255, null=True, blank=True, help_text="Label")
-    name = models.CharField('Name', max_length=200, null=False, blank=False, help_text='Output file name')
+    label = models.CharField('Label', max_length=255, null=True, blank=False, help_text="Label")
+    name = models.CharField('File name', max_length=200, null=False, blank=True, help_text='Output file name')
     submission = models.ForeignKey(Submission, related_name='outputs', on_delete=models.CASCADE)
     from_input = models.ForeignKey('BaseParam', null=True, blank=True, related_name='to_outputs',
                                    help_text='Valuated with input')
     ext = models.CharField('File extension', max_length=5, null=False, default=".txt")
     optional = models.BooleanField('May be empty ?', default=False)
-    file_pattern = models.CharField('File name / pattern', max_length=100, null=False, blank=False, default="%s",
+    file_pattern = models.CharField('File name / pattern', max_length=100, blank=True, default="%s",
                                     help_text="Pattern used when dependent on any input '%s'")
     edam_format = models.CharField('Edam format', max_length=255, null=True, blank=True, help_text="Edam format")
     edam_data = models.CharField('Edam data', max_length=255, null=True, blank=True, help_text="Edam data")
 
     def __str__(self):
         if self.from_input:
-            return '"%s" (%s) ' % (self.name, self.file_pattern)
+            return '"%s" (%s) ' % (self.from_input.label, self.file_pattern)
         return '%s' % self.name
 
     def clean(self):
         cleaned_data = super(SubmissionOutput, self).clean()
         if (not self.from_input and self.file_pattern == "%s") and not self.name:
-            raise ValidationError('You must set a file name')
+            raise ValidationError({'file_pattern': 'You must set a file name'})
         return cleaned_data
 
 

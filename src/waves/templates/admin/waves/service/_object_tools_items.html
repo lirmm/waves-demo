@@ -7,7 +7,7 @@
     </a>
 </li>
 <li>
-    <a type="button" href="{% url 'waves:service_duplicate' original.pk %}"
+    <a type="button" href="{% url 'waves-admin:service_duplicate' original.pk %}"
        target="_self"
        title="Duplicate"
        class="btn btn-high btn-info"
@@ -16,7 +16,7 @@
     </a>
 </li>
 <li>
-    <a type="button" href="{% url 'waves:service_export_form' original.pk %}"
+    <a type="button" href="{% url 'waves-admin:service_export_form' original.pk %}"
        title="View online"
        class="btn btn-high btn-info"
        id="view_jobs">
@@ -33,7 +33,7 @@
 </li>
 {% if original.runner and original.runner.adaptor.importer_clazz %}
     <li>
-        <a type="button" href="{% url 'waves:service_import_form' original.pk %}"
+        <a type="button" href="{% url 'waves-admin:service_import_form' original.pk %}"
            title="Import from adapter"
            class="button"
            data-toggle="modal"

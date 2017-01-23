@@ -1,5 +1,8 @@
 {% extends "admin/change_form.html" %}
 {% load i18n admin_modify admin_urls admin_static waves_tags %}
+
+{% block breadcrumbs %}
+{% endblock %}
 {% block object-tools-items %}
     <li>
         <a type="button" href="{% url 'admin:waves_baseparam_add' %}?for-submission={{  original.pk }}"

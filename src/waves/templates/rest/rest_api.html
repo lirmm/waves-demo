@@ -21,7 +21,7 @@
                 <div class="col-md-12 text-center">
                     <h1>{% include "_brandname.html" %} REST API</h1>
                     <p class="lead">Access our services from your own application / services</p>
-                    <p class="emphasis">Entry point: {{ request.scheme }}://{{ request.get_host }}{% url 'waves:api-root' %}
+                    <p class="emphasis">Entry point: <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'waves-api:api-root' %}">Go</a>
                     </p>
                 </div>
             </div>
@@ -38,7 +38,7 @@
                         {% include 'rest/_rest_api_content.html' %}
                     </div>
                     <div class="panel-footer">
-                        <a class="btn btn-primary" href="{% url 'waves:signup' %}" role="button">Register now</a>
+                        <a class="btn btn-primary" href="{% url 'account:signup' %}" role="button">Register now</a>
                     </div>
                 </div>
             </div>

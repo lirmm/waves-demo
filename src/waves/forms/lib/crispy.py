@@ -101,7 +101,7 @@ class FormHelper(BaseFormHelper, BaseHelper):
                     dependent_4_value=dependent_4_value
                 )
             )
-        else:
+        elif not isinstance(service_input, FileInputSample):
             self.layout.append(
                 input_field
             )

@@ -48,21 +48,7 @@ class ServiceOutputInline(CompactInline):
     sortable_field_name = "order"
     sortable_options = []
     fk_name = 'submission'
-    # fields = ['label', 'name', 'optional', 'from_input', 'file_pattern', 'ext', 'edam_format', 'edam_data']
-    fieldsets = [
-        (None, {
-            'fields': ['label', 'name', 'optional', ],
-            'classes': ['collapse']
-        }),
-        ('Dependencies', {
-            'fields': ['from_input', 'file_pattern'],
-            'classes': ['']
-        }),
-        ('Format', {
-            'fields': ['ext', 'edam_format', 'edam_data'],
-            'classes': ['']
-        }),
-    ]
+    fields = ['label', 'ext', 'name', 'optional', 'from_input', 'file_pattern', 'edam_format', 'edam_data']
     verbose_name_plural = "Outputs"
     classes = ('grp-collapse', 'grp-closed', 'collapse')
 
@@ -72,8 +58,17 @@ class ServiceOutputInline(CompactInline):
         return super(ServiceOutputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class SampleDependentInputInline(admin.TabularInline):
+class SampleDepForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(SampleDepForm, self).__init__(*args, **kwargs)
+        self.fields['related_to'].widget.can_delete_related = False
+        self.fields['related_to'].widget.can_add_related = False
+        self.fields['related_to'].widget.can_change_related = False
+
+
+class SampleDependentInputInline(CompactInline):
     model = SampleDepParam
+    form = SampleDepForm
     fk_name = 'submission'
     extra = 0
     classes = ('grp-collapse grp-closed', 'collapse')
@@ -114,8 +109,6 @@ class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
     fields = ['class_label', 'label', 'name', 'required', 'default', 'order']
     readonly_fields = ['class_label']
     classes = ('grp-collapse', 'grp-closed', 'collapse', 'show-change-link-popup')
-    verbose_name_plural = "Inputs"
-    verbose_name = "Input"
     can_delete = True
     extra = 0
     show_change_link = True
@@ -215,11 +208,20 @@ class SubmitInputsInline(StackedPolymorphicInline):
         super(SubmitInputsInline, self).__init__(parent_model, admin_site)
 
 
-class FileInputSampleInline(TabularInline):
+class InputSampleForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(InputSampleForm, self).__init__(*args, **kwargs)
+        self.fields['file_input'].widget.can_delete_related = False
+        self.fields['file_input'].widget.can_add_related = False
+        self.fields['file_input'].widget.can_change_related = False
+
+
+class FileInputSampleInline(CompactInline):
     model = FileInputSample
+    form = InputSampleForm
     extra = 0
     fk_name = 'submission'
-    fields = ['file_label', 'file', 'file_input']
+    fields = ['label', 'file', 'file_input']
     exclude = ['order']
     classes = ('grp-collapse grp-closed', 'collapse')
 
@@ -259,11 +261,14 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin):
         SubmissionRunnerParamInLine,
         OrganizeInputInline,
         # OrgRepeatGroupInline,
-        ExitCodeInline,
         ServiceOutputInline,
         FileInputSampleInline,
         SampleDependentInputInline,
+        ExitCodeInline,
     ]
+
+    def get_model_perms(self, request):
+        return {}  # super(AllParamModelAdmin, self).get_model_perms(request)
 
     # fields = ('label', 'api_name', 'service', 'available_api', 'available_online')
     exclude = ['order']

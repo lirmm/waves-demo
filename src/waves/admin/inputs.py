@@ -1,4 +1,4 @@
-""" Submission Inputs Admin """
+""" Submission Polymorphic Inputs models Admin """
 from __future__ import unicode_literals
 
 from django.contrib import admin
@@ -18,15 +18,15 @@ __all__ = ['AllParamModelAdmin']
 class BaseParamAdmin(PolymorphicChildModelAdmin):
     """ Base Input admin """
     base_model = BaseParam
-    exclude = ['order']
+    exclude = ['order', 'repeat_group']
 
     base_fieldsets = (
         ('General', {
-            'fields': ('label', 'name', 'default', 'required', 'submission'),
+            'fields': ('label', 'name', 'cmd_format', 'default', 'required', 'submission'),
             'classes': []
         }),
         ('Details', {
-            'fields': ('cmd_format', 'help_text', 'edam_formats', 'edam_datas', 'multiple'),
+            'fields': ('help_text', 'edam_formats', 'edam_datas', 'multiple'),
             'classes': ['collapse']
         }),
         ('Dependencies', {
@@ -179,10 +179,12 @@ class ListParamAdmin(BaseParamAdmin):
     # fields = ('list_mode', 'list_elements')
     extra_fieldset_title = 'List params'
 
+
 @admin.register(IntegerParam)
 class IntegerParamAdmin(BaseParamAdmin):
     base_model = IntegerParam
     extra_fieldset_title = 'Integer range'
+
 
 @admin.register(DecimalParam)
 class DecimalParamAdmin(BaseParamAdmin):

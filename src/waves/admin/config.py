@@ -15,19 +15,20 @@ __all__ = ['WavesSiteAdmin']
 # TODO add action button to invoke command 'dump' for WAVES config
 
 
+@admin.register(WavesSite)
 class WavesSiteAdmin(admin.ModelAdmin):
     """ Admin WAVES application parameters """
-    list_display = ('domain', 'name', 'theme', 'current_queue_state')
+    list_display = ('domain', 'name', 'theme', 'current_queue_state', 'site')
     fieldsets = [
         ('Site', {
             'classes': ('suit-tab', 'suit-tab-general',),
-            'fields': ['domain', 'name']
+            'fields': ['site', 'maintenance']
         }),
         ('Frontend configuration', {
             'fields': ['theme',
                        'allow_registration',
                        'allow_submits',
-                       'maintenance']
+                       ]
         }),
         ('Job queue', {
             'fields': ['current_queue_state']
@@ -35,8 +36,7 @@ class WavesSiteAdmin(admin.ModelAdmin):
         })
 
     ]
-    readonly_fields = ('current_queue_state',)
-    form = SiteForm
+    readonly_fields = ('current_queue_state', 'domain', 'name',)
 
     def current_queue_state(self, obj):
         from waves.management.waves_commands import JobQueueCommand
@@ -57,6 +57,8 @@ class WavesSiteAdmin(admin.ModelAdmin):
     def config_file_content(self):
         pass
 
+    def domain(self, obj):
+        return obj.site.domain
 
-admin.site.unregister(Site)
-admin.site.register(WavesSite, WavesSiteAdmin)
+    def name(self, obj):
+        return obj.site.name

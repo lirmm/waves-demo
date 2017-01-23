@@ -44,8 +44,8 @@ class JobManager(models.Manager):
         :return: QuerySet
         """
         if user.is_superuser or user.is_staff:
-            return self.filter(service=service)
-        return self.filter(client=user, service=service)
+            return self.filter(submission__service__in=[service,])
+        return self.filter(client=user, submission__service__in=[service,])
 
     def get_pending_jobs(self, user=None):
         """
