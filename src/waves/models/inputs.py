@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.conf import settings
 from polymorphic.models import PolymorphicModel
-import waves.const
 from waves.models.base import Ordered
 from waves.models.adaptors import DTOMixin
 from waves.models.submissions import Submission
@@ -57,7 +56,32 @@ class AParam(PolymorphicModel):
 
 class BaseParam(AParam):
     """ Base class for services submission params """
-
+    TYPE_BOOLEAN = 'boolean'
+    TYPE_FILE = 'file'
+    TYPE_LIST = 'list'
+    TYPE_DECIMAL = 'number'
+    TYPE_TEXT = 'text'
+    TYPE_INT = 'int'
+    IN_TYPE = [
+        (TYPE_FILE, 'Input file'),
+        (TYPE_LIST, 'List of values'),
+        (TYPE_BOOLEAN, 'Boolean'),
+        (TYPE_DECIMAL, 'Decimal'),
+        (TYPE_INT, 'Integer'),
+        (TYPE_TEXT, 'Text')
+    ]
+    OPT_TYPE_VALUATED = 1
+    OPT_TYPE_SIMPLE = 2
+    OPT_TYPE_OPTION = 3
+    OPT_TYPE_POSIX = 4
+    OPT_TYPE_NAMED_OPTION = 5
+    OPT_TYPE = [
+        (OPT_TYPE_VALUATED, 'Valuated param (--param_name=value)'),
+        (OPT_TYPE_SIMPLE, 'Simple param (-param_name value)'),
+        (OPT_TYPE_OPTION, 'Option param (-param_name)'),
+        (OPT_TYPE_NAMED_OPTION, 'Option named param (--param_name)'),
+        (OPT_TYPE_POSIX, 'Positional param (name not used)')
+    ]
     class Meta:
         ordering = ['order']
         # base_manager_name = 'base_objects'
@@ -75,8 +99,8 @@ class BaseParam(AParam):
     edam_datas = models.CharField('Edam data(s)', max_length=255, null=True, blank=True,
                                   help_text="comma separated list of supported edam data type")
     #: Input Type
-    cmd_format = models.IntegerField('Command line format', choices=waves.const.OPT_TYPE,
-                                     default=waves.const.OPT_TYPE_POSIX,
+    cmd_format = models.IntegerField('Command line format', choices=OPT_TYPE,
+                                     default=OPT_TYPE_POSIX,
                                      help_text='Command line pattern')
 
     # TODO remote multiple from base class, only needed for list / file inputs
@@ -92,7 +116,7 @@ class BaseParam(AParam):
 
     @property
     def param_type(self):
-        return waves.const.TYPE_TEXT
+        return BaseParam.TYPE_TEXT
 
     def save(self, *args, **kwargs):
         if self.repeat_group is not None:
@@ -139,7 +163,7 @@ class BooleanParam(BaseParam):
 
     @property
     def param_type(self):
-        return waves.const.TYPE_BOOLEAN
+        return BaseParam.TYPE_BOOLEAN
 
     @property
     def choices(self):
@@ -184,7 +208,7 @@ class DecimalParam(BaseParam):
 
     @property
     def param_type(self):
-        return waves.const.TYPE_DECIMAL
+        return BaseParam.TYPE_DECIMAL
 
 
 class IntegerParam(BaseParam):
@@ -202,7 +226,7 @@ class IntegerParam(BaseParam):
 
     @property
     def param_type(self):
-        return waves.const.TYPE_INT
+        return BaseParam.TYPE_INT
 
 
 class RelatedParam(BaseParam):
@@ -214,22 +238,32 @@ class RelatedParam(BaseParam):
 
 class ListParam(BaseParam):
     """ Param to be issued from a list of values (select / radio / check) """
+
+    DISPLAY_SELECT = 'select'
+    DISPLAY_RADIO = 'radio'
+    DISPLAY_CHECKBOX = 'checkbox'
+    LIST_DISPLAY_TYPE = [
+        (DISPLAY_SELECT, 'Select List'),
+        (DISPLAY_RADIO, 'Radio buttons'),
+        (DISPLAY_CHECKBOX, 'Check box')
+    ]
+
     class_label = "List"
-    list_mode = models.CharField('List display mode', choices=waves.const.LIST_DISPLAY_TYPE, default='select',
+    list_mode = models.CharField('List display mode', choices=LIST_DISPLAY_TYPE, default='select',
                                  max_length=100)
     list_elements = models.TextField('Elements', max_length=500, validators=[validate_list_param, ],
                                      help_text="One Element per line label|value")
 
     def save(self, *args, **kwargs):
-        if self.list_mode == waves.const.DISPLAY_CHECKBOX:
+        if self.list_mode == ListParam.DISPLAY_CHECKBOX:
             self.multiple = True
         super(ListParam, self).save(*args, **kwargs)
 
     def clean(self):
         super(ListParam, self).clean()
-        if self.list_mode == waves.const.DISPLAY_RADIO and self.multiple:
+        if self.list_mode == BaseParam.DISPLAY_RADIO and self.multiple:
             raise ValidationError('You can\'t use radio with multiple choices available')
-        elif self.list_mode == waves.const.DISPLAY_CHECKBOX and not self.multiple:
+        elif self.list_mode == BaseParam.DISPLAY_CHECKBOX and not self.multiple:
             raise ValidationError('You can\'t use checkboxes with non multiple choices enabled')
         if self.default and self.default not in self.values:
             raise ValidationError(
@@ -245,7 +279,7 @@ class ListParam(BaseParam):
 
     @property
     def param_type(self):
-        return waves.const.TYPE_LIST
+        return BaseParam.TYPE_LIST
 
     @property
     def labels(self):
@@ -277,7 +311,7 @@ class FileInput(BaseParam):
 
     @property
     def param_type(self):
-        return waves.const.TYPE_FILE
+        return BaseParam.TYPE_FILE
 
 
 class FileInputSample(AParam):
@@ -303,7 +337,7 @@ class FileInputSample(AParam):
 
     @property
     def param_type(self):
-        return waves.const.TYPE_FILE
+        return BaseParam.TYPE_FILE
 
 
 class SampleDepParam(models.Model):

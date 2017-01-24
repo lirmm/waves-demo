@@ -8,11 +8,10 @@ from django.core.urlresolvers import reverse
 from django.db.models import Prefetch
 from django.views import generic
 
-import waves.const as const
 from base import WavesBaseContextMixin
 from waves.exceptions.jobs import JobException
 from waves.managers.servicejobs import ServiceJobManager
-from waves.models import ServiceCategory, Service
+from waves.models import ServiceCategory, Service, ServiceMeta
 from waves.models.submissions import Submission
 from waves.views.forms.services import ServiceSubmissionForm
 from waves.views.jobs import logger
@@ -21,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_context_meta_service(context, service):
-    for meta_type, meta_label in const.SERVICE_META:
+    for meta_type, meta_label in ServiceMeta.SERVICE_META:
         # context['service_' + meta_type] = []
         context['service_meta_title_' + meta_type] = meta_label
     for service_meta in service.metas.all():

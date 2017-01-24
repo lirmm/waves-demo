@@ -37,6 +37,7 @@ def mark_public_in_mass(modeladmin, request, queryset):
     for obj in queryset.all():
         try:
             obj.publishUnPublish()
+
             messages.add_message(request, level=messages.SUCCESS, message="Object %s successfully published" % obj)
         except StandardError as e:
             messages.add_message(request, level=messages.ERROR, message="Object %s error %s " % (obj, e.message))
@@ -76,7 +77,7 @@ class WavesModelAdmin(ModelAdmin):
 
     class Media:
         js = (
-            'waves/admin/js/jquery-3.1.1.min.js',
+            # 'waves/admin/js/jquery-3.1.1.min.js',
             'waves/admin/js/admin.js',
             'waves/admin/js/modal.js'
         )

@@ -14,8 +14,9 @@ from django.urls import reverse_lazy
 from django.views import generic
 from .forms import *
 from registration.backends.hmac.views import RegistrationView, ActivationView as BaseActivationView
-User = get_user_model()
 import waves.settings
+
+User = get_user_model()
 
 
 class LoginView(bracesviews.AnonymousRequiredMixin,
@@ -43,7 +44,7 @@ class LogoutView(authviews.LogoutView):
     def get(self, *args, **kwargs):
         """ logout user from WAVES """
         auth.logout(self.request)
-        messages.success(self.request,  "Your successfully log-out")
+        messages.success(self.request, "Your successfully log-out")
         return super(LogoutView, self).get(*args, **kwargs)
 
 
@@ -100,8 +101,7 @@ class PasswordChangeView(authviews.PasswordChangeView):
         """ Form process when valid"""
         form.save()
         messages.success(self.request,
-                         "Your password was changed, "
-                         "hence you have been logged out. Please re-login")
+                         "Your password was successfully changed")
         return super(PasswordChangeView, self).form_valid(form)
 
 

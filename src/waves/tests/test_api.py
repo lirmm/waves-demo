@@ -3,15 +3,18 @@ from __future__ import unicode_literals
 import logging
 from urlparse import urlparse
 
+import waves.adaptors.const as jobconst
+import waves.const
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-import waves.const
-from waves.models import Job
-from waves.tests.base import WavesBaseTestCase
+import waves.models.services
 import waves.settings
+from waves.models import Job
+from waves.models.inputs import BaseParam
+from waves.tests.base import WavesBaseTestCase
 
 logger = logging.getLogger(__name__)
 AuthModel = get_user_model()
@@ -58,12 +61,12 @@ class WavesAPITestCase(APITestCase, WavesBaseTestCase):
 
 class ServiceTests(WavesAPITestCase):
     def test_api_key(self):
-        api_root = self.client.get(reverse('waves:api-root'), data=self._dataUser('root'))
+        api_root = self.client.get(reverse('waves-api:api-root'), data=self._dataUser('root'))
         self.assertEqual(api_root.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(api_root.data), 3)
 
     def test_list_services(self):
-        tool_list = self.client.get(reverse('waves:waves-services-list'),
+        tool_list = self.client.get(reverse('waves-api:waves-services-list'),
                                     data=self._dataUser('admin'),
                                     format='json')
         self.assertEqual(tool_list.status_code, status.HTTP_200_OK)
@@ -113,18 +116,18 @@ class JobTests(WavesAPITestCase):
             for submission in submissions:
                 # print submission['label']
                 for job_input in submission['inputs']:
-                    if job_input['type'] == waves.const.TYPE_FILE:
+                    if job_input['type'] == BaseParam.TYPE_FILE:
                         i += 1
                         input_data = _create_test_file(job_input['name'], i)
                         # input_datas[job_input['name']] = input_data.name
                         logger.debug('file input %s', input_data)
-                    elif job_input['type'] == waves.const.TYPE_INTEGER:
+                    elif job_input['type'] == BaseParam.TYPE_INTEGER:
                         input_data = int(random.randint(0, 199))
                         logger.debug('number input%s', input_data)
-                    elif job_input['type'] == waves.const.TYPE_FLOAT:
+                    elif job_input['type'] == BaseParam.TYPE_FLOAT:
                         input_data = int(random.randint(0, 199))
                         logger.debug('number input%s', input_data)
-                    elif job_input['type'] == waves.const.TYPE_BOOLEAN:
+                    elif job_input['type'] == BaseParam.TYPE_BOOLEAN:
                         input_data = random.randrange(100) < 50
                     elif job_input['type'] == 'text':
                         input_data = ''.join(random.sample(string.letters, 15))
@@ -180,12 +183,12 @@ class JobTests(WavesAPITestCase):
                 self.assertEqual(job_details.status_code, status.HTTP_200_OK)
                 job = Job.objects.get(slug=response.data['slug'])
                 self.assertIsInstance(job, Job)
-                self.assertEqual(job.status, waves.const.JOB_CREATED)
+                self.assertEqual(job.status, jobconst.JOB_CREATED)
         else:
             self.skipTest("Service physic_ist not available on api [status_code:%s]" % url_post.status_code )
 
     def testMissingParam(self):
-        response = self.client.get(reverse('waves:waves-services-detail',
+        response = self.client.get(reverse('waves-api:waves-services-detail',
                                            kwargs={'api_name': 'physic_ist'}),
                                    data=self._dataUser())
         if response.status_code == status.HTTP_200_OK:

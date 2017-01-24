@@ -6,7 +6,6 @@ import logging
 from waves.models import TimeStamped, ApiModel, Ordered, Slugged, Service, Described
 from waves.models.adaptors import AdaptorInitParam, HasRunnerAdaptorParamsMixin
 from waves.models.runners import Runner
-from waves.models.managers.submissions import *
 
 logger = logging.getLogger(__name__)
 __all__ = ['Submission', 'SubmissionOutput', 'SubmissionExitCode', 'SubmissionRunParam']
@@ -23,7 +22,6 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerAdaptorParams
         ordering = ('order',)
 
     field_api_name = 'label'
-    objects = SubmissionManager()
     availability = models.IntegerField('Availability', default=3,
                                        choices=[(0, "Not Available"),
                                                 (1, "Available on web only"),

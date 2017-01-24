@@ -6,14 +6,13 @@ from __future__ import unicode_literals
 import time
 import os
 from django.utils.timezone import localtime
-import waves.const
+import waves.adaptors.const as jobconst
 from waves.tests.base import WavesBaseTestCase
 from waves.adaptors.base import BaseAdaptor
 from waves.adaptors.exceptions import *
 from waves.exceptions.jobs import *
 from waves.models import Service, Job, JobInput, Runner, RunnerInitParam
 from waves.models.submissions import Submission
-from waves.tests.mocks.adaptor import MockJobRunnerAdaptor
 import waves.settings
 import logging
 
@@ -108,7 +107,7 @@ class TestBaseJobRunner(WavesBaseTestCase):
 
         self.jobs.append(self.current_job)
         self._debug_job_state()
-        self.current_job.status = waves.const.JOB_RUNNING
+        self.current_job.status = jobconst.JOB_RUNNING
         length1 = self.current_job.job_history.count()
         logger.debug('Test Prepare')
         self._debug_job_state()
@@ -116,24 +115,24 @@ class TestBaseJobRunner(WavesBaseTestCase):
             self.current_job.run_prepare()
         self._debug_job_state()
         logger.debug('Test Run')
-        self.current_job.status = waves.const.JOB_UNDEFINED
+        self.current_job.status = jobconst.JOB_UNDEFINED
         with self.assertRaises(JobInconsistentStateError):
             self.current_job.run_launch()
         self._debug_job_state()
         logger.debug('Test Cancel')
-        self.current_job.status = waves.const.JOB_COMPLETED
+        self.current_job.status = jobconst.JOB_COMPLETED
         with self.assertRaises(JobInconsistentStateError):
             self.current_job.run_cancel()
             # self.adaptor.cancel_job(self.current_job)
         logger.debug('Internal state %s, current %s', self.current_job._status, self.current_job.status)
         # status hasn't changed
-        self.assertEqual(self.current_job.status, waves.const.JOB_COMPLETED)
+        self.assertEqual(self.current_job.status, jobconst.JOB_COMPLETED)
         logger.debug('%i => %s', len(self.current_job.job_history.values()), self.current_job.job_history.values())
         # assert that no history element has been added
         self.assertEqual(length1, self.current_job.job_history.count())
-        self.current_job.status = waves.const.JOB_RUNNING
+        self.current_job.status = jobconst.JOB_RUNNING
         self.current_job.run_cancel()
-        self.assertTrue(self.current_job.status == waves.const.JOB_CANCELLED)
+        self.assertTrue(self.current_job.status == jobconst.JOB_CANCELLED)
 
     def runJobWorkflow(self, job=None):
         if job is not None:
@@ -146,22 +145,21 @@ class TestBaseJobRunner(WavesBaseTestCase):
         self.assertGreaterEqual(self.current_job.job_history.count(), 1)
         # self.adaptor.prepare_job(self.current_job)
         self.current_job.run_prepare()
-        self.assertEqual(self.current_job.status, waves.const.JOB_PREPARED)
+        self.assertEqual(self.current_job.status, jobconst.JOB_PREPARED)
         self.current_job.run_launch()
         # self.adaptor.run_job(self.current_job)
         logger.debug('Remote Job ID %s', self.current_job.remote_job_id)
-        self.assertEqual(self.current_job.status, waves.const.JOB_QUEUED)
+        self.assertEqual(self.current_job.status, jobconst.JOB_QUEUED)
         for ix in range(100):
             # job_state = self.adaptor.job_status(self.current_job)
             job_state = self.current_job.run_status()
             logger.info(u'Current job state (%i) : %s ', ix, self.current_job.get_status_display())
-            if job_state >= waves.const.JOB_COMPLETED:
+            if job_state >= jobconst.JOB_COMPLETED:
                 logger.info('Job state ended to %s ', self.current_job.get_status_display())
                 break
             else:
                 time.sleep(3)
-        # self.assertIn(self.current_job.status, (waves.const.JOB_COMPLETED, waves.const.JOB_TERMINATED))
-        if self.current_job.status in (waves.const.JOB_COMPLETED, waves.const.JOB_TERMINATED):
+        if self.current_job.status in (jobconst.JOB_COMPLETED, jobconst.JOB_TERMINATED):
             # Get job run details
             # self.adaptor.job_run_details(self.current_job)
             self.current_job.run_details()
@@ -179,7 +177,7 @@ class TestBaseJobRunner(WavesBaseTestCase):
                                 msg="Job <<%s>> did not output expected %s (test_data/jobs/%s/) " %
                                     (self.current_job.title, output_job.value, self.current_job.slug))
                 logger.info("Expected output file: %s ", output_job.file_path)
-            self.assertGreaterEqual(self.current_job.status, waves.const.JOB_COMPLETED)
+            self.assertGreaterEqual(self.current_job.status, jobconst.JOB_COMPLETED)
         else:
             logger.warn('problem with job status %s', self.current_job.get_status_display())
         return True

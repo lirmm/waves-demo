@@ -3,16 +3,16 @@ Admin pages for Runner and RunnerParam models objects
 """
 from __future__ import unicode_literals
 
+import waves.adaptors.const as jobconst
 from django.contrib import messages
 from django.contrib.admin import register
 from django.contrib.admin.options import IS_POPUP_VAR
 from django.contrib.contenttypes.admin import GenericTabularInline
 
-import waves.const
 from base import ExportInMassMixin
 from waves.admin.base import WavesModelAdmin
 from waves.admin.forms.runners import RunnerParamForm, RunnerForm
-from waves.models import RunnerInitParam, Runner
+from waves.models import RunnerInitParam, Runner, Service, Job
 __all__ = ['RunnerAdmin']
 
 
@@ -77,13 +77,12 @@ class RunnerAdmin(ExportInMassMixin, WavesModelAdmin):
             if 'update_init_params' in form.changed_data:
                 for service in obj.runs.all():
                     message = 'Related service %s has been reset' % service.name
-                    service.status = waves.const.SRV_DRAFT
+                    service.status = Service.SRV_DRAFT
                     service.reset_run_params()
                     service.save()
                     # TODO sometime we should save runParams directly in jobs, so won't rely on db modification
-                    """for job in Job.objects.filter(status__lte=waves.const.JOB_QUEUED,
+                    for job in Job.objects.filter(status__lte=jobconst.JOB_QUEUED,
                                                   submission__in=service.submissions.all()):
                         job.adaptor.cancel_job(job=job)
                         message += '<br/>- Related pending job %s has been cancelled' % job.title
-                    """
                     messages.info(request, message)

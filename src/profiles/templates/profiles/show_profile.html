@@ -14,7 +14,7 @@
             <div class="col-sm-10">
                 <h1>{{ show_user.get_full_name }}</h1>
                 {% if editable %}
-                    <a href="{% url 'waves:edit_self' %}" class="btn btn-info">Edit Profile</a>
+                    <a href="{% url 'profile:edit_self' %}" class="btn btn-info">Edit Profile</a>
                     <a class="btn btn-default" href="{% url 'account:password-change' %}">Change Password</a>
                 {% endif %}
             </div>
@@ -54,7 +54,7 @@
                 <ul class="list-group">
                     <li class="list-group-item text-muted">{{ show_user.get_full_name }}'s Profile
                         {% if show_user.profile.slug %}
-                            <a href="{% url 'waves:show' show_user.profile.slug %}">
+                            <a href="{% url 'profile:show' show_user.profile.slug %}">
                                 <span class="glyphicon glyphicon-link" aria-hidden="true"
                                       title="Profile permalink"></span>
                                 <span class="sr-only">Permalink</span></a> {{ show_user.profile.get_absolute_url }}

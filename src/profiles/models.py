@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 from django.db import models
-
+import uuid
 from django.utils.encoding import python_2_unicode_compatible
 from django_countries.fields import CountryField
 from .storage import profile_storage, profile_directory
@@ -55,6 +55,7 @@ class UserProfile(models.Model):
                                       blank=True,
                                       help_text='User\'s restricted IP')
     banned = models.BooleanField('Banned (abuse)', default=False)
+    slug = models.UUIDField(default=uuid.uuid4, blank=True, unique=True, editable=False)
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if self.user.is_staff or self.user.is_superuser:

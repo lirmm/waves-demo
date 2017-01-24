@@ -1,7 +1,9 @@
+from __future__ import unicode_literals
+
 from django.db import models
 from django.db.models import Q
 from mptt.managers import TreeManager
-import waves.const
+
 __all__ = ['ServiceRunParamManager', 'ServiceCategoryManager', 'ServiceManager']
 
 class ServiceRunParamManager(models.Manager):
@@ -36,18 +38,19 @@ class ServiceManager(models.Manager):
             elif user.is_staff:
                 # Staff user have access their own Services and to all 'Test / Restricted / Public' made by others
                 queryset = self.filter(
-                    Q(status=waves.const.SRV_DRAFT, created_by=user) |
-                    Q(status__in=(waves.const.SRV_TEST, waves.const.SRV_RESTRICTED, waves.const.SRV_PUBLIC))
+                    Q(status=self.model.SRV_DRAFT, created_by=user) |
+                    Q(status__in=(self.model.SRV_TEST, self.model.SRV_RESTRICTED,
+                                  self.model.SRV_PUBLIC))
                 )
             else:
                 # Simply registered user have access only to "Public" and configured restricted access
                 queryset = self.filter(
-                    Q(status=waves.const.SRV_RESTRICTED, restricted_client__in=(user,)) |
-                    Q(status=waves.const.SRV_PUBLIC)
+                    Q(status=self.model.SRV_RESTRICTED, restricted_client__in=(user,)) |
+                    Q(status=self.model.SRV_PUBLIC)
                 )
         # Non logged in user have only access to public services
         else:
-            queryset = self.filter(status=waves.const.SRV_PUBLIC)
+            queryset = self.filter(status=self.model.SRV_PUBLIC)
         if for_api:
             queryset = queryset.filter(api_on=True)
         else:

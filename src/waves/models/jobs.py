@@ -13,7 +13,8 @@ from django.db import models
 from django.utils.html import format_html
 from waves.adaptors.exceptions import AdaptorException
 
-import waves.const
+# import waves.jobconst
+import waves.adaptors.const as jobconst
 import waves.settings
 from waves.exceptions import WavesException
 from waves.exceptions.jobs import JobInconsistentStateError, JobRunException
@@ -21,6 +22,7 @@ from waves.models import TimeStamped, Slugged, Ordered, UrlMixin
 from waves.models.adaptors import DTOMixin, AdaptorInitParam
 from waves.models.managers.jobs import *
 from waves.models.submissions import Submission
+from waves.models.inputs import BaseParam, ListParam
 from waves.utils.jobs import default_run_details
 from waves.utils.storage import allow_display_online
 
@@ -64,8 +66,9 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     #: Job related Service - see :ref:`service-label`.
     submission = models.ForeignKey(Submission, related_name='service_jobs', null=True,
                                    on_delete=models.SET_NULL)
-    #: Job last known status - see :ref:`waves-const-label`.
-    status = models.IntegerField('Job status', choices=waves.const.STATUS_LIST, default=waves.const.JOB_CREATED,
+    #: Job last known status - see :ref:`waves-jobconst-label`.
+    status = models.IntegerField('Job status', choices=jobconst.STATUS_LIST,
+                                 default=jobconst.JOB_CREATED,
                                  help_text='Job current run status')
     #: Job last status for which we sent a notification email
     status_mail = models.IntegerField(editable=False, default=9999)
@@ -144,7 +147,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: list of JobInput models instance
         :rtype: QuerySet
         """
-        return self.job_inputs.filter(type=waves.const.TYPE_FILE)
+        return self.job_inputs.filter(type=jobconst.TYPE_FILE)
 
     @property
     def output_files_exists(self):
@@ -176,7 +179,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: list of `JobInput` models instance
         :rtype: QuerySet
         """
-        return self.job_inputs.exclude(type=waves.const.TYPE_FILE)
+        return self.job_inputs.exclude(type=BaseParam.TYPE_FILE)
 
     @property
     def working_dir(self):
@@ -220,11 +223,11 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: a css class (based on bootstrap)
         :rtype: unicode
         """
-        if self.status in (waves.const.JOB_UNDEFINED, waves.const.JOB_SUSPENDED):
+        if self.status in (jobconst.JOB_UNDEFINED, jobconst.JOB_SUSPENDED):
             return 'warning'
-        elif self.status == waves.const.JOB_ERROR:
+        elif self.status == jobconst.JOB_ERROR:
             return 'danger'
-        elif self.status == waves.const.JOB_CANCELLED:
+        elif self.status == jobconst.JOB_CANCELLED:
             return 'info'
         else:
             return 'success'
@@ -241,13 +244,13 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
                     nb_sent = 0
                     from waves.managers.mails import JobMailer
                     mailer = JobMailer(job=self)
-                    if self.status == waves.const.JOB_CREATED:
+                    if self.status == jobconst.JOB_CREATED:
                         nb_sent = mailer.send_job_submission_mail()
-                    elif self.status == waves.const.JOB_TERMINATED:
+                    elif self.status == jobconst.JOB_TERMINATED:
                         nb_sent = mailer.send_job_completed_mail()
-                    elif self.status == waves.const.JOB_ERROR:
+                    elif self.status == jobconst.JOB_ERROR:
                         nb_sent = mailer.send_job_error_email()
-                    elif self.status == waves.const.JOB_CANCELLED:
+                    elif self.status == jobconst.JOB_CANCELLED:
                         nb_sent = mailer.send_job_cancel_email()
                     # Avoid resending emails when last status mail already sent
                     self.status_mail = self.status
@@ -384,7 +387,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
 
     def error(self, message):
         """ Set job Status to ERROR, save error reason in JobAdminHistory, save job"""
-        self.status = waves.const.JOB_ERROR
+        self.status = jobconst.JOB_ERROR
         JobAdminHistory.objects.create(job=self, message='[Error]%s' % message, status=self.status)
         self.save()
 
@@ -423,8 +426,8 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     def next_status(self):
         """ Automatically retrieve next expected status """
         try:
-            logger.debug("next status %s", waves.const.NEXT_STATUS[self.status])
-            return waves.const.NEXT_STATUS[self.status]
+            logger.debug("next status %s", jobconst.NEXT_STATUS[self.status])
+            return jobconst.NEXT_STATUS[self.status]
         except KeyError:
             return self.status
 
@@ -443,9 +446,9 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         self.status = self._run_action('job_status')
         logger.debug('job current state :%s', self.status)
         self.save()
-        if self.status == waves.const.JOB_COMPLETED:
+        if self.status == jobconst.JOB_COMPLETED:
             self.run_results()
-        if self.status == waves.const.JOB_UNDEFINED and self.nb_retry > waves.settings.WAVES_JOBS_MAX_RETRY:
+        if self.status == jobconst.JOB_UNDEFINED and self.nb_retry > waves.settings.WAVES_JOBS_MAX_RETRY:
             self.run_cancel()
         # self.save_status(self.status)
         return self.status
@@ -454,7 +457,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         """ Ask job adaptor to cancel job if possible """
         self._run_action('cancel_job')
         self.message = 'Job cancelled'
-        self.save_status(waves.const.JOB_CANCELLED)
+        self.save_status(jobconst.JOB_CANCELLED)
 
     def run_results(self):
         """ Ask job adaptor to get results files (dowload files if needed) """
@@ -463,10 +466,10 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         if self.exit_code != 0 or len(self.stderr_txt) > 0:
             # print  "job exit code ", self.exit_code
             self.message = self.stderr_txt
-            self.save_status(waves.const.JOB_ERROR)
+            self.save_status(jobconst.JOB_ERROR)
         else:
             # print  "job terminated ?", self.exit_code
-            self.save_status(waves.const.JOB_TERMINATED)
+            self.save_status(jobconst.JOB_TERMINATED)
         self.save()
 
     def run_details(self):
@@ -475,7 +478,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         if os.path.isfile(file_run_details):
             # Details have already been downloaded
             with open(file_run_details) as fp:
-                details = waves.const.JobRunDetails(*json.load(fp))
+                details = jobconst.JobRunDetails(*json.load(fp))
             return details
         else:
             try:
@@ -489,18 +492,18 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     def _check_job_action(self, action):
         """ Check if current job status is coherent with requested action """
         if action == 'prepare_job':
-            status_allowed = waves.const.STATUS_LIST[1:2]
+            status_allowed = jobconst.STATUS_LIST[1:2]
         elif action == 'run_job':
-            status_allowed = waves.const.STATUS_LIST[2:3]
+            status_allowed = jobconst.STATUS_LIST[2:3]
         elif action == 'cancel_job':
             status_allowed = self.adaptor.state_allow_cancel
         elif action == 'job_results':
-            status_allowed = waves.const.STATUS_LIST[6:7] + waves.const.STATUS_LIST[9:]
+            status_allowed = jobconst.STATUS_LIST[6:7] + jobconst.STATUS_LIST[9:]
         elif action == 'job_run_details':
-            status_allowed = waves.const.STATUS_LIST[6:10]
+            status_allowed = jobconst.STATUS_LIST[6:10]
         else:
             # By default let all status allowed
-            status_allowed = waves.const.STATUS_LIST
+            status_allowed = jobconst.STATUS_LIST
         # print "status ", self.status, "allowed ", status_allowed
         # print (self.status not in [int(i[0]) for i in status_allowed])
         if self.status not in [int(i[0]) for i in status_allowed]:
@@ -524,6 +527,11 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
                                                             'prevent_override': True},
                                                   name=param.name, job=self)
 
+    @property
+    def allow_rerun(self):
+        """ set whether current job state allow rerun """
+        return self.status not in (jobconst.JOB_CREATED, jobconst.JOB_UNDEFINED)
+
 
 class JobInput(Ordered, Slugged):
     """
@@ -544,10 +552,10 @@ class JobInput(Ordered, Slugged):
                              help_text='Input value (filename, boolean value, int value etc.)')
     #: Each input may have its own identifier on remote adaptor
     remote_input_id = models.CharField('Remote input ID (on adaptor)', max_length=255, editable=False, null=True)
-    type = models.CharField('Param type', choices=waves.const.IN_TYPE, max_length=50, editable=False, null=True)
+    type = models.CharField('Param type', choices=BaseParam.IN_TYPE, max_length=50, editable=False, null=True)
     name = models.CharField('Param name', max_length=200, editable=False, null=True)
-    param_type = models.IntegerField('Parameter Type', choices=waves.const.OPT_TYPE, editable=False,
-                                     default=waves.const.OPT_TYPE_POSIX)
+    param_type = models.IntegerField('Parameter Type', choices=BaseParam.OPT_TYPE, editable=False,
+                                     default=BaseParam.OPT_TYPE_POSIX)
     label = models.CharField('Label', max_length=100, editable=False, null=True)
 
     def natural_key(self):
@@ -566,7 +574,7 @@ class JobInput(Ordered, Slugged):
         :return: path to file
         :rtype: unicode
         """
-        if self.type == waves.const.TYPE_FILE:
+        if self.type == BaseParam.TYPE_FILE:
             return os.path.join(self.job.working_dir, str(self.value))
         else:
             return ""
@@ -577,17 +585,17 @@ class JobInput(Ordered, Slugged):
 
         :return: determined from related SubmissionParam type
         """
-        if self.type == waves.const.TYPE_FILE:
+        if self.type == BaseParam.TYPE_FILE:
             return self.value
-        elif self.type == waves.const.TYPE_BOOLEAN:
+        elif self.type == BaseParam.TYPE_BOOLEAN:
             return bool(self.value)
-        elif self.type == waves.const.TYPE_TEXT:
+        elif self.type == BaseParam.TYPE_TEXT:
             return self.value
-        elif self.type == waves.const.TYPE_INT:
+        elif self.type == BaseParam.TYPE_INT:
             return int(self.value)
-        elif self.type == waves.const.TYPE_DECIMAL:
+        elif self.type == BaseParam.TYPE_DECIMAL:
             return float(self.value)
-        elif self.type == waves.const.TYPE_LIST:
+        elif self.type == BaseParam.TYPE_LIST:
             if self.value == 'None':
                 return False
             return self.value
@@ -612,27 +620,27 @@ class JobInput(Ordered, Slugged):
         :return: depends on parameter type
         """
         value = self.validated_value if forced_value is None else forced_value
-        if self.param_type == waves.const.OPT_TYPE_VALUATED:
+        if self.param_type == BaseParam.OPT_TYPE_VALUATED:
             return '--%s=%s' % (self.name, value)
-        elif self.param_type == waves.const.OPT_TYPE_SIMPLE:
+        elif self.param_type == BaseParam.OPT_TYPE_SIMPLE:
             if value:
                 return '-%s %s' % (self.name, value)
             else:
                 return ''
-        elif self.param_type == waves.const.OPT_TYPE_OPTION:
+        elif self.param_type == BaseParam.OPT_TYPE_OPTION:
             if value:
                 return '-%s' % self.name
             return ''
-        elif self.param_type == waves.const.OPT_TYPE_NAMED_OPTION:
+        elif self.param_type == BaseParam.OPT_TYPE_NAMED_OPTION:
             if value:
                 return '--%s' % self.name
             return ''
-        elif self.param_type == waves.const.OPT_TYPE_POSIX:
+        elif self.param_type == BaseParam.OPT_TYPE_POSIX:
             if value:
                 return '%s' % value
             else:
                 return ''
-        elif self.param_type == waves.const.OPT_TYPE_NONE:
+        elif self.param_type == BaseParam.OPT_TYPE_NONE:
             return ''
         # By default it's OPT_TYPE_SIMPLE way
         return '-%s %s' % (self.name, self.value)
@@ -708,7 +716,7 @@ class JobOutput(Ordered, Slugged, UrlMixin):
         self.message = "Job marked for re-run"
         # self.job_history.add(JobAdminHistory.objects.create(jo))
         self.nb_retry = 0
-        self.status = waves.const.JOB_CREATED
+        self.status = jobconst.JOB_CREATED
         for job_out in self.job_outputs.all():
             open(job_out.file_path, 'w').close()
         self.save()
@@ -745,7 +753,7 @@ class JobHistory(models.Model):
     #: Time when this event occurred
     timestamp = models.DateTimeField('Date time', auto_now_add=True, help_text='History timestamp')
     #: Job Status for this event
-    status = models.IntegerField('Job Status', choices=waves.const.STATUS_LIST,
+    status = models.IntegerField('Job Status', choices=jobconst.STATUS_LIST,
                                  help_text='History job status')
     #: Job event message
     message = models.TextField('History log', blank=True, null=True, help_text='History log')

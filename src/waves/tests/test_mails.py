@@ -2,14 +2,15 @@ from __future__ import unicode_literals
 
 import logging
 
-from django.utils import timezone
-from django.core import mail
+import waves.adaptors.const as jobconst
 from django.conf import settings
+from django.core import mail
 from django.test import override_settings
-from waves.tests.base import WavesBaseTestCase
-from waves.models import Job, JobInput, JobOutput, Service
-import waves.const
+from django.utils import timezone
+
 import waves.settings
+from waves.models import Job, JobInput, JobOutput, Service
+from waves.tests.base import WavesBaseTestCase
 
 logger = logging.getLogger(__name__)
 
@@ -42,13 +43,13 @@ class JobMailTest(WavesBaseTestCase):
         logger.debug('Mail subject: %s', sent_mail.subject)
         logger.debug('Mail from: %s', sent_mail.from_email)
         logger.debug('Mail content: \n%s', sent_mail.body)
-        job.status = waves.const.JOB_COMPLETED
+        job.status = jobconst.JOB_COMPLETED
         # job.save()
         job.check_send_mail()
         # no more mails
         self.assertEqual(len(mail.outbox), 1)
 
-        job.status = waves.const.JOB_TERMINATED
+        job.status = jobconst.JOB_TERMINATED
         # job.save()
         job.check_send_mail()
         self.assertEqual(len(mail.outbox), 2)
@@ -56,7 +57,7 @@ class JobMailTest(WavesBaseTestCase):
         logger.debug('Mail subject: %s', sent_mail.subject)
         logger.debug('Mail from: %s', sent_mail.from_email)
         logger.debug('Mail content: \n%s', sent_mail.body)
-        job.status = waves.const.JOB_ERROR
+        job.status = jobconst.JOB_ERROR
         # job.save()
         job.check_send_mail()
         self.assertEqual(len(mail.outbox), 3)
@@ -64,7 +65,7 @@ class JobMailTest(WavesBaseTestCase):
         logger.debug('Mail subject: %s', sent_mail.subject)
         logger.debug('Mail from: %s', sent_mail.from_email)
         logger.debug('Mail content: \n%s', sent_mail.body)
-        job.status = waves.const.JOB_CANCELLED
+        job.status = jobconst.JOB_CANCELLED
         # job.save()
         job.check_send_mail()
         self.assertEqual(len(mail.outbox), 4)

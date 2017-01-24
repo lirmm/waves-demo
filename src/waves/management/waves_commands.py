@@ -21,7 +21,7 @@ from django.core.urlresolvers import reverse
 from rest_framework.exceptions import ValidationError
 import waves.exceptions
 import waves.settings
-from waves import const as const
+import waves.adaptors.const as jobconst
 from .daemon.command import DaemonCommand
 from waves.models import Job
 from waves.models.serializers.services import ServiceSerializer
@@ -110,7 +110,7 @@ class JobQueueCommand(DaemonCommand):
         :return: Nothing
         """
         jobs = Job.objects.prefetch_related('job_inputs'). \
-            prefetch_related('job_outputs').filter(status__lt=const.JOB_TERMINATED)
+            prefetch_related('job_outputs').filter(status__lt=jobconst.JOB_TERMINATED)
         if jobs.count() > 0:
             logging.info("Starting queue process with %i(s) unfinished jobs", jobs.count())
         for job in jobs:
@@ -119,15 +119,15 @@ class JobQueueCommand(DaemonCommand):
             try:
                 job.check_send_mail()
                 logging.debug("Launching Job %s (adaptor:%s)", job, job.adaptor)
-                if job.status == const.JOB_CREATED:
+                if job.status == jobconst.JOB_CREATED:
                     job.run_prepare()
                     # runner.prepare_job(job=job)
                     logging.debug("[PrepareJob] %s (adaptor:%s)", job, job.adaptor)
-                elif job.status == const.JOB_PREPARED:
+                elif job.status == jobconst.JOB_PREPARED:
                     logging.debug("[LaunchJob] %s (adaptor:%s)", job, job.adaptor)
                     job.run_launch()
                     # runner.run_job(job)
-                elif job.status == const.JOB_COMPLETED:
+                elif job.status == jobconst.JOB_COMPLETED:
                     # runner.job_run_details(job)
                     job.run_results()
                     logging.debug("[JobExecutionEnded] %s (adaptor:%s)", job.get_status_display(), job.adaptor)

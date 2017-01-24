@@ -1,14 +1,17 @@
 from __future__ import unicode_literals
+
 import copy
+
 from django import forms
-from django.utils.module_loading import import_string
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.core.exceptions import ValidationError
 from multiupload.fields import MultiFileField
+
+import waves.models.services
+import waves.settings
 from waves.models.inputs import *
 from waves.models.submissions import Submission
 from waves.utils.validators import ServiceInputValidator
-import waves.const
-import waves.settings
+from waves.views.forms.lib.crispy import FormHelper
 
 
 # TODO refactoring for the copy_paste field associated with FileInput (override formfield template ?)
@@ -39,8 +42,7 @@ class ServiceSubmissionForm(forms.ModelForm):
         for service_input in self.list_inputs:
             assert isinstance(service_input, AParam)
             if isinstance(service_input, FileInput) and not service_input.multiple:
-                pass
-                # extra_fields.append(self._create_copy_paste_field(service_input))
+                extra_fields.append(self._create_copy_paste_field(service_input))
                 # extra_fields.extend(self._create_sample_fields(service_input))
 
             self.add_field(service_input)
@@ -48,7 +50,7 @@ class ServiceSubmissionForm(forms.ModelForm):
             for dependent_input in service_input.dependents_inputs.exclude(required=False):
                 # conditional parameters must not be required to use classic django form validation process
                 dependent_input.required = False
-                if dependent_input.param_type == waves.const.TYPE_FILE and not dependent_input.multiple:
+                if dependent_input.param_type == BaseParam.TYPE_FILE and not dependent_input.multiple:
                     extra_fields.append(self._create_copy_paste_field(dependent_input))
                 self.add_field(dependent_input, self)
                 self.helper.set_layout(dependent_input, self)
@@ -79,11 +81,11 @@ class ServiceSubmissionForm(forms.ModelForm):
             field_dict.update(dict(choices=service_input.choices))
             if not service_input.multiple:
                 form_field = forms.ChoiceField(**field_dict)
-                if service_input.list_mode == waves.const.DISPLAY_RADIO:
+                if service_input.list_mode == ListParam.DISPLAY_RADIO:
                     form_field.widget = forms.RadioSelect()
             else:
                 form_field = forms.MultipleChoiceField(**field_dict)
-                if service_input.list_mode == waves.const.DISPLAY_CHECKBOX:
+                if service_input.list_mode == ListParam.DISPLAY_CHECKBOX:
                     form_field.widget = forms.CheckboxSelectMultiple()
             form_field.css_class = 'text-left'
         elif isinstance(service_input, IntegerParam) or isinstance(service_input, DecimalParam):
@@ -100,9 +102,7 @@ class ServiceSubmissionForm(forms.ModelForm):
     @staticmethod
     def get_helper(**kwargs):
         try:
-            helper = import_string(
-                '.'.join(['waves', 'forms', 'lib', waves.settings.WAVES_FORM_PROCESSOR, 'FormHelper']))
-            return helper(**kwargs)
+            return FormHelper(**kwargs)
         except ImportError as e:
             raise RuntimeError(
                 'Wrong form processor, unable to create any form (%s) -- %s' % (waves.settings.WAVES_FORM_PROCESSOR, e))
@@ -114,8 +114,9 @@ class ServiceSubmissionForm(forms.ModelForm):
         cp_service.description = ''
         cp_service.required = False
         cp_service.name = 'cp_' + service_input.name
-        self.helper.add_field(cp_service, self)
+        self.add_field(cp_service)
         self.fields[cp_service.name].widget = forms.Textarea(attrs={'cols': 20, 'rows': 10})
+        self.fields[cp_service.name].label = False
         return cp_service
 
     def _create_sample_fields(self, service_input):

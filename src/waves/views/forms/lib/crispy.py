@@ -6,12 +6,8 @@ from crispy_forms.utils import get_template_pack
 
 from waves.models.inputs import *
 from waves.views.forms.lib import BaseHelper
+from crispy_forms.bootstrap import *
 
-if 'bootstrap' in get_template_pack():
-    from crispy_forms.bootstrap import *
-elif 'foundation' in get_template_pack():
-    # import foundation
-    pass
 __all__ = ['FormHelper', 'FormLayout']
 
 
@@ -83,7 +79,7 @@ class FormHelper(BaseFormHelper, BaseHelper):
                 for sample in service_input.input_samples.all():
                     all_sample.append(Field('sp_' + service_input.name + '_' + str(sample.pk)))
                 tab_input.extend(all_sample)
-
+            print "wrapper class ", wrapper_class
             self.layout.append(
                 Div(
                     TabHolder(
@@ -91,13 +87,13 @@ class FormHelper(BaseFormHelper, BaseHelper):
                         Tab(
                             "Copy/paste content",
                             cp_input_field,
-                            css_class=wrapper_class,
+                            css_class='copypaste',
                             css_id='tab_cp_' + service_input.name,
                         ),
                         css_id='tab_holder_' + service_input.name,
                     ),
                     id='tab_pane_' + service_input.name,
-                    css_class=wrapper_class,
+                    css_class='copypaste',
                     dependent_on=dependent_on,
                     dependent_4_value=dependent_4_value
                 )

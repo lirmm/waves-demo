@@ -1,7 +1,9 @@
+from __future__ import unicode_literals
+
 from django.db import models
 from django.db.models import Q
 
-import waves.const
+import waves.adaptors.const as jobconst
 from waves.models.submissions import SubmissionOutput
 __all__ = ['JobAdminHistoryManager', 'JobHistoryManager', "JobInputManager", "JobManager", "JobOutputManager"]
 
@@ -61,11 +63,11 @@ class JobManager(models.Manager):
             if user.is_superuser or user.is_staff:
                 # return all pending jobs
                 return self.filter(status__in=(
-                    waves.const.JOB_CREATED, waves.const.JOB_PREPARED, waves.const.JOB_QUEUED,
-                    waves.const.JOB_RUNNING))
+                    jobconst.JOB_CREATED, jobconst.JOB_PREPARED, jobconst.JOB_QUEUED,
+                    jobconst.JOB_RUNNING))
             # get only user jobs
-            return self.filter(status__in=(waves.const.JOB_CREATED, waves.const.JOB_PREPARED,
-                                           waves.const.JOB_QUEUED, waves.const.JOB_RUNNING),
+            return self.filter(status__in=(jobconst.JOB_CREATED, jobconst.JOB_PREPARED,
+                                           jobconst.JOB_QUEUED, jobconst.JOB_RUNNING),
                                client=user)
         # User is not supposed to be None
         return self.none()
@@ -79,10 +81,10 @@ class JobManager(models.Manager):
         :return: QuerySet
         """
         if user is not None:
-            self.filter(status=waves.const.JOB_CREATED,
+            self.filter(status=jobconst.JOB_CREATED,
                         client=user,
                         **extra_filter).order_by('-created')
-        return self.filter(status=waves.const.JOB_CREATED, **extra_filter).order_by('-created').all()
+        return self.filter(status=jobconst.JOB_CREATED, **extra_filter).order_by('-created').all()
 
 
 class JobInputManager(models.Manager):

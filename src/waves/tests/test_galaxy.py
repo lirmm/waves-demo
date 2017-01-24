@@ -3,15 +3,15 @@ from __future__ import unicode_literals
 
 import logging
 import unittest
-from os.path import join
-import utils.galaxy_util as test_util
-import waves.settings
-import waves.const
+
 from django.conf import settings
-from waves.tests.test_runner import TestBaseJobRunner
-from waves.models import Service, Job, JobOutput, JobInput
 from waves.adaptors.api.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor
 from waves.adaptors.exceptions import AdaptorConnectException
+
+import utils.galaxy_util as test_util
+import waves.settings
+from waves.models import Service
+from waves.tests.test_runner import TestBaseJobRunner
 
 logger = logging.getLogger(__name__)
 

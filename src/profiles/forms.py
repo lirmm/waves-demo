@@ -13,6 +13,11 @@ User = get_user_model()
 
 class UserForm(forms.ModelForm):
     """ Front end model User Form """
+
+    class Meta:
+        model = User
+        fields = ['name']
+
     def __init__(self, *args, **kwargs):
         super(UserForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
@@ -21,13 +26,10 @@ class UserForm(forms.ModelForm):
             Field('name'),
         )
 
-    class Meta:
-        model = User
-        fields = ['name']
-
 
 class ProfileForm(forms.ModelForm):
     """ Front end Admin Form """
+
     class Meta:
         model = UserProfile
         fields = ['api_key', 'registered_for_api', 'banned', 'comment', 'ip', 'country', 'comment', 'institution']
@@ -56,7 +58,6 @@ class FrontUserForm(forms.ModelForm):
 
 
 class FrontProfileForm(forms.ModelForm):
-
     class Meta:
         model = UserProfile
         fields = ['registered_for_api', 'country', 'comment', 'institution', 'phone', 'picture']
@@ -64,7 +65,7 @@ class FrontProfileForm(forms.ModelForm):
     delete_profile = forms.BooleanField(required=False)
 
     def __init__(self, *args, **kwargs):
-        super(ProfileForm, self).__init__(*args, **kwargs)
+        super(FrontProfileForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.form_class = 'form-horizontal'
@@ -72,9 +73,9 @@ class FrontProfileForm(forms.ModelForm):
         self.helper.field_class = 'col-lg-8'
         self.helper.layout = Layout(
             # Div('picture', css_class='btn-file'),
-            Fieldset("Supplementary",
-                     'country',
+            Fieldset("Details",
                      'institution',
+                     'country',
                      'phone',
                      'picture'),
             Field('comment'),

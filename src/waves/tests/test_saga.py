@@ -7,7 +7,7 @@ import os
 import time
 from unittest import skip
 from django.conf import settings
-import waves.const
+import waves.adaptors.const as jobconst
 import waves.tests.utils.shell_util as test_util
 from waves.tests.test_runner import TestBaseJobRunner, sample_job
 from waves.adaptors.saga.shell.local import LocalShellAdaptor
@@ -53,7 +53,7 @@ class ShellRunnerTestCase(TestBaseJobRunner):
             self.skipTest("Only run with Local saga adaptor")
         self._prepare_hello_world()
         self.runJobWorkflow()
-        self.assertEqual(self.current_job.status, waves.const.JOB_TERMINATED)
+        self.assertEqual(self.current_job.status, jobconst.JOB_TERMINATED)
         # retrieve job run details
         # print self.current_job.run_details()
 
@@ -76,17 +76,17 @@ class ShellRunnerTestCase(TestBaseJobRunner):
         self._prepare_hello_world()
         self.jobs.append(self.current_job)
         self.current_job.run_prepare()
-        self.assertEqual(self.current_job.status, waves.const.JOB_PREPARED)
+        self.assertEqual(self.current_job.status, jobconst.JOB_PREPARED)
         self.current_job.run_launch()
-        self.assertEqual(self.current_job.status, waves.const.JOB_QUEUED)
+        self.assertEqual(self.current_job.status, jobconst.JOB_QUEUED)
         for ix in range(30):
             job_state = self.adaptor.job_status(self.current_job)
-            if job_state >= waves.const.JOB_QUEUED:
+            if job_state >= jobconst.JOB_QUEUED:
                 self.current_job.run_cancel()
                 break
             else:
                 time.sleep(1)
-        self.assertEqual(self.current_job.status, waves.const.JOB_CANCELLED)
+        self.assertEqual(self.current_job.status, jobconst.JOB_CANCELLED)
 
     @test_util.skip_unless_tool('cp')
     def testSimpleCP(self):

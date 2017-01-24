@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 from waves.adaptors.base import BaseAdaptor
-import waves.const
+import waves.adaptors.const as jobconst
 # TODO implements missing methods
 import random, string
 
@@ -15,9 +15,9 @@ class MockConnector(object):
 class MockJobRunnerAdaptor(BaseAdaptor):
     def _job_status(self, job):
         # time.sleep()
-        if job.status == waves.const.JOB_RUNNING:
+        if job.status == jobconst.JOB_RUNNING:
             # print "job is running, set it to completed!"
-            return waves.const.JOB_COMPLETED
+            return jobconst.JOB_COMPLETED
         return job.next_status
 
     def _run_job(self, job):
@@ -48,13 +48,13 @@ class MockJobRunnerAdaptor(BaseAdaptor):
     def __init__(self, init_params={}, **kwargs):
         super(MockJobRunnerAdaptor, self).__init__(init_params, **kwargs)
         self._states_map = {
-            waves.const.JOB_UNDEFINED: waves.const.JOB_UNDEFINED,
-            waves.const.JOB_CREATED: waves.const.JOB_CREATED,
-            waves.const.JOB_QUEUED: waves.const.JOB_QUEUED,
-            waves.const.JOB_RUNNING: waves.const.JOB_RUNNING,
-            waves.const.JOB_SUSPENDED: waves.const.JOB_SUSPENDED,
-            waves.const.JOB_CANCELLED: waves.const.JOB_CANCELLED,
-            waves.const.JOB_COMPLETED: waves.const.JOB_COMPLETED,
-            waves.const.JOB_TERMINATED: waves.const.JOB_TERMINATED,
-            waves.const.JOB_ERROR: waves.const.JOB_ERROR,
+            jobconst.JOB_UNDEFINED: jobconst.JOB_UNDEFINED,
+            jobconst.JOB_CREATED: jobconst.JOB_CREATED,
+            jobconst.JOB_QUEUED: jobconst.JOB_QUEUED,
+            jobconst.JOB_RUNNING: jobconst.JOB_RUNNING,
+            jobconst.JOB_SUSPENDED: jobconst.JOB_SUSPENDED,
+            jobconst.JOB_CANCELLED: jobconst.JOB_CANCELLED,
+            jobconst.JOB_COMPLETED: jobconst.JOB_COMPLETED,
+            jobconst.JOB_TERMINATED: jobconst.JOB_TERMINATED,
+            jobconst.JOB_ERROR: jobconst.JOB_ERROR,
         }

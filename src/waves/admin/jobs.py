@@ -4,7 +4,7 @@ from django.contrib import admin, messages
 from django.contrib.admin import TabularInline
 from django.db.models import Q
 
-import waves.const as const
+import waves.adaptors.const as jobconst
 from waves.admin.base import WavesModelAdmin
 from waves.admin.forms.jobs import JobInputForm, JobOutputForm, JobForm
 from waves.models.jobs import *
@@ -63,7 +63,7 @@ class JobHistoryInline(TabularInline):
 
 def mark_rerun(modeladmin, request, queryset):
     for job in queryset.all():
-        if job.status != const.JOB_CREATED:
+        if job.allow_rerun:
             try:
                 # Delete old history (except admin messages)
                 job.re_run()
@@ -185,12 +185,12 @@ class JobAdmin(WavesModelAdmin):
 
     def suit_row_attributes(self, obj, request):
         css_class = {
-            const.JOB_COMPLETED: 'success',
-            const.JOB_RUNNING: 'warning',
-            const.JOB_ERROR: 'error',
-            const.JOB_CANCELLED: 'error',
-            const.JOB_PREPARED: 'info',
-            const.JOB_CREATED: 'info',
+            jobconst.JOB_COMPLETED: 'success',
+            jobconst.JOB_RUNNING: 'warning',
+            jobconst.JOB_ERROR: 'error',
+            jobconst.JOB_CANCELLED: 'error',
+            jobconst.JOB_PREPARED: 'info',
+            jobconst.JOB_CREATED: 'info',
         }.get(obj.status)
         if css_class:
             return {'class': css_class}

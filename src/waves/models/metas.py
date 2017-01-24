@@ -1,10 +1,10 @@
 """ Metas informations added to services """
 from __future__ import unicode_literals
 
-from django.db import models
-import waves.const
 from django.core import validators
 from django.core.exceptions import ValidationError
+from django.db import models
+
 from waves.models import Ordered, Described, Service
 __all__ = ['ServiceMeta']
 
@@ -15,13 +15,43 @@ class ServiceMeta(Ordered, Described):
     Represents all meta information associated with a ATGC service service.
     Ex : website, documentation, download, related paper etc...
     """
+    #: META for external website link
+    META_WEBSITE = 'website'
+    #: META for external documentation link
+    META_DOC = 'doc'
+    #: META for any download link
+    META_DOWNLOAD = 'download'
+    #: META for related paper view
+    META_PAPER = 'paper'
+    #: META for miscellaneous stuff
+    META_MISC = 'misc'
+    #: META to display 'cite our work'
+    META_CITE = 'cite'
+    #: META Service command line
+    META_CMD_LINE = 'cmd'
+    #: META link to user guide
+    META_USER_GUIDE = 'rtfm'
+    #: META features included in service
+    META_FEATURES = 'feat'
+
+    SERVICE_META = (
+        (META_WEBSITE, 'Online resources'),
+        (META_DOC, 'Documentation'),
+        (META_DOWNLOAD, 'Downloads'),
+        (META_FEATURES, 'Features'),
+        (META_MISC, 'Miscellaneous'),
+        (META_PAPER, 'Related Paper'),
+        (META_CITE, 'Citation'),
+        (META_USER_GUIDE, 'User Guide'),
+        (META_CMD_LINE, 'Command line')
+    )
 
     class Meta:
         db_table = 'waves_service_meta'
         verbose_name = 'Information'
         unique_together = ('type', 'title', 'order', 'service')
 
-    type = models.CharField('Meta type', max_length=100, choices=waves.const.SERVICE_META)
+    type = models.CharField('Meta type', max_length=100, choices=SERVICE_META)
     title = models.CharField('Title', max_length=255, blank=True, null=True)
     value = models.CharField('Link', max_length=500, blank=True, null=True)
     is_url = models.BooleanField('Is a url', editable=False, default=False)
@@ -43,5 +73,5 @@ class ServiceMeta(Ordered, Described):
             validator(self.cleaned_data['value'])
             self.instance.is_url = True
         except ValidationError as e:
-            if self.instance.type in (waves.const.META_WEBSITE, waves.const.META_DOC, waves.const.META_DOWNLOAD):
+            if self.instance.type in (self.META_WEBSITE, self.META_DOC, self.META_DOWNLOAD):
                 raise e

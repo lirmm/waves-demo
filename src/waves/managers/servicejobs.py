@@ -2,16 +2,15 @@
 from __future__ import unicode_literals
 
 import logging
+from itertools import chain
 from os import path as path
+
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import TemporaryUploadedFile, InMemoryUploadedFile
 from django.db import transaction
-from django.core.exceptions import ValidationError
-from django.db.models import Q
-from itertools import chain
-import waves.const
+
 from waves.exceptions.jobs import JobMissingMandatoryParam
-from waves.models import FileInputSample
 from waves.utils.normalize import normalize_value
 
 logger = logging.getLogger(__name__)
@@ -33,7 +32,7 @@ class ServiceJobManager(object):
         :rtype: :class:`waves.models.jobs.JobInput`
         """
         from waves.models import JobInput
-        from waves.models.inputs import RelatedParam, BaseParam, FileInput, FileInputSample
+        from waves.models.inputs import BaseParam, FileInput, FileInputSample
         input_dict = dict(job=job,
                           order=order,
                           name=service_input.name,
@@ -47,7 +46,7 @@ class ServiceJobManager(object):
                 input_dict['value'] = normalize_value(input_dict['value'])
         except ObjectDoesNotExist:
             pass
-        if service_input.param_type == waves.const.TYPE_FILE:
+        if service_input.param_type == BaseParam.TYPE_FILE:
             if isinstance(submitted_input, TemporaryUploadedFile) or isinstance(submitted_input, InMemoryUploadedFile):
                 # classic uploaded file
                 filename = path.join(job.working_dir, submitted_input.name)
@@ -138,7 +137,7 @@ class ServiceJobManager(object):
                 srv_submission_output = service_output.from_input
                 value_to_normalize = submitted_inputs.get(srv_submission_output.name,
                                                           srv_submission_output.default)
-                if srv_submission_output.param_type == waves.const.TYPE_FILE:
+                if srv_submission_output.param_type == BaseParam.TYPE_FILE:
                     value_to_normalize = value_to_normalize.name
                 input_value = normalize_value(value_to_normalize)
                 if logger.isEnabledFor(logging.DEBUG):

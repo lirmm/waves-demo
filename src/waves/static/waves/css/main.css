@@ -7,6 +7,9 @@ html, body {
     padding: 40px 15px;
     text-align: center;
 }
+div.collapse.navbar-collapse > ul.nav.navbar-nav.navbar-right > li.dropdown {
+    padding-right: 1em;
+}
 
 .footer {
     padding-top: 40px;

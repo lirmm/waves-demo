@@ -11,8 +11,8 @@ from forms import UserForm, FrontUserForm, FrontProfileForm, ProfileForm
 
 class ShowProfile(LoginRequiredMixin, generic.TemplateView):
     """ WAVES user Profile show page """
-    template_name = "templates/profiles/show_profile.html"
-    http_method_names = ['get', 'post']
+    template_name = "profiles/show_profile.html"
+    http_method_names = ['get']
 
     def get(self, request, *args, **kwargs):
         slug = self.kwargs.get('slug')
@@ -27,17 +27,10 @@ class ShowProfile(LoginRequiredMixin, generic.TemplateView):
         kwargs["show_user"] = user
         return super(ShowProfile, self).get(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        """ only post to delete user profile """
-        user = self.request.user
-        if user:
-            user.delete()
-        return redirect("home")
-
 
 class EditProfile(LoginRequiredMixin, generic.TemplateView):
     """ WAVES user Profile edit page """
-    template_name = "templates/profiles/edit_profile.html"
+    template_name = "profiles/edit_profile.html"
     http_method_names = ['get', 'post']
 
     def get(self, request, *args, **kwargs):
@@ -45,7 +38,7 @@ class EditProfile(LoginRequiredMixin, generic.TemplateView):
         if "user_form" not in kwargs:
             kwargs["user_form"] = UserForm(instance=user)
         if "profile_form" not in kwargs:
-            kwargs["profile_form"] = ProfileForm(instance=user.profile)
+            kwargs["profile_form"] = FrontProfileForm(instance=user.profile)
         return super(EditProfile, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -57,9 +50,9 @@ class EditProfile(LoginRequiredMixin, generic.TemplateView):
             return redirect('home')
         user = self.request.user
         user_form = UserForm(request.POST, instance=user)
-        profile_form = ProfileForm(request.POST,
-                                   request.FILES,
-                                   instance=user.profile)
+        profile_form = FrontProfileForm(request.POST,
+                                        request.FILES,
+                                        instance=user.profile)
         if not (user_form.is_valid() and profile_form.is_valid()):
             messages.error(request, "There was a problem with the form. "
                                     "Please check the details.")

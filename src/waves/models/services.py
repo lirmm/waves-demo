@@ -10,10 +10,10 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from mptt.models import MPTTModel, TreeForeignKey
-import waves.const
+
 import waves.settings
-from waves.models.base import *
 from waves.models.adaptors import *
+from waves.models.base import *
 from waves.models.managers.services import *
 from waves.models.runners import Runner
 
@@ -56,6 +56,16 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
     """
     Represents a service on the platform
     """
+    SRV_DRAFT = 0
+    SRV_TEST = 1
+    SRV_RESTRICTED = 2
+    SRV_PUBLIC = 3
+    SRV_STATUS_LIST = [
+        [SRV_DRAFT, 'Draft'],
+        [SRV_TEST, 'Test'],
+        [SRV_RESTRICTED, 'Restricted'],
+        [SRV_PUBLIC, 'Public'],
+    ]
 
     # TODO add version number validation
     # TODO add check for mandatory expected params setup (mandatory with no default, not mandatory with default)
@@ -81,7 +91,7 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
                              help_text='Service job submission command')
     category = models.ForeignKey(ServiceCategory, on_delete=models.SET_NULL, null=True, related_name='category_tools',
                                  help_text='Service category')
-    status = models.IntegerField(choices=waves.const.SRV_STATUS_LIST, default=waves.const.SRV_DRAFT,
+    status = models.IntegerField(choices=SRV_STATUS_LIST, default=SRV_DRAFT,
                                  help_text='Service online status')
     api_on = models.BooleanField('Available on API', default=True, help_text='Service is available for api calls')
     web_on = models.BooleanField('Available on WEB', default=True, help_text='Service is available for web front')
@@ -196,12 +206,12 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
         :return: True or False
         """
         if user.is_anonymous():
-            return self.status == waves.const.SRV_PUBLIC
+            return self.status == Service.SRV_PUBLIC
         # RULES to set if user can access submissions
-        return (self.status == waves.const.SRV_PUBLIC) or \
-               (self.status == waves.const.SRV_DRAFT and self.created_by == user) or \
-               (self.status == waves.const.SRV_TEST and user.is_staff) or \
-               (self.status == waves.const.SRV_RESTRICTED and (
+        return (self.status == Service.SRV_PUBLIC) or \
+               (self.status == Service.SRV_DRAFT and self.created_by == user) or \
+               (self.status == Service.SRV_TEST and user.is_staff) or \
+               (self.status == Service.SRV_RESTRICTED and (
                    user in self.restricted_client.all() or user.is_staff)) or user.is_superuser
 
     @property
@@ -211,8 +221,11 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
 
     @property
     def importer(self):
+        """ Short cut method to access runner importer (if any)"""
         return self.runner.importer
 
     def publishUnPublish(self):
-        self.status = waves.const.SRV_DRAFT if waves.const.SRV_PUBLIC else waves.const.SRV_PUBLIC
+        self.status = Service.SRV_DRAFT if Service.SRV_PUBLIC else Service.SRV_PUBLIC
         self.save()
+
+
