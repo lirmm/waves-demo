@@ -4,14 +4,14 @@ from django.core.exceptions import ValidationError
 from django.db import models
 import logging
 from waves.models import TimeStamped, ApiModel, Ordered, Slugged, Service, Described
-from waves.models.adaptors import AdaptorInitParam, HasRunnerAdaptorParamsMixin
+from waves.models.adaptors import AdaptorInitParam, HasRunnerParamsMixin
 from waves.models.runners import Runner
 
 logger = logging.getLogger(__name__)
 __all__ = ['Submission', 'SubmissionOutput', 'SubmissionExitCode', 'SubmissionRunParam']
 
 
-class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerAdaptorParamsMixin):
+class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
     """ Represents a service submission parameter set for a service """
 
     class Meta:
@@ -27,17 +27,20 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerAdaptorParams
                                                 (1, "Available on web only"),
                                                 (2, "Available on api only"),
                                                 (3, "Available on both")])
-    label = models.CharField('Submission title', max_length=255, null=True, blank=False, default='default')
+    label = models.CharField('Submission title', max_length=255, null=False, blank=False)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, related_name='submissions')
-    override_runner = models.ForeignKey(Runner, related_name='submission_runs', null=True, blank=True,
-                                        on_delete=models.SET_NULL,
-                                        help_text='Override service runs parameters')
 
-    @property
-    def runner(self):
-        if self.override_runner:
-            return self.override_runner
-        return self.service.runner
+    def set_run_params_defaults(self):
+        # self.runner.adaptor_params.all().delete()
+        super(Submission, self).set_run_params_defaults()
+
+    def get_runner(self):
+        if self.runner:
+            print "returned overridden ", self.runner
+            return self.runner
+        else:
+            print "returned service one"
+            return self.service.runner
 
     @property
     def available_online(self):
@@ -114,6 +117,7 @@ class SubmissionOutput(TimeStamped):
                                     help_text="Pattern used when dependent on any input '%s'")
     edam_format = models.CharField('Edam format', max_length=255, null=True, blank=True, help_text="Edam format")
     edam_data = models.CharField('Edam data', max_length=255, null=True, blank=True, help_text="Edam data")
+    help_text = models.TextField('Content description', null=True, blank=True, )
 
     def __str__(self):
         if self.from_input:

@@ -53,8 +53,8 @@
                     {% block navbar-left %}{% endblock %}
                 </ul>
                 {% block navbar-right %}
-                    {% if user.is_authenticated %}
-                        <ul class="nav navbar-nav navbar-right">
+                        <ul id="nav-bar-user" class="nav navbar-nav navbar-right">
+                        {% if user.is_authenticated %}
                             {% if user.is_staff %}
                                 {% load waves_tags %}
                                 <li><a href="{% url 'admin:index' %}">Admin</a></li>
@@ -70,11 +70,12 @@
                                     <li><a href="{% url 'account:logout' %}">Logout</a></li>
                                 </ul>
                             </li>
+                        {% else %}
+                            <li>
+                                <a class="btn btn-default" href="{% url 'account:login' %}" role="button">Log in</a>
+                            </li>
+                        {% endif %}
                         </ul>
-                    {% else %}
-                        <a class="btn btn-default" href="{% url 'account:login' %}" role="button">Log in</a>
-                    {% endif %}
-
                 {% endblock %}
             </div><!--/.nav-collapse -->
         {% endblock %}

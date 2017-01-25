@@ -23,7 +23,7 @@ class LoginView(bracesviews.AnonymousRequiredMixin,
                 authviews.LoginView):
     """ Login view """
     template_name = "accounts/login.html"
-    # success_url = reverse_lazy("home")
+    success_url = reverse_lazy("home")
     form_class = LoginForm
 
     def form_valid(self, form):

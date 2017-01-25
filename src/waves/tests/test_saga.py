@@ -9,7 +9,7 @@ from unittest import skip
 from django.conf import settings
 import waves.adaptors.const as jobconst
 import waves.tests.utils.shell_util as test_util
-from waves.tests.test_runner import TestBaseJobRunner, sample_job
+from waves.tests.test_runner import TestJobRunner, sample_job
 from waves.adaptors.saga.shell.local import LocalShellAdaptor
 from waves.adaptors.saga.cluster.ssh import SshUserPassClusterAdaptor
 from waves.adaptors.saga.shell.ssh import SshUserPassShellAdaptor
@@ -22,7 +22,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ShellRunnerTestCase(TestBaseJobRunner):
+class ShellRunnerTestCase(TestJobRunner):
     def _set_command(self, command):
         service_command = self.service.srv_run_params.get(name='command')
         service_command._value = command

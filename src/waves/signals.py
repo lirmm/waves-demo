@@ -10,14 +10,17 @@ from os.path import join
 
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
+from django.utils.module_loading import import_string
+from django.contrib.contenttypes.models import ContentType
 
 from waves.models.base import ApiModel
-from waves.models.adaptors import AdaptorInitParam, HasRunnerAdaptorParamsMixin
+from waves.models.adaptors import AdaptorInitParam, HasAdaptorClazzMixin, HasAdaptorParamsMixin, HasRunnerParamsMixin
 from waves.models.inputs import *
 from waves.models.jobs import Job, JobOutput
 from waves.models.runners import *
 from waves.models.services import *
 from waves.models.submissions import *
+from waves.utils import get_all_subclasses
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +67,7 @@ def submission_pre_save_handler(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Submission)
-def submission_pre_save_handler(sender, instance, created, **kwargs):
+def submission_post_save_handler(sender, instance, created, **kwargs):
     """ submission pre save """
     if created and not kwargs.get('raw', False):
         instance.exit_codes.add(SubmissionExitCode.objects.create(submission=instance, exit_code=0,
@@ -95,61 +98,43 @@ def runner_pre_save_handler(sender, instance, **kwargs):
             instance.name = instance.clazz.rsplit('.', 1)[1]
 
 
-@receiver(post_save, sender=HasRunnerAdaptorParamsMixin)
-def has_runner_post_save_handler(sender, instance, created, **kwargs):
-    if instance.has_changed_runner and not kwargs.get('raw', False):
-        print "in signal"
-        from django.utils.module_loading import import_string
-        from django.contrib.contenttypes.models import ContentType
-        object_ctype = ContentType.objects.get_for_model(instance)
-        Adaptor = import_string(instance.get_clazz())
-        instance.adaptor_params.exclude(name__in=Adaptor().init_params.keys()).delete()
-        # delete all old run params related to previous init_params from instance (delete cascade service params)
-        for name, initial in Adaptor().init_params.items():
-
-            prevent_override = False
-            if type(initial) in (tuple, list, dict):
-                initial = initial[0][0]
-                prevent_override = True
-            AdaptorInitParam.objects.update_or_create(defaults={'value': initial,
-                                                                'prevent_override': prevent_override},
-                                                      content_type=object_ctype, object_id=instance.pk,
-                                                      name=name)
-
-for subclass in HasRunnerAdaptorParamsMixin.__subclasses__():
-    post_save.connect(has_runner_post_save_handler, subclass)
-
-
 @receiver(post_save, sender=Runner)
 def runner_post_save_handler(sender, instance, created, **kwargs):
-    """ Runner saved instance handler, setup or update related RunnerInitParam according to clazz specified """
-    if not kwargs.get('raw', False):
-        if created or instance.has_changed_runner:
-            # modified clazz instance.
-            for service in instance.runs.all():
-                service.reset_run_params()
+    if instance.has_changed_config:
+        print "launched !"
+        for service in instance.waves_service_runs.all():
+            service.set_run_params_defaults()
+            for submission in service.submissions.all():
+                submission.set_run_params_defaults()
+
+
+@receiver(post_save, sender=Service)
+def service_post_save_handler(sender, instance, created, **kwargs):
+    if instance.has_changed_config:
+        for submission in instance.submissions.all():
+            submission.set_run_params_defaults()
+
+
+@receiver(post_save, sender=HasAdaptorParamsMixin)
+def adaptor_mixin_post_save_handler(sender, instance, created, **kwargs):
+    print "in default handler ", instance.has_changed_config, instance.__class__.__name__
+    if not kwargs.get('raw', False) and (instance.has_changed_config or created):
+        print "in default handler ", instance.has_changed_config, instance.__class__.__name__
+        instance.set_run_params_defaults()
+
+
+for subclass in get_all_subclasses(HasAdaptorParamsMixin):
+    if not subclass._meta.abstract:
+        post_save.connect(adaptor_mixin_post_save_handler, subclass)
 
 
 @receiver(pre_save, sender=AdaptorInitParam)
 def adaptor_param_pre_save_handler(sender, instance, **kwargs):
     """ Runner param pre save handler """
-    if instance.name.startswith('crypt_') and instance.value:
+    if instance.name and instance.value and instance.name.startswith('crypt_'):
         from waves.utils.encrypt import Encrypt
         instance.value = Encrypt.encrypt(instance.value)
 
-"""
-@receiver(post_save, sender=AdaptorInitParam)
-def adaptor_param_post_save_handler(sender, instance, created, **kwargs):
-    "" Runner saved instance handler, setup or update related RunnerInitParam according to clazz specified ""
-    if instance.prevent_override:
-        from django.contrib.contenttypes.models import ContentType
-
-        # Reset old upgrades values for related service to default
-        object_ctype = ContentType.objects.get_for_model(sender.__class__.__name__)
-        for service_param in AdaptorInitParam.objects.filter(name=instance.name, object_ctype=object_ctype):
-            service_param.value = instance.value
-            service_param.save()
-"""
 
 @receiver(pre_save, sender=ApiModel)
 def api_able_pre_save_handler(sender, instance, **kwargs):

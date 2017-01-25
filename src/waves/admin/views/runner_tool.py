@@ -19,7 +19,7 @@ from waves.exceptions import *
 from waves.admin.forms.services import ImportForm
 from waves.models import Runner
 from waves.models import Service, Submission
-from waves.views.admin.export import ModelExportView
+from waves.admin.views.export import ModelExportView
 
 logger = logging.getLogger(__name__)
 

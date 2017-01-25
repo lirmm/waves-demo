@@ -66,7 +66,8 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
                 kwargs['queryset'] = RepeatedGroup.objects.filter(submission=request.submission)
             elif db_field.name == "related_to":
                 pk = self._object.pk if self._object else -1
-                kwargs['queryset'] = BaseParam.objects.filter(submission=request.submission).not_instance_of(FileInput).exclude(pk=pk)
+                kwargs['queryset'] = BaseParam.objects.filter(submission=request.submission).not_instance_of(
+                    FileInput).exclude(pk=pk)
             elif db_field.name == 'submission':
                 print "dbfield name sub "
                 kwargs['queryset'] = Submission.objects.filter(pk=request.submission.pk)
@@ -156,6 +157,7 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
 
 @admin.register(FileInput)
 class FileInputAdmin(BaseParamAdmin):
+    """ FileInput subclass Admin """
     base_model = FileInput
     show_in_index = False
     extra_fieldset_title = 'File params'
@@ -163,17 +165,20 @@ class FileInputAdmin(BaseParamAdmin):
 
 @admin.register(TextParam)
 class TextParamAdmin(BaseParamAdmin):
+    """ TextParam subclass Admin """
     base_model = TextParam
 
 
 @admin.register(BooleanParam)
 class BooleanParamAdmin(BaseParamAdmin):
+    """ BooleanParam subclass Admin """
     base_model = BooleanParam
     extra_fieldset_title = 'Boolean params'
 
 
 @admin.register(ListParam)
 class ListParamAdmin(BaseParamAdmin):
+    """ ListParam subclass Admin """
     base_model = ListParam
     show_in_index = False
     # fields = ('list_mode', 'list_elements')
@@ -182,18 +187,22 @@ class ListParamAdmin(BaseParamAdmin):
 
 @admin.register(IntegerParam)
 class IntegerParamAdmin(BaseParamAdmin):
+    """ IntegerParam subclass Admin """
     base_model = IntegerParam
     extra_fieldset_title = 'Integer range'
 
 
 @admin.register(DecimalParam)
 class DecimalParamAdmin(BaseParamAdmin):
+    """ DecimalParam subclass Admin """
+
     base_model = DecimalParam
     extra_fieldset_title = 'Decimal range'
 
 
 @admin.register(BaseParam)
 class AllParamModelAdmin(PolymorphicParentModelAdmin, admin.ModelAdmin):
+    """ Main polymorphic params Admin """
     base_model = BaseParam
     child_models = (FileInput, BooleanParam, DecimalParam, IntegerParam, ListParam, TextParam)
     list_filter = (PolymorphicChildModelFilter, 'submission', 'submission__service')

@@ -1,36 +1,48 @@
+""" WAVES models Tests cases """
 from __future__ import unicode_literals
 
 import os
 import logging
-
 from waves.tests.base import WavesBaseTestCase
 from django.utils.module_loading import import_string
-
 from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory
 from waves.models.submissions import Submission
+from waves.utils.encrypt import Encrypt
 import waves.adaptors.const as jobconst
-
+from waves.adaptors.base import BaseAdaptor
+from django.test import TestCase
 
 logger = logging.getLogger(__name__)
 
 
-class TestRunners(WavesBaseTestCase):
+def create_runners():
+    """ Create base models from all Current implementation parameters """
+    from waves.utils.runners import get_runners_list
+    runners = []
+    for clazz in get_runners_list(raw=True):
+        runners.append(Runner.objects.create(name=clazz.rsplit('.', 1)[-1].replace('Adaptor', 'Runner'), clazz=clazz))
+    return runners
 
+
+def create_service_for_runners():
+    """ initialize a empty service for each defined runner """
+    services = []
+    for runner in create_runners():
+        srv = Service.objects.create(name="Service %s " % runner.name, runner=runner)
+        srv.submissions.add(Submission.objects.create(service=srv, label="default"))
+        services.append(srv)
+    return services
+
+
+class TestRunner(TestCase):
     def test_create_runner(self):
-        from waves.adaptors import CURRENT_IMPLEMENTATION
-        for clazz in CURRENT_IMPLEMENTATION:
-            logger.info('Current class: %s - %s', clazz.name, clazz.clazz)
-            test_runner = Runner.objects.create(name='%s runner' % clazz.name , clazz=clazz.clazz)
-            from waves.adaptors.base import BaseAdaptor
-            adaptor = test_runner.adaptor
+        for runner in create_runners():
+            logger.info('Current: %s - %s', runner.name, runner.clazz)
+            adaptor = runner.adaptor
             self.assertIsInstance(adaptor, BaseAdaptor)
-            self.assertEqual(test_runner.run_params.__len__(), adaptor.init_params.__len__())
-            self.assertListEqual(sorted(test_runner.run_params.keys()), sorted(adaptor.init_params.keys()))
-
-    def test_runners_defaults(self):
-        for runner in Runner.objects.all():
+            self.assertEqual(runner.run_params.__len__(), adaptor.init_params.__len__())
+            self.assertListEqual(sorted(runner.run_params.keys()), sorted(adaptor.init_params.keys()))
             obj_runner = import_string(runner.clazz)
-            logger.debug("Clazz %s", runner.clazz)
             expected_params = obj_runner().init_params
             runner_params = runner.run_params
             logger.debug("Expected %s", expected_params)
@@ -40,10 +52,15 @@ class TestRunners(WavesBaseTestCase):
 
 class TestServices(WavesBaseTestCase):
     def test_create_service(self):
-        runner = Runner.objects.create(name="SubmissionSample runner", clazz='waves.tests.mocks.adaptor.MockJobRunnerAdaptor')
-        srv = Service.objects.create(name="SubmissionSample Service", runner=runner)
-        srv.submissions.add(Submission.objects.create(service=srv, label="SubmissionSample submission"))
-        self.assertEqual(srv.submissions.count(), 1)
+        for service in create_service_for_runners():
+            self.assertEqual(service.submissions.count(), 1)
+            runner_params = dict(
+                {name: Encrypt.decrypt(value) if name.startswith('crypt_') else value for name, value in
+                 service.runner.adaptor_params.filter(prevent_override=False).values_list('name', 'value')})
+            service.runner.adaptor_params.filter(prevent_override=False).values_list('name', 'value')
+            service_params = service.run_params
+            # Assert that service params has a length corresponding to 'allowed override' value
+            self.assertListEqual(sorted(service_params.keys()), sorted(runner_params.keys()))
 
     def test_service_run_param(self):
         services = Service.objects.all()

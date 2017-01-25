@@ -18,7 +18,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-__all__ = ['TestBaseJobRunner', 'sample_runner']
+__all__ = ['TestJobRunner', 'sample_runner']
 
 
 def sample_runner(runner_impl):
@@ -53,19 +53,17 @@ def sample_job(service):
     return job
 
 
-class TestBaseJobRunner(WavesBaseTestCase):
+class TestJobRunner(WavesBaseTestCase):
     """
     Test all functions in Runner adapters base class
 
     """
-    current_result = None
-
     def _debug_job_state(self):
         logger.debug('Internal state %s, current %s', self.current_job._status, self.current_job.status)
 
     def setUp(self):
         # Create sample data
-        super(TestBaseJobRunner, self).setUp()
+        super(TestJobRunner, self).setUp()
         try:
             getattr(self, 'adaptor')
         except AttributeError:
@@ -78,14 +76,10 @@ class TestBaseJobRunner(WavesBaseTestCase):
         self._result = self.defaultTestResult()
 
     def tearDown(self):
-        super(TestBaseJobRunner, self).tearDown()
+        super(TestJobRunner, self).tearDown()
         # if not waves.settings.WAVES_TEST_DEBUG:
         #    for job in self.jobs:
         #        job.delete_job_dirs()
-
-    def run(self, result=None):
-        self.current_result = result
-        super(TestBaseJobRunner, self).run(result)
 
     def testConnect(self):
         # Only run for sub classes
@@ -98,7 +92,7 @@ class TestBaseJobRunner(WavesBaseTestCase):
     def testWrongJobStates(self):
         """ Test exceptions raise when state inconsistency is detected in jobs
         """
-        if not self.__class__.__name__ == 'TestBaseJobRunner':
+        if not self.__class__.__name__ == 'TestJobRunner':
             self.skipTest("Only run with mock adaptor, just check job states consistency")
         self.current_job = sample_job(self.service)
 
@@ -181,3 +175,4 @@ class TestBaseJobRunner(WavesBaseTestCase):
         else:
             logger.warn('problem with job status %s', self.current_job.get_status_display())
         return True
+

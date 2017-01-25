@@ -8,10 +8,21 @@ from crispy_forms.layout import Layout, Field
 from django import forms
 import waves.settings
 from waves.commands import get_commands_impl_list
-from waves.models import BooleanParam, ListParam, FileInput, TextParam
+from waves.models import BooleanParam, ListParam, FileInput, TextParam, Submission
 from waves.models.services import *
 
-__all__ = ['ServiceForm', 'ImportForm', 'ServiceMetaForm']
+
+__all__ = ['ServiceForm', 'ImportForm', 'ServiceMetaForm', 'SubmissionInlineForm']
+
+
+class SubmissionInlineForm(forms.ModelForm):
+
+    class Meta:
+        model = Submission
+        fields = ['label', 'availability', 'api_name']
+
+    def __init__(self, *args, **kwargs):
+        super(SubmissionInlineForm, self).__init__(*args, **kwargs)
 
 
 class ImportForm(forms.Form):

@@ -10,7 +10,9 @@ html, body {
 div.collapse.navbar-collapse > ul.nav.navbar-nav.navbar-right > li.dropdown {
     padding-right: 1em;
 }
-
+#nav-bar-user:last-child {
+    margin-right: 1em;
+}
 .footer {
     padding-top: 40px;
     padding-bottom: 40px;

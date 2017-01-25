@@ -55,6 +55,30 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     #: Job run details retrieved or not
     _run_details = None
 
+    STR_JOB_UNDEFINED = 'Unknown'
+    STR_JOB_CREATED = 'Created'
+    STR_JOB_PREPARED = 'Prepared for run'
+    STR_JOB_QUEUED = 'Queued'
+    STR_JOB_RUNNING = 'Running'
+    STR_JOB_COMPLETED = 'Completed'
+    STR_JOB_TERMINATED = 'Finished'
+    STR_JOB_CANCELLED = 'Cancelled'
+    STR_JOB_SUSPENDED = 'Suspended'
+    STR_JOB_ERROR = 'In Error'
+
+    STATUS_LIST = [
+        (jobconst.JOB_UNDEFINED, STR_JOB_UNDEFINED),
+        (jobconst.JOB_CREATED, STR_JOB_CREATED),
+        (jobconst.JOB_PREPARED, STR_JOB_PREPARED),
+        (jobconst.JOB_QUEUED, STR_JOB_QUEUED),
+        (jobconst.JOB_RUNNING, STR_JOB_RUNNING),
+        (jobconst.JOB_SUSPENDED, STR_JOB_SUSPENDED),
+        (jobconst.JOB_COMPLETED, STR_JOB_COMPLETED),
+        (jobconst.JOB_TERMINATED, STR_JOB_TERMINATED),
+        (jobconst.JOB_CANCELLED, STR_JOB_CANCELLED),
+        (jobconst.JOB_ERROR, STR_JOB_ERROR),
+    ]
+
     class Meta(TimeStamped.Meta):
         db_table = 'waves_job'
         verbose_name = 'Job'
@@ -67,7 +91,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     submission = models.ForeignKey(Submission, related_name='service_jobs', null=True,
                                    on_delete=models.SET_NULL)
     #: Job last known status - see :ref:`waves-jobconst-label`.
-    status = models.IntegerField('Job status', choices=jobconst.STATUS_LIST,
+    status = models.IntegerField('Job status', choices=STATUS_LIST,
                                  default=jobconst.JOB_CREATED,
                                  help_text='Job current run status')
     #: Job last status for which we sent a notification email
@@ -492,18 +516,18 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     def _check_job_action(self, action):
         """ Check if current job status is coherent with requested action """
         if action == 'prepare_job':
-            status_allowed = jobconst.STATUS_LIST[1:2]
+            status_allowed = self.STATUS_LIST[1:2]
         elif action == 'run_job':
-            status_allowed = jobconst.STATUS_LIST[2:3]
+            status_allowed = self.STATUS_LIST[2:3]
         elif action == 'cancel_job':
             status_allowed = self.adaptor.state_allow_cancel
         elif action == 'job_results':
-            status_allowed = jobconst.STATUS_LIST[6:7] + jobconst.STATUS_LIST[9:]
+            status_allowed = self.STATUS_LIST[6:7] + self.STATUS_LIST[9:]
         elif action == 'job_run_details':
-            status_allowed = jobconst.STATUS_LIST[6:10]
+            status_allowed = self.STATUS_LIST[6:10]
         else:
             # By default let all status allowed
-            status_allowed = jobconst.STATUS_LIST
+            status_allowed = self.STATUS_LIST
         # print "status ", self.status, "allowed ", status_allowed
         # print (self.status not in [int(i[0]) for i in status_allowed])
         if self.status not in [int(i[0]) for i in status_allowed]:
@@ -519,13 +543,6 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     def stderr_txt(self):
         with open(join(self.working_dir, self.stderr), 'r') as fp:
             return fp.read()
-
-    def reset_run_params(self):
-        """ Should be used only for non already launched objects """
-        for param in self.service.runner.runner_run_params.filter(prevent_override=True):
-            JobRunParams.objects.update_or_create(defaults={'value': param.value,
-                                                            'prevent_override': True},
-                                                  name=param.name, job=self)
 
     @property
     def allow_rerun(self):
@@ -753,7 +770,7 @@ class JobHistory(models.Model):
     #: Time when this event occurred
     timestamp = models.DateTimeField('Date time', auto_now_add=True, help_text='History timestamp')
     #: Job Status for this event
-    status = models.IntegerField('Job Status', choices=jobconst.STATUS_LIST,
+    status = models.IntegerField('Job Status', choices=Job.STATUS_LIST,
                                  help_text='History job status')
     #: Job event message
     message = models.TextField('History log', blank=True, null=True, help_text='History log')

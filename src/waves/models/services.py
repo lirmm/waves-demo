@@ -16,6 +16,7 @@ from waves.models.adaptors import *
 from waves.models.base import *
 from waves.models.managers.services import *
 from waves.models.runners import Runner
+from waves.adaptors.const import JOB_CREATED, JOB_COMPLETED
 
 logger = logging.getLogger(__name__)
 __all__ = ['ServiceRunParam', 'ServiceCategory', 'Service']
@@ -52,7 +53,7 @@ class ServiceRunParam(AdaptorInitParam):
         proxy = True
 
 
-class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRunnerAdaptorParamsMixin):
+class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRunnerParamsMixin):
     """
     Represents a service on the platform
     """
@@ -81,8 +82,6 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
     name = models.CharField('Service name', max_length=255, help_text='Service displayed name')
     version = models.CharField('Current version', max_length=10, null=True, blank=True, default='1.0',
                                help_text='Service displayed version')
-    runner = models.ForeignKey(Runner, related_name='runs', null=True, blank=False, on_delete=models.SET_NULL,
-                               help_text='Service job runs adapter')
     restricted_client = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='restricted_services', blank=True,
                                                verbose_name='Restricted clients', db_table='waves_service_client',
                                                help_text='By default access is granted to everyone, '
@@ -228,4 +227,6 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
         self.status = Service.SRV_DRAFT if Service.SRV_PUBLIC else Service.SRV_PUBLIC
         self.save()
 
-
+    @property
+    def running_jobs(self):
+        return self.jobs.filter(status__in=[JOB_CREATED, JOB_COMPLETED])

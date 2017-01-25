@@ -11,13 +11,13 @@ from waves.adaptors.exceptions import AdaptorConnectException
 import utils.galaxy_util as test_util
 import waves.settings
 from waves.models import Service
-from waves.tests.test_runner import TestBaseJobRunner
+from waves.tests.test_runner import TestJobRunner
 
 logger = logging.getLogger(__name__)
 
 
 @test_util.skip_unless_galaxy()
-class GalaxyRunnerTestCase(TestBaseJobRunner):
+class GalaxyRunnerTestCase(TestJobRunner):
     def setUp(self):
         self.adaptor = GalaxyJobAdaptor(init_params={'host': settings.WAVES_TEST_GALAXY_URL,
                                                      'port': settings.WAVES_TEST_GALAXY_PORT,
@@ -70,7 +70,7 @@ class GalaxyRunnerTestCase(TestBaseJobRunner):
 
 
 @test_util.skip_unless_galaxy()
-class GalaxyWorkFlowRunnerTestCase(TestBaseJobRunner):
+class GalaxyWorkFlowRunnerTestCase(TestJobRunner):
     def setUp(self):
         self.adaptor = GalaxyWorkFlowAdaptor(init_params={'host': waves.settings.WAVES_TEST_GALAXY_URL,
                                                           'port': waves.settings.WAVES_TEST_GALAXY_PORT,

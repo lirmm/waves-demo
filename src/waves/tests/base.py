@@ -9,7 +9,6 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import override_settings, TestCase
 from waves.tests.utils import get_sample_dir
-from django.urls import reverse
 
 
 @override_settings(
@@ -19,30 +18,13 @@ from django.urls import reverse
     WAVES_SAMPLE_DIR=str(os.path.join(dirname(settings.BASE_DIR), 'tests', 'data', 'sample'))
 )
 class WavesBaseTestCase(TestCase):
-    current_result = None
-    # fixtures = ['waves/tests/fixtures/init.json']
 
-    @classmethod
-    def setUpClass(cls):
-        super(WavesBaseTestCase, cls).setUpClass()
-        # copy_sample_dirs()
-
-    def setUp(self):
-        super(WavesBaseTestCase, self).setUp()
-        self.service = None
-
-    def run(self, result=None):
-        self.current_result = result
-        super(WavesBaseTestCase, self).run(result)
-
-    def tearDown(self):
-        super(WavesBaseTestCase, self).tearDown()
+    service = None
 
     def _loadServiceJobsParams(self, api_name):
         """
         Test specific phyisic_ist job submission
         Returns:
-
         """
         import logging
         from waves.models import Service
@@ -72,20 +54,10 @@ class WavesBaseTestCase(TestCase):
                 with open(os.path.join(get_sample_dir(), self.service.api_name,
                                        job_params['inputs'][key])) as f:
                     submitted_input.update({key: f.read()})
-                # self.service.default_submission.submission_inputs.add(SubmissionParam.objects.create(ser))
+                    # self.service.default_submission.submission_inputs.add(SubmissionParam.objects.create(ser))
             for key in job_params['params']:
                 submitted_input.update({key: job_params['params'][key]})
             jobs_submitted_input.append(submitted_input)
         return jobs_submitted_input
 
 
-class PageOpenTestCase(TestCase):
-    def test_home_page_exists(self):
-        url = reverse('home')
-        r = self.client.get(url)
-        self.assertEqual(r.status_code, 200)
-
-    def test_about_page_exists(self):
-        url = reverse('waves:about')
-        r = self.client.get(url)
-        self.assertEqual(r.status_code, 200)

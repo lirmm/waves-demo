@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.views.generic import View
 from django.db import DatabaseError
 from waves.models import Service
-from waves.views.admin.export import ModelExportView
+from waves.admin.views.export import ModelExportView
 import waves.settings
 from .runner_tool import RunnerImportToolView, reverse, ObjectDoesNotExist, messages
 from waves.views.files import DownloadFileView

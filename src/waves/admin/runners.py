@@ -3,28 +3,26 @@ Admin pages for Runner and RunnerParam models objects
 """
 from __future__ import unicode_literals
 
-import waves.adaptors.const as jobconst
 from django.contrib import messages
-from django.contrib.admin import register
+from django.contrib.admin import register, TabularInline
 from django.contrib.admin.options import IS_POPUP_VAR
-from django.contrib.contenttypes.admin import GenericTabularInline
 
 from base import ExportInMassMixin
+from waves.admin.adaptors import RunnerParamInline
 from waves.admin.base import WavesModelAdmin
-from waves.admin.forms.runners import RunnerParamForm, RunnerForm
-from waves.models import RunnerInitParam, Runner, Service, Job
+from waves.admin.forms.runners import RunnerForm
+from waves.models import Runner, Service
+
 __all__ = ['RunnerAdmin']
 
 
-class RunnerParamInline(GenericTabularInline):
-    """ Job Runner class instantiation parameters insertion field
-    Inline are automatically generated from effective implementation class 'init_params' property """
-    model = RunnerInitParam
-    form = RunnerParamForm
+class ServiceRunInline(TabularInline):
+    model = Service
     extra = 0
-    fields = ['name', 'value', 'prevent_override']
-    readonly_fields = ('name',)
-    classes = ('collapse grp-collapse grp-closed',)
+    fields = ['name', 'version', 'created', 'updated', 'created_by']
+    readonly_fields = ['name', 'version', 'created', 'updated', 'created_by']
+    show_change_link = True
+    verbose_name_plural = "Related Services"
 
     def has_delete_permission(self, request, obj=None):
         """ No delete permission for runners params
@@ -44,9 +42,9 @@ class RunnerAdmin(ExportInMassMixin, WavesModelAdmin):
     """ Admin for Job Runner """
     model = Runner
     form = RunnerForm
-    inlines = (RunnerParamInline,)
+    inlines = (RunnerParamInline, ServiceRunInline)
     list_display = ('name', 'clazz', 'short_description', 'nb_services')
-    list_filter = ('name', 'runs')
+    list_filter = ('name', 'clazz')
     fieldsets = [
         ('Main', {
             'fields': ['name', 'clazz', 'update_init_params']
@@ -64,7 +62,6 @@ class RunnerAdmin(ExportInMassMixin, WavesModelAdmin):
         context['show_save'] = IS_POPUP_VAR in request.GET
         return super(RunnerAdmin, self).add_view(request, form_url, context)
 
-
     def nb_services(self, obj):
         return obj.runs.count()
 
@@ -78,11 +75,10 @@ class RunnerAdmin(ExportInMassMixin, WavesModelAdmin):
                 for service in obj.runs.all():
                     message = 'Related service %s has been reset' % service.name
                     service.status = Service.SRV_DRAFT
-                    service.reset_run_params()
+                    service.set_run_params_defaults()
                     service.save()
                     # TODO sometime we should save runParams directly in jobs, so won't rely on db modification
-                    for job in Job.objects.filter(status__lte=jobconst.JOB_QUEUED,
-                                                  submission__in=service.submissions.all()):
+                    for job in service.running_jobs:
                         job.adaptor.cancel_job(job=job)
                         message += '<br/>- Related pending job %s has been cancelled' % job.title
                     messages.info(request, message)

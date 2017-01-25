@@ -3,9 +3,8 @@
 from __future__ import unicode_literals
 
 from django.conf.urls import url
-from waves.views.admin import *
-
 from django.contrib.admin.views.decorators import staff_member_required
+from waves.admin.views import *
 
 urlpatterns = [
     url(r'^service/(?P<service_id>\d+)/import$', staff_member_required(ServiceParamImportView.as_view()),

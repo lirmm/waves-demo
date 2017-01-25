@@ -47,7 +47,7 @@ class AParam(PolymorphicModel):
     required = models.NullBooleanField('Required', choices={(None, "Optional"), (True, "Required"),
                                                             (False, "Not submitted")},
                                        default=True, help_text="Submitted and/or Required")
-    # Dedicated Fields for Dependent Inputs
+    # Submission params dependency
     when_value = models.CharField('When value', max_length=255, null=True, blank=True,
                                   help_text='Input is treated only for this parent value')
     related_to = models.ForeignKey('self', related_name="dependents_inputs", on_delete=models.CASCADE,
@@ -82,9 +82,8 @@ class BaseParam(AParam):
         (OPT_TYPE_NAMED_OPTION, 'Option named param (--param_name)'),
         (OPT_TYPE_POSIX, 'Positional param (name not used)')
     ]
+
     class Meta:
-        ordering = ['order']
-        # base_manager_name = 'base_objects'
         verbose_name = "Submission param"
         verbose_name_plural = "Submission params"
 
@@ -92,13 +91,10 @@ class BaseParam(AParam):
     #: Input default value
     default = models.CharField('Default value', max_length=50, null=True, blank=True)
     multiple = models.BooleanField('Multiple', default=False, help_text="Can hold multiple values")
-    # __future__ :-) manage validators according to edam infos
-    #: positive integer field (default to 0)
     edam_formats = models.CharField('Edam format(s)', max_length=255, null=True, blank=True,
                                     help_text="comma separated list of supported edam format")
     edam_datas = models.CharField('Edam data(s)', max_length=255, null=True, blank=True,
                                   help_text="comma separated list of supported edam data type")
-    #: Input Type
     cmd_format = models.IntegerField('Command line format', choices=OPT_TYPE,
                                      default=OPT_TYPE_POSIX,
                                      help_text='Command line pattern')
@@ -185,6 +181,7 @@ class BooleanParam(BaseParam):
 
 class NumberParam(BaseParam):
     """ Abstract Base class for 'number' validation """
+
     class Meta:
         abstract = True
 

@@ -3,13 +3,13 @@ Runner configuration BackOffice Forms
 """
 from __future__ import unicode_literals
 
-from django.forms import ModelForm, PasswordInput, TextInput, CheckboxInput, BooleanField, ChoiceField, HiddenInput
+from django.forms import ModelForm, CheckboxInput, BooleanField, ChoiceField, HiddenInput
 from django.utils.functional import lazy
 
-from waves.models import Runner, RunnerInitParam
+from waves.models import Runner
 from waves.utils.runners import get_runners_list
 
-__all__ = ['RunnerForm', 'RunnerParamForm']
+__all__ = ['RunnerForm']
 
 
 class RunnerForm(ModelForm):
@@ -40,34 +40,3 @@ class RunnerForm(ModelForm):
             pass
 
 
-class RunnerParamForm(ModelForm):
-    """
-    Runner defaults param form
-    """
-    class Meta:
-        """ Metas """
-        model = RunnerInitParam
-        fields = ['name', "value", 'prevent_override']
-        widgets = {
-            "value": TextInput(attrs={'size': 50})
-        }
-
-    def __init__(self, **kwargs):
-        super(RunnerParamForm, self).__init__(**kwargs)
-        instance = kwargs.get('instance', None)
-        if instance:
-            try:
-                from django.utils.module_loading import import_string
-                Adaptor = import_string(instance.content_object.get_clazz())
-                adaptor_default = Adaptor()
-                from ast import literal_eval
-                if adaptor_default.init_params.get(instance.name):
-                    param_defaults = adaptor_default.init_params.get(instance.name)
-                    default_value = None
-                    initial = instance.value if instance.value else default_value
-                    if type(param_defaults) == tuple:
-                        self.fields['value'] = ChoiceField(choices=param_defaults, initial=initial)
-                if instance.name.startswith('crypt_'):
-                    self.fields['value'].widget = PasswordInput(render_value=instance.value)
-            except ValueError:
-                pass

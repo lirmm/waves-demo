@@ -101,10 +101,10 @@ class JobAdmin(WavesModelAdmin):
         # TODO add JobRunDetails
     ]
     actions = [mark_rerun, delete_model]
-    list_filter = ('status', 'submission__service', 'client', 'submission__service__runner')
+    list_filter = ('status', 'submission__service', 'client')
     list_display = ('get_slug', 'get_colored_status', 'service', 'get_run_on', 'get_client', 'created', 'updated')
     list_per_page = 30
-    search_fields = ('client__email', 'submission__service_name', 'submission__service__runner')
+    search_fields = ('client__email', 'submission__service_name', 'get_run_on')
     readonly_fields = ('title', 'slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on',
                        'command_line')
 
