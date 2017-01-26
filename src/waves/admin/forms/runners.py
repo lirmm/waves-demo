@@ -38,5 +38,3 @@ class RunnerForm(ModelForm):
             self.fields['update_init_params'].initial = False
         else:
             pass
-
-

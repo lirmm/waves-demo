@@ -41,21 +41,33 @@ class AdaptorInitParam(models.Model):
 
     name = models.CharField('Name', max_length=100, blank=True, null=True, help_text='Param name')
     value = models.CharField('Value', max_length=500, null=True, blank=True, help_text='Default value')
+    crypt = models.BooleanField('Crypted', default=False, editable=False)
     prevent_override = models.BooleanField('Prevent override', default=False, help_text="Prevent override")
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey(for_concrete_model=False)
+    _value = None
+    _override = None
 
     def __str__(self):
-        return "%s|%s" % (self.name, self.value)
+        return "%s|%s|%s" % (self.name, self.value, self.prevent_override)
+
+    def __init__(self, *args, **kwargs):
+        super(AdaptorInitParam, self).__init__(*args, **kwargs)
 
     @classmethod
     def from_db(cls, db, field_names, values):
         """ Decrypt encoded value if needed for params """
         instance = super(AdaptorInitParam, cls).from_db(db, field_names, values)
-        if instance.name.startswith('crypt_') and instance.value:
+        if instance.crypt and instance.value:
             instance.value = Encrypt.decrypt(instance.value)
+        instance._value = instance.value
+        instance._override = instance.prevent_override
         return instance
+
+    @property
+    def has_changed(self):
+        return self._value != self.value or self._override != self.prevent_override
 
 
 class HasAdaptorParamsMixin(models.Model):
@@ -64,13 +76,25 @@ class HasAdaptorParamsMixin(models.Model):
     class Meta:
         abstract = True
 
+    _clazz = None
     adaptor_params = GenericRelation(AdaptorInitParam)
 
     def set_run_params_defaults(self):
         """ Set runs params with defaults issued from concrete class object """
         object_ctype = ContentType.objects.get_for_model(self)
-        for name, default in self.adaptor_defaults.items():
-            defaults = {'name': name}
+        # Delete keyx not present in new configuration
+        self.adaptor_params.exclude(name__in=self.adaptor_defaults.keys()).delete()
+        # keep old values set for runner if key is the same
+        adaptors_defaults = self.adaptor_defaults
+        current_defaults = self.run_params
+        merged_elements = [adaptors_defaults.pop(k, None) for k in current_defaults]
+        # print merged_elements
+        for name, default in adaptors_defaults.items():
+            # print "name ", name, "default", default
+            if name.startswith('crypt_'):
+                defaults = {'name': name[6:], 'crypt': True}
+            else:
+                defaults = {'name': name, 'crypt': False}
             if type(default) in (tuple, list, dict):
                 default = default[0][0]
                 defaults['prevent_override'] = True
@@ -81,9 +105,22 @@ class HasAdaptorParamsMixin(models.Model):
     @property
     def run_params(self):
         """ Get defined params values from db """
-        return dict(
-            {name: Encrypt.decrypt(value) if name.startswith('crypt_') else value for name, value in
-             self.adaptor_params.values_list('name', 'value')})
+        dic = {}
+        for init in self.adaptor_params.all():
+            index = init.name if init.crypt is False else 'crypt_%s' % init.name
+            val = Encrypt.decrypt(init.value) if init.crypt else init.value
+            dic[index] = val
+        return dic
+
+    def _get_concrete_adaptor(self, init_params=None):
+        adaptors_params = init_params or None
+        AdaptorClass = import_string(self.clazz)
+        return AdaptorClass(init_params=adaptors_params)
+
+    @property
+    def adaptor_defaults(self):
+        """ Retrieve init params defined associated concrete class (from clazz attribute) """
+        return self._get_concrete_adaptor().init_params
 
 
 class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
@@ -97,9 +134,12 @@ class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
         abstract = True
 
     _adaptor = None
-    _clazz = None
     clazz = models.CharField('Adaptor object', max_length=100, null=False,
                              help_text="This is the concrete class used to perform job execution")
+
+    def __init__(self, *args, **kwargs):
+        super(HasAdaptorClazzMixin, self).__init__(*args, **kwargs)
+        self._clazz = self.clazz
 
     @classmethod
     def from_db(cls, db, field_names, values):
@@ -108,15 +148,10 @@ class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
         instance._clazz = instance.clazz
         return instance
 
-    def _get_concrete_adaptor(self, init_params=None):
-        adaptors_params = init_params or None
-        AdaptorClass = import_string(self.clazz)
-        return AdaptorClass(init_params=adaptors_params)
-
     @property
-    def has_changed_config(self):
+    def has_changed(self):
         """ Set whether config has changed before saving """
-        return self._clazz != self.clazz
+        return self._clazz != self.clazz or any([x.has_changed for x in self.adaptor_params.all()])
 
     @property
     def adaptor(self):
@@ -125,7 +160,7 @@ class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
         :rtype: BaseAdaptor
         """
         if self._adaptor is None:
-            if self.has_changed_config:
+            if self.has_changed:
                 self._adaptor = self._get_concrete_adaptor()
             else:
                 self._adaptor = self._get_concrete_adaptor(self.run_params)
@@ -137,11 +172,6 @@ class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
         from waves.adaptors.base import BaseAdaptor
         assert (issubclass(adaptor, BaseAdaptor))
         self._adaptor = adaptor
-
-    @property
-    def adaptor_defaults(self):
-        """ Retrieve init params defined associated concrete class (from clazz attribute) """
-        return self._get_concrete_adaptor().init_params
 
 
 class HasRunnerParamsMixin(HasAdaptorParamsMixin):
@@ -167,24 +197,33 @@ class HasRunnerParamsMixin(HasAdaptorParamsMixin):
     def set_run_params_defaults(self):
         """ Set runs params with defaults issued from concrete class object """
         # delete first all non runner related params setup
-        print self.get_runner().adaptor_params.all()
-        for runner_param in self.get_runner().adaptor_params.all():
+        # print "in reste", self.get_runner().adaptor_params.all()
+        self.adaptor_params.exclude(name__in=self.get_runner().adaptor_params.values('name')).delete()
+        runners_defaults = self.get_runner().run_params
+        current_defaults = self.run_params
+        [runners_defaults.pop(k, None) for k in current_defaults]
+        # print "runners defaults ", runners_defaults
+        queryset = self.get_runner().adaptor_params.filter(
+            name__in=runners_defaults.keys()) if runners_defaults else self.get_runner().adaptor_params.all()
+        for runner_param in queryset:
+            # print "runnerparam", runner_param
             if runner_param.prevent_override:
                 try:
-                    print "prevented override ", runner_param.name
+                    # print "prevented override ", runner_param.name
                     self.adaptor_params.get(name=runner_param.name).delete()
-                    print "deleted !"
+                    # print "deleted !"
                 except ObjectDoesNotExist:
-                    print "Object does not exists ", runner_param.name
+                    # print "Object does not exists ", runner_param.name
                     continue
                 except MultipleObjectsReturned:
                     self.adaptor_params.filter(name=runner_param.name).delete()
             else:
-                defaults = {'value': runner_param.value, 'prevent_override': runner_param.prevent_override}
+                defaults = {'value': runner_param.value, 'prevent_override': runner_param.prevent_override,
+                            'crypt': runner_param.crypt}
                 object_ctype = ContentType.objects.get_for_model(self)
                 obj, created = AdaptorInitParam.objects.update_or_create(defaults=defaults, content_type=object_ctype,
                                                                          object_id=self.pk, name=runner_param.name)
-                print "Object ", obj, "created", created
+                # print "Object ", obj, "created", created
 
     @property
     def adaptor(self):
@@ -200,7 +239,7 @@ class HasRunnerParamsMixin(HasAdaptorParamsMixin):
         return self.runner.clazz
 
     @property
-    def has_changed_config(self):
+    def has_changed(self):
         return self._runner != self.runner
 
     @property
@@ -210,15 +249,19 @@ class HasRunnerParamsMixin(HasAdaptorParamsMixin):
         :return: a Dictionary (param_name=param_service_value or runner_param_default if not set
         :rtype: dict
         """
+        # print "in run_params"
         object_params = super(HasRunnerParamsMixin, self).run_params
+        # print "object_params", object_params
         runners_default = self.get_runner().run_params
+        # print "runners default", runners_default
         runners_default.update(object_params)
-        return object_params
+        # print "merged", runners_default
+        return runners_default
 
     @property
     def adaptor_defaults(self):
         """ Retrieve init params defined associated concrete class (from runner attribute) """
-        return self.get_runner().adaptor_defaults
+        return self.get_runner().run_params
 
     def get_runner(self):
         """ Return effective runner (could be overridden is any subclasses) """

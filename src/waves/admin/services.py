@@ -118,6 +118,8 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
     def get_form(self, request, obj=None, **kwargs):
         """ Assign current obj to form """
         request.current_obj = obj
+        # if obj:
+        #    print obj.run_params
         form = super(ServiceAdmin, self).get_form(request, obj, **kwargs)
         form.current_user = request.user
         # form.base_fields['runner'].widget.can_add_related = False

@@ -113,10 +113,10 @@ class GalaxyToolImporter(AdaptorImporter):
                 service_input = self.import_service_params([sect_input for sect_input in cur_input.get('inputs')])
             elif tool_input_type == 'repeat':
                 repeat_group = self._import_repeat(cur_input)
-                print "repeat Group ", repeat_group
+                # print "repeat Group ", repeat_group
                 service_input = self.import_service_params([rep_input for rep_input in cur_input.get('inputs')])
                 for srv_input in service_input:
-                    print "srv_input", srv_input
+                    # print "srv_input", srv_input
                     srv_input.repeat_group = repeat_group
             elif tool_input_type == 'expand':
                 self.warn(UnmanagedInputTypeException("Expand"))

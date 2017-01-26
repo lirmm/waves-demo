@@ -113,11 +113,22 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
     def __str__(self):
         return "%s v(%s)" % (self.name, self.version)
 
+    def set_run_params_defaults(self):
+        super(Service, self).set_run_params_defaults()
+        for sub in self.submissions.all():
+            sub.set_run_params_defaults()
+
     @property
     def jobs(self):
         """ Get current Service Jobs """
         from waves.models import Job
         return Job.objects.filter(submission__in=self.submissions.all())
+
+    @property
+    def pending_jobs(self):
+        """ Get current Service Jobs """
+        from waves.models import Job
+        return Job.objects.filter(submission__in=self.submissions.all(), status__in=Job.PENDING_STATUS)
 
     def import_service_params(self):
         """ Try to import service param configuration issued from adaptor

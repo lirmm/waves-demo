@@ -36,10 +36,10 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
 
     def get_runner(self):
         if self.runner:
-            print "returned overridden ", self.runner
+            # print "returned overridden ", self.runner
             return self.runner
         else:
-            print "returned service one"
+            # print "returned service one"
             return self.service.runner
 
     @property
@@ -92,6 +92,12 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
     def submission_samples(self):
         from .inputs import FileInputSample
         return self.submission_inputs.instance_of(FileInputSample).all()
+
+    @property
+    def pending_jobs(self):
+        """ Get current Service Jobs """
+        from waves.models import Job
+        return self.service_jobs.filter(status__in=Job.PENDING_STATUS)
 
 
 class SubmissionOutput(TimeStamped):

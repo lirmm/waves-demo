@@ -79,7 +79,7 @@ class FormHelper(BaseFormHelper, BaseHelper):
                 for sample in service_input.input_samples.all():
                     all_sample.append(Field('sp_' + service_input.name + '_' + str(sample.pk)))
                 tab_input.extend(all_sample)
-            print "wrapper class ", wrapper_class
+            # print "wrapper class ", wrapper_class
             self.layout.append(
                 Div(
                     TabHolder(

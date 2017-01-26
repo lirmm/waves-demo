@@ -91,47 +91,48 @@ def service_input_post_delete_handler(sender, instance, **kwargs):
             sample.file.delete()
 
 
+@receiver(post_save, sender=Runner)
+def runner_post_save_handler(sender, instance, created, **kwargs):
+    if created or instance.has_changed:
+        instance.set_run_params_defaults()
+
+
+"""
 @receiver(pre_save, sender=Runner)
 def runner_pre_save_handler(sender, instance, **kwargs):
+    print "in pre save ", instance.has_changed
     if not kwargs.get('raw', False):
         if not instance.name and instance.clazz:
             instance.name = instance.clazz.rsplit('.', 1)[1]
 
 
-@receiver(post_save, sender=Runner)
-def runner_post_save_handler(sender, instance, created, **kwargs):
-    if instance.has_changed_config:
-        print "launched !"
-        for service in instance.waves_service_runs.all():
-            service.set_run_params_defaults()
-            for submission in service.submissions.all():
-                submission.set_run_params_defaults()
 
 
 @receiver(post_save, sender=Service)
 def service_post_save_handler(sender, instance, created, **kwargs):
-    if instance.has_changed_config:
+    if instance.has_changed:
         for submission in instance.submissions.all():
             submission.set_run_params_defaults()
 
 
+
 @receiver(post_save, sender=HasAdaptorParamsMixin)
 def adaptor_mixin_post_save_handler(sender, instance, created, **kwargs):
-    print "in default handler ", instance.has_changed_config, instance.__class__.__name__
-    if not kwargs.get('raw', False) and (instance.has_changed_config or created):
-        print "in default handler ", instance.has_changed_config, instance.__class__.__name__
+    print "in default handler ", instance.has_changed, instance.__class__.__name__
+    if not kwargs.get('raw', False) and (instance.has_changed or created):
+        print "in default handler ", instance.has_changed, instance.__class__.__name__
         instance.set_run_params_defaults()
 
 
 for subclass in get_all_subclasses(HasAdaptorParamsMixin):
     if not subclass._meta.abstract:
         post_save.connect(adaptor_mixin_post_save_handler, subclass)
-
+"""
 
 @receiver(pre_save, sender=AdaptorInitParam)
 def adaptor_param_pre_save_handler(sender, instance, **kwargs):
     """ Runner param pre save handler """
-    if instance.name and instance.value and instance.name.startswith('crypt_'):
+    if instance.name and instance.value and instance.crypt:
         from waves.utils.encrypt import Encrypt
         instance.value = Encrypt.encrypt(instance.value)
 
