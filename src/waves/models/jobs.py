@@ -19,7 +19,7 @@ import waves.settings
 from waves.exceptions import WavesException
 from waves.exceptions.jobs import JobInconsistentStateError, JobRunException
 from waves.models import TimeStamped, Slugged, Ordered, UrlMixin
-from waves.models.adaptors import DTOMixin, AdaptorInitParam
+from waves.models.adaptors import DTOMixin, AdaptorInitParam, HasRunnerParamsMixin
 from waves.models.managers.jobs import *
 from waves.models.submissions import Submission
 from waves.models.inputs import BaseParam, ListParam
@@ -78,6 +78,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         (jobconst.JOB_CANCELLED, STR_JOB_CANCELLED),
         (jobconst.JOB_ERROR, STR_JOB_ERROR),
     ]
+    PENDING_STATUS = (jobconst.JOB_CREATED, jobconst.JOB_PREPARED, jobconst.JOB_QUEUED, jobconst.JOB_RUNNING)
 
     class Meta(TimeStamped.Meta):
         db_table = 'waves_job'

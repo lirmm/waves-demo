@@ -29,7 +29,7 @@ class AdaptorInitParamForm(ModelForm):
                     initial = instance.value if instance.value else default_value
                     if type(param_defaults) == tuple:
                         self.fields['value'] = ChoiceField(choices=param_defaults, initial=initial)
-                if instance.name.startswith('crypt_'):
+                if instance.crypt:
                     # self.fields['name'] = instance.name.replace('crypt_', '')
                     self.fields['value'].widget = PasswordInput(render_value=instance.value,
                                                                 attrs={'autocomplete': 'new-password'})

@@ -46,7 +46,11 @@ class Runner(Described, ExportAbleMixin, HasAdaptorClazzMixin):
 
     @property
     def runs(self):
-        return self.waves_service_runs.all()
+        from itertools import chain
+        services_list = self.waves_service_runs.all()
+        submissions_list = self.waves_submission_runs.all()
+        runs_list = list(chain(services_list, submissions_list))
+        return runs_list
 
 
 class RunnerInitParam(AdaptorInitParam):

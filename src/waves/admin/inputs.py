@@ -69,7 +69,7 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
                 kwargs['queryset'] = BaseParam.objects.filter(submission=request.submission).not_instance_of(
                     FileInput).exclude(pk=pk)
             elif db_field.name == 'submission':
-                print "dbfield name sub "
+                # print "dbfield name sub "
                 kwargs['queryset'] = Submission.objects.filter(pk=request.submission.pk)
         return super(BaseParamAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -101,8 +101,8 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
 
     def add_view(self, request, form_url='', extra_context=None):
         if IS_POPUP_VAR in request.GET:
-            print 'in add view', form_url, extra_context
-            print 'for submission', request.GET.get('for-submission')
+            # print 'in add view', form_url, extra_context
+            # print 'for submission', request.GET.get('for-submission')
             request.submission = Submission.objects.get(pk=request.GET.get('for-submission'))
         else:
             request.submission = None

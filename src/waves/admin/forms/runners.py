@@ -5,9 +5,9 @@ from __future__ import unicode_literals
 
 from django.forms import ModelForm, CheckboxInput, BooleanField, ChoiceField, HiddenInput
 from django.utils.functional import lazy
-
 from waves.models import Runner
 from waves.utils.runners import get_runners_list
+from django.contrib.admin.options import IS_POPUP_VAR
 
 __all__ = ['RunnerForm']
 
@@ -19,9 +19,6 @@ class RunnerForm(ModelForm):
         """ Metas """
         model = Runner
         exclude = ['id']
-        widgets = {
-            'update_init_params': CheckboxInput()
-        }
 
     class Media:
         """ Medias """
@@ -36,7 +33,3 @@ class RunnerForm(ModelForm):
             # print "creation"
             self.fields['update_init_params'].widget = HiddenInput()
             self.fields['update_init_params'].initial = False
-        else:
-            pass
-
-

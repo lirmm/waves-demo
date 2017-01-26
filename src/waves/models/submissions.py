@@ -30,16 +30,20 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
     label = models.CharField('Submission title', max_length=255, null=False, blank=False)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, related_name='submissions')
 
+    def has_changed(self):
+        return self.runner != self.get_runner() or self._runner != self.runner
+
     def set_run_params_defaults(self):
-        # self.runner.adaptor_params.all().delete()
+        if self.has_changed() and self._runner:
+            self.adaptor_params.all().delete()
         super(Submission, self).set_run_params_defaults()
 
     def get_runner(self):
         if self.runner:
-            print "returned overridden ", self.runner
+            # print "returned overridden ", self.runner
             return self.runner
         else:
-            print "returned service one"
+            # print "returned service one"
             return self.service.runner
 
     @property
@@ -92,6 +96,12 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
     def submission_samples(self):
         from .inputs import FileInputSample
         return self.submission_inputs.instance_of(FileInputSample).all()
+
+    @property
+    def pending_jobs(self):
+        """ Get current Service Jobs """
+        from waves.models import Job
+        return self.service_jobs.filter(status__in=Job.PENDING_STATUS)
 
 
 class SubmissionOutput(TimeStamped):

@@ -94,9 +94,10 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
         links = []
         for submission in obj.submissions.all():
             links.append(
-                '<a href="{}">Submission ({})</a>'.format(
+                '<a href="{}">{} ({})</a>'.format(
                     reverse("admin:waves_submission_change", args=[submission.pk]),
-                    submission.label))
+                    submission.label,
+                    submission.get_runner()))
         return mark_safe("<br/>".join(links))
 
     submission_link.short_description = 'Submissions'
@@ -118,6 +119,8 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
     def get_form(self, request, obj=None, **kwargs):
         """ Assign current obj to form """
         request.current_obj = obj
+        # if obj:
+        #    print obj.run_params
         form = super(ServiceAdmin, self).get_form(request, obj, **kwargs)
         form.current_user = request.user
         # form.base_fields['runner'].widget.can_add_related = False

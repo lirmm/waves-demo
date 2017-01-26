@@ -83,3 +83,13 @@ class WavesModelAdmin(ModelAdmin):
         )
 
     admin_template = 'change_form.html'
+
+
+class DynamicInlinesAdmin(ModelAdmin):
+
+    def get_inlines(self, request, obj=None):
+        return []
+
+    def get_form(self, request, obj=None, **kwargs):
+        self.inlines = self.get_inlines(request, obj)
+        return super(DynamicInlinesAdmin, self).get_form(request, obj, **kwargs)
