@@ -13,6 +13,7 @@ __all__ = ['JobAdmin']
 
 
 class JobInputInline(TabularInline):
+    """ List JobModels inputs """
     model = JobInput
     form = JobInputForm
     extra = 0
@@ -22,50 +23,53 @@ class JobInputInline(TabularInline):
     can_delete = False
     ordering = ('order',)
     fields = ('name', 'value', 'file_path')
-    classes = ('grp-collapse grp-closed', 'collapse')
+    classes = ('collapse', )
 
     def has_add_permission(self, request):
+        """ Never add any job input from admin """
         return False
 
 
 class JobOutputInline(TabularInline):
+    """ List job's expected outputs """
     model = JobOutput
     form = JobOutputForm
     extra = 0
     suit_classes = 'suit-tab suit-tab-outputs'
-    classes = ('grp-collapse grp-closed', 'collapse')
+    classes = ('collapse', )
     can_delete = False
     readonly_fields = ('name', 'value', 'file_path')
     ordering = ('order',)
     fields = ('name', 'value', 'file_path')
 
-    # classes = ('grp-collapse grp-closed',)
-
     def has_add_permission(self, request):
+        """ Never add any job output from admin """
         return False
 
 
 class JobHistoryInline(TabularInline):
+    """ Job's history events """
     model = JobHistory
-    suit_classes = 'suit-tab suit-tab-history'
-    classes = ('grp-collapse grp-closed', 'collapse')
+    classes = ('collapse', )
     verbose_name = 'Job History'
     verbose_name_plural = "Job history events"
 
-    readonly_fields = ('status', 'timestamp', 'message')
+    readonly_fields = ('timestamp', 'status', 'message')
     fields = ('status', 'timestamp', 'message')
     can_delete = False
     extra = 0
 
     def has_add_permission(self, request):
+        """ Never add any job output from admin """
+        # TODO add possibly add new history items when admin
         return False
 
 
 def mark_rerun(modeladmin, request, queryset):
+    """ Mark job as to be run another time """
     for job in queryset.all():
         if job.allow_rerun:
             try:
-                # Delete old history (except admin messages)
                 job.re_run()
                 messages.success(request, message="Job [%s] successfully marked for re-run" % job.title)
             except StandardError as e:
@@ -108,33 +112,12 @@ class JobAdmin(WavesModelAdmin):
     readonly_fields = ('title', 'slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on',
                        'command_line')
 
-    # Suit form params (not used by default)
-
-    suit_form_tabs = (('general', 'General'), ('inputs', 'Inputs'), ('outputs', 'Outputs'), ('history', 'History'))
-    # grappelli list filter
-    # change_list_template = "admin/change_list_filter_sidebar.html"
-    # change_form_template = 'admin/waves/job/' + WavesModelAdmin.admin_template
     fieldsets = [
         ('Main', {'classes': ('collapse', 'suit-tab', 'suit-tab-general',),
-                'fields': ['title', 'slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on',
-                           'command_line', 'client']
-                }
+                  'fields': ['title', 'slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on',
+                             'command_line', 'client']
+                  }
          ),
-    ]
-    tab_overview = (
-        (None, {
-            'fields': ['title', 'service', 'status', 'created', 'updated', 'client', 'email_to', 'slug', 'get_run_on',
-                       'command_line']
-        }),
-    )
-    tab_history = (JobHistoryInline,)
-    tab_inputs = (JobInputInline,)
-    tab_outputs = (JobOutputInline,)
-    tabs = [
-        ('General', tab_overview),
-        ('History', tab_history),
-        ('Inputs', tab_inputs),
-        ('Outputs', tab_outputs),
     ]
 
     def change_view(self, request, object_id, form_url='', extra_context=None):

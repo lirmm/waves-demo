@@ -1,13 +1,14 @@
 """ Base class for WAVES models.Admin """
 from __future__ import unicode_literals
 
-from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin import ModelAdmin
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 
+
 def duplicate_in_mass(modeladmin, request, queryset):
+    """ Duplicate selected objects """
     from django.contrib import messages
     for obj in queryset.all():
         try:
@@ -37,7 +38,6 @@ def mark_public_in_mass(modeladmin, request, queryset):
     for obj in queryset.all():
         try:
             obj.publishUnPublish()
-
             messages.add_message(request, level=messages.SUCCESS, message="Object %s successfully published" % obj)
         except StandardError as e:
             messages.add_message(request, level=messages.ERROR, message="Object %s error %s " % (obj, e.message))
@@ -74,22 +74,22 @@ class MarkPublicInMassMixin(admin.ModelAdmin):
 
 
 class WavesModelAdmin(ModelAdmin):
-
+    """ Base models admin including global medias """
     class Media:
         js = (
-            # 'waves/admin/js/jquery-3.1.1.min.js',
             'waves/admin/js/admin.js',
             'waves/admin/js/modal.js'
         )
 
-    admin_template = 'change_form.html'
-
 
 class DynamicInlinesAdmin(ModelAdmin):
+    """ ModelAdmin class with dynamic inlines setup in form """
 
     def get_inlines(self, request, obj=None):
-        return []
+        """ By default returns standards inline definition """
+        return self.inlines
 
     def get_form(self, request, obj=None, **kwargs):
+        """ Set up inlines before get form """
         self.inlines = self.get_inlines(request, obj)
         return super(DynamicInlinesAdmin, self).get_form(request, obj, **kwargs)

@@ -9,12 +9,13 @@
     };
     RelatedInlinePopup.prototype = {
         popupInline: function (href) {
-            console.log (href.href, typeof href);
+            console.log(href.href, typeof href);
             if (href.indexOf('?') === -1) {
                 href += '?_popup=1';
             } else {
                 href += '&_popup=1';
-            }            console.log('I am called youpi!');
+            }
+            console.log('I am called youpi!');
             var $document = $(window.top.document);
             var $container = $document.find('.related-popup-container');
             var $loading = $container.find('.loading-indicator');
@@ -117,12 +118,23 @@
             e.preventDefault();
             rel.popupInline(e.target.href)
         });
-        $('#add_submission_link').click(function(e) {
+        $('#add_submission_link').click(function (e) {
             e.preventDefault();
-            console.log("submussion link " + $(this) + ' / ' + e.target );
+            console.log("submussion link " + $(this) + ' / ' + e.target);
             var rel = new RelatedInlinePopup();
             rel.popupInline(e.target.href);
         });
+        $('#test_connect').click(function (e) {
+            e.preventDefault();
+            $('#modal_alert .modal-content .modal-header > h4').html('Connection test');
+            $("#alert_modal_content > div.modal-body").html('<img src="/static/waves/img/progress-bar.gif">');
+            $('#modal_alert').modal('toggle');
+            console.log('test_connect clicked ' + $(this).attr('href'));
+            $.getJSON($(this).attr('href'), function (data) {
+                $('#modal_alert .modal-content .modal-body').html(data['connection_result']);
+            })
+        });
+
     });
 
 })(jQuery || django.jQuery);

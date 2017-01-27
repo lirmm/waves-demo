@@ -16,7 +16,6 @@ class MockJobRunnerAdaptor(BaseAdaptor):
     def _job_status(self, job):
         # time.sleep()
         if job.status == jobconst.JOB_RUNNING:
-            # print "job is running, set it to completed!"
             return jobconst.JOB_COMPLETED
         return job.next_status
 

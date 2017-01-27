@@ -163,3 +163,4 @@ class RunnerTestConnectionView(JSONDetailView):
         except AdaptorConnectException as e:
             context['connection_result'] = message.format('error', e)
         return context
+

@@ -58,7 +58,6 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
         ServiceMetaInline,
     )
 
-    change_form_template = 'admin/waves/service/' + WavesModelAdmin.admin_template
     form = ServiceForm
     filter_horizontal = ['restricted_client']
     readonly_fields = ['remote_service_id', 'created', 'updated', 'submission_link']

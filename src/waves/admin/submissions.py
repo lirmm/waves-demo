@@ -198,7 +198,6 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
 
     exclude = ['order']
     save_on_top = True
-    change_form_template = 'admin/waves/submission/change_form.html'
     list_display = ['label', 'available_online', 'available_api', 'service_link', 'runner']
     readonly_fields = ['available_online', 'available_api']
     list_filter = (
@@ -292,11 +291,6 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
 
     def available_online(self, obj):
         return obj.available_online
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == 'runner' and request.current_obj:
-            kwargs['queryset'] = Runner.objects.exclude(pk=request.current_obj.service.runner.pk)
-        return super(ServiceSubmissionAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
         if not obj.runner:

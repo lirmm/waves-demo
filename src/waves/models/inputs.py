@@ -258,9 +258,9 @@ class ListParam(BaseParam):
 
     def clean(self):
         super(ListParam, self).clean()
-        if self.list_mode == BaseParam.DISPLAY_RADIO and self.multiple:
+        if self.list_mode == ListParam.DISPLAY_RADIO and self.multiple:
             raise ValidationError('You can\'t use radio with multiple choices available')
-        elif self.list_mode == BaseParam.DISPLAY_CHECKBOX and not self.multiple:
+        elif self.list_mode == ListParam.DISPLAY_CHECKBOX and not self.multiple:
             raise ValidationError('You can\'t use checkboxes with non multiple choices enabled')
         if self.default and self.default not in self.values:
             raise ValidationError(

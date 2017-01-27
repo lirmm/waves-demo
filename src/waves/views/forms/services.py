@@ -31,7 +31,6 @@ class ServiceSubmissionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         parent_form = kwargs.pop('parent', None)
         super(ServiceSubmissionForm, self).__init__(*args, **kwargs)
-        # print 'Is Bound', self.is_bound
         self.helper = self.get_helper(form_tag=True)
         self.helper.init_layout(fields=('title', 'email', 'slug'))
         # Always add "title" / "slug" to submitted jobs
@@ -137,16 +136,12 @@ class ServiceSubmissionForm(forms.ModelForm):
         return extra_fields
 
     def clean(self):
-        # print "in clean"
         cleaned_data = super(ServiceSubmissionForm, self).clean()
-        # print cleaned_data
         validator = ServiceInputValidator()
         for data in copy.copy(cleaned_data):
-            # print "data", data
 
             srv_input = next((x for x in self.list_inputs if x.name == data), None)
             sample_selected = False
-            # print "srv_input ", srv_input
             if srv_input:
                 # posted data correspond to a expected input for service
                 posted_data = cleaned_data.get(srv_input.name)

@@ -98,32 +98,9 @@ def runner_post_save_handler(sender, instance, created, **kwargs):
         instance.set_run_params_defaults()
 
 
-"""
-@receiver(pre_save, sender=Runner)
-def runner_pre_save_handler(sender, instance, **kwargs):
-    print "in pre save ", instance.has_changed
-    if not kwargs.get('raw', False):
-        if not instance.name and instance.clazz:
-            instance.name = instance.clazz.rsplit('.', 1)[1]
-
-
-
-
-@receiver(post_save, sender=Service)
-def service_post_save_handler(sender, instance, created, **kwargs):
-    if instance.has_changed:
-        for submission in instance.submissions.all():
-            submission.set_run_params_defaults()
-
-
-
-
-"""
 @receiver(post_save, sender=HasAdaptorParamsMixin)
 def adaptor_mixin_post_save_handler(sender, instance, created, **kwargs):
-    print "in default handler ", instance.has_changed, instance.__class__.__name__
     if not kwargs.get('raw', False) and (instance.has_changed or created):
-        print "Reset params ", instance.has_changed, instance.__class__.__name__
         instance.set_run_params_defaults()
 
 for subclass in get_all_subclasses(HasAdaptorParamsMixin):

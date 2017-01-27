@@ -86,8 +86,8 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
                                                verbose_name='Restricted clients', db_table='waves_service_client',
                                                help_text='By default access is granted to everyone, '
                                                          'you may restrict access here.')
-    clazz = models.CharField('Parser class', null=True, blank=True, max_length=255,
-                             help_text='Service job submission command')
+    cmd_parser = models.CharField('Parser class', null=True, blank=True, max_length=255,
+                                  help_text='Service job submission command')
     category = models.ForeignKey(ServiceCategory, on_delete=models.SET_NULL, null=True, related_name='category_tools',
                                  help_text='Service category')
     status = models.IntegerField(choices=SRV_STATUS_LIST, default=SRV_DRAFT,
@@ -141,14 +141,12 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
     @property
     def command(self):
         """ Return command parser for current Service """
-        if self.clazz:
+        if self.cmd_parser:
             from django.utils.module_loading import import_string
-            command_parser = import_string(self.clazz)
-            # print "command_parser", command_parser
+            command_parser = import_string(self.cmd_parser)
             return command_parser(service=self)
         else:
             from waves.commands.command import BaseCommand
-            # print "command_parser", BaseCommand
 
             return BaseCommand(service=self)
 

@@ -45,10 +45,8 @@ class DownloadFileView(generic.DetailView):
         context = super(DownloadFileView, self).get_context_data(**kwargs)
         try:
             if not os.path.isfile(self.file_path):
-                # print "raise here"
                 raise Http404('File does not exists')
         except AttributeError as e:
-            # print 'raised there '
             raise Http404('File does not exists %s' % e)
         if 'export' not in self.request.GET:
             with open(self.file_path) as fp:

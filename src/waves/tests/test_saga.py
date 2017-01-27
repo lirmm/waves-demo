@@ -55,7 +55,6 @@ class ShellRunnerTestCase(TestJobRunner):
         self.runJobWorkflow()
         self.assertEqual(self.current_job.status, jobconst.JOB_TERMINATED)
         # retrieve job run details
-        # print self.current_job.run_details()
 
     @test_util.skip_unless_tool('physic_ist')
     def testPhysicIST(self, command_path='physic_ist'):

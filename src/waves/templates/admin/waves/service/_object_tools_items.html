@@ -31,7 +31,16 @@
         Online
     </a>
 </li>
-{% if original.runner and original.runner.adaptor.importer_clazz %}
+{% if original.runner %}
+    <li>
+        <a type="button" href="{% url 'waves-admin:service_test_connection' original.pk %}"
+           title="Connection Test"
+           class="button"
+           id="test_connect">
+            Test Connection
+        </a>
+    </li>
+    {% if original.runner.adaptor.importer_clazz %}
     <li>
         <a type="button" href="{% url 'waves-admin:service_import_form' original.pk %}"
            title="Import from adapter"
@@ -43,4 +52,6 @@
            Add submission from adapter
         </a>
     </li>
+    {% endif %}
+
 {% endif %}

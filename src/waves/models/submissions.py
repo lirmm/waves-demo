@@ -30,20 +30,31 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
     label = models.CharField('Submission title', max_length=255, null=False, blank=False)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, related_name='submissions')
 
+    @property
     def has_changed(self):
         return self.runner != self.get_runner() or self._runner != self.runner
 
     def set_run_params_defaults(self):
-        if self.has_changed() and self._runner:
+        if self.has_changed and self._runner:
             self.adaptor_params.all().delete()
         super(Submission, self).set_run_params_defaults()
 
+    @property
+    def run_params(self):
+        if not self.runner:
+            return self.service.run_params
+        elif self.runner.pk == self.service.runner.pk:
+            # same runner but still overriden in bo, so merge params (submission params prevents)
+            service_run_params = self.service.run_params
+            object_run_params = super(Submission, self).run_params
+            service_run_params.update(object_run_params)
+            return service_run_params
+        return super(Submission, self).run_params
+
     def get_runner(self):
         if self.runner:
-            # print "returned overridden ", self.runner
             return self.runner
         else:
-            # print "returned service one"
             return self.service.runner
 
     @property

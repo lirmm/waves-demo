@@ -30,7 +30,7 @@ def get_context_meta_service(context, service):
         context['service_' + meta_type].append(service_meta)
 
 
-class ServiceDetailView(generic.DetailView, WavesBaseContextMixin):
+class ServiceDetailView(generic.DetailView):
     model = Service
     template_name = 'services/service_details.html'
     context_object_name = 'service'
@@ -99,7 +99,6 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
         return super(JobSubmissionView, self).get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        # print "get_context_data"
         if 'form' not in kwargs:
             kwargs.update({'form': []})
             form = None
@@ -114,14 +113,12 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
                 context['forms'].append(form)
             else:
                 context['forms'].append(self.form_class(instance=submission, parent=self.object))
-        # print kwargs
         return context
 
     def get_form(self, form_class=None):
         return super(JobSubmissionView, self).get_form(form_class)
 
     def get_form_kwargs(self):
-        # print 'get_form_kwargs'
         kwargs = super(JobSubmissionView, self).get_form_kwargs()
         extra_kwargs = {
             'parent': self.object,
@@ -137,7 +134,7 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
         if slug is None:
             return self.get_object().default_submission # Submission.objects.get(default=True, service=)
         else:
-            return Submission.objects.get(slug=UUID(slug), service=self.get_object())
+            return Submission.objects.get(slug=UUID(slug))
 
     def post(self, request, *args, **kwargs):
         self.user = self.request.user
@@ -151,7 +148,6 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
             return self.form_invalid(**{'form': form})
 
     def form_valid(self, form):
-        # print 'in form valid'
         # create job in database
         ass_email = form.cleaned_data.pop('email')
         if not ass_email and self.request.user.is_authenticated():

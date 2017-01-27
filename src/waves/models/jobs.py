@@ -13,7 +13,6 @@ from django.db import models
 from django.utils.html import format_html
 from waves.adaptors.exceptions import AdaptorException
 
-# import waves.jobconst
 import waves.adaptors.const as jobconst
 import waves.settings
 from waves.exceptions import WavesException
@@ -172,7 +171,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: list of JobInput models instance
         :rtype: QuerySet
         """
-        return self.job_inputs.filter(type=jobconst.TYPE_FILE)
+        return self.job_inputs.filter(type=BaseParam.TYPE_FILE)
 
     @property
     def output_files_exists(self):
@@ -489,11 +488,9 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         self._run_action('job_results')
         self.run_details()
         if self.exit_code != 0 or len(self.stderr_txt) > 0:
-            # print  "job exit code ", self.exit_code
             self.message = self.stderr_txt
             self.save_status(jobconst.JOB_ERROR)
         else:
-            # print  "job terminated ?", self.exit_code
             self.save_status(jobconst.JOB_TERMINATED)
         self.save()
 
@@ -529,8 +526,6 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         else:
             # By default let all status allowed
             status_allowed = self.STATUS_LIST
-        # print "status ", self.status, "allowed ", status_allowed
-        # print (self.status not in [int(i[0]) for i in status_allowed])
         if self.status not in [int(i[0]) for i in status_allowed]:
             raise JobInconsistentStateError(self.get_status_display(), status_allowed)
 

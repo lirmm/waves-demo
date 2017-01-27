@@ -62,3 +62,10 @@ class ServiceExportView(ModelExportView):
     @property
     def return_view(self):
         return reverse('admin:waves_service_change', args=[self.object.id])
+
+from .runner_tool import RunnerTestConnectionView
+
+class ServiceTestConnectionView(RunnerTestConnectionView):
+
+    model = Service
+

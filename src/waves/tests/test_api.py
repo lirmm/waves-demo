@@ -114,7 +114,6 @@ class JobTests(WavesAPITestCase):
             input_datas = {}
             submissions = tool_data.get('submissions')
             for submission in submissions:
-                # print submission['label']
                 for job_input in submission['inputs']:
                     if job_input['type'] == BaseParam.TYPE_FILE:
                         i += 1

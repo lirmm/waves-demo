@@ -33,7 +33,6 @@ def sample_runner(runner_impl):
                                          description='SubmissionSample Runner %s' % runner_impl.__class__.__name__,
                                          clazz='%s.%s' % (runner_impl.__module__, runner_impl.__class__.__name__))
     for name, value in runner_impl.init_params.items():
-        # print 'name', name, 'value', value
         RunnerInitParam.objects.update_or_create(name=name, runner=runner_model, defaults={'default': value})
     return runner_model
 

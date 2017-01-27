@@ -21,4 +21,6 @@ urlpatterns = [
         name="runner_export_form"),
     url(r'^runner/(?P<pk>\d+)/check$', staff_member_required(RunnerTestConnectionView.as_view()),
         name="runner_test_connection"),
+    url(r'^service/(?P<pk>\d+)/check$', staff_member_required(ServiceTestConnectionView.as_view()),
+        name="service_test_connection"),
 ]

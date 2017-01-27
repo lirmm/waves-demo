@@ -92,10 +92,8 @@ class HasAdaptorParamsMixin(models.Model):
         # keep old values set for runner if key is the same
         adaptors_defaults = self.adaptor_defaults
         current_defaults = self.run_params
-        merged_elements = [adaptors_defaults.pop(k, None) for k in current_defaults]
-        # print merged_elements
+        [adaptors_defaults.pop(k, None) for k in current_defaults]
         for name, default in adaptors_defaults.items():
-            # print "name ", name, "default", default
             if name.startswith('crypt_'):
                 defaults = {'name': name[6:], 'crypt': True}
             else:
@@ -117,7 +115,7 @@ class HasAdaptorParamsMixin(models.Model):
             dic[index] = init.value
         return dic
 
-    def _get_concrete_adaptor(self, init_params=None):
+    def get_concrete_adaptor(self, init_params=None):
         adaptors_params = init_params or None
         AdaptorClass = import_string(self.clazz)
         return AdaptorClass(init_params=adaptors_params)
@@ -125,7 +123,7 @@ class HasAdaptorParamsMixin(models.Model):
     @property
     def adaptor_defaults(self):
         """ Retrieve init params defined associated concrete class (from clazz attribute) """
-        return self._get_concrete_adaptor().init_params
+        return self.get_concrete_adaptor().init_params
 
 
 class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
@@ -166,9 +164,9 @@ class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
         """
         if self._adaptor is None:
             if self.has_changed:
-                self._adaptor = self._get_concrete_adaptor()
+                self._adaptor = self.get_concrete_adaptor()
             else:
-                self._adaptor = self._get_concrete_adaptor(self.run_params)
+                self._adaptor = self.get_concrete_adaptor(self.run_params)
         return self._adaptor
 
     @adaptor.setter
@@ -193,32 +191,24 @@ class HasRunnerParamsMixin(HasAdaptorParamsMixin):
     @classmethod
     def from_db(cls, db, field_names, values):
         """ Executed each time a Service is restored from DB layer"""
-        # print "in base from_db"
         instance = super(HasRunnerParamsMixin, cls).from_db(db, field_names, values)
-        # instance init setup loaded runner
         instance._runner = instance.runner
         return instance
 
     def set_run_params_defaults(self):
         """ Set runs params with defaults issued from concrete class object """
-        # delete first all non runner related params setup
-        # print "in reste", self.get_runner().adaptor_params.all()
         if self.runner:
             self.adaptor_params.exclude(name__in=self.runner.adaptor_params.values('name')).delete()
             runners_defaults = self.runner.run_params
             current_defaults = self.run_params
             [runners_defaults.pop(k, None) for k in current_defaults]
-            # print "runners defaults ", runners_defaults
             queryset = self.runner.adaptor_params.filter(
                 name__in=runners_defaults.keys()) if runners_defaults else self.runner.adaptor_params.all()
             for runner_param in queryset:
-                # print "runnerparam", runner_param
                 if runner_param.prevent_override:
                     try:
-                        # print "prevented override ", runner_param.name
                         self.adaptor_params.get(name=runner_param.name).delete()
                     except ObjectDoesNotExist:
-                        # print "Object does not exists ", runner_param.name
                         continue
                     except MultipleObjectsReturned:
                         self.adaptor_params.filter(name=runner_param.name).delete()
@@ -235,11 +225,10 @@ class HasRunnerParamsMixin(HasAdaptorParamsMixin):
         :return: a subclass BaseAdaptor object instance
         :rtype: BaseAdaptor
         """
-        adaptor = self.get_runner().adaptor
-        adaptor.init_params = self.run_params
-        return adaptor
+        return self.get_concrete_adaptor(self.run_params)
 
-    def get_clazz(self):
+    @property
+    def clazz(self):
         return self.runner.clazz
 
     @property
@@ -253,13 +242,9 @@ class HasRunnerParamsMixin(HasAdaptorParamsMixin):
         :return: a Dictionary (param_name=param_service_value or runner_param_default if not set
         :rtype: dict
         """
-        # print "in run_params"
         object_params = super(HasRunnerParamsMixin, self).run_params
-        # print "object_params", object_params
         runners_default = self.get_runner().run_params
-        # print "runners default", runners_default
         runners_default.update(object_params)
-        # print "merged", runners_default
         return runners_default
 
     @property
