@@ -1,18 +1,14 @@
 """ WAVES Service back-office Import view"""
 from __future__ import unicode_literals
 
-from os.path import join
-from django.shortcuts import redirect
-from django.shortcuts import get_object_or_404
-from django.views.generic import View
 from django.db import DatabaseError
-from waves.models import Service
+from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect
+from django.views.generic import View
+
 from waves.admin.views.export import ModelExportView
-import waves.settings
+from waves.models import Service
 from .runner_tool import RunnerImportToolView, reverse, ObjectDoesNotExist, messages
-from waves.views.files import DownloadFileView
-import logging
-logger = logging.getLogger(__name__)
 
 
 # TODO in manage permission
@@ -25,7 +21,6 @@ class ServiceParamImportView(RunnerImportToolView):
         try:
             self.object = Service.objects.get(id=self.kwargs.get('service_id'))
         except ObjectDoesNotExist as e:
-            logger.info('Unable to retrieve anything, where did we come from ??? %s ', e)
             messages.error(request, message='Unable to retrieve runner from request')
 
     def get_form_kwargs(self):
@@ -50,7 +45,6 @@ class ServiceDuplicateView(View):
                                                                           "you may edit it now")
             return redirect(reverse('admin:waves_service_change', args=[new_service.id]))
         except DatabaseError as e:
-            logger.error('Duplicate error %s', e)
             messages.add_message(request, level=messages.WARNING, message="Error occurred during copy: %s " % e)
             return redirect(reverse('admin:waves_service_change', args=[kwargs['service_id']]))
 

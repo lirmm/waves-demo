@@ -29,7 +29,7 @@ def create_service_for_runners():
     services = []
     for runner in create_runners():
         srv = Service.objects.create(name="Service %s " % runner.name, runner=runner)
-        srv.submissions.add(Submission.objects.create(service=srv, label="default"))
+        srv.submissions.add(Submission.objects.create(service=srv, name="default"))
         services.append(srv)
     return services
 
@@ -61,16 +61,6 @@ class TestServices(WavesBaseTestCase):
             service_params = service.run_params
             # Assert that service params has a length corresponding to 'allowed override' value
             self.assertListEqual(sorted(service_params.keys()), sorted(runner_params.keys()))
-
-    def test_service_run_param(self):
-        services = Service.objects.all()
-        for service in services:
-            obj_runner = import_string(service.runner.clazz)
-            expected_params = obj_runner().init_params
-            runner_params = service.run_params
-            logger.debug(expected_params)
-            logger.debug(runner_params)
-            self.assertEquals(sorted(expected_params.keys()), sorted(runner_params.keys()))
 
     def test_load_service(self):
         from os.path import join

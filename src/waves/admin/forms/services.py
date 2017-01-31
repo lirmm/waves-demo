@@ -8,18 +8,19 @@ from crispy_forms.layout import Layout, Field
 from django import forms
 import waves.settings
 from waves.commands import get_commands_impl_list
-from waves.models import BooleanParam, ListParam, FileInput, TextParam, Submission
+from waves.models import BooleanParam, ListParam, FileInput, TextParam, Submission, Runner
 from waves.models.services import *
 
 
-__all__ = ['ServiceForm', 'ImportForm', 'ServiceMetaForm', 'SubmissionInlineForm']
+__all__ = ['ServiceForm', 'ImportForm', 'ServiceMetaForm', 'SubmissionInlineForm',
+           'SubmissionForm']
 
 
 class SubmissionInlineForm(forms.ModelForm):
 
     class Meta:
         model = Submission
-        fields = ['label', 'availability', 'api_name']
+        fields = ['name', 'availability', 'api_name']
 
     def __init__(self, *args, **kwargs):
         super(SubmissionInlineForm, self).__init__(*args, **kwargs)
@@ -120,3 +121,13 @@ class InputSampleForm(forms.ModelForm):
         self.fields['file_input'].widget.can_delete_related = False
         self.fields['file_input'].widget.can_add_related = False
         self.fields['file_input'].widget.can_change_related = False
+
+
+class SubmissionForm(forms.ModelForm):
+    class Meta:
+        model = Submission
+        exclude = ['order']
+
+    runner = forms.ModelChoiceField(queryset=Runner.objects.all(), empty_label="Use Service Config")
+
+

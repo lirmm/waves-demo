@@ -1,8 +1,6 @@
 """ WAVES runner backoffice tools"""
 from __future__ import unicode_literals
 
-import logging
-
 from crispy_forms.utils import render_crispy_form
 from django.conf import settings
 from django.contrib import messages
@@ -21,8 +19,6 @@ from waves.models import Runner
 from waves.models import Service, Submission
 from waves.admin.views.export import ModelExportView
 
-logger = logging.getLogger(__name__)
-
 
 class RunnerImportToolView(FormView):
     """ Import a new service for a runner """
@@ -40,7 +36,6 @@ class RunnerImportToolView(FormView):
         try:
             self.object = Runner.objects.get(id=self.kwargs.get('runner_id'))
         except ObjectDoesNotExist as e:
-            logger.info('Unable to retrieve anything, where did we come from ??? %s ', e)
             messages.error(request, message='Unable to retrieve runner from request')
 
     def get_context_data(self, **kwargs):
@@ -97,7 +92,6 @@ class RunnerImportToolView(FormView):
             self.tool_list = self.get_tool_list()
             form = self.get_form()
             if form.is_valid():
-                logger.debug('Form is valid')
                 try:
                     with transaction.atomic():
                         service_dto = self.object.importer.import_service(self.remote_service_id(request))
@@ -106,7 +100,7 @@ class RunnerImportToolView(FormView):
                         self.service.runner = self.object
                         self.service.created_by = self.request.user
                         self.service.category = form.cleaned_data['category']
-                        submission = Submission.objects.create(label='Imported submission', service=self.service)
+                        submission = Submission.objects.create(name='Imported submission', service=self.service)
                         self.service.submissions.add(submission)
                         for inp in service_dto.inputs:
                             new_input = Submission.objects.create(submission=submission)
@@ -124,12 +118,11 @@ class RunnerImportToolView(FormView):
                     form_html = render_crispy_form(form)
                     return JsonResponse({'form_html': form_html}, status=500)
             else:
-                logger.warning('Form is Invalid %s', form.errors)
                 form.add_error(None, ValidationError(message="Missing data"))
                 form_html = render_crispy_form(form)
                 return JsonResponse({'form_html': form_html}, status=400)
         else:
-            logger.error("This form is supposed to be called in ajax")
+            pass
 
 
 class RunnerExportView(ModelExportView):

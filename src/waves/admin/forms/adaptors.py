@@ -12,9 +12,6 @@ class AdaptorInitParamForm(ModelForm):
         """ Metas """
         model = AdaptorInitParam
         fields = ['name', "value", 'prevent_override']
-        widgets = {
-            "value": TextInput(attrs={'size': 50})
-        }
 
     def __init__(self, **kwargs):
         super(AdaptorInitParamForm, self).__init__(**kwargs)
@@ -30,7 +27,6 @@ class AdaptorInitParamForm(ModelForm):
                     if type(param_defaults) == tuple:
                         self.fields['value'] = ChoiceField(choices=param_defaults, initial=initial)
                 if instance.crypt:
-                    # self.fields['name'] = instance.name.replace('crypt_', '')
                     self.fields['value'].widget = PasswordInput(render_value=instance.value,
                                                                 attrs={'autocomplete': 'new-password'})
             except ValueError:

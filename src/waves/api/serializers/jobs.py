@@ -2,14 +2,12 @@
 """ Jobs API serializers """
 from __future__ import unicode_literals
 
-import logging
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from dynamic import DynamicFieldsModelSerializer
 from waves.models import Service, JobHistory, JobInput, Job, JobOutput
 
-logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
@@ -93,7 +91,7 @@ class JobOutputSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         """ Representation for a output """
-        from waves.utils.normalize import normalize_value
+        from waves.utils import normalize_value
         to_repr = {}
         for output in instance:
             to_repr[normalize_value(output.name)] = {

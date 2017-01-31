@@ -77,6 +77,13 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         (jobconst.JOB_CANCELLED, STR_JOB_CANCELLED),
         (jobconst.JOB_ERROR, STR_JOB_ERROR),
     ]
+    NEXT_STATUS = {
+        jobconst.JOB_CREATED: jobconst.JOB_PREPARED,
+        jobconst.JOB_PREPARED: jobconst.JOB_QUEUED,
+        jobconst.JOB_QUEUED: jobconst.JOB_RUNNING,
+        jobconst.JOB_RUNNING: jobconst.JOB_COMPLETED,
+        jobconst.JOB_COMPLETED: jobconst.JOB_TERMINATED
+    }
     PENDING_STATUS = (jobconst.JOB_CREATED, jobconst.JOB_PREPARED, jobconst.JOB_QUEUED, jobconst.JOB_RUNNING)
 
     class Meta(TimeStamped.Meta):
@@ -88,8 +95,8 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     #: Job Title, automatic or set by user upon submission
     title = models.CharField('Job title', max_length=255, null=True, blank=True)
     #: Job related Service - see :ref:`service-label`.
-    submission = models.ForeignKey(Submission, related_name='service_jobs', null=True,
-                                   on_delete=models.SET_NULL)
+    submission = models.ForeignKey(Submission, related_name='service_jobs', null=False,
+                                   on_delete=models.CASCADE)
     #: Job last known status - see :ref:`waves-jobconst-label`.
     status = models.IntegerField('Job status', choices=STATUS_LIST,
                                  default=jobconst.JOB_CREATED,
@@ -220,7 +227,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: a child class of `JobRunnerAdaptor`
         :rtype: `waves.adaptors.runner.JobRunnerAdaptor`
         """
-        return self.service.adaptor
+        return self.submission.adaptor
 
     def __str__(self):
         return '[%s][%s]' % (self.slug, self.service.api_name)
@@ -261,7 +268,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: the nmmber of mail sent (should be one)
         :rtype: int
         """
-        if waves.settings.WAVES_NOTIFY_RESULTS and self.service.email_on:
+        if settings.WAVES_NOTIFY_RESULTS and self.service.email_on:
             if self.email_to is not None and self.status != self.status_mail:
                 # should send a email
                 try:
@@ -287,8 +294,8 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
                     self.save()
                     return nb_sent
                 except Exception as e:
+                    logger.error('Unable to send mail : %s', e)
                     pass
-                    # logger.error('Unable to send mail : %s', e)
 
     def get_absolute_url(self):
         """Reverse url for this Job according to Django urls configuration
@@ -450,8 +457,8 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     def next_status(self):
         """ Automatically retrieve next expected status """
         try:
-            logger.debug("next status %s", jobconst.NEXT_STATUS[self.status])
-            return jobconst.NEXT_STATUS[self.status]
+            logger.debug("next status %s", self.NEXT_STATUS[self.status])
+            return self.NEXT_STATUS[self.status]
         except KeyError:
             return self.status
 
@@ -544,6 +551,17 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     def allow_rerun(self):
         """ set whether current job state allow rerun """
         return self.status not in (jobconst.JOB_CREATED, jobconst.JOB_UNDEFINED)
+
+    def re_run(self):
+        """ Reset attributes and mark job as CREATED to be re-run"""
+        self.job_history.all().delete()
+        self.message = "Job marked for re-run"
+        # self.job_history.add(JobAdminHistory.objects.create(jo))
+        self.nb_retry = 0
+        self.status = jobconst.JOB_CREATED
+        for job_out in self.job_outputs.all():
+            open(job_out.file_path, 'w').close()
+        self.save()
 
 
 class JobInput(Ordered, Slugged):
@@ -722,17 +740,6 @@ class JobOutput(Ordered, Slugged, UrlMixin):
             with open(self.file_path, 'r') as f:
                 return f.read()
         return None
-
-    def re_run(self):
-        """ Reset attributes and mark job as CREATED to be re-run"""
-        self.job_history.all().delete()
-        self.message = "Job marked for re-run"
-        # self.job_history.add(JobAdminHistory.objects.create(jo))
-        self.nb_retry = 0
-        self.status = jobconst.JOB_CREATED
-        for job_out in self.job_outputs.all():
-            open(job_out.file_path, 'w').close()
-        self.save()
 
     @property
     def link(self):

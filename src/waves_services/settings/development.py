@@ -66,6 +66,7 @@ LOGGING = {
         },
     }
 }
+
 logging.config.dictConfig(LOGGING)
 # - Galaxy
 WAVES_TEST_GALAXY_URL = env.str('WAVES_TEST_GALAXY_URL', default='127.0.0.1')

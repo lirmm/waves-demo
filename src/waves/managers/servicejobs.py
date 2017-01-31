@@ -11,7 +11,7 @@ from django.core.files.uploadedfile import TemporaryUploadedFile, InMemoryUpload
 from django.db import transaction
 
 from waves.exceptions.jobs import JobMissingMandatoryParam
-from waves.utils.normalize import normalize_value
+from waves.utils import normalize_value
 
 logger = logging.getLogger(__name__)
 

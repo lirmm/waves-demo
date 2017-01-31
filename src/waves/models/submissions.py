@@ -1,13 +1,12 @@
 """ Each WAVES service allows multiple job 'submissions' """
 from __future__ import unicode_literals
+
 from django.core.exceptions import ValidationError
 from django.db import models
-import logging
-from waves.models import TimeStamped, ApiModel, Ordered, Slugged, Service, Described
-from waves.models.adaptors import AdaptorInitParam, HasRunnerParamsMixin
-from waves.models.runners import Runner
 
-logger = logging.getLogger(__name__)
+from waves.models import TimeStamped, ApiModel, Ordered, Slugged, Service
+from waves.models.adaptors import AdaptorInitParam, HasRunnerParamsMixin
+
 __all__ = ['Submission', 'SubmissionOutput', 'SubmissionExitCode', 'SubmissionRunParam']
 
 
@@ -21,13 +20,12 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
         unique_together = ('service', 'api_name')
         ordering = ('order',)
 
-    field_api_name = 'label'
     availability = models.IntegerField('Availability', default=3,
                                        choices=[(0, "Not Available"),
                                                 (1, "Available on web only"),
                                                 (2, "Available on api only"),
                                                 (3, "Available on both")])
-    label = models.CharField('Submission title', max_length=255, null=False, blank=False)
+    name = models.CharField('Submission title', max_length=255, null=False, blank=False)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, related_name='submissions')
 
     @property
@@ -68,7 +66,7 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
         return self.availability >= 2
 
     def __str__(self):
-        return '[%s|%s]' % (self.label, self.service)
+        return '[%s]' % self.name
 
     @property
     def expected_inputs(self):

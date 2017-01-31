@@ -3,22 +3,19 @@ WAVES Services related models objects
 """
 from __future__ import unicode_literals
 
-import logging
 import os
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from mptt.models import MPTTModel, TreeForeignKey
+from waves.adaptors.const import JOB_CREATED, JOB_COMPLETED
 
 import waves.settings
 from waves.models.adaptors import *
 from waves.models.base import *
 from waves.models.managers.services import *
-from waves.models.runners import Runner
-from waves.adaptors.const import JOB_CREATED, JOB_COMPLETED
 
-logger = logging.getLogger(__name__)
 __all__ = ['ServiceRunParam', 'ServiceCategory', 'Service']
 
 

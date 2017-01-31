@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.contrib.auth import get_user_model
 from django.template.defaultfilters import truncatechars
 from mptt.admin import MPTTModelAdmin
+from django.utils.safestring import mark_safe
 
 from base import ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin
 from waves.admin.adaptors import ServiceRunnerParamInLine
@@ -10,6 +11,7 @@ from waves.admin.forms.services import ServiceForm, SubmissionInlineForm
 from waves.admin.submissions import *
 from waves.compat import CompactInline
 from waves.models.metas import *
+from waves.utils import url_to_edit_object
 from waves.models.services import *
 from waves.models.submissions import *
 
@@ -40,9 +42,14 @@ class ServiceSubmissionInline(admin.TabularInline):
     sortable = 'order'
     sortable_field_name = "order"
     classes = ('grp-collapse grp-closed', 'collapse')
-    fields = ['label', 'availability', 'api_name', 'runner']
-    readonly_fields = ['api_name', 'runner']
+    fields = ['name', 'availability', 'api_name', 'get_runner']
+    readonly_fields = ['api_name', 'get_runner']
     show_change_link = True
+
+    def get_runner(self, obj):
+        return obj.runner or "-"
+
+    get_runner.short_description = "Overridden runner"
 
 
 @admin.register(Service)
@@ -86,17 +93,13 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
         context['show_save_as_new'] = False
         context['show_save_and_add_another'] = False
         context['show_save'] = False
-        # self.inlines = ()
         return super(ServiceAdmin, self).add_view(request, form_url, context)
 
     def submission_link(self, obj):
+        """ Direct link to submission in list """
         links = []
         for submission in obj.submissions.all():
-            links.append(
-                '<a href="{}">{} ({})</a>'.format(
-                    reverse("admin:waves_submission_change", args=[submission.pk]),
-                    submission.label,
-                    submission.get_runner()))
+            links.append(url_to_edit_object(submission))
         return mark_safe("<br/>".join(links))
 
     submission_link.short_description = 'Submissions'

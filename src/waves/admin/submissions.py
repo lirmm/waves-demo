@@ -3,17 +3,15 @@ from __future__ import unicode_literals
 
 from adminsortable2.admin import SortableInlineAdminMixin
 from django.contrib import admin
-from django.urls import reverse
-from django.utils.safestring import mark_safe
 from polymorphic.admin import PolymorphicInlineSupportMixin, StackedPolymorphicInline
 
 from waves.admin.adaptors import SubmissionRunnerParamInLine
 from waves.admin.base import WavesModelAdmin, DynamicInlinesAdmin
-from waves.admin.forms.services import SampleDepForm, InputInlineForm, TextParamForm, InputSampleForm
+from waves.admin.forms.services import SampleDepForm, InputInlineForm, TextParamForm, InputSampleForm, SubmissionForm
 from waves.compat import CompactInline
 from waves.models.inputs import *
-from waves.models.runners import Runner
 from waves.models.submissions import *
+from waves.utils import url_to_edit_object
 
 
 class ServiceOutputInline(CompactInline):
@@ -25,7 +23,7 @@ class ServiceOutputInline(CompactInline):
     sortable_field_name = "order"
     sortable_options = []
     fk_name = 'submission'
-    fields = ['label', 'ext', 'name', 'optional', 'from_input', 'file_pattern', 'edam_format', 'edam_data']
+    fields = ['name', 'ext', 'name', 'optional', 'from_input', 'file_pattern', 'edam_format', 'edam_data']
     verbose_name_plural = "Outputs"
     classes = ('grp-collapse', 'grp-closed', 'collapse')
 
@@ -171,6 +169,10 @@ class FileInputSampleInline(CompactInline):
             return True
         return False
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "file_input":
+            kwargs['queryset'] = FileInput.objects.filter(submission=request.current_obj)
+        return super(FileInputSampleInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 @admin.register(RepeatedGroup)
 class RepeatGroupAdmin(WavesModelAdmin):
@@ -195,10 +197,10 @@ class OrgRepeatGroupInline(CompactInline):
 class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, DynamicInlinesAdmin):
     """ Submission process administration -- Model Submission """
     current_obj = None
-
+    form = SubmissionForm
     exclude = ['order']
     save_on_top = True
-    list_display = ['label', 'available_online', 'available_api', 'service_link', 'runner']
+    list_display = ['name', 'available_online', 'available_api', 'service_link', 'runner']
     readonly_fields = ['available_online', 'available_api']
     list_filter = (
         'service__name',
@@ -207,7 +209,7 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
     search_fields = ('service__name', 'label', 'override_runner__name', 'service__runner__name')
     fieldsets = [
         ('General', {
-            'fields': ['label', 'api_name', 'availability', 'service', 'runner', ],
+            'fields': ['name', 'api_name', 'availability', 'service', 'runner', ],
             'classes': ['collapse']
         }),
     ]
@@ -230,16 +232,15 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
             FileInputSampleInline,
             SampleDependentInputInline,
             ExitCodeInline,
-            SubmissionRunnerParamInLine
+
         ]
         self.inlines = _inlines
-        for inline in self.inlines:
-            if obj.runner is None and issubclass(inline, SubmissionRunnerParamInLine):
-                self.inlines.remove(inline)
+        if obj.runner is not None:
+            self.inlines.append(SubmissionRunnerParamInLine)
         return self.inlines
 
     def get_model_perms(self, request):
-        return {}  # super(AllParamModelAdmin, self).get_model_perms(request)
+        return super(ServiceSubmissionAdmin, self).get_model_perms(request)
 
     def add_view(self, request, form_url='', extra_context=None):
         context = extra_context or {}
@@ -260,7 +261,6 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
         form.base_fields['runner'].widget.can_change_related = False
         form.base_fields['runner'].widget.can_delete_related = False
         form.base_fields['runner'].required = False
-        form.base_fields['runner'].label = "Override Service's runner"
         return form
 
     def get_fieldsets(self, request, obj=None):
@@ -275,8 +275,7 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
 
     def service_link(self, obj):
         """ Back link to related service """
-        return mark_safe('<a class="button btn" href="{}">Edit Service</a>'.format(
-            reverse("admin:waves_service_change", args=(obj.service.id,))))
+        return url_to_edit_object(obj.service)
 
     service_link.short_description = "Related Service"
 

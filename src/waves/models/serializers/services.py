@@ -57,7 +57,7 @@ class ServiceSubmissionSerializer(BaseServiceSubmissionSerializer, RelatedSerial
 
     class Meta:
         model = Submission
-        fields = ('api_name', 'order', 'label', 'available_online', 'available_api', 'all_inputs',
+        fields = ('api_name', 'order', 'name', 'available_online', 'available_api', 'all_inputs',
                   'submission_inputs')
 
     export_submission_inputs = ServiceInputSerializer(many=True, required=False)

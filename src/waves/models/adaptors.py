@@ -108,17 +108,12 @@ class HasAdaptorParamsMixin(models.Model):
     @property
     def run_params(self):
         """ Get defined params values from db """
-        dic = {}
-        for init in self.adaptor_params.all():
-            index = init.name if init.crypt is False else 'crypt_%s' % init.name
-            # val = Encrypt.decrypt(init.value) if init.crypt else init.value
-            dic[index] = init.value
-        return dic
+        return {init.name if init.crypt is False else 'crypt_%s' % init.name: init.value for init in
+                self.adaptor_params.all()}
 
     def get_concrete_adaptor(self, init_params=None):
-        adaptors_params = init_params or None
-        AdaptorClass = import_string(self.clazz)
-        return AdaptorClass(init_params=adaptors_params)
+        """ Instantiate and return a new Adaptor class Instance initialized with setup parameters """
+        return import_string(self.clazz)(init_params=init_params or None)
 
     @property
     def adaptor_defaults(self):
@@ -216,7 +211,8 @@ class HasRunnerParamsMixin(HasAdaptorParamsMixin):
                     defaults = {'value': runner_param.value, 'prevent_override': runner_param.prevent_override,
                                 'crypt': runner_param.crypt}
                     object_ctype = ContentType.objects.get_for_model(self)
-                    obj, created = AdaptorInitParam.objects.update_or_create(defaults=defaults, content_type=object_ctype,
+                    obj, created = AdaptorInitParam.objects.update_or_create(defaults=defaults,
+                                                                             content_type=object_ctype,
                                                                              object_id=self.pk, name=runner_param.name)
 
     @property
@@ -229,7 +225,7 @@ class HasRunnerParamsMixin(HasAdaptorParamsMixin):
 
     @property
     def clazz(self):
-        return self.runner.clazz
+        return self.get_runner().clazz
 
     @property
     def has_changed(self):

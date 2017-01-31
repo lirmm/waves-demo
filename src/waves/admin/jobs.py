@@ -54,8 +54,8 @@ class JobHistoryInline(TabularInline):
     verbose_name = 'Job History'
     verbose_name_plural = "Job history events"
 
-    readonly_fields = ('timestamp', 'status', 'message')
-    fields = ('status', 'timestamp', 'message')
+    readonly_fields = ('timestamp', 'status', 'message', 'is_admin')
+    fields = ('status', 'timestamp', 'message', 'is_admin')
     can_delete = False
     extra = 0
 
@@ -94,8 +94,8 @@ mark_rerun.short_description = "Re-run jobs"
 delete_model.short_description = "Delete selected jobs"
 
 
+
 class JobAdmin(WavesModelAdmin):
-    model = Job
     form = JobForm
     inlines = [
         JobHistoryInline,
@@ -106,7 +106,7 @@ class JobAdmin(WavesModelAdmin):
     ]
     actions = [mark_rerun, delete_model]
     list_filter = ('status', 'submission__service', 'client')
-    list_display = ('get_slug', 'get_colored_status', 'service', 'get_run_on', 'get_client', 'created', 'updated')
+    list_display = ('get_slug', 'get_colored_status', 'service', 'submission', 'get_run_on', 'get_client', 'created', 'updated')
     list_per_page = 30
     search_fields = ('client__email', 'submission__service_name', 'get_run_on')
     readonly_fields = ('title', 'slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on',
@@ -209,6 +209,5 @@ class JobAdmin(WavesModelAdmin):
     get_colored_status.admin_order_field = 'status'
     get_run_on.admin_order_field = 'service__runner'
     get_client.admin_order_field = 'client'
-
 
 admin.site.register(Job, JobAdmin)

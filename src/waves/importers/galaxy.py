@@ -90,7 +90,6 @@ class GalaxyToolImporter(AdaptorImporter):
                                   y.wrapped['panel_section_name'] == x and y.wrapped['model_class'] == 'Tool'),
                                  key=lambda d: d.name)
                              ) for x in group_list]
-            logger.debug(service_list)
             return service_list
         except ConnectionError as e:
             raise GalaxyAdaptorConnectionError(e)

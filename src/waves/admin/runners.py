@@ -42,7 +42,7 @@ class SubmissionRunInline(TabularInline):
     """ List of related services """
     model = Submission
     extra = 0
-    fields = ['label', 'availability', 'created', 'updated', 'service', ]
+    fields = ['name', 'availability', 'created', 'updated', 'service', ]
     readonly_fields = ['label', 'availability', 'created', 'updated', 'service', ]
     show_change_link = True
     verbose_name_plural = "Running Submissions"
@@ -80,15 +80,14 @@ class RunnerAdmin(ExportInMassMixin, WavesModelAdmin, DynamicInlinesAdmin):
 
     def get_inlines(self, request, obj=None):
         _inlines = [
-            RunnerParamInline, ServiceRunInline, SubmissionRunInline
+            RunnerParamInline
         ]
         if obj and IS_POPUP_VAR not in request.GET:
             self.inlines = _inlines
-            for inline in self.inlines:
-                if obj.waves_submission_runs.count() == 0 and issubclass(inline, SubmissionRunInline):
-                    self.inlines.remove(inline)
-                if obj.waves_service_runs.count() == 0 and issubclass(inline, ServiceRunInline):
-                    self.inlines.remove(inline)
+            if obj.waves_submission_runs.count() > 0:
+                self.inlines.append(SubmissionRunInline)
+            if obj.waves_service_runs.count() > 0:
+                self.inlines.append(ServiceRunInline)
         elif IS_POPUP_VAR not in request.GET:
             self.inlines = [_inlines[0], ]
         return self.inlines

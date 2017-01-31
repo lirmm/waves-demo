@@ -1,14 +1,12 @@
 """ WAVES jobs related web views """
 from __future__ import unicode_literals
 
-from django.views import generic
 from braces.views import LoginRequiredMixin
+from django.views import generic
+
 from base import WavesBaseContextMixin
 from waves.models import Job, JobOutput, JobInput
 from waves.views.files import DownloadFileView
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class JobView(generic.DetailView, WavesBaseContextMixin):

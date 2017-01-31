@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import logging
 from uuid import UUID
 
 from django.contrib import messages
@@ -14,9 +13,6 @@ from waves.managers.servicejobs import ServiceJobManager
 from waves.models import ServiceCategory, Service, ServiceMeta
 from waves.models.submissions import Submission
 from waves.views.forms.services import ServiceSubmissionForm
-from waves.views.jobs import logger
-
-logger = logging.getLogger(__name__)
 
 
 def get_context_meta_service(context, service):
@@ -134,6 +130,9 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
         if slug is None:
             return self.get_object().default_submission # Submission.objects.get(default=True, service=)
         else:
+            submission = Submission.objects.get(slug=UUID(slug))
+            print submission.slug
+
             return Submission.objects.get(slug=UUID(slug))
 
     def post(self, request, *args, **kwargs):
@@ -163,7 +162,6 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
                 "Job successfully submitted"
             )
         except JobException as e:
-            logger.fatal("Create Error %s", e.message)
             messages.error(
                 self.request,
                 "An unexpected error occurred, sorry for the inconvenience, our team has been noticed"

@@ -3,18 +3,19 @@ Base Test class for Runner's adaptors
 """
 from __future__ import unicode_literals
 
-import time
+import logging
 import os
-from django.utils.timezone import localtime
+import time
+
 import waves.adaptors.const as jobconst
-from waves.tests.base import WavesBaseTestCase
+from django.utils.timezone import localtime
 from waves.adaptors.base import BaseAdaptor
 from waves.adaptors.exceptions import *
+from waves.adaptors.mocks.adaptor import MockJobRunnerAdaptor
+
 from waves.exceptions.jobs import *
-from waves.models import Service, Job, JobInput, Runner, RunnerInitParam
-from waves.models.submissions import Submission
-import waves.settings
-import logging
+from waves.models import *
+from waves.tests.base import WavesBaseTestCase
 
 logger = logging.getLogger(__name__)
 
@@ -52,11 +53,24 @@ def sample_job(service):
     return job
 
 
+def sample_service(runner, init_params=None):
+    """ Create a sample service for this runner """
+    service = Service.objects.create(name='Sample Service', runner=runner)
+    if init_params:
+        for name, value in init_params:
+            service.run_params.add(ServiceRunParam.objects.create(name=name, value=value))
+    sub = Submission.objects.create(name="Default Submission", service=service)
+    service.submissions.add(sub)
+
+    return service
+
+
 class TestJobRunner(WavesBaseTestCase):
     """
     Test all functions in Runner adapters base class
 
     """
+
     def _debug_job_state(self):
         logger.debug('Internal state %s, current %s', self.current_job._status, self.current_job.status)
 
@@ -69,7 +83,7 @@ class TestJobRunner(WavesBaseTestCase):
             self.adaptor = MockJobRunnerAdaptor()
         self.runner_model = sample_runner(self.adaptor)
         self.service = Service.objects.create(name="SubmissionSample Service", runner=self.runner_model)
-        self.service.submissions.add(Submission.objects.create(label='samplesub', service=self.service))
+        self.service.submissions.add(Submission.objects.create(name='samplesub', service=self.service))
         self.current_job = None
         self.jobs = []
         self._result = self.defaultTestResult()
@@ -174,4 +188,3 @@ class TestJobRunner(WavesBaseTestCase):
         else:
             logger.warn('problem with job status %s', self.current_job.get_status_display())
         return True
-

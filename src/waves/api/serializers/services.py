@@ -1,8 +1,6 @@
 """ WAVES API services related serializers"""
 from __future__ import unicode_literals
 
-import logging
-
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.utils.html import strip_tags
 from rest_framework import serializers
@@ -17,7 +15,6 @@ from waves.models.submissions import *
 
 __all__ = ['MetaSerializer', 'OutputSerializer', 'ServiceSerializer',
            'ServiceFormSerializer', 'ServiceSubmissionSerializer', 'ServiceMetaSerializer']
-logger = logging.getLogger(__name__)
 
 
 class OutputSerializer(DynamicFieldsModelSerializer):
@@ -67,7 +64,7 @@ class ServiceSubmissionSerializer(DynamicFieldsModelSerializer, serializers.Hype
 
     class Meta:
         model = Submission
-        fields = ('label', 'service', 'submission_uri', 'form', 'inputs')
+        fields = ('name', 'service', 'submission_uri', 'form', 'inputs')
         extra_kwargs = {
             'api_name': {'view_name': 'waves-api:waves-submission-detail', 'lookup_fields': {'api_name', 'api_name'}},
         }
@@ -124,7 +121,6 @@ class ServiceSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsMod
             return reverse(viewname='waves-api:waves-services-submissions', request=self.context['request'],
                            kwargs={'service': obj.api_name, 'api_name': obj.default_submission_api.api_name})
         else:
-            logger.warning('Service %s has no default submission', obj)
             return ""
 
     def get_jobs(self, obj):

@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
 
 from django.contrib.contenttypes.admin import GenericTabularInline
-from django.contrib.contenttypes.models import ContentType
+
 from waves.admin.forms.adaptors import AdaptorInitParamForm
-from waves.models import RunnerInitParam, AdaptorInitParam, SubmissionRunParam
+from waves.models import RunnerInitParam, AdaptorInitParam
 
 
 class AdaptorInitParamInline(GenericTabularInline):
@@ -37,13 +37,19 @@ class RunnerParamInline(AdaptorInitParamInline):
 
 
 class ServiceRunnerParamInLine(AdaptorInitParamInline):
+    """ Adaptors parameters for Service """
     model = AdaptorInitParam
     fields = ['name', 'value', 'prevent_override']
 
 
 class SubmissionRunnerParamInLine(AdaptorInitParamInline):
+    """ Adaptors parameters for submission when overridden """
     model = AdaptorInitParam
     fields = ['name', 'value', ]
+
+    def get_queryset(self, request):
+        return AdaptorInitParam.objects.all()
+        return super(SubmissionRunnerParamInLine, self).get_queryset(request)
 
     def get_readonly_fields(self, request, obj=None):
         if obj and not obj.runner:

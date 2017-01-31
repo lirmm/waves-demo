@@ -1,10 +1,9 @@
 from __future__ import unicode_literals
 
-import logging
 from django.conf import settings
 from mail_templated import send_mail
+
 import waves.settings
-logger = logging.getLogger(__name__)
 
 
 class JobMailer(object):

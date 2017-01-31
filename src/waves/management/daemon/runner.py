@@ -10,7 +10,6 @@ import lockfile
 import signal
 from daemon.runner import DaemonRunner as BaseDaemonRunner, DaemonRunnerStopFailureError, \
     DaemonRunnerStartFailureError, emit_message
-import logging
 
 
 class DaemonRunner(BaseDaemonRunner):
@@ -91,6 +90,7 @@ class DaemonRunner(BaseDaemonRunner):
               started.
 
             """
+        import logging
         super(DaemonRunner, self).__init__(app)
         # preserve file related loggers handlers
         for handler in logging.getLogger().handlers:

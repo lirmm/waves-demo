@@ -2,14 +2,12 @@
 from __future__ import unicode_literals
 from django.contrib import admin
 
-import logging
 from profiles.models import UserProfile
 from profiles.forms import ProfileForm
 from authtools.admin import NamedUserAdmin
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-logger = logging.getLogger(__name__)
 
 
 class UserProfileInline(admin.StackedInline):

@@ -3,7 +3,6 @@ WAVES Automated models signals handlers
 """
 from __future__ import unicode_literals
 
-import logging
 import os
 import shutil
 from os.path import join
@@ -21,8 +20,6 @@ from waves.models.runners import *
 from waves.models.services import *
 from waves.models.submissions import *
 from waves.utils import get_all_subclasses
-
-logger = logging.getLogger(__name__)
 
 
 @receiver(pre_save, sender=Job)
@@ -62,8 +59,8 @@ def service_post_delete_handler(sender, instance, **kwargs):
 @receiver(pre_save, sender=Submission)
 def submission_pre_save_handler(sender, instance, **kwargs):
     """ submission pre save """
-    if not instance.label:
-        instance.label = instance.service.name
+    if not instance.name:
+        instance.name = instance.service.name
 
 
 @receiver(post_save, sender=Submission)
@@ -106,6 +103,7 @@ def adaptor_mixin_post_save_handler(sender, instance, created, **kwargs):
 for subclass in get_all_subclasses(HasAdaptorParamsMixin):
     if not subclass._meta.abstract:
         post_save.connect(adaptor_mixin_post_save_handler, subclass)
+
 
 @receiver(pre_save, sender=AdaptorInitParam)
 def adaptor_param_pre_save_handler(sender, instance, **kwargs):

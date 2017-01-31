@@ -2,6 +2,7 @@
 Main WAVES application settings files
 """
 from __future__ import unicode_literals
+
 import environ
 import sys
 from os.path import dirname, join, exists

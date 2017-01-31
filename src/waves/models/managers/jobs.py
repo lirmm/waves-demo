@@ -1,15 +1,19 @@
+""" Jobs Managers class """
 from __future__ import unicode_literals
 
+import waves.adaptors.const as jobconst
 from django.db import models
 from django.db.models import Q
 
-import waves.adaptors.const as jobconst
 from waves.models.submissions import SubmissionOutput
+
 __all__ = ['JobAdminHistoryManager', 'JobHistoryManager', "JobInputManager", "JobManager", "JobOutputManager"]
+
 
 class JobManager(models.Manager):
     """ Job Manager add few shortcut function to default Django models objects Manager
     """
+
     def get_by_natural_key(self, slug, service):
         return self.get(slug=slug, service=service)
 
@@ -46,8 +50,8 @@ class JobManager(models.Manager):
         :return: QuerySet
         """
         if user.is_superuser or user.is_staff:
-            return self.filter(submission__service__in=[service,])
-        return self.filter(client=user, submission__service__in=[service,])
+            return self.filter(submission__service__in=[service, ])
+        return self.filter(client=user, submission__service__in=[service, ])
 
     def get_pending_jobs(self, user=None):
         """
@@ -89,9 +93,9 @@ class JobManager(models.Manager):
 
 class JobInputManager(models.Manager):
     """ JobInput model Manager """
+
     def get_by_natural_key(self, job, name):
         return self.get(job=job, name=name)
-
 
     def create(self, **kwargs):
         sin = kwargs.pop('srv_input', None)
@@ -102,6 +106,7 @@ class JobInputManager(models.Manager):
 
 class JobOutputManager(models.Manager):
     """ JobInput model Manager """
+
     def get_by_natural_key(self, job, name):
         return self.get(job=job, _name=name)
 

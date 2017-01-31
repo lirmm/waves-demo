@@ -8,7 +8,6 @@ from ipware.ip import get_real_ip
 
 from profiles.models import UserProfile
 from profiles.storage import profile_directory
-from waves.signals import logger
 
 
 @receiver(user_logged_in)
@@ -17,14 +16,12 @@ def login_action_handler(sender, user, **kwargs):
     request = kwargs.get('request')
     ip = get_real_ip(request)
     if ip is not None:
-        logger.debug('Login action fired %s [%s]', user, ip)
         user_prof = user.profile
         user_prof.ip = ip
         user_prof.save(update_fields=['ip'])
     else:
         ip = request.META.get('REMOTE_ADDR', None)
         if ip is not None:
-            logger.debug('Login action fired %s [%s]', user, ip)
             user_prof = user.profile
             user_prof.ip = ip
             user_prof.save(update_fields=['ip'])
@@ -40,7 +37,6 @@ def profile_post_save_handler(sender, instance, created, **kwargs):
     if instance.is_active and instance.profile.registered_for_api and not instance.profile.api_key:
         # User is activated, has registered for api services, and do not have any api_key
         instance.profile.api_key = uuid.uuid1()
-        logger.debug("Update api_key for %s %s", instance, instance.profile.api_key)
     if instance.is_active and not instance.profile.registered_for_api:
         instance.profile.api_key = None
     instance.profile.save()

@@ -9,7 +9,7 @@ from django.test import override_settings
 from django.utils import timezone
 
 import waves.settings
-from waves.models import Job, JobInput, JobOutput, Service
+from waves.models import Job, JobInput, JobOutput, Service, Submission
 from waves.tests.base import WavesBaseTestCase
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,8 @@ class JobMailTest(WavesBaseTestCase):
 
     def test_mail_job(self):
         job = Job.objects.create(
-            service=Service.objects.create(name='SubmissionSample Service', email_on=True),
+            submission=Submission.objects.create(name='Default',
+                                                 service=Service.objects.create(name='SubmissionSample Service')),
             email_to='marc@fake.com')
         job.job_inputs.add(JobInput.objects.create(name="param1", value="Value1", job=job))
         job.job_inputs.add(JobInput.objects.create(name="param2", value="Value2", job=job))

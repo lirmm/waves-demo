@@ -35,33 +35,3 @@ class ProfileTestCase(TestCase):
         u.profile.registered_for_api = True
         u.save()
         self.assertIsNotNone(u.profile.api_key)
-
-    @override_settings(
-        WAVES_REGISTRATION_ALLOWED=False,
-    )
-    def testRegistrationDisallowed(self):
-        url = reverse('profiles:registration_register')
-        r = self.client.get(url)
-        self.assertRedirects(r, reverse('profiles:registration_disallowed'))
-
-    @override_settings(
-        WAVES_REGISTRATION_ALLOWED=True,
-    )
-    def testRegistrationAllowed(self):
-        url = reverse('profiles:registration_register')
-        r = self.client.get(url)
-        self.assertEqual(r.status_code, 200)
-        r = self.client.post(url, data=self.data_register)
-        self.assertRedirects(r, reverse('profiles:registration_complete'))
-        # check if mail is sent
-        self.assertEqual(len(mail.outbox), 1)
-        user = User.objects.get(email='test@test.com')
-        self.assertIsNotNone(user)
-        self.assertFalse(user.is_active)
-        reg_view = SignUpView()
-        activation_url = reverse('profiles:registration_activate',
-                                 kwargs=dict(activation_key=reg_view.get_activation_key(user)))
-        r = self.client.get(activation_url)
-        self.assertRedirects(r, reverse('profiles:registration_activation_complete'))
-        user = User.objects.get(email='test@test.com')
-        self.assertTrue(user.is_active)

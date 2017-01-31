@@ -1,18 +1,15 @@
 """ Django models bases classes """
 from __future__ import unicode_literals
 
-import logging
 import uuid
 
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db import models
-from waves.models.config import WavesSite
+
 import waves.settings
 from waves.compat import RichTextField
-
-logger = logging.getLogger(__name__)
-
+from waves.models.config import WavesSite
 
 __all__ = ['TimeStamped', 'Ordered', 'ExportAbleMixin', 'Described', 'Slugged', 'ApiModel',
            'UrlMixin']
@@ -121,7 +118,7 @@ class UrlMixin(object):
         """
         path = self.get_absolute_url()
         protocol = getattr(settings, "PROTOCOL", "http")
-        domain = WavesSite.objects.get_current().domain
+        domain = Site.objects.get_current().domain
         port = getattr(settings, "PORT", "")
         if port:
             assert port.startswith(":"), "The PORT setting must have a preceeding ':'."
@@ -166,7 +163,6 @@ class ExportAbleMixin(object):
                 fp.write(json.dumps(data, indent=2))
                 return file_path
             except Exception as e:
-                logger.error('Error dumping model %s to json' % self)
                 raise ExportError('Error dumping model %s [%s]' % (self, e))
 
     @property
