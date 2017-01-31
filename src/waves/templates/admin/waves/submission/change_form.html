@@ -31,6 +31,14 @@
             Service's list
         </a>
     </li>
+        <li>
+        <a type="button" href="{% url 'waves:job_submission' original.service.pk %}"
+           title="View online"
+           class="btn btn-high btn-info"
+           id="view_service">
+            Online
+        </a>
+    </li>
 
     {{ block.super }}
 {% endblock %}

@@ -130,23 +130,23 @@ class SubmissionOutput(TimeStamped):
     submission = models.ForeignKey(Submission, related_name='outputs', on_delete=models.CASCADE)
     from_input = models.ForeignKey('BaseParam', null=True, blank=True, related_name='to_outputs',
                                    help_text='Valuated with input')
-    ext = models.CharField('File extension', max_length=5, null=False, default=".txt")
+    ext = models.CharField('File extension', max_length=5, blank=True, null=True)
     optional = models.BooleanField('May be empty ?', default=False)
     file_pattern = models.CharField('File name / pattern', max_length=100, blank=True, default="%s",
-                                    help_text="Pattern used when dependent on any input '%s'")
+                                    help_text="Pattern used to match input value (%s to retrieve value from input)")
     edam_format = models.CharField('Edam format', max_length=255, null=True, blank=True, help_text="Edam format")
     edam_data = models.CharField('Edam data', max_length=255, null=True, blank=True, help_text="Edam data")
     help_text = models.TextField('Content description', null=True, blank=True, )
 
     def __str__(self):
-        if self.from_input:
-            return '"%s" (%s) ' % (self.from_input.label, self.file_pattern)
-        return '%s' % self.name
+        return '%s' % self.label
 
     def clean(self):
         cleaned_data = super(SubmissionOutput, self).clean()
-        if (not self.from_input and self.file_pattern == "%s") and not self.name:
-            raise ValidationError({'file_pattern': 'You must set a file name'})
+        if self.from_input and not self.file_pattern:
+            raise ValidationError({'file_pattern': 'If valuated from input, you must set a file pattern'})
+        if not self.from_input and not self.name:
+            raise ValidationError({'name': 'If not valuated from input, you must set a file name'})
         return cleaned_data
 
 

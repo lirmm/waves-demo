@@ -53,17 +53,13 @@ class ServiceSubmissionInline(admin.TabularInline):
 
 
 @admin.register(Service)
-class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin, WavesModelAdmin):
+class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin, WavesModelAdmin, DynamicInlinesAdmin):
     """ Service model objects Admin"""
 
     class Media(WavesModelAdmin):
         js = ('waves/admin/js/services.js',)
 
-    inlines = (
-        ServiceRunnerParamInLine,
-        ServiceSubmissionInline,
-        ServiceMetaInline,
-    )
+
 
     form = ServiceForm
     filter_horizontal = ['restricted_client']
@@ -77,7 +73,7 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
             'classes': ('grp-collapse grp-closed', 'collapse'),
             'fields': ['category', 'name', 'created_by', 'runner', 'version', 'created', 'updated', ]
         }),
-        ('Availability', {
+        ('Access', {
             'classes': ('grp-collapse grp-closed', 'collapse'),
             'fields': ['status', 'restricted_client', 'api_on', 'web_on', 'email_on', ]
         }),
@@ -87,6 +83,17 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
                        'edam_operations', 'remote_service_id', ]
         }),
     )
+
+    def get_inlines(self, request, obj=None):
+        _inlines = [
+            ServiceMetaInline,
+        ]
+        self.inlines = _inlines
+        if obj:
+            self.inlines.append(ServiceSubmissionInline)
+            if obj.runner is not None:
+                self.inlines.append(ServiceRunnerParamInLine)
+        return self.inlines
 
     def add_view(self, request, form_url='', extra_context=None):
         context = extra_context or {}

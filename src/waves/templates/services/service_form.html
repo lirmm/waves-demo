@@ -25,7 +25,7 @@
                         <li role="presentation"
                             class="{% if selected_submission == possible_submission %}active{% endif %}">
                             <a href="#{{ possible_submission.api_name }}" data-toggle="tab">
-                                {{ possible_submission.label }}
+                                {{ possible_submission.name }}
                             </a>
                         </li>
                     {% endfor %}

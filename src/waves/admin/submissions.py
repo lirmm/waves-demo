@@ -23,7 +23,7 @@ class ServiceOutputInline(CompactInline):
     sortable_field_name = "order"
     sortable_options = []
     fk_name = 'submission'
-    fields = ['name', 'ext', 'name', 'optional', 'from_input', 'file_pattern', 'edam_format', 'edam_data']
+    fields = ['label', 'ext', 'name', 'optional', 'from_input', 'file_pattern', 'edam_format', 'edam_data']
     verbose_name_plural = "Outputs"
     classes = ('grp-collapse', 'grp-closed', 'collapse')
 

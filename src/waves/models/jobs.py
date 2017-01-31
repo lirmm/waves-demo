@@ -189,7 +189,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         all_files = self.job_outputs.all()
         existing = []
         for _file in all_files:
-            if os.path.getsize(_file.file_path) > 0:
+            if os.path.isfile(_file.file_path) and os.path.getsize(_file.file_path) > 0:
                 existing.append(_file)
         return existing
 
@@ -364,10 +364,12 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         output_dict = dict(job=self, value=self.stdout, optional=False, _name='Standard output', type="txt")
         out = JobOutput.objects.create(**output_dict)
         self.job_outputs.add(out)
+        open(join(self.working_dir, self.stdout), 'a').close()
         output_dict['value'] = self.stderr
         output_dict['_name'] = "Standard error"
         out1 = JobOutput.objects.create(**output_dict)
         self.job_outputs.add(out1)
+        open(join(self.working_dir, self.stderr), 'a').close()
         logger.debug('Created default outputs: [%s, %s]', out, out1)
 
     @property
@@ -426,21 +428,17 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         logger.exception(exception)
         self.error(exception.message)
 
-    def save_status(self, state, message=None):
+    def save_status_history(self, state=None, message=None):
         """ Save new state in DB, add history message id needed """
-        self.status = state
-        self.nb_retry = 0
-        if not message:
-            message = self.message
-        else:
-            message = 'Job %s' % self.get_status_display().lower()
-        JobHistory.objects.create(job=self, message=message, status=self.status)
+        h_message = message or self.message or 'Job %s' % self.get_status_display().lower()
+        JobHistory.objects.create(job=self, message=h_message, status=state or self.status)
         logger.debug('Job [%s] status set to [%s]', self.slug, self.get_status_display())
 
     def _run_action(self, action):
         self._check_job_action(str(action))
         try:
             returned = getattr(self.adaptor, action)(self)
+            self.nb_retry = 0
             self.save()
             return returned
         except AdaptorException as exc:
@@ -465,12 +463,12 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     def run_prepare(self):
         """ Ask job adaptor to prepare run (manage input files essentially) """
         self._run_action('prepare_job')
-        self.save_status(self.next_status)
+        self.save_status_history()
 
     def run_launch(self):
         """ Ask job adaptor to actually launch job """
         self._run_action('run_job')
-        self.save_status(self.next_status)
+        self.save_status_history()
 
     def run_status(self):
         """ Ask job adaptor current job status """
@@ -481,28 +479,27 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
             self.run_results()
         if self.status == jobconst.JOB_UNDEFINED and self.nb_retry > waves.settings.WAVES_JOBS_MAX_RETRY:
             self.run_cancel()
-        # self.save_status(self.status)
+        self.save_status_history()
         return self.status
 
     def run_cancel(self):
         """ Ask job adaptor to cancel job if possible """
         self._run_action('cancel_job')
         self.message = 'Job cancelled'
-        self.save_status(jobconst.JOB_CANCELLED)
+        self.save_status_history(jobconst.JOB_CANCELLED)
 
     def run_results(self):
         """ Ask job adaptor to get results files (dowload files if needed) """
         self._run_action('job_results')
         self.run_details()
         if self.exit_code != 0 or len(self.stderr_txt) > 0:
-            self.message = self.stderr_txt
-            self.save_status(jobconst.JOB_ERROR)
+            self.save_status_history(state=jobconst.JOB_ERROR, message=self.stderr_txt)
         else:
-            self.save_status(jobconst.JOB_TERMINATED)
+            self.save_status_history(state=jobconst.JOB_TERMINATED)
         self.save()
 
     def run_details(self):
-        """ Ask job adaptor to get JobRunDetails informations (started, finished, exit_code ...)"""
+        """ Ask job adaptor to get JobRunDetails information (started, finished, exit_code ...)"""
         file_run_details = join(self.working_dir, 'job_run_details.json')
         if os.path.isfile(file_run_details):
             # Details have already been downloaded
@@ -525,7 +522,10 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         elif action == 'run_job':
             status_allowed = self.STATUS_LIST[2:3]
         elif action == 'cancel_job':
-            status_allowed = self.adaptor.state_allow_cancel
+            # Report fails to a AdaptorException raise during cancel process
+            status_allowed = self.STATUS_LIST
+            if getattr(self.adaptor, 'state_allow_cancel', None):
+                status_allowed = self.adaptor.state_allow_cancel
         elif action == 'job_results':
             status_allowed = self.STATUS_LIST[6:7] + self.STATUS_LIST[9:]
         elif action == 'job_run_details':

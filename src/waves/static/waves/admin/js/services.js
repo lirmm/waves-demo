@@ -14,11 +14,11 @@
             console.log('Changed triggered');
             if (prev_val) {
                 if (confirm('Changing this value might cancel running jobs.\n\nAre you sure ?')) {
-                    $("#id_service_run_params-TOTAL_FORMS").val(0);
-                    $("#id_service_run_params-INITIAL_FORMS").val(0);
                     $("input[type='submit'][name='_continue']").trigger('click');
                 } else {
                     $(this).val(prev_val);
+                    // for Django jet widget, reset text label
+                    $('#select2-id_runner-container').text($("#id_runner option:selected").text());
                 }
             } else {
                 console.log('changed ?');

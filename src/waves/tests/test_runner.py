@@ -8,6 +8,7 @@ import os
 import time
 
 import waves.adaptors.const as jobconst
+from django.contrib.contenttypes.models import ContentType
 from django.utils.timezone import localtime
 from waves.adaptors.base import BaseAdaptor
 from waves.adaptors.exceptions import *
@@ -33,8 +34,10 @@ def sample_runner(runner_impl):
     runner_model = Runner.objects.create(name=runner_impl.__class__.__name__,
                                          description='SubmissionSample Runner %s' % runner_impl.__class__.__name__,
                                          clazz='%s.%s' % (runner_impl.__module__, runner_impl.__class__.__name__))
+    object_ctype = ContentType.objects.get_for_model(runner_model)
     for name, value in runner_impl.init_params.items():
-        RunnerInitParam.objects.update_or_create(name=name, runner=runner_model, defaults={'default': value})
+        RunnerInitParam.objects.update_or_create(name=name, content_type=object_ctype, object_id=runner_model.pk,
+                                                 defaults={'default': value})
     return runner_model
 
 
@@ -46,7 +49,7 @@ def sample_job(service):
     Returns:
         Job model instance
     """
-    job = Job.objects.create(title='SubmissionSample Job', service=service)
+    job = Job.objects.create(title='SubmissionSample Job', submission=service.submissions.first())
     srv_submission = service.default_submission
     for srv_input in srv_submission.submission_inputs.all():
         job.job_inputs.add(JobInput.objects.create(srv_input=srv_input, job=job, value="fake_value"))
@@ -148,13 +151,13 @@ class TestJobRunner(WavesBaseTestCase):
             self.current_job = sample_job(self.service)
         if self.current_job not in self.jobs:
             self.jobs.append(self.current_job)
+        assert isinstance(self.current_job, Job)
         logger.info('Starting workflow process for job %s', self.current_job)
         self.assertGreaterEqual(self.current_job.job_history.count(), 1)
         # self.adaptor.prepare_job(self.current_job)
         self.current_job.run_prepare()
         self.assertEqual(self.current_job.status, jobconst.JOB_PREPARED)
         self.current_job.run_launch()
-        # self.adaptor.run_job(self.current_job)
         logger.debug('Remote Job ID %s', self.current_job.remote_job_id)
         self.assertEqual(self.current_job.status, jobconst.JOB_QUEUED)
         for ix in range(100):

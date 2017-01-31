@@ -108,6 +108,7 @@ class JobQueueCommand(DaemonCommand):
 
         :return: Nothing
         """
+        import logging
         jobs = Job.objects.prefetch_related('job_inputs'). \
             prefetch_related('job_outputs').filter(status__lt=jobconst.JOB_TERMINATED)
         if jobs.count() > 0:
@@ -156,6 +157,7 @@ class PurgeDaemonCommand(DaemonCommand):
     log_level = 'WARNING'
 
     def loop_callback(self):
+        import logging
         logging.info("Purge job launched at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
         date_anonymous = datetime.date.today() - datetime.timedelta(waves.settings.WAVES_KEEP_ANONYMOUS_JOBS)
         date_registered = datetime.date.today() - datetime.timedelta(waves.settings.WAVES_KEEP_REGISTERED_JOBS)

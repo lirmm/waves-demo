@@ -34,13 +34,11 @@ def job_post_save_handler(sender, instance, created, **kwargs):
     """ job post save handler """
     if not kwargs.get('raw', False):
         if created:
-            instance.save_status(instance.status)
+            instance.save_status_history(instance.status)
             # create job working dirs locally
             instance.make_job_dirs()
             # initiate default outputs
             instance.create_default_outputs()
-        elif instance.changed_status:
-            instance.save_status(instance.status)
 
 
 @receiver(post_delete, sender=Job)
@@ -54,6 +52,13 @@ def service_post_delete_handler(sender, instance, **kwargs):
     """ service post delete handler """
     if os.path.exists(instance.sample_dir):
         shutil.rmtree(instance.sample_dir)
+
+
+@receiver(post_save, sender=Service)
+def service_post_save_handler(sender, instance, created, **kwargs):
+    """ service post delete handler """
+    if created and not kwargs.get('raw', False):
+        instance.submissions.add(Submission.objects.create(name="default", service=instance))
 
 
 @receiver(pre_save, sender=Submission)
@@ -126,10 +131,12 @@ def api_able_pre_save_handler(sender, instance, **kwargs):
 @receiver(post_save, sender=JobOutput)
 def job_output_post_save_handler(sender, instance, created, **kwargs):
     """ Job Output post save handler """
+    pass
+    """
     if created and instance.value and not kwargs.get('raw', False):
         # Create empty file for expected outputs
         open(join(instance.job.working_dir, instance.value), 'a').close()
-
+    """
 
 # Connect all ApiModel subclass to pre_save_handler
 for subclass in ApiModel.__subclasses__():

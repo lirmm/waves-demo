@@ -3,31 +3,30 @@ Test class for SAGA Runners
 """
 from __future__ import unicode_literals
 
+import logging
 import os
 import time
-from unittest import skip
-from django.conf import settings
+import unittest
 import waves.adaptors.const as jobconst
+from django.conf import settings
+from waves.adaptors.saga_adaptors.cluster.ssh import SshUserPassClusterAdaptor
+from waves.adaptors.saga_adaptors.shell.local import LocalShellAdaptor
+from waves.adaptors.saga_adaptors.shell.ssh import SshUserPassShellAdaptor
+
 import waves.tests.utils.shell_util as test_util
-from waves.tests.test_runner import TestJobRunner, sample_job
-from waves.adaptors.saga.shell.local import LocalShellAdaptor
-from waves.adaptors.saga.cluster.ssh import SshUserPassClusterAdaptor
-from waves.adaptors.saga.shell.ssh import SshUserPassShellAdaptor
-from waves.models import JobInput, JobOutput, Service, Job
 from waves.managers.servicejobs import ServiceJobManager
+from waves.models import JobInput, JobOutput, Service, Job, BaseParam
+from waves.tests.test_runner import TestJobRunner, sample_job
 from waves.tests.utils import get_sample_dir
-import waves.settings
-import logging
 
 logger = logging.getLogger(__name__)
 
 
 class ShellRunnerTestCase(TestJobRunner):
     def _set_command(self, command):
-        service_command = self.service.srv_run_params.get(name='command')
-        service_command._value = command
+        service_command = self.service.adaptor_params.get(name='command')
+        service_command.value = command
         service_command.save()
-        self.service.adaptor.command = command
         logger.debug("service command %s", service_command.value)
 
     def setUp(self):
@@ -41,10 +40,13 @@ class ShellRunnerTestCase(TestJobRunner):
     def _prepare_hello_world(self):
         self._set_command(os.path.join(test_util.get_sample_dir(), 'services/hello_world.sh'))
         self.current_job = sample_job(self.service)
+        self.current_job.adaptor.command = os.path.join(test_util.get_sample_dir(), 'services/hello_world.sh')
         self.current_job.job_inputs.add(
-            JobInput.objects.create(job=self.current_job, value='Test Input 1', srv_input=None))
+            JobInput.objects.create(job=self.current_job, value='Test Input 1', type=BaseParam.TYPE_TEXT,
+                                    srv_input=None))
         self.current_job.job_inputs.add(
-            JobInput.objects.create(job=self.current_job, value='Test Input 2', srv_input=None))
+            JobInput.objects.create(job=self.current_job, value='Test Input 2', type=BaseParam.TYPE_TEXT,
+                                    srv_input=None))
         self.current_job.job_outputs.add(JobOutput.objects.create(job=self.current_job, value='hello_world_output.txt',
                                                                   srv_output=None))
 
@@ -134,6 +136,10 @@ class SshRunnerTestCase(ShellRunnerTestCase):
         self.adaptor.connect()
         self.adaptor.command = 'cp'
         super(SshRunnerTestCase, self).testSimpleCP()
+
+    @unittest.skip
+    def testHelloWorld(self):
+        pass
 
 
 class SGESshUserPassRunnerTestCase(ShellRunnerTestCase):

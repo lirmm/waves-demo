@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 
 class BaseCommand(object):
-
     def __init__(self, service):
         self.service = service
 
@@ -23,4 +22,3 @@ class BaseCommand(object):
             return filter(None, [e.command_line_element for e in job_inputs])
         else:
             return []
-
