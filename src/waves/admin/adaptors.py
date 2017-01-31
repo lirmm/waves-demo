@@ -47,10 +47,6 @@ class SubmissionRunnerParamInLine(AdaptorInitParamInline):
     model = AdaptorInitParam
     fields = ['name', 'value', ]
 
-    def get_queryset(self, request):
-        return AdaptorInitParam.objects.all()
-        return super(SubmissionRunnerParamInLine, self).get_queryset(request)
-
     def get_readonly_fields(self, request, obj=None):
         if obj and not obj.runner:
             self.readonly_fields = self.fields
