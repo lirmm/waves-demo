@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import logging
 
+import waves.adaptors.const
 import waves.adaptors.const as jobconst
 from django.conf import settings
 from django.core import mail
@@ -44,13 +45,13 @@ class JobMailTest(WavesBaseTestCase):
         logger.debug('Mail subject: %s', sent_mail.subject)
         logger.debug('Mail from: %s', sent_mail.from_email)
         logger.debug('Mail content: \n%s', sent_mail.body)
-        job.status = jobconst.JOB_COMPLETED
+        job.status = waves.adaptors.const.JOB_COMPLETED
         # job.save()
         job.check_send_mail()
         # no more mails
         self.assertEqual(len(mail.outbox), 1)
 
-        job.status = jobconst.JOB_TERMINATED
+        job.status = waves.adaptors.const.JOB_TERMINATED
         # job.save()
         job.check_send_mail()
         self.assertEqual(len(mail.outbox), 2)
@@ -58,7 +59,7 @@ class JobMailTest(WavesBaseTestCase):
         logger.debug('Mail subject: %s', sent_mail.subject)
         logger.debug('Mail from: %s', sent_mail.from_email)
         logger.debug('Mail content: \n%s', sent_mail.body)
-        job.status = jobconst.JOB_ERROR
+        job.status = waves.adaptors.const.JOB_ERROR
         # job.save()
         job.check_send_mail()
         self.assertEqual(len(mail.outbox), 3)
@@ -66,7 +67,7 @@ class JobMailTest(WavesBaseTestCase):
         logger.debug('Mail subject: %s', sent_mail.subject)
         logger.debug('Mail from: %s', sent_mail.from_email)
         logger.debug('Mail content: \n%s', sent_mail.body)
-        job.status = jobconst.JOB_CANCELLED
+        job.status = waves.adaptors.const.JOB_CANCELLED
         # job.save()
         job.check_send_mail()
         self.assertEqual(len(mail.outbox), 4)

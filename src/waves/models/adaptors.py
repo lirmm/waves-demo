@@ -1,13 +1,14 @@
 """ Adaptors related models super classes """
 from __future__ import unicode_literals
 
-from django.utils.module_loading import import_string
-from django.db import models
-from waves.utils.encrypt import Encrypt
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.db import models
+from django.utils.module_loading import import_string
+
+from waves.utils.encrypt import Encrypt
 
 __all__ = ['DTOMixin', 'AdaptorInitParam', 'HasRunnerParamsMixin', 'HasAdaptorClazzMixin']
 
@@ -154,8 +155,8 @@ class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
     @property
     def adaptor(self):
         """ Get and returned an initialized concrete adaptor class parametrized with params defined in db
-        :return: a subclass BaseAdaptor object instance
-        :rtype: BaseAdaptor
+        :return: a subclass JobAdaptor object instance
+        :rtype: JobAdaptor
         """
         if self._adaptor is None:
             if self.has_changed:
@@ -167,8 +168,8 @@ class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
     @adaptor.setter
     def adaptor(self, adaptor):
         """ Allow to temporarily override current adaptor instance """
-        from waves.adaptors.base import BaseAdaptor
-        assert (issubclass(adaptor, BaseAdaptor))
+        from waves.adaptors.core.base import JobAdaptor
+        assert (issubclass(adaptor, JobAdaptor))
         self._adaptor = adaptor
 
 
@@ -218,8 +219,8 @@ class HasRunnerParamsMixin(HasAdaptorParamsMixin):
     @property
     def adaptor(self):
         """ Get and returned an initialized concrete adaptor class parametrized with params defined in db
-        :return: a subclass BaseAdaptor object instance
-        :rtype: BaseAdaptor
+        :return: a subclass JobAdaptor object instance
+        :rtype: JobAdaptor
         """
         return self.get_concrete_adaptor(self.run_params)
 

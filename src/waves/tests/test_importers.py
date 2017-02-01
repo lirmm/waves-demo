@@ -3,12 +3,13 @@ from __future__ import unicode_literals
 
 import logging
 
-import tests.settings as settings
-import tests.utils.galaxy_util as test_util
-from adaptors.test_runner import working_dir, sample_file
-from tests.adaptors.test_runner import TestBaseJobRunner
-from waves.adaptors.api.galaxy import GalaxyJobAdaptor
 from waves.adaptors.importers.dto import Job, JobInput, JobOutput
+
+import waves.tests.utils.galaxy_util as test_util
+from adaptors import working_dir, sample_file
+from waves import tests as settings
+from waves.adaptors.core.api.galaxy import GalaxyJobAdaptor
+from waves.tests import TestBaseJobRunner
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +108,7 @@ class GalaxyWorkFlowRunnerTestCase(TestJobRunner):
 
     @unittest.skip('WorkFlow not really available for now')
     def test_update_existing_workflow(self):
-        service = Service.objects.filter(run_on__clazz='waves.adaptors.api.galaxy.GalaxyWorkFlowAdaptor')
+        service = Service.objects.filter(run_on__clazz='waves.adaptors.core.api.galaxy.GalaxyWorkFlowAdaptor')
         self.assertGreaterEqual(len(service), 0)
         for updated in service[0:1]:
             # just try for the the first one

@@ -76,6 +76,7 @@ WAVES_NOTIFY_RESULTS = __init_setting('WAVES_NOTIFY_RESULTS', default=True)
 # - Contact emails
 #: From email for notification
 WAVES_SERVICES_EMAIL = __init_setting('WAVES_SERVICES_EMAIL', default='waves@atgc-montpellier.fr')
+WAVES_ADMIN_EMAIL = __init_setting('WAVES_ADMIN_EMAIL', default='admin@atgc-montpellier.fr')
 
 # ---- WAVES WORKING DIRS ----
 # - Base dir for uploaded data and job results

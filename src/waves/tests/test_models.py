@@ -4,15 +4,14 @@ from __future__ import unicode_literals
 import logging
 import os
 
-import waves.adaptors.const as jobconst
 from django.test import TestCase
 from django.utils.module_loading import import_string
-from waves.adaptors.base import BaseAdaptor
 
+import waves.adaptors.const
+from waves.adaptors.core.base import JobAdaptor
 from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory
 from waves.models.submissions import Submission
 from waves.tests.base import WavesBaseTestCase
-from waves.utils.encrypt import Encrypt
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +39,7 @@ class TestRunner(TestCase):
         for runner in create_runners():
             logger.info('Current: %s - %s', runner.name, runner.clazz)
             adaptor = runner.adaptor
-            self.assertIsInstance(adaptor, BaseAdaptor)
+            self.assertIsInstance(adaptor, JobAdaptor)
             self.assertEqual(runner.run_params.__len__(), adaptor.init_params.__len__())
             self.assertListEqual(sorted(runner.run_params.keys()), sorted(adaptor.init_params.keys()))
             obj_runner = import_string(runner.clazz)
@@ -86,10 +85,10 @@ class TestJobs(WavesBaseTestCase):
         self.assertIsNotNone(job.title)
         self.assertTrue(os.path.isdir(job.working_dir))
         logger.debug('Job directories has been created %s ', job.working_dir)
-        self.assertEqual(job.status, jobconst.JOB_CREATED)
+        self.assertEqual(job.status, waves.adaptors.const.JOB_CREATED)
         self.assertEqual(job.job_history.count(), 1)
         job.message = "Test job Message"
-        job.status = jobconst.JOB_PREPARED
+        job.status = waves.adaptors.const.JOB_PREPARED
         job.save()
         self.assertEqual(job.job_history.count(), 2)
         self.assertEqual(job.job_history.first().message, job.message)

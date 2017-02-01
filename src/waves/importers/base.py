@@ -29,7 +29,7 @@ class AdaptorImporter(object):
     def __init__(self, adaptor):
         """
         Initialize a Import from it's source adaptor
-        :param adaptor: a BaseAdaptor object, providing connection support
+        :param adaptor: a JobAdaptor object, providing connection support
         """
         self._formatter = InputFormat()
         self._adaptor = adaptor

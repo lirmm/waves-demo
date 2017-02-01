@@ -2,21 +2,22 @@
 """
 from __future__ import unicode_literals
 
-from waves.adaptors.base import BaseAdaptor
-import waves.adaptors.const as jobconst
-# TODO implements missing methods
-import random, string
+import random
+import string
+
+import waves.adaptors.const
+from waves.adaptors.core.base import JobAdaptor
 
 
 class MockConnector(object):
     pass
 
 
-class MockJobRunnerAdaptor(BaseAdaptor):
+class MockJobRunnerAdaptor(JobAdaptor):
     def _job_status(self, job):
         # time.sleep()
-        if job.status == jobconst.JOB_RUNNING:
-            return jobconst.JOB_COMPLETED
+        if job.status == waves.adaptors.const.JOB_RUNNING:
+            return waves.adaptors.const.JOB_COMPLETED
         return job.next_status
 
     def _run_job(self, job):
@@ -47,13 +48,13 @@ class MockJobRunnerAdaptor(BaseAdaptor):
     def __init__(self, init_params={}, **kwargs):
         super(MockJobRunnerAdaptor, self).__init__(init_params, **kwargs)
         self._states_map = {
-            jobconst.JOB_UNDEFINED: jobconst.JOB_UNDEFINED,
-            jobconst.JOB_CREATED: jobconst.JOB_CREATED,
-            jobconst.JOB_QUEUED: jobconst.JOB_QUEUED,
-            jobconst.JOB_RUNNING: jobconst.JOB_RUNNING,
-            jobconst.JOB_SUSPENDED: jobconst.JOB_SUSPENDED,
-            jobconst.JOB_CANCELLED: jobconst.JOB_CANCELLED,
-            jobconst.JOB_COMPLETED: jobconst.JOB_COMPLETED,
-            jobconst.JOB_TERMINATED: jobconst.JOB_TERMINATED,
-            jobconst.JOB_ERROR: jobconst.JOB_ERROR,
+            waves.adaptors.const.JOB_UNDEFINED: waves.adaptors.const.JOB_UNDEFINED,
+            waves.adaptors.const.JOB_CREATED: waves.adaptors.const.JOB_CREATED,
+            waves.adaptors.const.JOB_QUEUED: waves.adaptors.const.JOB_QUEUED,
+            waves.adaptors.const.JOB_RUNNING: waves.adaptors.const.JOB_RUNNING,
+            waves.adaptors.const.JOB_SUSPENDED: waves.adaptors.const.JOB_SUSPENDED,
+            waves.adaptors.const.JOB_CANCELLED: waves.adaptors.const.JOB_CANCELLED,
+            waves.adaptors.const.JOB_COMPLETED: waves.adaptors.const.JOB_COMPLETED,
+            waves.adaptors.const.JOB_TERMINATED: waves.adaptors.const.JOB_TERMINATED,
+            waves.adaptors.const.JOB_ERROR: waves.adaptors.const.JOB_ERROR,
         }

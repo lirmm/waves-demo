@@ -9,11 +9,12 @@ import bioblend
 import six
 from bioblend import ConnectionError
 from django.conf import settings
+
 import waves.adaptors.const
-from waves.adaptors.api.galaxy.exception import GalaxyAdaptorConnectionError
-from .base import AdaptorImporter
-from waves.models import Service, BaseParam, SubmissionOutput, RepeatedGroup
+from waves.adaptors.core.api.galaxy import GalaxyAdaptorConnectionError
 from waves.importers.exceptions import *
+from waves.models import Service, BaseParam, SubmissionOutput, RepeatedGroup
+from .base import AdaptorImporter
 
 logger = logging.getLogger(__name__)
 

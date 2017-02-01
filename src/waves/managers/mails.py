@@ -86,3 +86,10 @@ class JobMailer(object):
         :rtype: int
         """
         return self._send_job_mail(template="emails/job_cancelled.html")
+
+    def send_job_admin_error(self):
+        """ Admin mail to notify run error
+        :return: the number of mail sent, should be 0 or 1
+        :rtype: int
+        """
+        return self._send_job_mail(template="emails/job_admin_error.html")
