@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.utils.module_loading import import_string
-from waves.importers import IMPORTERS_LIST
+# from waves.importers import IMPORTERS_LIST
 from waves.models.base import Described, ExportAbleMixin
 from waves.models.adaptors import AdaptorInitParam, HasAdaptorClazzMixin
 
@@ -20,7 +20,8 @@ class Runner(Described, ExportAbleMixin, HasAdaptorClazzMixin):
         verbose_name = 'Execution environment'
         verbose_name_plural = "Execution environments"
     name = models.CharField('Label', max_length=50, null=False, help_text='Displayed name')
-    importer_clazz = models.CharField('Importer', max_length=200, null=True, blank=True, choices=IMPORTERS_LIST)
+    #TODO add choices issued from get_importers
+    importer_clazz = models.CharField('Importer', max_length=200, null=True, blank=True, choices=[])
 
     @property
     def importer(self):

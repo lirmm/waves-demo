@@ -3,20 +3,21 @@ Base Test class for Runner's adaptors
 """
 from __future__ import unicode_literals
 
-import logging
+import waves.adaptors.const
+from waves.adaptors.core.base import JobAdaptor
+
 import os
 import time
 
 from django.contrib.contenttypes.models import ContentType
 from django.utils.timezone import localtime
 
-import waves.adaptors.const
-from waves.adaptors.core.base import JobAdaptor
 from waves.adaptors.exceptions import *
 from waves.adaptors.mocks.adaptor import MockJobRunnerAdaptor
 from waves.exceptions.jobs import *
 from waves.models import *
 from waves.tests.base import WavesBaseTestCase
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +74,14 @@ class TestJobRunner(WavesBaseTestCase):
     Test all functions in Runner adapters base class
 
     """
+    def testLoadModules(self):
+        from waves.adaptors.loader import load_core, load_addons, load_importers
+        cores = load_core()
+        print cores
+        addons = load_addons()
+        print addons
+        importers = load_importers()
+        print importers
 
     def _debug_job_state(self):
         logger.debug('Internal state %s, current %s', self.current_job._status, self.current_job.status)

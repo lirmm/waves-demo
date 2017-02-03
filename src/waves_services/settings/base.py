@@ -7,6 +7,7 @@ import environ
 import sys
 from os.path import dirname, join, exists
 
+
 BASE_DIR = dirname(dirname(dirname(__file__)))
 STATIC_URL = '/static/'
 MEDIA_ROOT = join(BASE_DIR, 'media')
