@@ -55,6 +55,9 @@ REGISTRATION_SALT = env.str('REGISTRATION_SALT')
 # LOG FILE ROOT
 LOG_ROOT = dirname(BASE_DIR) + '/logs'
 STATIC_ROOT = join(dirname(BASE_DIR), 'staticfiles')
+STATICFILES_DIRS = (
+    join(BASE_DIR, 'waves', 'static'),
+)
 # Application definition
 INSTALLED_APPS = (
     'polymorphic',

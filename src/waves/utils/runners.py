@@ -13,7 +13,6 @@ def get_runners_list(raw=False):
     grp_impls = {'': 'Select a implementation class...'}
     raw_impls = []
     for adaptor in load_core() + load_addons():
-        print adaptor[0], adaptor[1]
         grp_name = adaptor[1].__module__.split('.')[2]
         if grp_name not in grp_impls:
             grp_impls[grp_name] = []
