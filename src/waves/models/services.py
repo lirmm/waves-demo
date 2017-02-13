@@ -14,6 +14,7 @@ from waves.adaptors.const import JOB_CREATED, JOB_COMPLETED
 import waves.settings
 from waves.models.adaptors import *
 from waves.models.base import *
+from waves.models.config import WavesSiteConfig
 from waves.models.managers.services import *
 
 __all__ = ['ServiceRunParam', 'ServiceCategory', 'Service']
@@ -211,13 +212,16 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
         :return: True or False
         """
         if user.is_anonymous():
-            return self.status == Service.SRV_PUBLIC
+            return (self.status == Service.SRV_PUBLIC and
+                    WavesSiteConfig.objects.get_current_config().allow_submits is True)
         # RULES to set if user can access submissions
-        return (self.status == Service.SRV_PUBLIC) or \
+        return (self.status == Service.SRV_PUBLIC and
+                WavesSiteConfig.objects.get_current_config().allow_submits is True) or \
                (self.status == Service.SRV_DRAFT and self.created_by == user) or \
                (self.status == Service.SRV_TEST and user.is_staff) or \
                (self.status == Service.SRV_RESTRICTED and (
-                   user in self.restricted_client.all() or user.is_staff)) or user.is_superuser
+                   user in self.restricted_client.all() or user.is_staff)) or \
+               user.is_superuser
 
     @property
     def serializer(self):

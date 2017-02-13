@@ -4,12 +4,12 @@ from __future__ import unicode_literals
 import uuid
 
 from django.conf import settings
-from django.contrib.sites.models import Site
+# from django.contrib.sites.models import Site
 from django.db import models
 
 import waves.settings
 from waves.compat import RichTextField
-from waves.models.config import WavesSite
+from waves.models.config import WavesSiteConfig
 
 __all__ = ['TimeStamped', 'Ordered', 'ExportAbleMixin', 'Described', 'Slugged', 'ApiModel',
            'UrlMixin']
@@ -19,7 +19,7 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
-    sites = models.ManyToManyField(WavesSite)
+    sites = models.ManyToManyField(WavesSiteConfig)
 
 
 class TimeStamped(models.Model):
@@ -117,24 +117,10 @@ class UrlMixin(object):
         :return: unicode the absolute url
         """
         path = self.get_absolute_url()
-        protocol = getattr(settings, "PROTOCOL", "http")
-        domain = Site.objects.get_current().domain
-        port = getattr(settings, "PORT", "")
-        if port:
-            assert port.startswith(":"), "The PORT setting must have a preceeding ':'."
-        return "%s://%s%s%s" % (protocol, domain, port, path)
+        return "/%s" % self.get_absolute_url()
 
-    def get_url_path(self):
-        """ Return relative url path
-        :return: unicode the relative url
-        """
-        import urlparse
-        try:
-            url = self.get_url()
-        except NotImplemented:
-            raise
-        bits = urlparse.urlparse(url)
-        return urlparse.urlunparse(('', '') + bits[2:])
+    def get_absolute_url(self):
+        return '%s/%i' % (self.__class__.__name__, self.id)
 
 
 class ExportError(Exception):

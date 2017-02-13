@@ -82,7 +82,9 @@ class SignUpView(bracesviews.AnonymousRequiredMixin, bracesviews.FormValidMessag
 
     def registration_allowed(self):
         """ set if User registration is currently allowed """
-        return settings.WAVES_REGISTRATION_ALLOWED
+        from waves.models.config import WavesSiteConfig
+        config = WavesSiteConfig.objects.get_current_config()
+        return config.allow_registration
 
     def get_email_context(self, activation_key):
         """ Setup activation link for registration confirmation mail """

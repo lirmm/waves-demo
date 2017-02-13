@@ -7,7 +7,6 @@ from django.forms import ModelForm, CheckboxInput, BooleanField, ChoiceField, Hi
 from django.utils.functional import lazy
 from waves.models import Runner
 from waves.utils.runners import get_runners_list
-from django.contrib.admin.options import IS_POPUP_VAR
 
 __all__ = ['RunnerForm']
 

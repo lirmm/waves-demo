@@ -177,7 +177,7 @@ class InitDbCommand(BaseCommand):
 
     def handle(self, *args, **options):
         """ Handle InitDB command """
-        from waves.models import Service, Runner, WavesSite, ServiceCategory
+        from waves.models import Service, Runner, WavesSiteConfig, ServiceCategory
         from bootstrap_themes import available_themes
         process = True
         if Service.objects.all().count() > 0 or Runner.objects.all().count() > 0:
@@ -190,7 +190,7 @@ class InitDbCommand(BaseCommand):
             ServiceCategory.objects.all().delete()
             Service.objects.all().delete()
             Runner.objects.all().delete()
-            WavesSite.objects.all().delete()
+            WavesSiteConfig.objects.all().delete()
             Job.objects.all().delete()
             try:
                 self.stdout.write("Configuring WAVES site:")
@@ -207,7 +207,8 @@ class InitDbCommand(BaseCommand):
                 current_site.domain = site_url
                 current_site.name = site_name
                 current_site.save()
-                WavesSite.objects.create(site=current_site, theme=available_themes[site_theme - 1][0])
+                WavesSiteConfig.objects.create(theme='default', allow_registration=False, allow_submits=False,
+                                               maintenance=True)
                 self.stdout.write("... Done")
                 if boolean_input('Do you want to init your job runners ? [y/N]', False):
                     self.stdout.write('Creating runners ...')

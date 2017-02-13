@@ -5,7 +5,9 @@ from __future__ import unicode_literals
 from django.contrib import admin
 from django.utils.html import format_html
 
-from waves.models import WavesSite
+from waves.admin.base import WavesModelAdmin
+from waves.admin.forms.config import WavesConfigVarForm, WavesConfigVarFormSet
+from waves.models.config import WavesSiteConfig, WavesConfigVar, list_config_keys
 
 __all__ = ['WavesSiteAdmin']
 
@@ -13,19 +15,48 @@ __all__ = ['WavesSiteAdmin']
 # TODO add action button to invoke command 'dump' for WAVES config
 
 
-@admin.register(WavesSite)
-class WavesSiteAdmin(admin.ModelAdmin):
+class WavesConfigVarInline(admin.TabularInline):
+    model = WavesConfigVar
+    formset = WavesConfigVarFormSet
+    form = WavesConfigVarForm
+    extra = 0
+
+    def has_add_permission(self, request):
+        return False
+
+    def get_max_num(self, request, obj=None, **kwargs):
+        return len(list_config_keys())
+
+    def get_min_num(self, request, obj=None, **kwargs):
+        return len(list_config_keys())
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_extra(self, request, obj=None, **kwargs):
+        return 0
+
+
+@admin.register(WavesSiteConfig)
+class WavesSiteAdmin(WavesModelAdmin):
     """ Admin WAVES application parameters """
-    list_display = ('domain', 'name', 'theme', 'current_queue_state', 'site')
+    class Media:
+        js = (
+            'waves/js/bootstrap-switch.min.js',
+        )
+        css = {
+            'all': ('waves/css/bootstrap-switch.min.css',)
+        }
+    inlines = (WavesConfigVarInline, )
+    actions = []
+    list_display = ('theme', 'allow_registration', 'allow_submits', 'current_queue_state')
     fieldsets = [
-        ('Site', {
-            'classes': ('suit-tab', 'suit-tab-general',),
-            'fields': ['site', 'maintenance']
-        }),
         ('Frontend configuration', {
+            'classes': ('suit-tab', 'suit-tab-general',),
             'fields': ['theme',
                        'allow_registration',
                        'allow_submits',
+                       'maintenance',
                        ]
         }),
         ('Job queue', {
@@ -34,7 +65,13 @@ class WavesSiteAdmin(admin.ModelAdmin):
         })
 
     ]
-    readonly_fields = ('current_queue_state', 'domain', 'name',)
+    readonly_fields = ('current_queue_state',)
+
+    def get_actions(self, request):
+        # Disable delete
+        actions = super(WavesSiteAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
 
     def current_queue_state(self, obj):
         from waves.management.waves_commands import JobQueueCommand
@@ -52,11 +89,13 @@ class WavesSiteAdmin(admin.ModelAdmin):
             css_class = "led-yellow"
         return format_html('<div class="led-box"><div class="{}"></div></div>' + daemon_status, css_class)
 
-    def config_file_content(self):
-        pass
+"""
+    def has_add_permission(self, request):
+        return False if self.model.objects.count() == 1 else super(WavesSiteAdmin, self).has_add_permission(request)
 
-    def domain(self, obj):
-        return obj.site.domain
+    def has_delete_permission(self, request, obj=None):
+        return False
 
-    def name(self, obj):
-        return obj.site.name
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser is True
+"""

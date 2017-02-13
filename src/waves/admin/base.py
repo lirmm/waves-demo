@@ -80,6 +80,9 @@ class WavesModelAdmin(ModelAdmin):
             'waves/admin/js/admin.js',
             'waves/admin/js/modal.js'
         )
+        css = {
+            'screen': ('waves/admin/css/admin.css', 'waves/admin/css/modal.css')
+        }
 
 
 class DynamicInlinesAdmin(ModelAdmin):

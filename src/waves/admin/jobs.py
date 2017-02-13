@@ -105,16 +105,16 @@ class JobAdmin(WavesModelAdmin):
     ]
     actions = [mark_rerun, delete_model]
     list_filter = ('status', 'submission__service', 'client')
-    list_display = ('get_slug', 'get_colored_status', 'service', 'submission', 'get_run_on', 'get_client', 'created', 'updated')
+    list_display = ('get_slug', 'get_colored_status', 'submission', 'get_run_on', 'get_client', 'created', 'updated')
     list_per_page = 30
     search_fields = ('client__email', 'submission__service_name', 'get_run_on')
-    readonly_fields = ('title', 'slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on',
+    readonly_fields = ('title', 'slug', 'email_to', 'status', 'created', 'updated', 'get_run_on',
                        'command_line')
 
     fieldsets = [
         ('Main', {'classes': ('collapse', 'suit-tab', 'suit-tab-general',),
-                  'fields': ['title', 'slug', 'email_to', 'service', 'status', 'created', 'updated', 'get_run_on',
-                             'command_line', 'client']
+                  'fields': ['title', 'slug', 'email_to', 'submission__service', 'status', 'created', 'updated',
+                             'get_run_on', 'command_line', 'client']
                   }
          ),
     ]
@@ -135,7 +135,7 @@ class JobAdmin(WavesModelAdmin):
             return super(JobAdmin, self).get_queryset(request)
         else:
             qs = Job.objects.filter(
-                Q(service__created_by=request.user) |
+                Q(submission__service__created_by=request.user) |
                 Q(client=request.user) |
                 Q(email_to=request.user.email))
             ordering = self.get_ordering(request)
