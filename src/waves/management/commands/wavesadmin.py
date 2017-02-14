@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
 
+from waves.management.base import SubcommandDispatcher
 from waves.management.waves_commands import *
-from . import SubcommandDispatcher
-
 
 CLEAN = 'clean'
 CONFIG = 'config'
@@ -15,7 +14,7 @@ PURGE = 'purge'
 
 class Command(SubcommandDispatcher):
     """ WAVES dedicated administration Django subcommand line interface (./manage.py) """
-    help = 'WAVES Administration dedicated commands: type manage.py <sub_command> --help for sub-commands help'
+    help = 'WAVES Administration dedicated commands: type manage.py wavesadmin <sub_command> --help for sub-commands help'
     command_list = (CLEAN, CONFIG, INIT, LOAD, QUEUE, PURGE)
 
     def _subcommand(self, name):

@@ -15,14 +15,11 @@ from shutil import rmtree
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import BaseCommand, CommandError
 from django.conf import settings
-# from django.utils.six.moves import input
 from django.core.urlresolvers import reverse
 from rest_framework.exceptions import ValidationError
-
 import waves.adaptors.const
 import waves.exceptions
 import waves.settings
-import waves.adaptors.const as jobconst
 from .daemon.command import DaemonCommand
 from waves.models import Job
 from waves.models.serializers.services import ServiceSerializer

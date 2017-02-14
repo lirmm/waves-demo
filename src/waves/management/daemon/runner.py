@@ -8,6 +8,7 @@ Extended DaemonRunner class (from python-daemon):
 from __future__ import unicode_literals
 import lockfile
 import signal
+
 from daemon.runner import DaemonRunner as BaseDaemonRunner, DaemonRunnerStopFailureError, \
     DaemonRunnerStartFailureError, emit_message
 
