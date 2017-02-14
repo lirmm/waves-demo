@@ -12,7 +12,7 @@ from django.db import transaction
 # Create your views here.
 from django.urls import reverse_lazy
 from django.views import generic
-from .forms import *
+from accounts.forms import *
 from registration.backends.hmac.views import RegistrationView, ActivationView as BaseActivationView
 import waves.settings
 

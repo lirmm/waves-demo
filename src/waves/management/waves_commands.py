@@ -2,27 +2,28 @@
 from __future__ import unicode_literals
 
 import datetime
+import json
 import os
 import sys
 import time
 import uuid
-import json
 from itertools import chain
+from shutil import rmtree
+
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.management import BaseCommand, CommandError
+from django.core.urlresolvers import reverse
 from django.db import (
     DEFAULT_DB_ALIAS, transaction,
 )
-from shutil import rmtree
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.management import BaseCommand, CommandError
-from django.conf import settings
-from django.core.urlresolvers import reverse
 from rest_framework.exceptions import ValidationError
-import waves_adaptors.const
+
 import waves.exceptions
 import waves.settings
-from .daemon.command import DaemonCommand
 from waves.models import Job
 from waves.models.serializers.services import ServiceSerializer
+from .daemon.command import DaemonCommand
 
 __all__ = ['JobQueueCommand', 'PurgeDaemonCommand', 'InitDbCommand', 'CleanUpCommand', 'ImportCommand',
            'DumpConfigCommand']
@@ -109,7 +110,7 @@ class JobQueueCommand(DaemonCommand):
         """
         import logging
         jobs = Job.objects.prefetch_related('job_inputs'). \
-            prefetch_related('job_outputs').filter(status__lt=waves_adaptors.const.JOB_TERMINATED)
+            prefetch_related('job_outputs').filter(status__lt=Job.JOB_TERMINATED)
         if jobs.count() > 0:
             logging.info("Starting queue process with %i(s) unfinished jobs", jobs.count())
         for job in jobs:
@@ -118,15 +119,15 @@ class JobQueueCommand(DaemonCommand):
             try:
                 job.check_send_mail()
                 logging.debug("Launching Job %s (adaptor:%s)", job, job.adaptor)
-                if job.status == waves_adaptors.const.JOB_CREATED:
+                if job.status == Job.JOB_CREATED:
                     job.run_prepare()
                     # runner.prepare_job(job=job)
                     logging.debug("[PrepareJob] %s (adaptor:%s)", job, job.adaptor)
-                elif job.status == waves_adaptors.const.JOB_PREPARED:
+                elif job.status == Job.JOB_PREPARED:
                     logging.debug("[LaunchJob] %s (adaptor:%s)", job, job.adaptor)
                     job.run_launch()
                     # runner.run_job(job)
-                elif job.status == waves_adaptors.const.JOB_COMPLETED:
+                elif job.status == Job.JOB_COMPLETED:
                     # runner.job_run_details(job)
                     job.run_results()
                     logging.debug("[JobExecutionEnded] %s (adaptor:%s)", job.get_status_display(), job.adaptor)

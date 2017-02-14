@@ -96,7 +96,7 @@ class ApiModel(models.Model):
 
     def create_api_name(self):
         """
-        Construct a new api name issued from field_api_name
+        Construct a new waves_api name issued from field_api_name
         :return:
         """
         import inflection

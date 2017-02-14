@@ -33,7 +33,7 @@ def categories_menu(current):
 
 @register.inclusion_tag('services/_register_for_api.html', takes_context=True)
 def register_for_api_button(context, service):
-    """ Enable register for api button """
+    """ Enable register for waves_api button """
     return {'user': context['user'], 'api_on': service.api_on}
 
 

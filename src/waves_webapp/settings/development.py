@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import sys
-from .base import *
+from waves_webapp.settings.base import *
 import logging.config
 
 
@@ -58,7 +58,7 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
-        'waves_adaptors.importers':
+        'waves_adaptors.waves_importers':
         {
             'handlers': ['trace_import'],
             'level': 'INFO',
@@ -70,7 +70,7 @@ LOGGING = {
 logging.config.dictConfig(LOGGING)
 # - Galaxy
 WAVES_TEST_GALAXY_URL = env.str('WAVES_TEST_GALAXY_URL', default='127.0.0.1')
-WAVES_TEST_GALAXY_API_KEY = env.str('WAVES_TEST_GALAXY_API_KEY', default='your-galaxy-test-api-key')
+WAVES_TEST_GALAXY_API_KEY = env.str('WAVES_TEST_GALAXY_API_KEY', default='your-galaxy-test-waves_api-key')
 WAVES_TEST_GALAXY_PORT = None
 WAVES_QUEUE_LOG_LEVEL = 'DEBUG'
 WAVES_DEBUG_GALAXY=True

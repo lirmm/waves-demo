@@ -1,22 +1,24 @@
 """ WAVES API services end points """
 from __future__ import unicode_literals
 
-from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, generics
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.exceptions import ValidationError as DRFValidationError
+import logging
+
 from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework import viewsets, generics
 from rest_framework.decorators import detail_route
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.response import Response
+
+from waves_api.serializers.services import ServiceSerializer, ServiceFormSerializer, ServiceMetaSerializer, \
+    ServiceSubmissionSerializer
+from waves_api.serializers.jobs import JobSerializer
+from waves.exceptions.jobs import JobException
+from waves.managers.servicejobs import ServiceJobManager
 from waves.models import Service, Job
 from waves.models.submissions import Submission
-from waves.exceptions.jobs import JobException
-from waves.api.serializers import ServiceSerializer, JobSerializer, ServiceFormSerializer, ServiceMetaSerializer, \
-    ServiceSubmissionSerializer
-from waves.managers.servicejobs import ServiceJobManager
-from . import WavesBaseView
-
-import logging
+from waves_api.views.base import WavesBaseView
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +117,7 @@ class ServiceJobSubmissionView(MultipleFieldLookupMixin, generics.RetrieveAPIVie
                 'client': request.user.pk,
                 'job_inputs': request.data
             }
-            from ..serializers.jobs import JobCreateSerializer
+            from waves_api.serializers.jobs import JobCreateSerializer
             from django.db.models import Q
             job = ServiceJobManager.create_new_job(submission=service_submission, email_to=ass_email,
                                                    submitted_inputs=request.data, user=request.user)

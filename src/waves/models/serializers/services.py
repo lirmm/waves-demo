@@ -1,17 +1,18 @@
 """WAVES models export module for Services """
 from __future__ import unicode_literals
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from rest_framework import serializers as rest_serializer
-from django.core.exceptions import ObjectDoesNotExist
-import waves.settings
-from waves.api.serializers.dynamic import DynamicFieldsModelSerializer
-from waves.api.serializers.services import ServiceSerializer as BaseServiceSerializer, \
+from waves_api.serializers.services import ServiceSerializer as BaseServiceSerializer, \
     ServiceSubmissionSerializer as BaseServiceSubmissionSerializer
-from waves.models.serializers import RelatedSerializerMixin
-from .runners import RunnerSerializer, RunnerParamSerializer
-from .categories import CategorySerializer
+
+import waves.settings
+from waves_api.serializers.dynamic import DynamicFieldsModelSerializer
 from waves.models import *
+from waves.models.serializers.base import RelatedSerializerMixin
+from waves.models.serializers.categories import CategorySerializer
+from waves.models.serializers.runners import RunnerSerializer, RunnerParamSerializer
 
 __all__ = ['ServiceMetaSerializer', 'ServiceSubmissionSerializer', 'ExitCodeSerializer', 'ServiceSerializer']
 

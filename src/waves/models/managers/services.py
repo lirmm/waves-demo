@@ -28,7 +28,7 @@ class ServiceManager(models.Manager):
         """
 
         :param user: current User
-        :param for_api: filter only api enabled, either return only web enabled
+        :param for_api: filter only waves_api enabled, either return only web enabled
         :return: QuerySet for services
         :rtype: QuerySet
         """
@@ -58,7 +58,7 @@ class ServiceManager(models.Manager):
         return queryset
 
     def get_api_services(self, user=None):
-        """ Return all api enabled service to User
+        """ Return all waves_api enabled service to User
         """
         return self.get_services(user, for_api=True)
 

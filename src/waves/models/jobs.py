@@ -12,27 +12,23 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.html import format_html
 
-import waves_adaptors.const
-from waves_adaptors.exceptions import AdaptorException
-
-import waves_adaptors.const as jobconst
-import waves.settings
 from waves.exceptions import WavesException
 from waves.exceptions.jobs import JobInconsistentStateError, JobRunException
 from waves.models import TimeStamped, Slugged, Ordered, UrlMixin
-from waves.models.adaptors import DTOMixin, AdaptorInitParam, HasRunnerParamsMixin
+from waves.models.adaptors import DTOMixin, AdaptorInitParam
+from waves.models.inputs import BaseParam
 from waves.models.managers.jobs import *
 from waves.models.submissions import Submission
-from waves.models.inputs import BaseParam, ListParam
 from waves.utils.jobs import default_run_details
 from waves.utils.storage import allow_display_online
+import waves_adaptors.exceptions.adaptors
 
 __license__ = "MIT"
 __revision__ = " $Id: actor.py 1586 2009-01-30 15:56:25Z cokelaer $ "
 __docformat__ = 'reStructuredText'
 
 logger = logging.getLogger(__name__)
-__all__ = ['Job', 'JobInput', 'JobOutput', 'JobHistory', 'JobAdminHistory']
+__all__ = ['Job', 'JobInput', 'JobOutput', 'JobHistory', 'JobAdminHistory', 'JobRunParams']
 
 
 class JobRunParams(AdaptorInitParam):
@@ -67,27 +63,40 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     STR_JOB_SUSPENDED = 'Suspended'
     STR_JOB_ERROR = 'In Error'
 
+    JOB_UNDEFINED = -1
+    JOB_CREATED = 0
+    JOB_PREPARED = 1
+    JOB_QUEUED = 2
+    JOB_RUNNING = 3
+    JOB_SUSPENDED = 4
+    JOB_COMPLETED = 5
+    JOB_TERMINATED = 6
+    JOB_CANCELLED = 7
+    JOB_ERROR = 9
+
     STATUS_LIST = [
-        (waves_adaptors.const.JOB_UNDEFINED, STR_JOB_UNDEFINED),
-        (waves_adaptors.const.JOB_CREATED, STR_JOB_CREATED),
-        (waves_adaptors.const.JOB_PREPARED, STR_JOB_PREPARED),
-        (waves_adaptors.const.JOB_QUEUED, STR_JOB_QUEUED),
-        (waves_adaptors.const.JOB_RUNNING, STR_JOB_RUNNING),
-        (waves_adaptors.const.JOB_SUSPENDED, STR_JOB_SUSPENDED),
-        (waves_adaptors.const.JOB_COMPLETED, STR_JOB_COMPLETED),
-        (waves_adaptors.const.JOB_TERMINATED, STR_JOB_TERMINATED),
-        (waves_adaptors.const.JOB_CANCELLED, STR_JOB_CANCELLED),
-        (waves_adaptors.const.JOB_ERROR, STR_JOB_ERROR),
+        (JOB_UNDEFINED, STR_JOB_UNDEFINED),
+        (JOB_CREATED, STR_JOB_CREATED),
+        (JOB_PREPARED, STR_JOB_PREPARED),
+        (JOB_QUEUED, STR_JOB_QUEUED),
+        (JOB_RUNNING, STR_JOB_RUNNING),
+        (JOB_SUSPENDED, STR_JOB_SUSPENDED),
+        (JOB_COMPLETED, STR_JOB_COMPLETED),
+        (JOB_TERMINATED, STR_JOB_TERMINATED),
+        (JOB_CANCELLED, STR_JOB_CANCELLED),
+        (JOB_ERROR, STR_JOB_ERROR),
     ]
     NEXT_STATUS = {
-        waves_adaptors.const.JOB_CREATED: waves_adaptors.const.JOB_PREPARED,
-        waves_adaptors.const.JOB_PREPARED: waves_adaptors.const.JOB_QUEUED,
-        waves_adaptors.const.JOB_QUEUED: waves_adaptors.const.JOB_RUNNING,
-        waves_adaptors.const.JOB_RUNNING: waves_adaptors.const.JOB_COMPLETED,
-        waves_adaptors.const.JOB_COMPLETED: waves_adaptors.const.JOB_TERMINATED
+        JOB_CREATED: JOB_PREPARED,
+        JOB_PREPARED: JOB_QUEUED,
+        JOB_QUEUED: JOB_RUNNING,
+        JOB_RUNNING: JOB_COMPLETED,
+        JOB_COMPLETED: JOB_TERMINATED
     }
-    PENDING_STATUS = (waves_adaptors.const.JOB_CREATED, waves_adaptors.const.JOB_PREPARED, waves_adaptors.const.JOB_QUEUED,
-                      waves_adaptors.const.JOB_RUNNING)
+    PENDING_STATUS = (JOB_CREATED,
+                      JOB_PREPARED,
+                      JOB_QUEUED,
+                      JOB_RUNNING)
 
     class Meta(TimeStamped.Meta):
         db_table = 'waves_job'
@@ -102,7 +111,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
                                    on_delete=models.CASCADE)
     #: Job last known status - see :ref:`waves-jobconst-label`.
     status = models.IntegerField('Job status', choices=STATUS_LIST,
-                                 default=waves_adaptors.const.JOB_CREATED,
+                                 default=JOB_CREATED,
                                  help_text='Job current run status')
     #: Job last status for which we sent a notification email
     status_mail = models.IntegerField(editable=False, default=9999)
@@ -224,7 +233,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: working dir
         :rtype: unicode
         """
-        return os.path.join(waves.settings.WAVES_JOB_DIR, str(self.slug))
+        return os.path.join(settings.WAVES_JOB_DIR, str(self.slug))
 
     @property
     def adaptor(self):
@@ -259,11 +268,11 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: a css class (based on bootstrap)
         :rtype: unicode
         """
-        if self.status in (waves_adaptors.const.JOB_UNDEFINED, waves_adaptors.const.JOB_SUSPENDED):
+        if self.status in (self.JOB_UNDEFINED, self.JOB_SUSPENDED):
             return 'warning'
-        elif self.status == waves_adaptors.const.JOB_ERROR:
+        elif self.status == self.JOB_ERROR:
             return 'danger'
-        elif self.status == waves_adaptors.const.JOB_CANCELLED:
+        elif self.status == self.JOB_CANCELLED:
             return 'info'
         else:
             return 'success'
@@ -275,20 +284,20 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         """
         from waves.managers.mails import JobMailer
         mailer = JobMailer(job=self)
-        if self.status != self.status_mail and self.status == waves_adaptors.const.JOB_ERROR:
+        if self.status != self.status_mail and self.status == self.JOB_ERROR:
             mailer.send_job_admin_error()
         if settings.WAVES_NOTIFY_RESULTS and self.service.email_on:
             if self.email_to is not None and self.status != self.status_mail:
                 # should send a email
                 try:
                     nb_sent = 0
-                    if self.status == waves_adaptors.const.JOB_CREATED:
+                    if self.status == self.JOB_CREATED:
                         nb_sent = mailer.send_job_submission_mail()
-                    elif self.status == waves_adaptors.const.JOB_TERMINATED:
+                    elif self.status == self.JOB_TERMINATED:
                         nb_sent = mailer.send_job_completed_mail()
-                    elif self.status == waves_adaptors.const.JOB_ERROR:
+                    elif self.status == self.JOB_ERROR:
                         nb_sent = mailer.send_job_error_email()
-                    elif self.status == waves_adaptors.const.JOB_CANCELLED:
+                    elif self.status == self.JOB_CANCELLED:
                         nb_sent = mailer.send_job_cancel_email()
                     # Avoid resending emails when last status mail already sent
                     self.status_mail = self.status
@@ -389,7 +398,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
 
     def retry(self, message):
         """ Add a new try for job execution, save retry reason in JobAdminHistory, save job """
-        if self.nb_retry <= waves.settings.WAVES_JOBS_MAX_RETRY:
+        if self.nb_retry <= settings.WAVES_JOBS_MAX_RETRY:
             self.nb_retry += 1
             JobAdminHistory.objects.create(job=self, message='[Retry]%s' % message, status=self.status)
             self.save()
@@ -398,7 +407,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
 
     def error(self, message):
         """ Set job Status to ERROR, save error reason in JobAdminHistory, save job"""
-        self.status = waves_adaptors.const.JOB_ERROR
+        self.status = self.JOB_ERROR
         JobAdminHistory.objects.create(job=self, message='[Error]%s' % message, status=self.status)
         self.save()
 
@@ -437,7 +446,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
             self.nb_retry = 0
             self.save()
             return returned
-        except AdaptorException as exc:
+        except waves_adaptors.exceptions.adaptors.AdaptorException as exc:
             self.retry(exc.message)
             raise JobRunException('[%s][%s] %s' % (action, exc.__class__.__name__, str(exc)), job=self)
         except WavesException as exc:
@@ -471,9 +480,9 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         self.status = self._run_action('job_status')
         logger.debug('job current state :%s', self.status)
         self.save()
-        if self.status == waves_adaptors.const.JOB_COMPLETED:
+        if self.status == self.JOB_COMPLETED:
             self.run_results()
-        if self.status == waves_adaptors.const.JOB_UNDEFINED and self.nb_retry > waves.settings.WAVES_JOBS_MAX_RETRY:
+        if self.status == self.JOB_UNDEFINED and self.nb_retry > settings.WAVES_JOBS_MAX_RETRY:
             self.run_cancel()
         self.save_status_history()
         return self.status
@@ -482,30 +491,31 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         """ Ask job adaptor to cancel job if possible """
         self._run_action('cancel_job')
         self.message = 'Job cancelled'
-        self.save_status_history(waves_adaptors.const.JOB_CANCELLED)
+        self.save_status_history(self.JOB_CANCELLED)
 
     def run_results(self):
         """ Ask job adaptor to get results files (dowload files if needed) """
         self._run_action('job_results')
         self.run_details()
         if self.exit_code != 0 or len(self.stderr_txt) > 0:
-            self.save_status_history(state=waves_adaptors.const.JOB_ERROR, message=self.stderr_txt)
+            self.save_status_history(state=self.JOB_ERROR, message=self.stderr_txt)
         else:
-            self.save_status_history(state=waves_adaptors.const.JOB_TERMINATED)
+            self.save_status_history(state=self.JOB_TERMINATED)
         self.save()
 
     def run_details(self):
         """ Ask job adaptor to get JobRunDetails information (started, finished, exit_code ...)"""
+        from waves_adaptors.core.base import JobRunDetails
         file_run_details = join(self.working_dir, 'job_run_details.json')
         if os.path.isfile(file_run_details):
             # Details have already been downloaded
             with open(file_run_details) as fp:
-                details = waves_adaptors.base.JobRunDetails(*json.load(fp))
+                details = JobRunDetails(*json.load(fp))
             return details
         else:
             try:
                 remote_details = self._run_action('job_run_details')
-            except AdaptorException:
+            except waves_adaptors.exceptions.adaptors.AdaptorException:
                 remote_details = default_run_details(self)
                 with open(file_run_details, 'w') as fp:
                     json.dump(obj=remote_details, fp=fp, ensure_ascii=False)
@@ -525,14 +535,14 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     @property
     def allow_rerun(self):
         """ set whether current job state allow rerun """
-        return self.status not in (waves_adaptors.const.JOB_CREATED, waves_adaptors.const.JOB_UNDEFINED)
+        return self.status not in (self.JOB_CREATED, self.JOB_UNDEFINED)
 
     def re_run(self):
         """ Reset attributes and mark job as CREATED to be re-run"""
         # self.job_history.all().delete()
         self.message = "Job marked for re-run"
         self.nb_retry = 0
-        self.status = waves_adaptors.const.JOB_CREATED
+        self.status = self.JOB_CREATED
         for job_out in self.job_outputs.all():
             open(job_out.file_path, 'w').close()
         self.save()

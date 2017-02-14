@@ -1,7 +1,7 @@
 """ Models admin packages """
-from .config import *
-from .jobs import *
-from .runners import *
-from .services import *
-from .submissions import *
-from .inputs import *
+from waves.admin.config import *
+from waves.admin.jobs import *
+from waves.admin.runners import *
+from waves.admin.services import *
+from waves.admin.submissions import *
+from waves.admin.inputs import *

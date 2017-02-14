@@ -10,9 +10,8 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.http import JsonResponse
 from django.views.generic import FormView
-from waves_adaptors.exceptions import AdaptorConnectException
-
 from json_view import JSONDetailView
+from waves_adaptors.exceptions.adaptors import AdaptorConnectException
 from waves.exceptions import *
 from waves.admin.forms.services import ImportForm
 from waves.models import Runner

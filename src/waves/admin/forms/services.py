@@ -7,7 +7,6 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field
 from django import forms
 import waves.settings
-from waves.commands import get_commands_impl_list
 from waves.models import BooleanParam, ListParam, FileInput, TextParam, Submission, Runner
 from waves.models.services import *
 
@@ -65,7 +64,6 @@ class ServiceForm(forms.ModelForm):
         model = Service
         fields = '__all__'
         widgets = {
-            'clazz': forms.Select(choices=get_commands_impl_list()),
             'edam_topics': forms.TextInput(attrs={'size': 50}),
             'edam_operations': forms.TextInput(attrs={'size': 50}),
         }

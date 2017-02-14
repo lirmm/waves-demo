@@ -31,7 +31,7 @@ class JobHistoryDetailSerializer(serializers.HyperlinkedModelSerializer):
         model = Job
         fields = ('url', 'last_status', 'last_status_txt', 'job_history')
         extra_kwargs = {
-            'url': {'view_name': 'waves-api:waves-jobs-detail', 'lookup_field': 'slug'}
+            'url': {'view_name': 'waves-waves_api:waves-jobs-detail', 'lookup_field': 'slug'}
         }
     last_status = serializers.IntegerField(source='status')
     last_status_txt = serializers.SerializerMethodField()
@@ -62,7 +62,7 @@ class JobInputDetailSerializer(serializers.HyperlinkedModelSerializer):
         model = Job
         fields = ('url', 'status', 'inputs')
         extra_kwargs = {
-            'url': {'view_name': 'waves-api:waves-jobs-detail', 'lookup_field': 'slug'}
+            'url': {'view_name': 'waves-waves_api:waves-jobs-detail', 'lookup_field': 'slug'}
         }
     status = serializers.SerializerMethodField()
     inputs = JobInputSerializer(source='job_inputs', many=True, read_only=True)
@@ -103,7 +103,7 @@ class JobOutputSerializer(serializers.ModelSerializer):
 
     def get_download_url(self, obj):
         """ Link to jobOutput download uri """
-        return "%s?export=1" % reverse(viewname='waves-api:job-api-output', request=self.context['request'],
+        return "%s?export=1" % reverse(viewname='waves-waves_api:job-waves_api-output', request=self.context['request'],
                                        kwargs={'slug': obj.slug})
 
 
@@ -113,7 +113,7 @@ class JobOutputDetailSerializer(serializers.HyperlinkedModelSerializer):
         model = Job
         fields = ('url', 'status_txt', 'status_code', 'outputs')
         extra_kwargs = {
-            'url': {'view_name': 'waves-api:waves-jobs-detail', 'lookup_field': 'slug'}
+            'url': {'view_name': 'waves-waves_api:waves-jobs-detail', 'lookup_field': 'slug'}
         }
     status_txt = serializers.SerializerMethodField()
     status_code = serializers.IntegerField(source='status')
@@ -134,7 +134,7 @@ class JobSerializer(DynamicFieldsModelSerializer, serializers.HyperlinkedModelSe
         readonly_fields = (
             'status_code', 'status_txt', 'slug', 'client', 'service', 'created', 'updated', 'url', 'history')
         extra_kwargs = {
-            'url': {'view_name': 'waves-api:waves-jobs-detail', 'lookup_field': 'slug'}
+            'url': {'view_name': 'waves-waves_api:waves-jobs-detail', 'lookup_field': 'slug'}
         }
         depth = 1
         lookup_field = 'slug'
@@ -142,7 +142,7 @@ class JobSerializer(DynamicFieldsModelSerializer, serializers.HyperlinkedModelSe
     status_txt = serializers.SerializerMethodField()
     status_code = serializers.IntegerField(source='status')
     client = serializers.StringRelatedField(many=False, read_only=False)
-    service = serializers.HyperlinkedRelatedField(many=False, read_only=False, view_name='waves-api:waves-services-detail',
+    service = serializers.HyperlinkedRelatedField(many=False, read_only=False, view_name='waves-waves_api:waves-services-detail',
                                                   lookup_field='api_name', queryset=Service.objects.all(),
                                                   required=True)
     history = serializers.SerializerMethodField()
@@ -150,18 +150,18 @@ class JobSerializer(DynamicFieldsModelSerializer, serializers.HyperlinkedModelSe
     inputs = serializers.SerializerMethodField()
 
     def get_history(self, obj):
-        """ Link to job history details api endpoint """
-        return reverse(viewname='waves-api:waves-jobs-history', request=self.context['request'],
+        """ Link to job history details waves_api endpoint """
+        return reverse(viewname='waves-waves_api:waves-jobs-history', request=self.context['request'],
                        kwargs={'slug': obj.slug})
 
     def get_outputs(self, obj):
-        """ Link to job outputs api endpoint """
-        return reverse(viewname='waves-api:waves-jobs-outputs', request=self.context['request'],
+        """ Link to job outputs waves_api endpoint """
+        return reverse(viewname='waves-waves_api:waves-jobs-outputs', request=self.context['request'],
                        kwargs={'slug': obj.slug})
 
     def get_inputs(self, obj):
-        """ Link to job inputs api endpoint """
-        return reverse(viewname='waves-api:waves-jobs-inputs', request=self.context['request'],
+        """ Link to job inputs waves_api endpoint """
+        return reverse(viewname='waves-waves_api:waves-jobs-inputs', request=self.context['request'],
                        kwargs={'slug': obj.slug})
 
     @staticmethod

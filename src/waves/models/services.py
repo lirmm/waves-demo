@@ -9,7 +9,6 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from mptt.models import MPTTModel, TreeForeignKey
-from waves_adaptors.const import JOB_CREATED, JOB_COMPLETED
 
 import waves.settings
 from waves.models.adaptors import *
@@ -84,13 +83,11 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
                                                verbose_name='Restricted clients', db_table='waves_service_client',
                                                help_text='By default access is granted to everyone, '
                                                          'you may restrict access here.')
-    cmd_parser = models.CharField('Parser class', null=True, blank=True, max_length=255,
-                                  help_text='Service job submission command')
     category = models.ForeignKey(ServiceCategory, on_delete=models.SET_NULL, null=True, related_name='category_tools',
                                  help_text='Service category')
     status = models.IntegerField(choices=SRV_STATUS_LIST, default=SRV_DRAFT,
                                  help_text='Service online status')
-    api_on = models.BooleanField('Available on API', default=True, help_text='Service is available for api calls')
+    api_on = models.BooleanField('Available on API', default=True, help_text='Service is available for waves_api calls')
     web_on = models.BooleanField('Available on WEB', default=True, help_text='Service is available for web front')
     email_on = models.BooleanField('Notify results', default=True,
                                    help_text='This service sends notification email')
@@ -105,7 +102,7 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
 
     def clean(self):
         cleaned_data = super(Service, self).clean()
-        # TODO check changed status with at least one submission available on each submission channel (web/api)
+        # TODO check changed status with at least one submission available on each submission channel (web/waves_api)
         return cleaned_data
 
     def __str__(self):
@@ -139,14 +136,8 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
     @property
     def command(self):
         """ Return command parser for current Service """
-        if self.cmd_parser:
-            from django.utils.module_loading import import_string
-            command_parser = import_string(self.cmd_parser)
-            return command_parser(service=self)
-        else:
-            from waves.commands.command import BaseCommand
-
-            return BaseCommand(service=self)
+        from waves.commands.command import BaseCommand
+        return BaseCommand(service=self)
 
     def service_submission_inputs(self, submission=None):
         """
@@ -162,7 +153,7 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
     @transaction.atomic
     def duplicate(self):
         """ Duplicate  a Service / with inputs / outputs / exit_code / runner params """
-        from .serializers.services import ServiceSerializer
+        from waves_api.serializers.services import ServiceSerializer
         from django.contrib import messages
         serializer = ServiceSerializer()
         data = serializer.to_representation(self)
@@ -190,7 +181,7 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
 
     @property
     def default_submission_api(self):
-        """ Return Service default submission for api """
+        """ Return Service default submission for waves_api """
         try:
             return self.submissions.filter(availability__gt=2).first()
         except ObjectDoesNotExist:

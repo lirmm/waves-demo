@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.utils.module_loading import import_string
-# from waves.importers import IMPORTERS_LIST
+# from waves.waves_importers import IMPORTERS_LIST
 from waves.models.base import Described, ExportAbleMixin
 from waves.models.adaptors import AdaptorInitParam, HasAdaptorClazzMixin
 

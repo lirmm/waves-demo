@@ -109,7 +109,7 @@ WAVES_TEST_DIR = init_setting('WAVES_TEST_DIR', default=join(dirname(settings.BA
 #: Any Galaxy host defined for tests
 WAVES_TEST_GALAXY_URL = init_setting('WAVES_TEST_GALAXY_URL', default='https://use.galaxy.org')
 #: Galaxy host api_key tests
-WAVES_TEST_GALAXY_API_KEY = init_setting('WAVES_TEST_GALAXY_API_KEY', default='your-galaxy-test-api-key')
+WAVES_TEST_GALAXY_API_KEY = init_setting('WAVES_TEST_GALAXY_API_KEY', default='your-galaxy-test-waves_api-key')
 #: Galaxy host port for tests
 WAVES_TEST_GALAXY_PORT = init_setting('WAVES_TEST_GALAXY_PORT', default=None)
 # -- SGE cluster
@@ -131,7 +131,7 @@ WAVES_TEST_SSH_PRI_KEY = init_setting('WAVES_TEST_SSH_PRI_KEY', default='path-to
 #: python command :
 WAVES_TEST_SSH_PASS_KEY = init_setting('WAVES_TEST_SSH_PASS_KEY', default='your-test-ssh-user-key-pass-phrase')
 
-#: LIST of all 'python' packages which stores adaptors class
+#: LIST of all 'python' packages which stores waves_adaptors class
 WAVES_ADAPTORS_MODS = init_setting('WAVES_ADAPTORS_MODS', default=['waves_adaptors'])
 
 #: Set whether GALAY histories should be erased after job completion

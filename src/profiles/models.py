@@ -6,7 +6,7 @@ from django.db import models
 import uuid
 from django.utils.encoding import python_2_unicode_compatible
 from django_countries.fields import CountryField
-from .storage import profile_storage, profile_directory
+from profiles.storage import profile_storage, profile_directory
 
 
 @python_2_unicode_compatible
@@ -24,14 +24,14 @@ class UserProfile(models.Model):
                                 null=True,
                                 blank=True,
                                 help_text='Users\'s avatar')
-    registered_for_api = models.BooleanField('Registered for api use', default=False,
+    registered_for_api = models.BooleanField('Registered for waves_api use', default=False,
                                              help_text='Register for REST API use')
     api_key = models.CharField('Api key',
                                max_length=255,
                                null=True,
                                blank=True,
                                unique=True,
-                               help_text='User\'s api access key')
+                               help_text='User\'s waves_api access key')
     institution = models.CharField('Institution',
                                    null=True,
                                    max_length=255,

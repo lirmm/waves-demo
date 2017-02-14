@@ -1,15 +1,13 @@
 """ Retrieve runner list """
 from __future__ import unicode_literals
 
-from django.conf import settings
-
 
 def get_runners_list(raw=False):
     """
-    Retrieve enabled adaptors list from waves settings env file
+    Retrieve enabled waves_adaptors list from waves settings env file
     :return: a list of Tuple 'value'/'label'
     """
-    from waves_adaptors.loader import load_core, load_addons
+    from waves_addons.loader import load_core, load_addons
     grp_impls = {'': 'Select a implementation class...'}
     raw_impls = []
     for adaptor in load_core() + load_addons():

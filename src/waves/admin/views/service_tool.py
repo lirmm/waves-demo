@@ -5,11 +5,12 @@ from django.db import DatabaseError
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.views.generic import View
+from django.contrib import messages
+from django.urls import reverse
 
 from waves.admin.views.export import ModelExportView
 from waves.models import Service
-from .runner_tool import RunnerImportToolView, reverse, ObjectDoesNotExist, messages
-
+from waves.admin.views.runner_tool import RunnerImportToolView, ObjectDoesNotExist, RunnerTestConnectionView
 
 # TODO in manage permission
 # from django.contrib.auth.decorators import permission_required
@@ -57,7 +58,7 @@ class ServiceExportView(ModelExportView):
     def return_view(self):
         return reverse('admin:waves_service_change', args=[self.object.id])
 
-from .runner_tool import RunnerTestConnectionView
+
 
 class ServiceTestConnectionView(RunnerTestConnectionView):
 

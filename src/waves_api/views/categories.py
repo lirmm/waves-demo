@@ -2,9 +2,10 @@
 from __future__ import unicode_literals
 
 from rest_framework import viewsets
+
+from waves_api.serializers import CategorySerializer
 from waves.models import ServiceCategory
-from waves.api.serializers import CategorySerializer
-from . import WavesBaseView
+from waves_api.views.base import WavesBaseView
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):

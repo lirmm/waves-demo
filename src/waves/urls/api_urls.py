@@ -2,13 +2,11 @@ from __future__ import unicode_literals
 
 from django.conf.urls import url, include
 from rest_framework import routers
-# API VIEWS
-from waves.api.views import categories, jobs, services
-from waves.views.jobs import JobOutputView
-from rest_framework.schemas import get_schema_view
-from rest_framework.renderers import JSONRenderer
-from rest_framework_swagger.views import get_swagger_view
 from rest_framework.renderers import CoreJSONRenderer
+from rest_framework.schemas import get_schema_view
+from rest_framework_swagger.views import get_swagger_view
+from waves_api.views import services, categories, jobs
+from waves.views.jobs import JobOutputView
 
 # API router setup
 router = routers.DefaultRouter()
@@ -38,5 +36,5 @@ urlpatterns = [
         services.ServiceJobSubmissionView.as_view(), name='waves-services-submissions'),
     url(r'^services/(?P<service>[^/.]+)/submissions/(?P<api_name>[^/.]+)/form/',
         services.ServiceJobSubmissionViewForm.as_view(), name='waves-services-submissions-form'),
-    url(r'^jobs/outputs/(?P<slug>[\w-]+)/$', JobOutputView.as_view(), name="job-api-output"),
+    url(r'^jobs/outputs/(?P<slug>[\w-]+)/$', JobOutputView.as_view(), name="job-waves_api-output"),
 ]

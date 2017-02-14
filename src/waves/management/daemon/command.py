@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 import sys
 from django.core.management.base import BaseCommand, CommandError
-from .runner import DaemonRunner
+from waves.management.daemon.runner import DaemonRunner
 import logging.config
 
 

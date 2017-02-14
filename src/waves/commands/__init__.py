@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-from fast_me import FastME
 from django.utils.module_loading import import_string, import_module
 
 __all__ = ['FastME']

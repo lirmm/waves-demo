@@ -10,14 +10,17 @@ import waves.settings
 
 
 NO_GALAXY_MESSAGE = "Externally configured Galaxy, but connection failed. %s"
-WRONG_GALAXY_KEY = "A Galaxy server is running, but provided api key is wrong."
+WRONG_GALAXY_KEY = "A Galaxy server is running, but provided waves_api key is wrong."
 MISSING_SETTINGS = "Some settings are required to run Galaxy test : WAVES_TEST_GALAXY_URL, WAVES_TEST_GALAXY_PORT, " \
                    "WAVES_TEST_GALAXY_API_KEY."
 MISSING_TOOL_MESSAGE = "Externally configured Galaxy instance requires tool %s to run test."
+MISSING_GALAXY_ADDON = 'Galaxy api adaptor addon missing'
 
 
 def skip_unless_galaxy():
     try:
+        __import__('waves_addons.adaptors.api.galaxy')
+        from waves_addons.adaptors.api.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor
         galaxy_key = waves.settings.WAVES_TEST_GALAXY_API_KEY
         galaxy_url = waves.settings.WAVES_TEST_GALAXY_URL
         if waves.settings.WAVES_TEST_GALAXY_PORT:
@@ -28,6 +31,8 @@ def skip_unless_galaxy():
         return unittest.skip(NO_GALAXY_MESSAGE % e + ' [' + galaxy_url + '][' + galaxy_key + ']')
     except AttributeError:
         return unittest.skip(MISSING_SETTINGS)
+    except ImportError:
+        return unittest.skip(MISSING_GALAXY_ADDON)
     return lambda f: f
 
 

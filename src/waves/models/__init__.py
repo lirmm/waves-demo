@@ -1,15 +1,16 @@
 """ All WAVES related models imports """
 from __future__ import unicode_literals
 
-from .base import *
-from .adaptors import *
-from .runners import *
-from .services import *
-from .jobs import *
-from .config import *
-from .submissions import *
-from .inputs import *
-from .metas import *
+# Automate sub module import
+from waves.models.base import *
+from waves.models.adaptors import *
+from waves.models.runners import *
+from waves.models.services import *
+from waves.models.jobs import *
+from waves.models.config import *
+from waves.models.submissions import *
+from waves.models.inputs import *
+from waves.models.metas import *
 
 """
 List of different constants used for models

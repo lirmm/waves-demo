@@ -23,7 +23,7 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
     availability = models.IntegerField('Availability', default=3,
                                        choices=[(0, "Not Available"),
                                                 (1, "Available on web only"),
-                                                (2, "Available on api only"),
+                                                (2, "Available on waves_api only"),
                                                 (3, "Available on both")])
     name = models.CharField('Submission title', max_length=255, null=False, blank=False)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, related_name='submissions')
@@ -62,7 +62,7 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
 
     @property
     def available_api(self):
-        """ return whether submission is available for api calls """
+        """ return whether submission is available for waves_api calls """
         return self.availability >= 2
 
     def __str__(self):
@@ -87,13 +87,13 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
     @property
     def file_inputs(self):
         """ Only files inputs """
-        from .inputs import FileInput
+        from waves.models.inputs import FileInput
         return self.submission_inputs.instance_of(FileInput).all()
 
     @property
     def params(self):
         """ Exclude files inputs """
-        from .inputs import FileInput
+        from waves.models.inputs import FileInput
         return self.submission_inputs.not_instance_of(FileInput).all()
 
     @property
@@ -103,7 +103,7 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
 
     @property
     def submission_samples(self):
-        from .inputs import FileInputSample
+        from waves.models.inputs import FileInputSample
         return self.submission_inputs.instance_of(FileInputSample).all()
 
     @property

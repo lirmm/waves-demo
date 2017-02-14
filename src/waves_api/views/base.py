@@ -1,10 +1,8 @@
-""" WAVES API views """
-from __future__ import unicode_literals
-
+from django.conf import settings
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
-from rest_framework.authentication import SessionAuthentication
-from django.conf import settings
+
 from profiles.auth import APIKeyAuthBackend
 
 
@@ -17,4 +15,3 @@ class WavesBaseView(APIView):
         if settings.DEBUG:
             self.permission_classes = [AllowAny,]
         return super(WavesBaseView, self).get_permissions()
-

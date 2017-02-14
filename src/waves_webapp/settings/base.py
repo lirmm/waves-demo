@@ -96,8 +96,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
-ROOT_URLCONF = 'waves_services.urls'
-WSGI_APPLICATION = 'waves_services.wsgi.application'
+ROOT_URLCONF = 'waves_webapp.urls'
+WSGI_APPLICATION = 'waves_webapp.wsgi.application'
 LANGUAGE_CODE = 'en-gb'
 TIME_ZONE = 'Europe/Paris'
 USE_I18N = True
@@ -142,7 +142,7 @@ TABBED_ADMIN_USE_JQUERY_UI = False
 THUMBNAIL_EXTENSION = 'png'
 # DJANGO crontab settings
 CRONTAB_LOCK_JOBS = True
-CRONTAB_DJANGO_SETTINGS_MODULE = 'waves_services.settings.cron'
+CRONTAB_DJANGO_SETTINGS_MODULE = 'waves_webapp.settings.cron'
 CRONJOBS = [('1 0 * * *', 'waves.managers.cron.purge_old_jobs')]
 # Django countries first items
 COUNTRIES_FIRST = ['FR', 'GB', 'US', 'DE']

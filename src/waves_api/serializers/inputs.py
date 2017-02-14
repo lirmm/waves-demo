@@ -1,8 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import empty
-
-from waves.api.serializers.dynamic import DynamicFieldsModelSerializer
-from waves.api.serializers.fields import CommaSeparatedListField, ListElementField, InputFormatField
+from waves_api.serializers.fields import CommaSeparatedListField, ListElementField, InputFormatField
+from waves_api.serializers.dynamic import DynamicFieldsModelSerializer
 from waves.models.inputs import *
 
 
@@ -57,7 +56,7 @@ class InputSerializer(DynamicFieldsModelSerializer):
         exclude = ('polymorphic_ctype',)
         fields = ('label', 'name', 'default', 'type', 'cmd_format', 'mandatory', 'help_text', 'multiple')
         extra_kwargs = {
-            'url': {'view_name': 'waves-api:waves-services-detail', 'lookup_field': 'api_name'}
+            'url': {'view_name': 'waves-waves_api:waves-services-detail', 'lookup_field': 'api_name'}
         }
 
     cmd_format = InputFormatField()

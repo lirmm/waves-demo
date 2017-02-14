@@ -8,8 +8,12 @@ from django.conf import settings
 
 import utils.galaxy_util as test_util
 import waves.settings
-from waves_adaptors.core.api.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor
-from waves_adaptors.exceptions import AdaptorConnectException
+from waves_adaptors.exceptions.adaptors import AdaptorConnectException
+try:
+    __import__('waves_addons.adaptors.api.galaxy')
+    from waves_addons.adaptors.api.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor
+except ImportError:
+    pass
 from waves.models import Service
 from waves.tests.test_runner import TestJobRunner
 
@@ -98,7 +102,7 @@ class GalaxyWorkFlowRunnerTestCase(TestJobRunner):
 
     @unittest.skip('WorkFlow not really available for now')
     def test_update_existing_workflow(self):
-        service = Service.objects.filter(runner__runner='waves_adaptors.core.api.galaxy.GalaxyWorkFlowAdaptor')
+        service = Service.objects.filter(runner__runner='waves_adaptors.core.waves_api.galaxy.GalaxyWorkFlowAdaptor')
         self.assertGreaterEqual(len(service), 0)
         for updated in service[0:1]:
             # just try for the the first one

@@ -168,7 +168,7 @@ class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
     @adaptor.setter
     def adaptor(self, adaptor):
         """ Allow to temporarily override current adaptor instance """
-        from waves_adaptors.core.base import JobAdaptor
+        from adaptors.core.base import JobAdaptor
         assert (issubclass(adaptor, JobAdaptor))
         self._adaptor = adaptor
 

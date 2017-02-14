@@ -7,7 +7,6 @@ import os
 from django.test import TestCase
 from django.utils.module_loading import import_string
 
-import waves_adaptors.const
 from waves_adaptors.core.base import JobAdaptor
 from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory
 from waves.models.submissions import Submission
@@ -85,10 +84,10 @@ class TestJobs(WavesBaseTestCase):
         self.assertIsNotNone(job.title)
         self.assertTrue(os.path.isdir(job.working_dir))
         logger.debug('Job directories has been created %s ', job.working_dir)
-        self.assertEqual(job.status, waves_adaptors.const.JOB_CREATED)
+        self.assertEqual(job.status, Job.JOB_CREATED)
         self.assertEqual(job.job_history.count(), 1)
         job.message = "Test job Message"
-        job.status = waves_adaptors.const.JOB_PREPARED
+        job.status = Job.JOB_PREPARED
         job.save()
         self.assertEqual(job.job_history.count(), 2)
         self.assertEqual(job.job_history.first().message, job.message)

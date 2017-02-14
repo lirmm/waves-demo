@@ -5,7 +5,7 @@ import waves.settings
 from django.db import transaction
 from rest_framework import serializers
 from waves.models import Runner, RunnerInitParam
-from . import RelatedSerializerMixin
+from waves.models.serializers.base import RelatedSerializerMixin
 
 
 class RunnerParamSerializer(serializers.ModelSerializer):

@@ -4,7 +4,6 @@ from django.contrib import admin, messages
 from django.contrib.admin import TabularInline
 from django.db.models import Q
 
-import waves_adaptors.const
 from waves.admin.base import WavesModelAdmin
 from waves.admin.forms.jobs import JobInputForm, JobOutputForm, JobForm
 from waves.models.jobs import *
@@ -167,12 +166,12 @@ class JobAdmin(WavesModelAdmin):
 
     def suit_row_attributes(self, obj, request):
         css_class = {
-            waves_adaptors.const.JOB_COMPLETED: 'success',
-            waves_adaptors.const.JOB_RUNNING: 'warning',
-            waves_adaptors.const.JOB_ERROR: 'error',
-            waves_adaptors.const.JOB_CANCELLED: 'error',
-            waves_adaptors.const.JOB_PREPARED: 'info',
-            waves_adaptors.const.JOB_CREATED: 'info',
+            adaptors.const.JOB_COMPLETED: 'success',
+            adaptors.const.JOB_RUNNING: 'warning',
+            adaptors.const.JOB_ERROR: 'error',
+            adaptors.const.JOB_CANCELLED: 'error',
+            adaptors.const.JOB_PREPARED: 'info',
+            adaptors.const.JOB_CREATED: 'info',
         }.get(obj.status)
         if css_class:
             return {'class': css_class}

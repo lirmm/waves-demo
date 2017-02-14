@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from .base import *             # NOQA
+from waves_webapp.settings.base import *             # NOQA
 import logging.config
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')

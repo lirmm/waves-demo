@@ -7,11 +7,11 @@ from rest_framework.decorators import detail_route
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 
-from waves.api.serializers.jobs import JobSerializer, JobHistoryDetailSerializer, JobInputDetailSerializer, \
+from waves_api.serializers.jobs import JobSerializer, JobHistoryDetailSerializer, JobInputDetailSerializer, \
     JobOutputDetailSerializer
 from waves.exceptions import WavesException
 from waves.models import Job
-from . import WavesBaseView
+from waves_api.views.base import WavesBaseView
 
 
 class JobViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin,

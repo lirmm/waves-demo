@@ -35,7 +35,7 @@ def profile_post_save_handler(sender, instance, created, **kwargs):
         profile = UserProfile(user=instance)
         profile.save()
     if instance.is_active and instance.profile.registered_for_api and not instance.profile.api_key:
-        # User is activated, has registered for api services, and do not have any api_key
+        # User is activated, has registered for waves_api services, and do not have any api_key
         instance.profile.api_key = uuid.uuid1()
     if instance.is_active and not instance.profile.registered_for_api:
         instance.profile.api_key = None

@@ -9,12 +9,11 @@ import time
 import unittest
 
 from django.conf import settings
-from waves_adaptors.core.saga_adaptors.shell.local import LocalShellAdaptor
-from waves_adaptors.core.saga_adaptors.shell.ssh import SshUserPassShellAdaptor
 
-import waves_adaptors.const
 import waves.tests.utils.shell_util as test_util
 from waves_adaptors.core.saga_adaptors.cluster import SshUserPassClusterAdaptor
+from waves_adaptors.core.saga_adaptors.shell.local import LocalShellAdaptor
+from waves_adaptors.core.saga_adaptors.shell.ssh import SshUserPassShellAdaptor
 from waves.managers.servicejobs import ServiceJobManager
 from waves.models import JobInput, JobOutput, Service, Job, BaseParam
 from waves.tests.test_runner import TestJobRunner, sample_job
@@ -56,7 +55,7 @@ class ShellRunnerTestCase(TestJobRunner):
             self.skipTest("Only run with Local saga adaptor")
         self._prepare_hello_world()
         self.runJobWorkflow()
-        self.assertEqual(self.current_job.status, waves_adaptors.const.JOB_TERMINATED)
+        self.assertEqual(self.current_job.status, Job.JOB_TERMINATED)
         # retrieve job run details
 
     @test_util.skip_unless_tool('physic_ist')
@@ -78,17 +77,17 @@ class ShellRunnerTestCase(TestJobRunner):
         self._prepare_hello_world()
         self.jobs.append(self.current_job)
         self.current_job.run_prepare()
-        self.assertEqual(self.current_job.status, waves_adaptors.const.JOB_PREPARED)
+        self.assertEqual(self.current_job.status, Job.JOB_PREPARED)
         self.current_job.run_launch()
-        self.assertEqual(self.current_job.status, waves_adaptors.const.JOB_QUEUED)
+        self.assertEqual(self.current_job.status, Job.JOB_QUEUED)
         for ix in range(30):
             job_state = self.adaptor.job_status(self.current_job)
-            if job_state >= waves_adaptors.const.JOB_QUEUED:
+            if job_state >= Job.JOB_QUEUED:
                 self.current_job.run_cancel()
                 break
             else:
                 time.sleep(1)
-        self.assertEqual(self.current_job.status, waves_adaptors.const.JOB_CANCELLED)
+        self.assertEqual(self.current_job.status, Job.JOB_CANCELLED)
 
     @test_util.skip_unless_tool('cp')
     def testSimpleCP(self):

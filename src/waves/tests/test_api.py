@@ -3,9 +3,6 @@ from __future__ import unicode_literals
 import logging
 from urlparse import urlparse
 
-import waves_adaptors.const
-import waves_adaptors.const as jobconst
-import waves.const
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from rest_framework import status
@@ -38,13 +35,13 @@ class WavesAPITestCase(APITestCase, WavesBaseTestCase):
                                                    is_superuser=True)
         self.admin_user = AuthModel.objects.create(email='admin@waves.fr',
                                                    is_staff=True)
-        self.api_user = AuthModel.objects.create(email="api@waves.fr",
+        self.api_user = AuthModel.objects.create(email="waves_api@waves.fr",
                                                  is_staff=False,
                                                  is_superuser=False,
                                                  is_active=True)
         self.api_user.profile.registered_for_api = True
         self.api_user.save()
-        self.users = {'api': self.api_user, 'admin': self.admin_user, 'root': self.super_user}
+        self.users = {'waves_api': self.api_user, 'admin': self.admin_user, 'root': self.super_user}
 
     def tearDown(self):
         super(WavesAPITestCase, self).tearDown()
@@ -55,19 +52,19 @@ class WavesAPITestCase(APITestCase, WavesBaseTestCase):
         self.assertTrue(self.admin_user.is_staff)
         self.assertFalse(self.api_user.is_staff)
 
-    def _dataUser(self, user='api', initial={}):
+    def _dataUser(self, user='waves_api', initial={}):
         initial.update({'api_key': self.users[user].profile.api_key})
         return initial
 
 
 class ServiceTests(WavesAPITestCase):
     def test_api_key(self):
-        api_root = self.client.get(reverse('waves-api:api-root'), data=self._dataUser('root'))
+        api_root = self.client.get(reverse('waves-waves_api:waves_api-root'), data=self._dataUser('root'))
         self.assertEqual(api_root.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(api_root.data), 3)
 
     def test_list_services(self):
-        tool_list = self.client.get(reverse('waves-api:waves-services-list'),
+        tool_list = self.client.get(reverse('waves-waves_api:waves-services-list'),
                                     data=self._dataUser('admin'),
                                     format='json')
         self.assertEqual(tool_list.status_code, status.HTTP_200_OK)
@@ -183,12 +180,12 @@ class JobTests(WavesAPITestCase):
                 self.assertEqual(job_details.status_code, status.HTTP_200_OK)
                 job = Job.objects.get(slug=response.data['slug'])
                 self.assertIsInstance(job, Job)
-                self.assertEqual(job.status, waves_adaptors.const.JOB_CREATED)
+                self.assertEqual(job.status, Job.JOB_CREATED)
         else:
-            self.skipTest("Service physic_ist not available on api [status_code:%s]" % url_post.status_code )
+            self.skipTest("Service physic_ist not available on waves_api [status_code:%s]" % url_post.status_code )
 
     def testMissingParam(self):
-        response = self.client.get(reverse('waves-api:waves-services-detail',
+        response = self.client.get(reverse('waves-waves_api:waves-services-detail',
                                            kwargs={'api_name': 'physic_ist'}),
                                    data=self._dataUser())
         if response.status_code == status.HTTP_200_OK:
@@ -204,4 +201,4 @@ class JobTests(WavesAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             logger.info(response)
         else:
-            self.skipTest("Service physic_ist not available on api [status_code:%s]" % response.status_code)
+            self.skipTest("Service physic_ist not available on waves_api [status_code:%s]" % response.status_code)
