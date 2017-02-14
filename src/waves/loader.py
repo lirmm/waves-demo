@@ -1,11 +1,9 @@
-import saga
 import importlib
 import pkgutil
 from inspect import getmembers, isabstract, isclass
-
-__all__ = ['load_addons']
-
 from waves_adaptors.core.base import JobAdaptor, AdaptorImporter
+
+__all__ = ['load_extra_adaptors']
 
 
 def isAdaptorClass(value):
@@ -13,18 +11,18 @@ def isAdaptorClass(value):
 
 
 def load_core():
-    return sorted(__load_adaptors('waves_adaptors.core', parent=JobAdaptor), key=lambda x: x[0])
+    return sorted(__load_addons('waves_adaptors.core', parent=JobAdaptor), key=lambda x: x[0])
 
 
-def load_addons():
-    return sorted(__load_adaptors('waves_addons.adaptors', parent=JobAdaptor), key=lambda x: x[0])
+def load_extra_adaptors():
+    return sorted(__load_addons('waves_addons.adaptors', parent=JobAdaptor), key=lambda x: x[0])
 
 
-def load_importers():
-    return sorted(__load_adaptors('waves_addons.importers', parent=AdaptorImporter), key=lambda x: x[0])
+def load_extra_importers():
+    return sorted(__load_addons('waves_addons.importers', parent=AdaptorImporter), key=lambda x: x[0])
 
 
-def __load_adaptors(path, parent):
+def __load_addons(path, parent):
     submodules = __import_submodules(path, True)
     adaptors = []
     for submodule_name, submodule in submodules.items():

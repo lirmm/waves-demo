@@ -1,9 +1,7 @@
 from __future__ import unicode_literals
 
-import sys
+import saga
 from waves_webapp.settings.base import *
-import logging.config
-
 
 DEBUG = True
 DEBUG404 = True
@@ -15,13 +13,12 @@ TEMPLATES[0]['OPTIONS'].update({'debug': DEBUG})
 INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
 MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
 
-LOGGING_CONFIG = None
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '[%(levelname)s][%(asctime)s][%(name)s.%(funcName)s:line %(lineno)s] - %(message)s',
+            'format': '[%(levelname)s][%(name)s.%(funcName)s:line %(lineno)s] - %(message)s',
             'datefmt': "%d/%b/%Y %H:%M:%S"
         },
         'simple': {
@@ -36,38 +33,20 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
-        'trace_import': {
-            'class': 'logging.FileHandler',
-            'mode': 'w',
-            'filename': join(LOG_ROOT, 'trace_import.log'),
-            'formatter': 'trace'
-        }
     },
     'loggers': {
-        'root': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
         'django': {
             'handlers': ['console'],
-            'propagate': False,
+            'propagate': True,
             'level': 'WARNING',
         },
         'waves': {
             'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': False,
-        },
-        'waves_adaptors.waves_importers':
-        {
-            'handlers': ['trace_import'],
-            'level': 'INFO',
-            'propagate': False,
         },
     }
 }
 
-logging.config.dictConfig(LOGGING)
 # - Galaxy
 WAVES_TEST_GALAXY_URL = env.str('WAVES_TEST_GALAXY_URL', default='127.0.0.1')
 WAVES_TEST_GALAXY_API_KEY = env.str('WAVES_TEST_GALAXY_API_KEY', default='your-galaxy-test-waves_api-key')

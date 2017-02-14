@@ -9,7 +9,7 @@ import time
 import uuid
 from itertools import chain
 from shutil import rmtree
-
+from django.core.management import call_command
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import BaseCommand, CommandError
@@ -37,11 +37,11 @@ def boolean_input(question, default=None):
     :return: True or False
     :rtype: bool
     """
-    result = input("%s: " % question)
+    result = raw_input("%s: " % question)
     if not result and default is not None:
         return default
     while len(result) < 1 or result[0].lower() not in "yn":
-        result = input("Please answer yes(y) or no(n): ")
+        result = raw_input("Please answer yes(y) or no(n): ")
     return result[0].lower() == "y"
 
 
@@ -57,7 +57,7 @@ def choice_input(question, choices, default=None):
     print("%s:" % question)
     for i, choice in enumerate(choices):
         print("-%s) %s" % (i + 1, choice))
-    result = input("Select an option: ")
+    result = raw_input("Select an option: ")
     try:
         value = int(result)
         if 0 < value <= len(choices):
@@ -70,7 +70,7 @@ def choice_input(question, choices, default=None):
 
 
 def text_input(question, default=None):
-    result = input("%s (type Enter to keep default): " % question)
+    result = raw_input("%s (type Enter to keep default): " % question)
     if not result and default is not None:
         return default
     return str(result)
@@ -177,12 +177,12 @@ class InitDbCommand(BaseCommand):
         """ Handle InitDB command """
         from waves.models import Service, Runner, WavesSiteConfig, ServiceCategory
         from bootstrap_themes import available_themes
+        from django.contrib.auth import get_user_model
         process = True
-        if Service.objects.all().count() > 0 or Runner.objects.all().count() > 0:
-            self.stdout.write(self.style.WARNING('Warning, this action reset ALL waves data to initial'))
-            process = False
-            if boolean_input("Do you want to proceed ? [y/N]", False):
-                process = True
+        self.stdout.write(self.style.WARNING('Warning, this action reset ALL waves data to initial'))
+        process = False
+        if boolean_input("Do you want to proceed ? [y/N]", False):
+            process = True
         if process:
             # Delete all WAVES data
             ServiceCategory.objects.all().delete()
@@ -190,37 +190,30 @@ class InitDbCommand(BaseCommand):
             Runner.objects.all().delete()
             WavesSiteConfig.objects.all().delete()
             Job.objects.all().delete()
+            User = get_user_model()
+            User.objects.all().delete()
             try:
-                self.stdout.write("Configuring WAVES site:")
-                site_url = text_input('Your host url (def:http://127.0.0.1)', 'http://127.0.0.1')
-                site_name = text_input('Your host name (def:Local WAVES site)', 'Local WAVES site')
+                self.stdout.write("Configuring WAVES application:")
                 site_theme = choice_input('Choose your bootstrap theme (def:%s)' % settings.WAVES_BOOTSTRAP_THEME,
                                           choices=[theme[1] for theme in available_themes],
                                           default=6)
-                from django.contrib.sites.models import Site
-                from django.contrib.sites.managers import CurrentSiteManager
-                if not getattr(settings, 'SITE_ID', False):
-                    raise CommandError('You must set a default SITE ID in your conf. ')
-                current_site = Site.objects.get_current()
-                current_site.domain = site_url
-                current_site.name = site_name
-                current_site.save()
-                WavesSiteConfig.objects.create(theme='default', allow_registration=False, allow_submits=False,
-                                               maintenance=True)
+                allow_registration = boolean_input("Do you want to allow user registration ? [y/N]", False)
+                allow_submits = boolean_input("Do you want to allow job submissions ? [y/N]", False)
+                WavesSiteConfig.objects.create(theme=available_themes[site_theme][0], allow_registration=allow_registration,
+                                               allow_submits=allow_submits, maintenance=True)
                 self.stdout.write("... Done")
+                self.stdout.write("Your site configuration is ready, site is currently in 'maintenance' mode")
                 if boolean_input('Do you want to init your job runners ? [y/N]', False):
                     self.stdout.write('Creating runners ...')
                     from waves.utils.runners import get_runners_list
-                    for runner_clazz in get_runners_list(raw=True):
-                        Runner.objects.create(runner=runner_clazz, description='Runner Adaptor: %s' % runner_clazz)
-                    self.stdout.write("... Done")
+                    for clazz in get_runners_list(flat=True):
+                        Runner.objects.create(name="%s Runner" % clazz[1], clazz=clazz[0])
+                        self.stdout.write("Created 'Runner Adaptor: %s'" % clazz[1])
+                    self.stdout.write("... Ready !")
 
                 # TODO add ask for import sample services ?
-                if boolean_input("Do you wan to load sample services categories ? [y/N]", False):
-                    self.stdout.write('Loading sample categories ...')
-                    from django.core.management import call_command
-                    call_command('loaddata', 'waves', 'waves/fixtures/sample_categories.json')
-                    self.stdout.write("... Done")
+                if boolean_input("Do you want to setup a superadmin user ? [y/N]", False):
+                    call_command('createsuperuser')
                 self.stdout.write('Your WAVES data are ready :-)')
             except Exception as exc:
                 self.stderr.write('Error occurred, you database may be inconsistent ! \n %s - %s ' % (

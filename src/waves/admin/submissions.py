@@ -295,3 +295,6 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
         if not obj.runner:
             obj.adaptor_params.all().delete()
         super(ServiceSubmissionAdmin, self).save_model(request, obj, form, change)
+
+    def has_add_permission(self, request):
+        return False

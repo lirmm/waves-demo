@@ -38,6 +38,7 @@ setup(
     description='WebApp for Versatile and Easy bio-informatics Services',
     maintainer='LIRMM - MAB Laboratory - France',
     maintainer_email='vincent.lefort@lirmm.fr',
+    namespace_packages=['waves_addons', 'waves_addons.adaptors', 'waves_addons.importers'],
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',

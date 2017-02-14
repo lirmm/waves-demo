@@ -112,15 +112,21 @@ class UrlMixin(object):
        `Django get_absolute_url <https://docs.djangoproject.com/en/1.9/ref/models/instances/#get-absolute-url>`_
     """
 
+    @property
+    def link(self):
+        """ short cut to :func:`get_url()`
+        :return: current absolute uri for Job
+        """
+        return self.get_url()
+
     def get_url(self):
         """ Calculate and return absolute 'front-office' url for a model object
         :return: unicode the absolute url
         """
-        path = self.get_absolute_url()
-        return "/%s" % self.get_absolute_url()
+        return self.get_absolute_url()
 
     def get_absolute_url(self):
-        return '%s/%i' % (self.__class__.__name__, self.id)
+        raise NotImplementedError
 
 
 class ExportError(Exception):

@@ -9,13 +9,13 @@ import time
 
 from django.contrib.contenttypes.models import ContentType
 from django.utils.timezone import localtime
+from waves_adaptors.core.base import JobAdaptor
+from waves_adaptors.exceptions.adaptors import AdaptorInitError
+from waves_adaptors.mocks.adaptor import MockJobRunnerAdaptor
 
 from waves.exceptions.jobs import *
 from waves.models import *
 from waves.tests.base import WavesBaseTestCase
-from waves_adaptors.core.base import JobAdaptor
-from waves_adaptors.exceptions.adaptors import AdaptorInitError
-from waves_adaptors.mocks.adaptor import MockJobRunnerAdaptor
 
 logger = logging.getLogger(__name__)
 
@@ -73,12 +73,12 @@ class TestJobRunner(WavesBaseTestCase):
 
     """
     def testLoadModules(self):
-        from waves_addons.loader import load_core, load_addons, load_importers
+        from waves.loader import load_core, load_extra_adaptors, load_extra_importers
         cores = load_core()
         print cores
-        addons = load_addons()
+        addons = load_extra_adaptors()
         print addons
-        importers = load_importers()
+        importers = load_extra_importers()
         print importers
 
     def _debug_job_state(self):

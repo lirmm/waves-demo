@@ -60,7 +60,8 @@ class JobMailTest(WavesBaseTestCase):
         job.status = Job.JOB_ERROR
         # job.save()
         job.check_send_mail()
-        self.assertEqual(len(mail.outbox), 3)
+        # mail to user and mail to admin so +2
+        self.assertEqual(len(mail.outbox), 4)
         sent_mail = mail.outbox[-1]
         logger.debug('Mail subject: %s', sent_mail.subject)
         logger.debug('Mail from: %s', sent_mail.from_email)
@@ -68,7 +69,7 @@ class JobMailTest(WavesBaseTestCase):
         job.status = Job.JOB_CANCELLED
         # job.save()
         job.check_send_mail()
-        self.assertEqual(len(mail.outbox), 4)
+        self.assertEqual(len(mail.outbox), 5)
         sent_mail = mail.outbox[-1]
         logger.debug('Mail subject: %s', sent_mail.subject)
         logger.debug('Mail from: %s', sent_mail.from_email)

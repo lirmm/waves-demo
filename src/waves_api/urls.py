@@ -38,3 +38,4 @@ urlpatterns = [
         services.ServiceJobSubmissionViewForm.as_view(), name='waves-services-submissions-form'),
     url(r'^jobs/outputs/(?P<slug>[\w-]+)/$', JobOutputView.as_view(), name="job-waves_api-output"),
 ]
+

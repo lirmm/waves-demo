@@ -55,6 +55,7 @@ class WavesSiteConfig(models.Model):
         verbose_name_plural = "Waves configuration"
 
     objects = WavesSiteConfigManager()
+
     theme = models.CharField('Bootstrap theme', max_length=255, choices=list_themes(), default="default")
     allow_registration = models.BooleanField('Registration', default=True,
                                              help_text="Allow user registration")

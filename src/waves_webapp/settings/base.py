@@ -5,8 +5,7 @@ from __future__ import unicode_literals
 
 import environ
 import sys
-from os.path import dirname, join, exists
-
+from os.path import dirname, join
 
 BASE_DIR = dirname(dirname(dirname(__file__)))
 STATIC_URL = '/static/'
@@ -61,18 +60,19 @@ STATICFILES_DIRS = (
 # Application definition
 INSTALLED_APPS = (
     'polymorphic',
-    'django.contrib.contenttypes',
-    'django.contrib.auth',
-    'authtools',
-    'adminsortable2',
     'jet',
     'jet.dashboard',
+    'django.contrib.contenttypes',
+    'django.contrib.auth',
     'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'authtools',
+    'adminsortable2',
     # WAVES required dependencies
     'waves',
+    'waves_api',
     'profiles',
     'accounts',
     'mptt',

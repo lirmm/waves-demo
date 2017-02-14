@@ -194,7 +194,8 @@ class HasRunnerParamsMixin(HasAdaptorParamsMixin):
     def set_run_params_defaults(self):
         """ Set runs params with defaults issued from concrete class object """
         if self.runner:
-            self.adaptor_params.exclude(name__in=self.runner.adaptor_params.values('name')).delete()
+            if self.adaptor_params.count() > 0:
+                self.adaptor_params.exclude(name__in=self.runner.adaptor_params.values('name')).delete()
             runners_defaults = self.runner.run_params
             current_defaults = self.run_params
             [runners_defaults.pop(k, None) for k in current_defaults]

@@ -59,12 +59,12 @@ class WavesAPITestCase(APITestCase, WavesBaseTestCase):
 
 class ServiceTests(WavesAPITestCase):
     def test_api_key(self):
-        api_root = self.client.get(reverse('waves-waves_api:waves_api-root'), data=self._dataUser('root'))
+        api_root = self.client.get(reverse('waves_api:waves_api-root'), data=self._dataUser('root'))
         self.assertEqual(api_root.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(api_root.data), 3)
 
     def test_list_services(self):
-        tool_list = self.client.get(reverse('waves-waves_api:waves-services-list'),
+        tool_list = self.client.get(reverse('waves_api:waves-services-list'),
                                     data=self._dataUser('admin'),
                                     format='json')
         self.assertEqual(tool_list.status_code, status.HTTP_200_OK)
@@ -185,7 +185,7 @@ class JobTests(WavesAPITestCase):
             self.skipTest("Service physic_ist not available on waves_api [status_code:%s]" % url_post.status_code )
 
     def testMissingParam(self):
-        response = self.client.get(reverse('waves-waves_api:waves-services-detail',
+        response = self.client.get(reverse('waves_api:waves-services-detail',
                                            kwargs={'api_name': 'physic_ist'}),
                                    data=self._dataUser())
         if response.status_code == status.HTTP_200_OK:

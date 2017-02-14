@@ -321,13 +321,6 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         return reverse('waves:job_details', kwargs={'slug': self.slug})
 
     @property
-    def link(self):
-        """ short cut to :func:`get_url()`
-        :return: current absolute uri for Job
-        """
-        return self.get_url()
-
-    @property
     def details_available(self):
         """Check whether run details are available for this JOB
 
@@ -724,10 +717,6 @@ class JobOutput(Ordered, Slugged, UrlMixin):
             with open(self.file_path, 'r') as f:
                 return f.read()
         return None
-
-    @property
-    def link(self):
-        return self.get_url()
 
     def get_absolute_url(self):
         from django.core.urlresolvers import reverse
