@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 import logging
 from urlparse import urlparse
 
-import waves.adaptors.const
-import waves.adaptors.const as jobconst
+import waves_adaptors.const
+import waves_adaptors.const as jobconst
 import waves.const
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
@@ -183,7 +183,7 @@ class JobTests(WavesAPITestCase):
                 self.assertEqual(job_details.status_code, status.HTTP_200_OK)
                 job = Job.objects.get(slug=response.data['slug'])
                 self.assertIsInstance(job, Job)
-                self.assertEqual(job.status, waves.adaptors.const.JOB_CREATED)
+                self.assertEqual(job.status, waves_adaptors.const.JOB_CREATED)
         else:
             self.skipTest("Service physic_ist not available on api [status_code:%s]" % url_post.status_code )
 

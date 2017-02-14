@@ -293,7 +293,7 @@
       "short_description": null,
       "name": "Galaxy Tool Runner",
       "available": true,
-      "clazz": "waves.adaptors.api.galaxy.GalaxyJobAdaptor"
+      "clazz": "waves_adaptors.api.galaxy.GalaxyJobAdaptor"
     }
   },
   {
@@ -304,7 +304,7 @@
       "short_description": null,
       "name": "SGE Job Runner",
       "available": true,
-      "clazz": "waves.adaptors.saga_adaptor.ClusterJobAdaptor"
+      "clazz": "waves_adaptors.saga_adaptor.ClusterJobAdaptor"
     }
   },
   {
@@ -315,7 +315,7 @@
       "short_description": null,
       "name": "Galaxy Workflow Runner",
       "available": false,
-      "clazz": "waves.adaptors.api.galaxy.GalaxyWorkFlowAdaptor"
+      "clazz": "waves_adaptors.api.galaxy.GalaxyWorkFlowAdaptor"
     }
   },
   {
@@ -326,7 +326,7 @@
       "short_description": null,
       "name": "Local script runner",
       "available": true,
-      "clazz": "waves.adaptors.saga_adaptor.ShellJobAdaptor"
+      "clazz": "waves_adaptors.saga_adaptor.ShellJobAdaptor"
     }
   },
   {
@@ -337,7 +337,7 @@
       "short_description": null,
       "name": "CompPhy REST API",
       "available": true,
-      "clazz": "waves.adaptors.api.compphy.CompPhyApiAdaptor"
+      "clazz": "waves_adaptors.api.compphy.CompPhyApiAdaptor"
     }
   },
   {
@@ -348,7 +348,7 @@
       "short_description": null,
       "name": "SSH Wilkins Job Runner",
       "available": false,
-      "clazz": "waves.adaptors.ssh.SshUserPassJobAdaptor"
+      "clazz": "waves_adaptors.ssh.SshUserPassJobAdaptor"
     }
   },
   {
@@ -359,7 +359,7 @@
       "short_description": null,
       "name": "Remote Wilkins",
       "available": true,
-      "clazz": "waves.adaptors.ssh.SshUserPassClusterJobAdaptor"
+      "clazz": "waves_adaptors.ssh.SshUserPassClusterJobAdaptor"
     }
   },
   {
@@ -368,9 +368,9 @@
     "fields": {
       "description": "",
       "short_description": null,
-      "name": "waves.adaptors.ssh.SshUserPassClusterJobAdaptor",
+      "name": "waves_adaptors.ssh.SshUserPassClusterJobAdaptor",
       "available": false,
-      "clazz": "waves.adaptors.ssh.SshUserPassClusterJobAdaptor"
+      "clazz": "waves_adaptors.ssh.SshUserPassClusterJobAdaptor"
     }
   },
   {
@@ -381,7 +381,7 @@
       "short_description": null,
       "name": "Cirad SGE Runner",
       "available": true,
-      "clazz": "waves.adaptors.ssh.SshUserPassClusterJobAdaptor"
+      "clazz": "waves_adaptors.ssh.SshUserPassClusterJobAdaptor"
     }
   },
   {
@@ -392,7 +392,7 @@
       "short_description": null,
       "name": "SSH KEY Archi-logic",
       "available": true,
-      "clazz": "waves.adaptors.ssh.SshKeyJobAdaptor"
+      "clazz": "waves_adaptors.ssh.SshKeyJobAdaptor"
     }
   },
   {

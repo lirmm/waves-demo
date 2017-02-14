@@ -58,7 +58,7 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
-        'waves.adaptors.importers':
+        'waves_adaptors.importers':
         {
             'handlers': ['trace_import'],
             'level': 'INFO',

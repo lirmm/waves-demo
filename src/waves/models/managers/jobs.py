@@ -1,8 +1,8 @@
 """ Jobs Managers class """
 from __future__ import unicode_literals
 
-import waves.adaptors.const
-import waves.adaptors.const as jobconst
+import waves_adaptors.const
+import waves_adaptors.const as jobconst
 from django.db import models
 from django.db.models import Q
 
@@ -68,11 +68,11 @@ class JobManager(models.Manager):
             if user.is_superuser or user.is_staff:
                 # return all pending jobs
                 return self.filter(status__in=(
-                    waves.adaptors.const.JOB_CREATED, waves.adaptors.const.JOB_PREPARED, waves.adaptors.const.JOB_QUEUED,
-                    waves.adaptors.const.JOB_RUNNING))
+                    waves_adaptors.const.JOB_CREATED, waves_adaptors.const.JOB_PREPARED, waves_adaptors.const.JOB_QUEUED,
+                    waves_adaptors.const.JOB_RUNNING))
             # get only user jobs
-            return self.filter(status__in=(waves.adaptors.const.JOB_CREATED, waves.adaptors.const.JOB_PREPARED,
-                                           waves.adaptors.const.JOB_QUEUED, waves.adaptors.const.JOB_RUNNING),
+            return self.filter(status__in=(waves_adaptors.const.JOB_CREATED, waves_adaptors.const.JOB_PREPARED,
+                                           waves_adaptors.const.JOB_QUEUED, waves_adaptors.const.JOB_RUNNING),
                                client=user)
         # User is not supposed to be None
         return self.none()
@@ -86,10 +86,10 @@ class JobManager(models.Manager):
         :return: QuerySet
         """
         if user is not None:
-            self.filter(status=waves.adaptors.const.JOB_CREATED,
+            self.filter(status=waves_adaptors.const.JOB_CREATED,
                         client=user,
                         **extra_filter).order_by('-created')
-        return self.filter(status=waves.adaptors.const.JOB_CREATED, **extra_filter).order_by('-created').all()
+        return self.filter(status=waves_adaptors.const.JOB_CREATED, **extra_filter).order_by('-created').all()
 
 
 class JobInputManager(models.Manager):

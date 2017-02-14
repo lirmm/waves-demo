@@ -9,7 +9,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from mptt.models import MPTTModel, TreeForeignKey
-from waves.adaptors.const import JOB_CREATED, JOB_COMPLETED
+from waves_adaptors.const import JOB_CREATED, JOB_COMPLETED
 
 import waves.settings
 from waves.models.adaptors import *
