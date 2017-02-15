@@ -251,11 +251,6 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
 
     def get_form(self, request, obj=None, **kwargs):
         request.current_obj = obj
-        # if obj:
-        # print obj.run_params
-        # in change view we display more inlines
-        #    self.inlines = self.get_inlines()
-
         form = super(ServiceSubmissionAdmin, self).get_form(request, obj, **kwargs)
         form.base_fields['runner'].widget.can_add_related = False
         form.base_fields['runner'].widget.can_change_related = False

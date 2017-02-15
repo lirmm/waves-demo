@@ -8,8 +8,6 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from waves.exceptions import *
 from waves.models import Job
-import logging
-logger = logging.getLogger(__name__)
 
 
 class JobCancelView(View):

@@ -1,8 +1,6 @@
 """ WAVES API services end points """
 from __future__ import unicode_literals
 
-import logging
-
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -10,7 +8,6 @@ from rest_framework import viewsets, generics
 from rest_framework.decorators import detail_route
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
-
 from waves_api.serializers.services import ServiceSerializer, ServiceFormSerializer, ServiceMetaSerializer, \
     ServiceSubmissionSerializer
 from waves_api.serializers.jobs import JobSerializer
@@ -19,8 +16,6 @@ from waves.managers.servicejobs import ServiceJobManager
 from waves.models import Service, Job
 from waves.models.submissions import Submission
 from waves_api.views.base import WavesBaseView
-
-logger = logging.getLogger(__name__)
 
 
 class ServiceViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):
@@ -103,6 +98,8 @@ class ServiceJobSubmissionView(MultipleFieldLookupMixin, generics.RetrieveAPIVie
 
     def post(self, request, *args, **kwargs):
         """ Create a new job from submitted params """
+        import logging
+        logger = logging.getLogger(__name__)
         if logger.isEnabledFor(logging.DEBUG):
             for param in request.data:
                 logger.debug('param key ' + param)

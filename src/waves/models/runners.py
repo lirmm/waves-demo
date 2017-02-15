@@ -7,7 +7,7 @@ from django.utils.module_loading import import_string
 from waves.models.base import Described, ExportAbleMixin
 from waves.models.adaptors import AdaptorInitParam, HasAdaptorClazzMixin
 
-__all__ = ['Runner', 'RunnerInitParam']
+__all__ = ['Runner']
 
 
 class Runner(Described, ExportAbleMixin, HasAdaptorClazzMixin):
@@ -20,7 +20,7 @@ class Runner(Described, ExportAbleMixin, HasAdaptorClazzMixin):
         verbose_name = 'Execution environment'
         verbose_name_plural = "Execution environments"
     name = models.CharField('Label', max_length=50, null=False, help_text='Displayed name')
-    #TODO add choices issued from get_importers
+    # TODO add choices issued from get_importers
     importer_clazz = models.CharField('Importer', max_length=200, null=True, blank=True, choices=[])
 
     @property
@@ -52,9 +52,3 @@ class Runner(Described, ExportAbleMixin, HasAdaptorClazzMixin):
         submissions_list = self.waves_submission_runs.all()
         runs_list = list(chain(services_list, submissions_list))
         return runs_list
-
-
-class RunnerInitParam(AdaptorInitParam):
-    """ Parameters used by related class object (see: waves.runners) for self initialization """
-    class Meta:
-        proxy = True

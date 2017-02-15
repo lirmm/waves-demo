@@ -36,7 +36,7 @@ class WavesSiteConfigManager(models.Manager):
     def get_current_config(self):
         # TODO add contrib.site test to check if multiple site is enabled
         try:
-            return self.get(pk=1)
+            return self.all().first()
         except ObjectDoesNotExist:
             import warnings
             warnings.warn("Not Waves config available for")

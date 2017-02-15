@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.contrib.contenttypes.admin import GenericTabularInline
 
 from waves.admin.forms.adaptors import AdaptorInitParamForm
-from waves.models import RunnerInitParam, AdaptorInitParam
+from waves.models import AdaptorInitParam
 
 
 class AdaptorInitParamInline(GenericTabularInline):
@@ -33,7 +33,7 @@ class AdaptorInitParamInline(GenericTabularInline):
 class RunnerParamInline(AdaptorInitParamInline):
     """ Job Runner class instantiation parameters insertion field
     Inline are automatically generated from effective implementation class 'init_params' property """
-    model = RunnerInitParam
+    model = AdaptorInitParam
 
 
 class ServiceRunnerParamInLine(AdaptorInitParamInline):

@@ -54,10 +54,7 @@ class RunnerImportToolView(FormView):
         if self.object is None:
             return super(FormView, self).get(request, *args, **kwargs)
         try:
-            # print self.object.importer.list_services()
-            # base_list = self.object.importer.list_services()
             self.tool_list = self.get_tool_list()
-            # self.tool_list = self.object.importer.list_services()
             if len(self.tool_list) == 0:
                 messages.info(request, "No tool retrieved")
         except RunnerException as exc:
@@ -153,6 +150,8 @@ class RunnerTestConnectionView(JSONDetailView):
                                                           'Connexion successful to %s' %
                                                           self.runner_model.name)
         except AdaptorConnectException as e:
-            context['connection_result'] = message.format('error', e)
+            context['connection_result'] = message.format('error', "Adaptor connection error %s" % e)
+        except Exception as e:
+            context['connection_result'] = message.format('error', "Unexpected error %s " % e)
         return context
 

@@ -1,8 +1,7 @@
 """ Metas informations added to services """
 from __future__ import unicode_literals
 
-from django.core import validators
-from django.core.exceptions import ValidationError
+
 from django.db import models
 
 from waves.models import Ordered, Described, Service
@@ -66,12 +65,3 @@ class ServiceMeta(Ordered, Described):
 
     def __str__(self):
         return '%s [%s]' % (self.title, self.type)
-
-    def clean(self):
-        try:
-            validator = validators.URLValidator()
-            validator(self.cleaned_data['value'])
-            self.instance.is_url = True
-        except ValidationError as e:
-            if self.instance.type in (self.META_WEBSITE, self.META_DOC, self.META_DOWNLOAD):
-                raise e

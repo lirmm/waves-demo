@@ -6,8 +6,10 @@ from __future__ import unicode_literals
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field
 from django import forms
+from django.core import validators
+from django.core.exceptions import ValidationError
 import waves.settings
-from waves.models import BooleanParam, ListParam, FileInput, TextParam, Submission, Runner
+from waves.models import BooleanParam, ListParam, FileInput, TextParam, Submission, Runner, ServiceMeta
 from waves.models.services import *
 
 
@@ -127,5 +129,21 @@ class SubmissionForm(forms.ModelForm):
         exclude = ['order']
 
     runner = forms.ModelChoiceField(queryset=Runner.objects.all(), empty_label="Use Service Config")
+
+
+class ServiceMetaForm(forms.ModelForm):
+    class Meta:
+        model = ServiceMeta
+        exclude = ['order']
+
+    def clean(self):
+        cleaned_data = super(ServiceMetaForm, self).clean()
+        try:
+            validator = validators.URLValidator()
+            validator(cleaned_data['value'])
+            self.instance.is_url = True
+        except ValidationError as e:
+            if self.instance.type in (self.instance.META_WEBSITE, self.instance.META_DOC, self.instance.META_DOWNLOAD):
+                raise e
 
 

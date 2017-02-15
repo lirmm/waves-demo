@@ -1,5 +1,4 @@
 """ WAVES web-app Django project """
-
 __name__ = "WAVES web-app Django project"
 __version_detail__ = '0.1.0'
 __version__ = '0.1.0-rc.1'

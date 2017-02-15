@@ -5,15 +5,12 @@ from __future__ import unicode_literals
 
 import os
 import shutil
-from os.path import join
 
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
-from django.utils.module_loading import import_string
-from django.contrib.contenttypes.models import ContentType
 
+from waves.models.adaptors import AdaptorInitParam, HasAdaptorParamsMixin
 from waves.models.base import ApiModel
-from waves.models.adaptors import AdaptorInitParam, HasAdaptorClazzMixin, HasAdaptorParamsMixin, HasRunnerParamsMixin
 from waves.models.inputs import *
 from waves.models.jobs import Job, JobOutput
 from waves.models.runners import *
@@ -105,6 +102,7 @@ def adaptor_mixin_post_save_handler(sender, instance, created, **kwargs):
     if not kwargs.get('raw', False) and (instance.has_changed or created):
         instance.set_run_params_defaults()
 
+
 for subclass in get_all_subclasses(HasAdaptorParamsMixin):
     if not subclass._meta.abstract:
         post_save.connect(adaptor_mixin_post_save_handler, subclass)
@@ -113,9 +111,15 @@ for subclass in get_all_subclasses(HasAdaptorParamsMixin):
 @receiver(pre_save, sender=AdaptorInitParam)
 def adaptor_param_pre_save_handler(sender, instance, **kwargs):
     """ Runner param pre save handler """
-    if instance.name and instance.value and instance.crypt:
+    print "in pre save"
+    if instance.has_changed and instance.crypt:
+        print "instance has changed"
         from waves.utils.encrypt import Encrypt
         instance.value = Encrypt.encrypt(instance.value)
+
+for subclass in get_all_subclasses(AdaptorInitParam):
+    if not subclass._meta.abstract:
+        pre_save.connect(adaptor_param_pre_save_handler, subclass)
 
 
 @receiver(pre_save, sender=ApiModel)

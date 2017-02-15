@@ -54,14 +54,12 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         # TODO when non popup access disabled, following if would be obsolete
         if request.current_obj:
-            # print "Editmode", request.submission
             if db_field.name == 'repeat_group':
                 kwargs['queryset'] = RepeatedGroup.objects.filter(submission=request.current_obj.submission)
             elif db_field.name == "related_to":
                 kwargs['queryset'] = BaseParam.objects.filter(submission=request.current_obj.submission).exclude(
                     pk=request.current_obj.pk)
         if request.submission:
-            # print "request submission set ", request.submission
             if db_field.name == 'repeat_group':
                 kwargs['queryset'] = RepeatedGroup.objects.filter(submission=request.submission)
             elif db_field.name == "related_to":
@@ -69,7 +67,6 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
                 kwargs['queryset'] = BaseParam.objects.filter(submission=request.submission).not_instance_of(
                     FileInput).exclude(pk=pk)
             elif db_field.name == 'submission':
-                # print "dbfield name sub "
                 kwargs['queryset'] = Submission.objects.filter(pk=request.submission.pk)
         return super(BaseParamAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -101,8 +98,6 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
 
     def add_view(self, request, form_url='', extra_context=None):
         if IS_POPUP_VAR in request.GET:
-            # print 'in add view', form_url, extra_context
-            # print 'for submission', request.GET.get('for-submission')
             request.submission = Submission.objects.get(pk=request.GET.get('for-submission'))
         else:
             request.submission = None
@@ -217,25 +212,19 @@ class AllParamModelAdmin(PolymorphicParentModelAdmin, admin.ModelAdmin):
     get_class_label.short_description = 'Parameter type'
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
-        # print "in changeform_view"
         return super(AllParamModelAdmin, self).changeform_view(request, object_id, form_url, extra_context)
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        # print "in change view"
         return super(AllParamModelAdmin, self).change_view(request, object_id, form_url, extra_context)
 
     def response_change(self, request, obj):
-        # print "in response change"
         from django.contrib.admin.options import IS_POPUP_VAR
         if IS_POPUP_VAR in request.POST:
             pass
-            # print "in popup var ! almost done ?"
         return super(AllParamModelAdmin, self).response_change(request, obj)
 
     def response_add(self, request, obj, post_url_continue=None):
-        # print "in response add"
         from django.contrib.admin.options import IS_POPUP_VAR
         if IS_POPUP_VAR in request.POST:
             pass
-            # print "in popup var ! almost done ?"
         return super(AllParamModelAdmin, self).response_add(request, obj, post_url_continue)

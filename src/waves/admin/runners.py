@@ -117,6 +117,3 @@ class RunnerAdmin(ExportInMassMixin, WavesModelAdmin, DynamicInlinesAdmin):
                         job.adaptor.cancel_job(job=job)
                         message += '<br/>- Related pending job %s has been cancelled' % job.title
                     messages.info(request, message)
-
-    def get_form(self, request, obj=None, **kwargs):
-        return super(RunnerAdmin, self).get_form(request, obj, **kwargs)

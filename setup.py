@@ -7,8 +7,6 @@ mod_root = "src/waves"
 
 def get_version(mod_root):
     import imp
-    # mod_waves = imp.find_module('waves', os.path.join(os.path.dirname(os.path.realpath(__file__))))
-    # print mod_waves
     waves = imp.load_source('waves', os.path.join(os.path.dirname(os.path.realpath(__file__)), 'src', 'waves', '__init__.py'))
     try:
         _version = waves.__version__

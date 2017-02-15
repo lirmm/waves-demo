@@ -1,13 +1,11 @@
 from __future__ import unicode_literals
 
-import logging
 import os
 
 from django.core.exceptions import ValidationError
 
 import waves.models.services
 
-logger = logging.getLogger(__name__)
 """
 Dynamic inputs fields validation for job creation
 TYPE_BOOLEAN = 'boolean'
@@ -41,15 +39,12 @@ class ServiceInputValidator(object):
             else:
                 valid = func(the_input, value)
             if not valid:
-                logger.info('Failed input -%s-, service -%s-, with value %s', the_input, the_input.service, value)
                 form.add_error(the_input.name,
                                self.invalid_message % (the_input.label, the_input.type, self.specific_message, value))
             return True
         except AssertionError as e:
-            logger.error('Validation error:%s', e.message)
             form.add_error(the_input.name, 'Wrong input "%s": %s' % (the_input, e.message))
         except AttributeError as e:
-            logger.error('Validation error:%s', e.message)
             form.add_error(the_input.name, 'Unknown type for input: %s - type: %s' % (the_input, the_input.type))
 
     def _validate_input_boolean(self, the_input, value):
@@ -112,7 +107,6 @@ class ServiceInputValidator(object):
             return False
 
     def _validate_input_select(self, the_input, value):
-        assert the_input.type == BaseParam.TYPE_LIST
         self.specific_message = 'allowed values are %s' % str([e[1] for e in the_input.choices])
         return any(e[0] == value for e in the_input.choices)
 

@@ -131,9 +131,6 @@ WAVES_TEST_SSH_PRI_KEY = init_setting('WAVES_TEST_SSH_PRI_KEY', default='path-to
 #: python command :
 WAVES_TEST_SSH_PASS_KEY = init_setting('WAVES_TEST_SSH_PASS_KEY', default='your-test-ssh-user-key-pass-phrase')
 
-#: LIST of all 'python' packages which stores waves_adaptors class
-WAVES_ADAPTORS_MODS = init_setting('WAVES_ADAPTORS_MODS', default=['waves_adaptors'])
-
 #: Set whether GALAY histories should be erased after job completion
 WAVES_DEBUG_GALAXY = init_setting('WAVES_DEBUG_GALAXY', default=False)
 WAVES_DB_VERSION = '1.0'

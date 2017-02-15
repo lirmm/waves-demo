@@ -131,8 +131,6 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
             return self.get_object().default_submission # Submission.objects.get(default=True, service=)
         else:
             submission = Submission.objects.get(slug=UUID(slug))
-            print submission.slug
-
             return Submission.objects.get(slug=UUID(slug))
 
     def post(self, request, *args, **kwargs):

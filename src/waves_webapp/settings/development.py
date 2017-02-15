@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
 
-import saga
 from waves_webapp.settings.base import *
-
+import logging.config
 DEBUG = True
 DEBUG404 = True
 # DEBUG
@@ -12,7 +11,7 @@ TEMPLATES[0]['OPTIONS'].update({'debug': DEBUG})
 # Django Debug Toolbar
 INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
 MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
-
+LOGGING_CONFIG = None
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -46,7 +45,7 @@ LOGGING = {
         },
     }
 }
-
+logging.config.dictConfig(LOGGING)
 # - Galaxy
 WAVES_TEST_GALAXY_URL = env.str('WAVES_TEST_GALAXY_URL', default='127.0.0.1')
 WAVES_TEST_GALAXY_API_KEY = env.str('WAVES_TEST_GALAXY_API_KEY', default='your-galaxy-test-waves_api-key')
@@ -63,7 +62,6 @@ WAVES_TEST_SSH_USER_PASS = env.str('WAVES_TEST_SSH_USER_PASS', default='your-tes
 WAVES_TEST_SSH_PUB_KEY = env.str('WAVES_TEST_SSH_PUB_KEY', default='path-to-ssh-user-public-key')
 WAVES_TEST_SSH_PRI_KEY = env.str('WAVES_TEST_SSH_PRI_KEY', default='path-to-ssh-user-private-key')
 WAVES_TEST_SSH_PASS_KEY = env.str('WAVES_TEST_SSH_PASS_KEY', default='your-test-ssh-user-key-pass-phrase')
-WAVES_ADAPTORS_MODS = env.list('WAVES_ADAPTORS_MODS')
 
 REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
     'rest_framework.permissions.AllowAny',

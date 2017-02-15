@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import sys
 from django.core.management.base import BaseCommand, CommandError
 from waves.management.daemon.runner import DaemonRunner
-import logging.config
 
 
 class DaemonCommand(BaseCommand):
@@ -20,6 +19,8 @@ class DaemonCommand(BaseCommand):
     Pass one of --start, --stop, --restart or --status to work as a daemon.
     Otherwise, the command will run as a standard application.
     """
+    import logging.config
+
     # Django command params
     requires_model_validation = True
     # parameters python-daemon app

@@ -1,16 +1,16 @@
 """WAVES models export module for Services """
 from __future__ import unicode_literals
 
-import waves.settings
 from django.db import transaction
 from rest_framework import serializers
-from waves.models import Runner, RunnerInitParam
+
+from waves.models import Runner, AdaptorInitParam
 from waves.models.serializers.base import RelatedSerializerMixin
 
 
 class RunnerParamSerializer(serializers.ModelSerializer):
     class Meta:
-        model = RunnerInitParam
+        model = AdaptorInitParam
         fields = ('name', 'value', 'prevent_override')
 
 

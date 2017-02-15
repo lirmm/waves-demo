@@ -53,6 +53,9 @@ class AParam(PolymorphicModel):
     related_to = models.ForeignKey('self', related_name="dependents_inputs", on_delete=models.CASCADE,
                                    null=True, blank=True, help_text='Input is associated to')
 
+    @property
+    def is_required_in_form(self):
+        return self.required is True
 
 class BaseParam(AParam):
     """ Base class for services submission params """
@@ -134,7 +137,7 @@ class BaseParam(AParam):
                 raise ValidationError('Input "%s" depends on missing value: \'%s\'  ' % (dep.label, dep.when_value))
 
     def __str__(self):
-        return self.name
+        return self.label
 
     @property
     def mandatory(self):

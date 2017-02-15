@@ -28,3 +28,5 @@ def get_runners_list(flat=False):
                 for clazz in elem[1]:
                     flattened.append(clazz)
         return flattened
+
+runner_list = get_runners_list()

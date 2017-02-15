@@ -35,8 +35,8 @@ def sample_runner(runner_impl):
                                          clazz='%s.%s' % (runner_impl.__module__, runner_impl.__class__.__name__))
     object_ctype = ContentType.objects.get_for_model(runner_model)
     for name, value in runner_impl.init_params.items():
-        RunnerInitParam.objects.update_or_create(name=name, content_type=object_ctype, object_id=runner_model.pk,
-                                                 defaults={'default': value})
+        AdaptorInitParam.objects.update_or_create(name=name, content_type=object_ctype, object_id=runner_model.pk,
+                                                  defaults={'default': value})
     return runner_model
 
 
@@ -72,14 +72,12 @@ class TestJobRunner(WavesBaseTestCase):
     Test all functions in Runner adapters base class
 
     """
+
     def testLoadModules(self):
         from waves.loader import load_core, load_extra_adaptors, load_extra_importers
         cores = load_core()
-        print cores
         addons = load_extra_adaptors()
-        print addons
         importers = load_extra_importers()
-        print importers
 
     def _debug_job_state(self):
         logger.debug('Internal state %s, current %s', self.current_job._status, self.current_job.status)

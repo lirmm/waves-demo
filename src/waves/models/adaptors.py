@@ -47,14 +47,16 @@ class AdaptorInitParam(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey(for_concrete_model=False)
-    _value = None
-    _override = None
 
     def __str__(self):
+        if self.crypt:
+            return "%s|********|%s" % (self.name, self.prevent_override)
         return "%s|%s|%s" % (self.name, self.value, self.prevent_override)
 
     def __init__(self, *args, **kwargs):
         super(AdaptorInitParam, self).__init__(*args, **kwargs)
+        self._value = None
+        self._override = None
 
     @classmethod
     def from_db(cls, db, field_names, values):
@@ -67,13 +69,12 @@ class AdaptorInitParam(models.Model):
         return instance
 
     def save(self, *args, **kwargs):
-        if self.crypt is True:
-            self.value = Encrypt.encrypt(self.value)
         super(AdaptorInitParam, self).save(*args, **kwargs)
 
     @property
     def has_changed(self):
-        return self._value != self.value or self._override != self.prevent_override
+        haschanged = self._value != self.value or self._override != self.prevent_override
+        return haschanged
 
 
 class HasAdaptorParamsMixin(models.Model):
@@ -150,7 +151,7 @@ class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
     @property
     def has_changed(self):
         """ Set whether config has changed before saving """
-        return self._clazz != self.clazz or any([x.has_changed for x in self.adaptor_params.all()])
+        return self._clazz != self.clazz # or any([x.has_changed for x in self.adaptor_params.all()])
 
     @property
     def adaptor(self):
@@ -159,6 +160,7 @@ class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
         :rtype: JobAdaptor
         """
         if self._adaptor is None:
+            print "in adaptor property"
             if self.has_changed:
                 self._adaptor = self.get_concrete_adaptor()
             else:
@@ -168,8 +170,6 @@ class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
     @adaptor.setter
     def adaptor(self, adaptor):
         """ Allow to temporarily override current adaptor instance """
-        from adaptors.core.base import JobAdaptor
-        assert (issubclass(adaptor, JobAdaptor))
         self._adaptor = adaptor
 
 
@@ -195,7 +195,7 @@ class HasRunnerParamsMixin(HasAdaptorParamsMixin):
         """ Set runs params with defaults issued from concrete class object """
         if self.runner:
             if self.adaptor_params.count() > 0:
-                self.adaptor_params.exclude(name__in=self.runner.adaptor_params.values('name')).delete()
+                self.adaptor_params.all().delete()
             runners_defaults = self.runner.run_params
             current_defaults = self.run_params
             [runners_defaults.pop(k, None) for k in current_defaults]

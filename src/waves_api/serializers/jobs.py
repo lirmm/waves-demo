@@ -177,5 +177,4 @@ class JobCreateSerializer(serializers.ModelSerializer):
         write_only_fields = ('job_inputs',)
 
     def create(self, validated_data):
-        # print 'in create', validated_data
         return Job.objects.create()

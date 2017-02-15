@@ -1,18 +1,14 @@
 """ Base class for exporting objects """
 from __future__ import unicode_literals
 
-from waves.views.files import DownloadFileView
-from django.http import Http404
-from django.shortcuts import redirect
-from waves.models.base import ExportAbleMixin
-from django.conf import settings
-from django.core.urlresolvers import reverse
-from django.contrib import messages
-import json
-import waves.settings
 from os.path import join
-import logging
-logger = logging.getLogger(__name__)
+
+from django.contrib import messages
+from django.shortcuts import redirect
+
+import waves.settings
+from waves.models.base import ExportAbleMixin
+from waves.views.files import DownloadFileView
 
 
 class ModelExportView(DownloadFileView):

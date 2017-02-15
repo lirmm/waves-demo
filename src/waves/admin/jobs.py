@@ -192,7 +192,6 @@ class JobAdmin(WavesModelAdmin):
         return obj.colored_status()
 
     def get_row_css(self, obj, index):
-        # print 'in get row css'
         return obj.label_class
 
     def get_readonly_fields(self, request, obj=None):

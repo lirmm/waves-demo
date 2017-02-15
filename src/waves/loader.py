@@ -23,6 +23,7 @@ def load_extra_importers():
 
 
 def __load_addons(path, parent):
+    print "import path ", path, parent
     submodules = __import_submodules(path, True)
     adaptors = []
     for submodule_name, submodule in submodules.items():

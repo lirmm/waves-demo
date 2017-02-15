@@ -7,6 +7,7 @@ import environ
 import sys
 from os.path import dirname, join
 
+LOGGING_CONFIG = None
 BASE_DIR = dirname(dirname(dirname(__file__)))
 STATIC_URL = '/static/'
 MEDIA_ROOT = join(BASE_DIR, 'media')
@@ -60,8 +61,8 @@ STATICFILES_DIRS = (
 # Application definition
 INSTALLED_APPS = (
     'polymorphic',
-    'jet',
     'jet.dashboard',
+    'jet',
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'django.contrib.admin',
@@ -87,6 +88,7 @@ INSTALLED_APPS = (
     'ckeditor',
     'bootstrap_themes',
 )
+
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

@@ -113,7 +113,7 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
         return self.service_jobs.filter(status__in=Job.PENDING_STATUS)
 
 
-class SubmissionOutput(TimeStamped):
+class SubmissionOutput(TimeStamped, ):
     """
     Represents usual service parameters output values (share same attributes with ServiceParameters)
     """
@@ -122,7 +122,6 @@ class SubmissionOutput(TimeStamped):
         db_table = 'waves_submission_output'
         verbose_name = 'Output'
         verbose_name_plural = 'Outputs'
-        unique_together = ('name', 'submission')
         ordering = ['-created']
 
     label = models.CharField('Label', max_length=255, null=True, blank=False, help_text="Label")
@@ -148,6 +147,11 @@ class SubmissionOutput(TimeStamped):
         if not self.from_input and not self.name:
             raise ValidationError({'name': 'If not valuated from input, you must set a file name'})
         return cleaned_data
+
+    def save(self, *args, **kwargs):
+        if not self.name and self.from_input is not None:
+            self.name = self.from_input.default
+        super(SubmissionOutput, self).save(*args, **kwargs)
 
 
 class SubmissionExitCode(models.Model):

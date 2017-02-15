@@ -1,7 +1,7 @@
 """ WAVES Service job submission managers """
 from __future__ import unicode_literals
 
-import logging
+
 from itertools import chain
 from os import path as path
 
@@ -12,8 +12,6 @@ from django.db import transaction
 
 from waves.exceptions.jobs import JobMissingMandatoryParam
 from waves.utils import normalize_value
-
-logger = logging.getLogger(__name__)
 
 
 class ServiceJobManager(object):
@@ -58,12 +56,10 @@ class ServiceJobManager(object):
                 # Manage sample data
                 input_sample = FileInputSample.objects.get(pk=submitted_input)
                 filename = path.join(job.working_dir, path.basename(input_sample.file.name))
-                # print "filename sample ", filename, input_sample.file.name
                 input_dict['value'] = path.basename(input_sample.file.name)
                 with open(filename, 'wb+') as uploaded_file:
                     for chunk in input_sample.file.chunks():
                         uploaded_file.write(chunk)
-                        # input_dict.update(dict(value='inputs/' + submitted_input.name))
             elif isinstance(submitted_input, basestring):
                 # copy / paste content
                 filename = path.join(job.working_dir, service_input.name + '.txt')
@@ -85,6 +81,9 @@ class ServiceJobManager(object):
         :return: a newly create Job instance
         :rtype: :class:`waves.models.jobs.Job`
         """
+        import logging
+        logger = logging.getLogger(__name__)
+
         from waves.models import Job, JobOutput
         from waves.models.inputs import RelatedParam, BaseParam
         try:
@@ -131,7 +130,6 @@ class ServiceJobManager(object):
         for service_output in submission.outputs.all():
             output_dict = dict(job=job, _name=service_output.name, type=service_output.ext,
                                optional=service_output.optional)
-            # print 'from input', service_output, service_output.from_input
             if service_output.from_input:
                 # issued from a input value
                 srv_submission_output = service_output.from_input

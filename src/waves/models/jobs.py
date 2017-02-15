@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import json
-import logging
 import os
 from os.path import join
 
@@ -11,7 +10,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.html import format_html
-
 from waves.exceptions import WavesException
 from waves.exceptions.jobs import JobInconsistentStateError, JobRunException
 from waves.models import TimeStamped, Slugged, Ordered, UrlMixin
@@ -26,8 +24,6 @@ import waves_adaptors.exceptions.adaptors
 __license__ = "MIT"
 __revision__ = " $Id: actor.py 1586 2009-01-30 15:56:25Z cokelaer $ "
 __docformat__ = 'reStructuredText'
-
-logger = logging.getLogger(__name__)
 __all__ = ['Job', 'JobInput', 'JobOutput', 'JobHistory', 'JobAdminHistory', 'JobRunParams']
 
 
@@ -161,8 +157,6 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         """
         if not os.path.isdir(self.working_dir):
             os.makedirs(self.working_dir, mode=0775)
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug("Job working dir %s (created %s)", self.working_dir, os.path.exists(self.working_dir))
 
     def delete_job_dirs(self):
         """Upon job deletion in database, cleanup associated working dirs

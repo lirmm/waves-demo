@@ -7,7 +7,7 @@ from django.utils.safestring import mark_safe
 
 from base import ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin
 from waves.admin.adaptors import ServiceRunnerParamInLine
-from waves.admin.forms.services import ServiceForm, SubmissionInlineForm
+from waves.admin.forms.services import ServiceForm, SubmissionInlineForm, ServiceMetaForm
 from waves.admin.submissions import *
 from waves.compat import CompactInline
 from waves.models.metas import *
@@ -23,7 +23,7 @@ __all__ = ['ServiceAdmin', 'ServiceCategoryAdmin']
 
 class ServiceMetaInline(CompactInline):
     model = ServiceMeta
-    # form = ServiceMetaForm
+    form = ServiceMetaForm
     exclude = ['order',]
     extra = 0
     suit_classes = 'suit-tab suit-tab-metas'
@@ -31,6 +31,8 @@ class ServiceMetaInline(CompactInline):
     fields = ['type', 'title', 'value', 'description']
     # sortable_field_name = "order"
     # sortable_options = []
+
+
 
 
 class ServiceSubmissionInline(admin.TabularInline):
@@ -128,11 +130,8 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
     def get_form(self, request, obj=None, **kwargs):
         """ Assign current obj to form """
         request.current_obj = obj
-        # if obj:
-        #    print obj.run_params
         form = super(ServiceAdmin, self).get_form(request, obj, **kwargs)
         form.current_user = request.user
-        # form.base_fields['runner'].widget.can_add_related = False
         form.base_fields['runner'].widget.can_delete_related = False
         form.base_fields['runner'].widget.can_add_related = False
         form.base_fields['runner'].widget.can_change_related = False

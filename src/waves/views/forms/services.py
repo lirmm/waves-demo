@@ -61,9 +61,10 @@ class ServiceSubmissionForm(forms.ModelForm):
         assert isinstance(service_input, AParam)
         field_dict = dict(
             label=service_input.label,
-            required=service_input.required is True,
+            required=service_input.required,
             help_text=service_input.help_text,
-            initial=self.data.get(service_input.name)
+            initial=self.data.get(service_input.name) or service_input.default if hasattr(service_input,
+                                                                                          "default") else ""
         )
         field_name = service_input.name
         if isinstance(service_input, FileInput):
@@ -177,4 +178,3 @@ class ServiceSubmissionForm(forms.ModelForm):
 
     def is_valid(self):
         return super(ServiceSubmissionForm, self).is_valid()
-
