@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import json
 import logging
 import os
-from itertools import chain
 from os import path as path
 from os.path import join
 
@@ -13,7 +12,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import TemporaryUploadedFile, InMemoryUploadedFile
-from django.db import models, transaction, IntegrityError
+from django.db import models, transaction
 from django.db.models import Q
 from django.utils.html import format_html
 
@@ -21,7 +20,6 @@ from waves.exceptions import WavesException
 from waves.exceptions.jobs import JobInconsistentStateError, JobRunException, JobMissingMandatoryParam
 from waves.models.adaptors import DTOMixin
 from waves.models.base import TimeStamped, Slugged, Ordered, UrlMixin
-from waves.models.history import JobHistory, JobAdminHistory
 from waves.models.inputs import BaseParam, FileInputSample
 from waves.models.submissions import Submission
 from waves.utils import normalize_value
@@ -147,7 +145,7 @@ class JobManager(models.Manager):
         if len(missings) > 0:
             raise ValidationError(missings)
         # First create inputs
-        submission_inputs = submission.submission_inputs.not_instance_of(FileInputSample).\
+        submission_inputs = submission.submission_inputs.not_instance_of(FileInputSample). \
             filter(name__in=submitted_inputs.keys()).exclude(required=None)
         for service_input in submission_inputs:
             # Treat only non dependent inputs first
@@ -202,8 +200,8 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     STR_JOB_PREPARED = 'Prepared for run'
     STR_JOB_QUEUED = 'Queued'
     STR_JOB_RUNNING = 'Running'
-    STR_JOB_COMPLETED = 'Completed'
-    STR_JOB_TERMINATED = 'Finished'
+    STR_JOB_COMPLETED = 'Run completed'
+    STR_JOB_TERMINATED = 'Results available'
     STR_JOB_CANCELLED = 'Cancelled'
     STR_JOB_SUSPENDED = 'Suspended'
     STR_JOB_ERROR = 'In Error'
@@ -403,7 +401,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: string representation of command line
         :rtype: unicode
         """
-        return "%s %s" % (self.adaptor.command, self.command.create_command_line(job_inputs=self.job_inputs.all()))
+        return "%s" % self.command.create_command_line(job_inputs=self.job_inputs.all())
 
     @property
     def label_class(self):
@@ -445,11 +443,9 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
                     # Avoid resending emails when last status mail already sent
                     self.status_mail = self.status
                     if nb_sent > 0:
-                        self.job_history.add(JobAdminHistory.objects.create(message='Sent notification email',
-                                                                            status=self.status, job=self))
+                        self.job_history.create(message='Sent notification email', status=self.status, is_admin=True)
                     else:
-                        self.job_history.add(JobAdminHistory.objects.create(message='Mail not sent',
-                                                                            status=self.status, job=self))
+                        self.job_history.create(message='Mail not sent',status=self.status, job=self, is_admin=True)
                     self.save()
                     return nb_sent
                 except Exception as e:
@@ -535,7 +531,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         """ Add a new try for job execution, save retry reason in JobAdminHistory, save job """
         if self.nb_retry <= settings.WAVES_JOBS_MAX_RETRY:
             self.nb_retry += 1
-            JobAdminHistory.objects.create(job=self, message='[Retry]%s' % message, status=self.status)
+            self.job_history.create(message='[Retry]%s' % message, status=self.status, is_admin=True)
             self.save()
         else:
             self.error(message)
@@ -543,7 +539,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     def error(self, message):
         """ Set job Status to ERROR, save error reason in JobAdminHistory, save job"""
         self.status = self.JOB_ERROR
-        JobAdminHistory.objects.create(job=self, message='[Error]%s' % message, status=self.status)
+        self.job_history.create(message='[Error]%s' % message, status=self.status, is_admin=True)
         self.save()
 
     def fatal_error(self, exception):
@@ -553,7 +549,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     def save_status_history(self, state=None, message=None):
         """ Save new state in DB, add history message id needed """
         h_message = message or self.message or 'Job %s' % self.get_status_display().lower()
-        JobHistory.objects.create(job=self, message=h_message, status=state or self.status)
+        self.job_history.create(message=h_message, status=state or self.status, is_admin=False)
         logger.debug('Job [%s] status set to [%s]', self.slug, self.get_status_display())
 
     def _run_action(self, action):
@@ -632,9 +628,13 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         """ Ask job adaptor to get results files (dowload files if needed) """
         self._run_action('job_results')
         self.run_details()
+        logger.debug("Results %s %s ", self.get_status_display(), self.exit_code)
         if self.exit_code != 0 or len(self.stderr_txt) > 0:
+            logger.debug('Error found %s %s ', self.exit_code, self.stderr_txt)
+            self.status = self.JOB_ERROR
             self.save_status_history(state=self.JOB_ERROR, message=self.stderr_txt)
         else:
+            self.status = self.JOB_TERMINATED
             self.save_status_history(state=self.JOB_TERMINATED)
         self.save()
 
@@ -652,8 +652,8 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
                 remote_details = self._run_action('job_run_details')
             except waves_adaptors.exceptions.adaptors.AdaptorException:
                 remote_details = default_run_details(self)
-                with open(file_run_details, 'w') as fp:
-                    json.dump(obj=remote_details, fp=fp, ensure_ascii=False)
+            with open(file_run_details, 'w') as fp:
+                json.dump(obj=remote_details, fp=fp, ensure_ascii=False)
             return remote_details
 
     @property
@@ -679,6 +679,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         self.nb_retry = 0
         self.status = self.JOB_CREATED
         for job_out in self.job_outputs.all():
+            print "delete file", job_out.file_path
             open(job_out.file_path, 'w').close()
         self.save()
 

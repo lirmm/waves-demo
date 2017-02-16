@@ -23,7 +23,7 @@ class JobInputInline(TabularInline):
     can_delete = False
     ordering = ('order',)
     fields = ('name', 'value', 'file_path')
-    classes = ('collapse', )
+    classes = ('collapse',)
 
     def has_add_permission(self, request):
         """ Never add any job input from admin """
@@ -36,7 +36,7 @@ class JobOutputInline(TabularInline):
     form = JobOutputForm
     extra = 0
     suit_classes = 'suit-tab suit-tab-outputs'
-    classes = ('collapse', )
+    classes = ('collapse',)
     can_delete = False
     readonly_fields = ('name', 'value', 'file_path')
     ordering = ('order',)
@@ -50,7 +50,7 @@ class JobOutputInline(TabularInline):
 class JobHistoryInline(TabularInline):
     """ Job's history events """
     model = JobHistory
-    classes = ('collapse', )
+    classes = ('collapse',)
     verbose_name = 'Job History'
     verbose_name_plural = "Job history events"
 
@@ -104,20 +104,27 @@ class JobAdmin(WavesModelAdmin):
         # TODO add JobRunDetails
     ]
     actions = [mark_rerun, delete_model]
-    list_filter = ('status', 'submission__service', 'client')
+    list_filter = ('status', 'client')
     list_display = ('get_slug', 'get_colored_status', 'submission', 'get_run_on', 'get_client', 'created', 'updated')
     list_per_page = 30
     search_fields = ('client__email', 'submission__service_name', 'get_run_on')
     readonly_fields = ('title', 'slug', 'email_to', 'status', 'created', 'updated', 'get_run_on',
-                       'command_line')
+                       'command_line', 'submission_name', 'nb_retry')
 
     fieldsets = [
         ('Main', {'classes': ('collapse', 'suit-tab', 'suit-tab-general',),
-                  'fields': ['title', 'slug', 'email_to', 'submission__service', 'status', 'created', 'updated',
+                  'fields': ['title', 'slug', 'email_to', 'status', 'created', 'updated',
                              'get_run_on', 'command_line', 'client']
                   }
          ),
+        ('Submission', {
+            'fields': ['submission_name', 'nb_retry']
+        }
+         )
     ]
+
+    def submission_name(self, obj):
+        return obj.submission.name
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
@@ -207,5 +214,6 @@ class JobAdmin(WavesModelAdmin):
     get_colored_status.admin_order_field = 'status'
     get_run_on.admin_order_field = 'service__runner'
     get_client.admin_order_field = 'client'
+
 
 admin.site.register(Job, JobAdmin)

@@ -99,8 +99,8 @@ class TestJobs(WavesBaseTestCase):
     def test_basic_job_history(self):
         job = Job.objects.create(submission=Submission.objects.create(name="Sample Sub", service=Service.objects.create(
             name='SubmissionSample Service')))
-        job.job_history.add(JobAdminHistory.objects.create(job=job, message="Test Admin message", status=job.status))
-        job.job_history.add(JobHistory.objects.create(job=job, message="Test public message", status=job.status))
+        job.job_history.add(JobAdminHistory.objects.create(job=job, message="Test Admin message", status=job.get_status_display()))
+        job.job_history.add(JobHistory.objects.create(job=job, message="Test public message", status=job.get_status_display()))
         try:
             self.assertEqual(job.job_history.count(), 3)
             self.assertEqual(job.public_history.count(), 2)

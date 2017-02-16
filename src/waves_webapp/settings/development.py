@@ -43,6 +43,10 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
         },
+        'waves_adaptors.core': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        }
     }
 }
 logging.config.dictConfig(LOGGING)

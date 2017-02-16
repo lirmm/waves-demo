@@ -109,42 +109,43 @@ class JobQueueCommand(DaemonCommand):
         :return: Nothing
         """
         import logging
+        logger = logging.getLogger(__name__)
         jobs = Job.objects.prefetch_related('job_inputs'). \
             prefetch_related('job_outputs').filter(status__lt=Job.JOB_TERMINATED)
         if jobs.count() > 0:
-            logging.info("Starting queue process with %i(s) unfinished jobs", jobs.count())
+            logger.info("Starting queue process with %i(s) unfinished jobs", jobs.count())
         for job in jobs:
             runner = job.adaptor
-            logging.debug('[Runner]-------\n%s\n----------------', job.adaptor.dump_config())
+            logger.debug('[Runner]-------\n%s\n----------------', job.adaptor.dump_config())
             try:
                 job.check_send_mail()
-                logging.debug("Launching Job %s (adaptor:%s)", job, job.adaptor)
+                logger.debug("Launching Job %s (adaptor:%s)", job, job.adaptor)
                 if job.status == Job.JOB_CREATED:
                     job.run_prepare()
                     # runner.prepare_job(job=job)
-                    logging.debug("[PrepareJob] %s (adaptor:%s)", job, job.adaptor)
+                    logger.debug("[PrepareJob] %s (adaptor:%s)", job, job.adaptor)
                 elif job.status == Job.JOB_PREPARED:
-                    logging.debug("[LaunchJob] %s (adaptor:%s)", job, job.adaptor)
+                    logger.debug("[LaunchJob] %s (adaptor:%s)", job, job.adaptor)
                     job.run_launch()
                     # runner.run_job(job)
                 elif job.status == Job.JOB_COMPLETED:
                     # runner.job_run_details(job)
                     job.run_results()
-                    logging.debug("[JobExecutionEnded] %s (adaptor:%s)", job.get_status_display(), job.adaptor)
+                    logger.debug("[JobExecutionEnded] %s (adaptor:%s)", job.get_status_display(), job.adaptor)
                 else:
                     job.run_status()
                     # runner.job_status(job)
             except waves.exceptions.WavesException as e:
-                logging.error("Error Job %s (adaptor:%s-state:%s): %s", job, runner, job.get_status_display(),
+                logger.error("Error Job %s (adaptor:%s-state:%s): %s", job, runner, job.get_status_display(),
                               e.message)
                 if job.nb_retry >= waves.settings.WAVES_JOBS_MAX_RETRY:
                     job.error(message='Job error (too many errors) \n%s' % e.message)
             finally:
-                logging.info("Queue job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
+                logger.info("Queue job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
                 # job.save()
                 job.check_send_mail()
                 # runner.disconnect()
-        logging.debug('Go to sleep for %i seconds' % self.SLEEP_TIME)
+        logger.debug('Go to sleep for %i seconds' % self.SLEEP_TIME)
         time.sleep(self.SLEEP_TIME)
 
 

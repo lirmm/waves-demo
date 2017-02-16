@@ -1,5 +1,7 @@
 from django.db import models
 
+from waves.models.jobs import Job
+
 
 class JobHistoryManager(models.Manager):
     def create(self, **kwargs):
@@ -42,14 +44,14 @@ class JobHistory(models.Model):
     #: Time when this event occurred
     timestamp = models.DateTimeField('Date time', auto_now_add=True, help_text='History timestamp')
     #: Job Status for this event
-    status = models.IntegerField('Job Status', help_text='History job status', null=True)
+    status = models.IntegerField('Job Status', help_text='History job status', null=True, choices=Job.STATUS_LIST)
     #: Job event message
     message = models.TextField('History log', blank=True, null=True, help_text='History log')
     #: Event is only intended for Admin
     is_admin = models.BooleanField('Admin Message', default=False)
 
     def __str__(self):
-        return '%s:%s:%s' % (self.get_status_display(), self.job, self.message) + ('(admin)' if self.is_admin else '')
+        return '%s:%s:%s' % (self.status, self.job, self.message) + ('(admin)' if self.is_admin else '')
 
 
 class JobAdminHistory(JobHistory):

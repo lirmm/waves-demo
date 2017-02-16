@@ -133,22 +133,25 @@ class RunnerExportView(ModelExportView):
 class RunnerTestConnectionView(JSONDetailView):
     template_name = None
     model = Runner
+    adaptor = None
     runner_model = None
 
     def get_object(self, queryset=None):
-        self.runner_model = super(RunnerTestConnectionView, self).get_object(queryset)
-        if self.runner_model:
-            return self.runner_model.adaptor
-        return None
+        self.object = super(RunnerTestConnectionView, self).get_object(queryset)
+        self.adaptor = self.object.adaptor
+        return self.object
+
+    def get_object_name(self):
+        return self.object.name
 
     def get_data(self, context):
         context = {'connection_result': 'Failed :'}
         message = '<ul class="messagelist"><li class="{}">{}</li></ul>'
         try:
-            self.object.connect()
+            self.adaptor.connect()
             context['connection_result'] = message.format('success',
                                                           'Connexion successful to %s' %
-                                                          self.runner_model.name)
+                                                          self.get_object_name())
         except AdaptorConnectException as e:
             context['connection_result'] = message.format('error', "Adaptor connection error %s" % e)
         except Exception as e:
