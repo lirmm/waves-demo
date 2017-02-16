@@ -42,18 +42,15 @@ class ServiceSubmissionForm(forms.ModelForm):
             assert isinstance(service_input, AParam)
             if isinstance(service_input, FileInput) and not service_input.multiple:
                 extra_fields.append(self._create_copy_paste_field(service_input))
-                # extra_fields.extend(self._create_sample_fields(service_input))
-
             self.add_field(service_input)
             self.helper.set_layout(service_input, self)
-            for dependent_input in service_input.dependents_inputs.exclude(required=False):
+            for dependent_input in service_input.dependents_inputs.exclude(required=None):
                 # conditional parameters must not be required to use classic django form validation process
                 dependent_input.required = False
                 if dependent_input.param_type == BaseParam.TYPE_FILE and not dependent_input.multiple:
                     extra_fields.append(self._create_copy_paste_field(dependent_input))
-                self.add_field(dependent_input, self)
+                self.add_field(dependent_input)
                 self.helper.set_layout(dependent_input, self)
-                # extra_fields.append(dependent_input)
         self.list_inputs.extend(extra_fields)
         self.helper.end_layout()
 
@@ -75,7 +72,7 @@ class ServiceSubmissionForm(forms.ModelForm):
             else:
                 form_field = forms.FileField(**field_dict)
         elif isinstance(service_input, BooleanParam):
-            field_dict.update(dict(required=False))
+            field_dict.update(dict(initial=(service_input.default == service_input.true_value)))
             form_field = forms.BooleanField(**field_dict)
         elif isinstance(service_input, ListParam):
             field_dict.update(dict(choices=service_input.choices))
@@ -88,12 +85,16 @@ class ServiceSubmissionForm(forms.ModelForm):
                 if service_input.list_mode == ListParam.DISPLAY_CHECKBOX:
                     form_field.widget = forms.CheckboxSelectMultiple()
             form_field.css_class = 'text-left'
-        elif isinstance(service_input, IntegerParam) or isinstance(service_input, DecimalParam):
+        elif isinstance(service_input, NumberParam):
             field_dict.update(dict(min_value=service_input.min_val,
-                                   max_value=service_input.max_val))
-            form_field = forms.IntegerField(**field_dict)
+                                   max_value=service_input.max_val,))
+            if isinstance(service_input, IntegerParam):
+                form_field = forms.IntegerField(**field_dict)
+            else:
+                form_field = forms.DecimalField(**field_dict)
+            form_field.widget.attrs['step'] = service_input.step
         elif isinstance(service_input, FileInputSample):
-            form_field = forms.BooleanField(**field_dict)
+            form_field = forms.BooleanField(widget=forms.CheckboxInput(attrs={'class': 'no-switch'}), **field_dict)
             field_name = 'sp_%s_%s' % (service_input.name, service_input.pk)
         else:
             form_field = forms.CharField(**field_dict)

@@ -11,7 +11,7 @@ from waves.models.submissions import Submission
 from waves.utils.storage import waves_storage, file_sample_directory
 from waves.utils.validators import validate_list_comma, validate_list_param
 
-__all__ = ['AParam', 'BaseParam', 'RepeatedGroup', 'FileInput', 'BooleanParam', 'DecimalParam',
+__all__ = ['AParam', 'BaseParam', 'RepeatedGroup', 'FileInput', 'BooleanParam', 'DecimalParam', 'NumberParam',
            'ListParam', 'SampleDepParam', 'FileInputSample', 'TextParam', 'RelatedParam', 'IntegerParam']
 
 
@@ -44,8 +44,8 @@ class AParam(PolymorphicModel):
     name = models.CharField('Name', max_length=50, blank=False, null=False, help_text='Input runner\'s job param name')
     help_text = models.TextField('Help Text', null=True, blank=True)
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, null=False, related_name='submission_inputs')
-    required = models.NullBooleanField('Required', choices={(None, "Optional"), (True, "Required"),
-                                                            (False, "Not submitted")},
+    required = models.NullBooleanField('Required', choices={(False, "Optional"), (True, "Required"),
+                                                            (None, "Not submitted")},
                                        default=True, help_text="Submitted and/or Required")
     # Submission params dependency
     when_value = models.CharField('When value', max_length=255, null=True, blank=True,
@@ -53,9 +53,11 @@ class AParam(PolymorphicModel):
     related_to = models.ForeignKey('self', related_name="dependents_inputs", on_delete=models.CASCADE,
                                    null=True, blank=True, help_text='Input is associated to')
 
-    @property
-    def is_required_in_form(self):
-        return self.required is True
+    def save(self, *args, **kwargs):
+        if self.related_to is not None and self.required is True:
+            self.required = None
+        super(AParam, self).save(*args, **kwargs)
+
 
 class BaseParam(AParam):
     """ Base class for services submission params """
@@ -73,17 +75,19 @@ class BaseParam(AParam):
         (TYPE_INT, 'Integer'),
         (TYPE_TEXT, 'Text')
     ]
+    OPT_TYPE_NONE = 0
     OPT_TYPE_VALUATED = 1
     OPT_TYPE_SIMPLE = 2
     OPT_TYPE_OPTION = 3
     OPT_TYPE_POSIX = 4
     OPT_TYPE_NAMED_OPTION = 5
     OPT_TYPE = [
-        (OPT_TYPE_VALUATED, 'Valuated param (--param_name=value)'),
-        (OPT_TYPE_SIMPLE, 'Simple param (-param_name value)'),
-        (OPT_TYPE_OPTION, 'Option param (-param_name)'),
-        (OPT_TYPE_NAMED_OPTION, 'Option named param (--param_name)'),
-        (OPT_TYPE_POSIX, 'Positional param (name not used)')
+        (OPT_TYPE_NONE, 'Not used'),
+        (OPT_TYPE_SIMPLE, 'Simple (-[name] value)'),
+        (OPT_TYPE_VALUATED, 'Named (--[name]=value)'),
+        (OPT_TYPE_OPTION, 'Option (-[name])'),
+        (OPT_TYPE_NAMED_OPTION, 'Named option (--[name])'),
+        (OPT_TYPE_POSIX, 'Positional')
     ]
 
     class Meta:
@@ -99,7 +103,7 @@ class BaseParam(AParam):
     edam_datas = models.CharField('Edam data(s)', max_length=255, null=True, blank=True,
                                   help_text="comma separated list of supported edam data type")
     cmd_format = models.IntegerField('Command line format', choices=OPT_TYPE,
-                                     default=OPT_TYPE_POSIX,
+                                     default=OPT_TYPE_SIMPLE,
                                      help_text='Command line pattern')
 
     # TODO remote multiple from base class, only needed for list / file inputs
@@ -123,7 +127,7 @@ class BaseParam(AParam):
         super(BaseParam, self).save(*args, **kwargs)
 
     def clean(self):
-        if self.required is False and not self.default:
+        if self.required is None and not self.default:
             # param is mandatory
             raise ValidationError('Not displayed parameters must have a default value %s:%s' % (self.name, self.label))
         if self.related_to and not self.when_value:
@@ -189,7 +193,7 @@ class NumberParam(BaseParam):
         abstract = True
 
     def clean(self):
-        super(DecimalParam, self).clean()
+        super(NumberParam, self).clean()
         if self.min_val and self.max_val:
             if self.min_val > self.max_val:
                 raise ValidationError({'min_val': 'Minimum value can\'t exceed maximum value'})
@@ -197,7 +201,7 @@ class NumberParam(BaseParam):
                 raise ValidationError({'min_val': 'Minimum value can\'t equal maximum value'})
 
 
-class DecimalParam(BaseParam):
+class DecimalParam(NumberParam):
     """ Number param (decimal or float) """
     # TODO add specific validator
     class_label = "Decimal"
@@ -205,13 +209,14 @@ class DecimalParam(BaseParam):
                                   help_text="Leave blank if no min")
     max_val = models.DecimalField('Max value', decimal_places=3, max_digits=50, default=None, null=True, blank=True,
                                   help_text="Leave blank if no max")
+    step = models.DecimalField('Step', decimal_places=3, max_digits=50, default=0.5, null=False, blank=True)
 
     @property
     def param_type(self):
         return BaseParam.TYPE_DECIMAL
 
 
-class IntegerParam(BaseParam):
+class IntegerParam(NumberParam):
     """ Integer param """
 
     # TODO add specific validator
@@ -223,6 +228,7 @@ class IntegerParam(BaseParam):
                                   help_text="Leave blank if no min")
     max_val = models.IntegerField('Max value', default=None, null=True, blank=True,
                                   help_text="Leave blank if no max")
+    step = models.IntegerField('Step', default=1, blank=True)
 
     @property
     def param_type(self):
@@ -332,7 +338,7 @@ class FileInputSample(AParam):
 
     def save_base(self, *args, **kwargs):
         self.name = self.file_input.name
-        self.required = None
+        self.required = False
         super(FileInputSample, self).save_base(*args, **kwargs)
 
     @property

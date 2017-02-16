@@ -6,7 +6,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from dynamic import DynamicFieldsModelSerializer
-from waves.models import Service, JobHistory, JobInput, Job, JobOutput
+from waves.models import Service, JobInput, Job, JobOutput
+from waves.models.history import JobHistory
 
 User = get_user_model()
 

@@ -164,8 +164,8 @@
                                     <div id="panel-runon-{{ job.id }}" class="panel-collapse collapse">
                                         <div class="panel-body">
                                             <p>Your job is currently planned to run on
-                                                our {{ job.service.run_on.name }}</p>
-                                            <p>{{ job.service.run_on.description|safe }}</p>
+                                                our {{ job.submission.get_runner.name }}</p>
+                                            <p>{{ job.submission.get_runner.description|safe }}</p>
                                         </div>
                                     </div>
                                 </div>

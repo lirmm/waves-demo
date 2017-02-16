@@ -11,7 +11,7 @@ TEMPLATES[0]['OPTIONS'].update({'debug': DEBUG})
 # Django Debug Toolbar
 INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
 MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
-LOGGING_CONFIG = None
+# LOGGING_CONFIG = None
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

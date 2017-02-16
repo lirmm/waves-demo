@@ -7,6 +7,7 @@ from django.db.models import Q
 from waves.admin.base import WavesModelAdmin
 from waves.admin.forms.jobs import JobInputForm, JobOutputForm, JobForm
 from waves.models.jobs import *
+from waves.models.history import JobHistory
 
 __all__ = ['JobAdmin']
 

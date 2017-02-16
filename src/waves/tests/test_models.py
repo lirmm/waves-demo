@@ -8,7 +8,8 @@ from django.test import TestCase
 from django.utils.module_loading import import_string
 
 from waves_adaptors.core.base import JobAdaptor
-from waves.models import Job, Service, Runner, JobAdminHistory, JobHistory
+from waves.models import Job, Service, Runner, JobAdminHistory
+from waves.models.history import JobHistory, JobAdminHistory
 from waves.models.submissions import Submission
 from waves.tests.base import WavesBaseTestCase
 

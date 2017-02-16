@@ -2,35 +2,184 @@
 from __future__ import unicode_literals
 
 import json
+import logging
 import os
+from itertools import chain
+from os import path as path
 from os.path import join
 
+import waves_adaptors.exceptions.adaptors
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.core.files.uploadedfile import TemporaryUploadedFile, InMemoryUploadedFile
+from django.db import models, transaction, IntegrityError
+from django.db.models import Q
 from django.utils.html import format_html
+
 from waves.exceptions import WavesException
-from waves.exceptions.jobs import JobInconsistentStateError, JobRunException
-from waves.models import TimeStamped, Slugged, Ordered, UrlMixin
-from waves.models.adaptors import DTOMixin, AdaptorInitParam
-from waves.models.inputs import BaseParam
-from waves.models.managers.jobs import *
+from waves.exceptions.jobs import JobInconsistentStateError, JobRunException, JobMissingMandatoryParam
+from waves.models.adaptors import DTOMixin
+from waves.models.base import TimeStamped, Slugged, Ordered, UrlMixin
+from waves.models.history import JobHistory, JobAdminHistory
+from waves.models.inputs import BaseParam, FileInputSample
 from waves.models.submissions import Submission
+from waves.utils import normalize_value
 from waves.utils.jobs import default_run_details
 from waves.utils.storage import allow_display_online
-import waves_adaptors.exceptions.adaptors
+
+logger = logging.getLogger(__name__)
 
 __license__ = "MIT"
 __revision__ = " $Id: actor.py 1586 2009-01-30 15:56:25Z cokelaer $ "
 __docformat__ = 'reStructuredText'
-__all__ = ['Job', 'JobInput', 'JobOutput', 'JobHistory', 'JobAdminHistory', 'JobRunParams']
+__all__ = ['Job', 'JobInput', 'JobOutput']
 
 
-class JobRunParams(AdaptorInitParam):
-    """ Saved configuration for job runs """
-    class Meta:
-        proxy = True
+class JobManager(models.Manager):
+    """ Job Manager add few shortcut function to default Django models objects Manager
+    """
+
+    def get_by_natural_key(self, slug, service):
+        return self.get(slug=slug, service=service)
+
+    def get_all_jobs(self):
+        """
+        Return all jobs currently registered in database, as list of dictionary elements
+        :return: QuerySet
+        """
+        return self.all().values()
+
+    def get_user_job(self, user):
+        """
+        Filter jobs according to user (logged in) according to following access rule:
+        * User is a super_user, return all jobs
+        * User is member of staff (access to Django admin): returns only jobs from services user has created,
+        jobs created by user, or where associated email is its email
+        * User is simply registered on website, returns only those created by its own
+        :param user: current user (may be Anonymous)
+        :return: QuerySet
+        """
+        if user.is_superuser:
+            return self.all()
+        if user.is_staff:
+            return self.filter(Q(service__created_by=user) | Q(client=user) | Q(email_to=user.email))
+        # return self.filter(Q(client=user) | Q(email_to=user.email))
+        return self.filter(client=user)
+
+    def get_service_job(self, user, service):
+        """
+        Returns jobs filtered by service, according to following access rule:
+        * user is simply registered, return its jobs, filtered by service
+        :param user: currently logged in user
+        :param service: service model object to filter
+        :return: QuerySet
+        """
+        if user.is_superuser or user.is_staff:
+            return self.filter(submission__service__in=[service, ])
+        return self.filter(client=user, submission__service__in=[service, ])
+
+    def get_pending_jobs(self, user=None):
+        """
+        Return pending jobs for user, according to following access rule:
+        * user is simply registered, return its jobs, filtered by service
+        :param user: currently logged in user
+        :return: QuerySet
+
+        .. note::
+            Pending jobs are all jobs which are 'Created', 'Prepared', 'Queued', 'Running'
+        """
+        if user is not None:
+            if user.is_superuser or user.is_staff:
+                # return all pending jobs
+                return self.filter(status__in=(
+                    self.model.JOB_CREATED, self.model.JOB_PREPARED, self.model.JOB_QUEUED,
+                    self.model.JOB_RUNNING))
+            # get only user jobs
+            return self.filter(status__in=(self.model.JOB_CREATED, self.model.JOB_PREPARED,
+                                           self.model.JOB_QUEUED, self.model.JOB_RUNNING),
+                               client=user)
+        # User is not supposed to be None
+        return self.none()
+
+    def get_created_job(self, extra_filter, user=None):
+        """
+        Return pending jobs for user, according to following access rule:
+        * user is simply registered, return its jobs, filtered by service
+        :param extra_filter: add an extra filter to queryset
+        :param user: currently logged in user
+        :return: QuerySet
+        """
+        if user is not None:
+            self.filter(status=self.model.JOB_CREATED,
+                        client=user,
+                        **extra_filter).order_by('-created')
+        return self.filter(status=self.model.JOB_CREATED, **extra_filter).order_by('-created').all()
+
+    @transaction.atomic
+    def create_from_submission(self, submission, submitted_inputs, email_to=None, user=None):
+        """ Create a new job from service submission data and submitted inputs values
+        :param submission: Dictionary { param_name: param_value }
+        :param submitted_inputs: received input from client submission
+        :param email_to: if given, email address to notify job process to
+        :param user: associated user (may be anonymous)
+        :return: a newly create Job instance
+        :rtype: :class:`waves.models.jobs.Job`
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        try:
+            job_title = submitted_inputs.pop('title')
+        except KeyError:
+            job_title = ""
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('Received data :')
+            for key in submitted_inputs:
+                logger.debug('Param %s: %s', key, submitted_inputs[key])
+        client = user if user is not None and not user.is_anonymous() else None
+        job = self.create(email_to=email_to, client=client, title=job_title, submission=submission)
+        job.create_non_editable_inputs(submission)
+        mandatory_params = submission.expected_inputs
+        missings = {}
+        for m in mandatory_params:
+            if m.name not in submitted_inputs.keys():
+                missings[m.name] = '%s (:%s:) is required field' % (m.label, m.name)
+        if len(missings) > 0:
+            raise ValidationError(missings)
+        # First create inputs
+        submission_inputs = submission.submission_inputs.not_instance_of(FileInputSample).\
+            filter(name__in=submitted_inputs.keys()).exclude(required=None)
+        for service_input in submission_inputs:
+            # Treat only non dependent inputs first
+            incoming_input = submitted_inputs.get(service_input.name, None)
+            logger.debug("current Service Input: %s, %s, %s", service_input, service_input.required, incoming_input)
+            # test service input mandatory, without default and no value
+            if service_input.required and not service_input.default and incoming_input is None:
+                raise JobMissingMandatoryParam(service_input.label, job)
+            if incoming_input:
+                logger.debug('Retrieved "%s" for service input "%s:%s"', incoming_input, service_input.label,
+                             service_input.name)
+                # transform single incoming into list to keep process iso
+                if type(incoming_input) != list:
+                    incoming_input = [incoming_input]
+
+                for in_input in incoming_input:
+                    job.job_inputs.add(
+                        JobInput.objects.create_from_submission(job, service_input, service_input.order, in_input))
+
+        # create expected outputs
+        for service_output in submission.outputs.all():
+            job.job_outputs.add(
+                JobOutput.objects.create_from_submission(job, service_output, submitted_inputs))
+        logger.debug('Job %s created with %i inputs', job.slug, job.job_inputs.count())
+        if logger.isEnabledFor(logging.DEBUG):
+            # LOG full command line
+            logger.debug('Job %s command will be :', job.title)
+            logger.debug('%s', job.command_line)
+            logger.debug('Expected outputs will be:')
+            for j_output in job.job_outputs.all():
+                logger.debug('Output %s: %s (maybe_empty: %s)', j_output.name, j_output.value, j_output.optional)
+        return job
 
 
 class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
@@ -276,7 +425,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: the nmmber of mail sent (should be one)
         :rtype: int
         """
-        from waves.managers.mails import JobMailer
+        from waves.mails import JobMailer
         mailer = JobMailer(job=self)
         if self.status != self.status_mail and self.status == self.JOB_ERROR:
             mailer.send_job_admin_error()
@@ -349,7 +498,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :param service_submission:
         :return: None
         """
-        for service_input in service_submission.submission_inputs.filter(required=False):
+        for service_input in service_submission.submission_inputs.filter(required=None):
             # Create fake "submitted_inputs" with non editable ones with default value if not already set
             logger.debug('Created non editable job input: %s (%s, %s)', service_input.label,
                          service_input.name, service_input.default)
@@ -373,7 +522,6 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         out1 = JobOutput.objects.create(**output_dict)
         self.job_outputs.add(out1)
         open(join(self.working_dir, self.stderr), 'a').close()
-        logger.debug('Created default outputs: [%s, %s]', out, out1)
 
     @property
     def public_history(self):
@@ -535,6 +683,72 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         self.save()
 
 
+class JobInputManager(models.Manager):
+    """ JobInput model Manager """
+
+    def get_by_natural_key(self, job, name):
+        return self.get(job=job, name=name)
+
+    def create(self, **kwargs):
+        # Backward compatibility hack
+        sin = kwargs.pop('srv_input', None)
+        if sin:
+            kwargs.update(dict(name=sin.name, type=sin.type, param_type=sin.cmd_line_type, label=sin.label))
+        return super(JobInputManager, self).create(**kwargs)
+
+    @transaction.atomic
+    def create_from_submission(self, job, service_input, order, submitted_input):
+        """
+        :param job: The current job being created,
+        :param service_input: current service submission input
+        :param order: given order in future command line creation (if needed)
+        :param submitted_input: received value for this service submission input
+        :return: return the newly created JobInput
+        :rtype: :class:`waves.models.jobs.JobInput`
+        """
+        from waves.models.inputs import BaseParam, FileInput, FileInputSample
+        input_dict = dict(job=job,
+                          order=order,
+                          name=service_input.name,
+                          type=service_input.param_type,
+                          param_type=service_input.cmd_format if hasattr(service_input,
+                                                                         'cmd_format') else service_input.param_type,
+                          label=service_input.label,
+                          value=str(submitted_input))
+        try:
+            if isinstance(service_input, FileInput) and service_input.to_outputs.filter(
+                    submission=service_input.submission).exists():
+                input_dict['value'] = normalize_value(input_dict['value'])
+        except ObjectDoesNotExist:
+            pass
+        if service_input.param_type == BaseParam.TYPE_FILE:
+            if isinstance(submitted_input, TemporaryUploadedFile) or isinstance(submitted_input, InMemoryUploadedFile):
+                # classic uploaded file
+                filename = path.join(job.working_dir, submitted_input.name)
+                with open(filename, 'wb+') as uploaded_file:
+                    for chunk in submitted_input.chunks():
+                        uploaded_file.write(chunk)
+                        # input_dict.update(dict(value='inputs/' + submitted_input.name))
+            elif isinstance(submitted_input, (int, long)):
+                # Manage sample data
+                input_sample = FileInputSample.objects.get(pk=submitted_input)
+                filename = path.join(job.working_dir, path.basename(input_sample.file.name))
+                input_dict['param_type'] = input_sample.file_input.cmd_format
+                input_dict['value'] = path.basename(input_sample.file.name)
+                with open(filename, 'wb+') as uploaded_file:
+                    for chunk in input_sample.file.chunks():
+                        uploaded_file.write(chunk)
+            elif isinstance(submitted_input, str):
+                # copy / paste content
+                filename = path.join(job.working_dir, service_input.name + '.txt')
+                input_dict.update(dict(value=service_input.name + '.txt'))
+                with open(filename, 'wb+') as uploaded_file:
+                    uploaded_file.write(submitted_input)
+        new_input = self.create(**input_dict)
+        print "new input", new_input
+        return new_input
+
+
 class JobInput(Ordered, Slugged):
     """
     Job Inputs is association between a Job, a SubmissionParam, setting a value specific for this job
@@ -542,7 +756,7 @@ class JobInput(Ordered, Slugged):
 
     class Meta:
         db_table = 'waves_job_input'
-        unique_together = ('name', 'job')
+        unique_together = ('name', 'value', 'job')
 
     objects = JobInputManager()
     #: Reference to related :class:`waves.models.jobs.Job`
@@ -602,7 +816,6 @@ class JobInput(Ordered, Slugged):
                 return False
             return self.value
         else:
-            logger.warn('No Input type !')
             raise ValueError("No type specified for input")
 
     @property
@@ -664,6 +877,37 @@ class JobInput(Ordered, Slugged):
         return allow_display_online(self.file_path)
 
 
+class JobOutputManager(models.Manager):
+    """ JobInput model Manager """
+
+    def get_by_natural_key(self, job, name):
+        return self.get(job=job, _name=name)
+
+    def create(self, **kwargs):
+        sout = kwargs.pop('srv_output', None)
+        if sout:
+            kwargs.update(dict(_name=sout.name, type=sout.type, may_be_empty=sout.optional))
+        return super(JobOutputManager, self).create(**kwargs)
+
+    @transaction.atomic
+    def create_from_submission(self, job, service_output, submitted_inputs):
+        output_dict = dict(job=job, _name=service_output.name, type=service_output.ext,
+                           optional=service_output.optional)
+        if service_output.from_input:
+            # issued from a input value
+            srv_submission_output = service_output.from_input
+            value_to_normalize = submitted_inputs.get(srv_submission_output.name,
+                                                      srv_submission_output.default)
+            if srv_submission_output.param_type == BaseParam.TYPE_FILE:
+                value_to_normalize = value_to_normalize.name
+            input_value = normalize_value(value_to_normalize)
+            formatted_value = service_output.file_pattern % input_value
+            output_dict.update(dict(value=formatted_value))
+        else:
+            output_dict.update(dict(value=service_output.file_pattern))
+        return self.create(**output_dict)
+
+
 class JobOutput(Ordered, Slugged, UrlMixin):
     """ JobOutput is association fro a Job, a SubmissionOutput, and the effective value set for this Job
     """
@@ -723,39 +967,3 @@ class JobOutput(Ordered, Slugged, UrlMixin):
     @property
     def display_online(self):
         return allow_display_online(self.file_path)
-
-
-class JobHistory(models.Model):
-    """ Represents a job status history event
-    """
-
-    class Meta:
-        db_table = 'waves_job_history'
-        ordering = ['-timestamp', '-status']
-        unique_together = ('job', 'timestamp', 'status', 'is_admin')
-
-    objects = JobHistoryManager()
-    #: Related :class:`waves.models.jobs.Job`
-    job = models.ForeignKey(Job, related_name='job_history', on_delete=models.CASCADE, null=False)
-    #: Time when this event occurred
-    timestamp = models.DateTimeField('Date time', auto_now_add=True, help_text='History timestamp')
-    #: Job Status for this event
-    status = models.IntegerField('Job Status', choices=Job.STATUS_LIST,
-                                 help_text='History job status')
-    #: Job event message
-    message = models.TextField('History log', blank=True, null=True, help_text='History log')
-    #: Event is only intended for Admin
-    is_admin = models.BooleanField('Admin Message', default=False)
-
-    def __str__(self):
-        return '%s:%s:%s' % (self.get_status_display(), self.job, self.message) + ('(admin)' if self.is_admin else '')
-
-
-class JobAdminHistory(JobHistory):
-    """A Job Event intended only for Admin use
-    """
-
-    class Meta:
-        proxy = True
-
-    objects = JobAdminHistoryManager()

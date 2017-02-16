@@ -63,8 +63,8 @@ class ExitCodeInline(admin.TabularInline):
 class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
     model = BaseParam
     form = InputInlineForm
-    fields = ['class_label', 'label', 'name', 'required', 'default', 'order']
-    readonly_fields = ['class_label']
+    fields = ['class_label', 'label', 'name', 'required', 'cmd_format', 'default', 'step', 'order']
+    readonly_fields = ['class_label', 'step']
     classes = ('grp-collapse', 'grp-closed', 'collapse', 'show-change-link-popup')
     can_delete = True
     extra = 0
@@ -83,6 +83,12 @@ class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
     def get_queryset(self, request):
         # TODO order fields according to related also (display first level items just followed by their dependents)
         return BaseParam.objects.all()
+
+    def step(self, obj):
+        if hasattr(obj, 'step'):
+            return obj.step
+        else:
+            return 'N/A'
 
 
 class PolymorphicInputInlineChild(StackedPolymorphicInline.Child):

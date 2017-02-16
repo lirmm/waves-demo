@@ -14,7 +14,7 @@ import waves.tests.utils.shell_util as test_util
 from waves_adaptors.core.saga_adaptors.cluster import SshUserPassClusterAdaptor
 from waves_adaptors.core.saga_adaptors.shell.local import LocalShellAdaptor
 from waves_adaptors.core.saga_adaptors.shell.ssh import SshUserPassShellAdaptor
-from waves.managers.servicejobs import ServiceJobManager
+# from waves.managers.servicejobs import ServiceJobManager
 from waves.models import JobInput, JobOutput, Service, Job, BaseParam
 from waves.tests.test_runner import TestJobRunner, sample_job
 from waves.tests.utils import get_sample_dir
@@ -66,8 +66,8 @@ class ShellRunnerTestCase(TestJobRunner):
         self._set_command(command_path)
         # service_submission = self.service.default_submission
         for submitted_input in jobs_params:
-            self.current_job = ServiceJobManager.create_new_job(submission=self.service.default_submission,
-                                                                submitted_inputs=submitted_input)
+            self.current_job = Job.objects.create_from_submission(submission=self.service.default_submission,
+                                                                  submitted_inputs=submitted_input)
             self.assertTrue(self.runJobWorkflow())
 
     @test_util.skip_unless_tool('services/hello_world.sh')

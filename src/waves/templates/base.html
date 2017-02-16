@@ -9,12 +9,12 @@
     <meta name="description" content="{% block description %}{% get_app_verbose_name %}{% endblock description %}"/>
     <meta name="author" content="Marc Chakiachvili"/>
     <link rel="shortcut icon" href="{% static 'waves/ico/favicon.ico' %}" type="image/x-icon"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-toggle/2.2.2/css/bootstrap-toggle.css" />
 
     <title>{% block title %} :: {% include "_brandname.html" %} :: {% endblock %}</title>
 
     <!-- Bootstrap core CSS -->
     {% bootstrap_styles theme=css_theme type='min.css' %}
-    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
     <!-- Custom styles for this site -->
     {% block styles %}
         <link href="{% static 'waves/css/main.css' %}" rel="stylesheet"/>
@@ -53,7 +53,7 @@
                     {% block navbar-left %}{% endblock %}
                 </ul>
                 {% block navbar-right %}
-                        <ul id="nav-bar-user" class="nav navbar-nav navbar-right">
+                    <ul id="nav-bar-user" class="nav navbar-nav navbar-right">
                         {% if user.is_authenticated %}
                             {% if user.is_staff %}
                                 {% load waves_tags %}
@@ -75,7 +75,7 @@
                                 <a class="btn btn-default" href="{% url 'account:login' %}" role="button">Log in</a>
                             </li>
                         {% endif %}
-                        </ul>
+                    </ul>
                 {% endblock %}
             </div><!--/.nav-collapse -->
         {% endblock %}
@@ -106,7 +106,7 @@
 
 {% block container %}
     <div id="sec1">
-        <div class="container">
+        <div class="container-fluid">
             <div class="starter-template">
                 <h1>{% get_app_name %}</h1>
                 <p class="lead">Base Html page - or 404</p>
@@ -118,7 +118,7 @@
 
 <!-- Site footer -->
 {% block footer %}
-    <div class="container">
+    <div class="container-fluid">
         <div class="footer">
             <div class="row">
                 <div class="col-lg-12 text-center">
@@ -163,13 +163,13 @@
 {% block modalcontent %}
     {% include 'tos/tos_modal.html' %}
 {% endblock modalcontent %}
-<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
-{% bootstrap_script use_min=True %}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 <script type="text/javascript"
-        src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
+        src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.3/js/bootstrap-switch.min.js"></script>
 {% block scripts %}
-    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
-
+    <script src="{% static 'waves/js/bootstrap-switch.min.js' %}"></script>
     <script src="{% static 'waves/js/site.js' %}"></script>
 {% endblock scripts %}
 </body>

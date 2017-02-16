@@ -8,15 +8,66 @@ import os
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
+from django.db.models import Q
 from mptt.models import MPTTModel, TreeForeignKey
 
 import waves.settings
 from waves.models.adaptors import *
 from waves.models.base import *
 from waves.models.config import WavesSiteConfig
-from waves.models.managers.services import *
 
 __all__ = ['ServiceRunParam', 'ServiceCategory', 'Service']
+
+
+class ServiceManager(models.Manager):
+    """
+    Service Model 'objects' Manager
+    """
+
+    def get_services(self, user=None, for_api=False):
+        """
+
+        :param user: current User
+        :param for_api: filter only waves_api enabled, either return only web enabled
+        :return: QuerySet for services
+        :rtype: QuerySet
+        """
+        if user is not None and not user.is_anonymous():
+            if user.is_superuser:
+                queryset = self.all()
+            elif user.is_staff:
+                # Staff user have access their own Services and to all 'Test / Restricted / Public' made by others
+                queryset = self.filter(
+                    Q(status=self.model.SRV_DRAFT, created_by=user) |
+                    Q(status__in=(self.model.SRV_TEST, self.model.SRV_RESTRICTED,
+                                  self.model.SRV_PUBLIC))
+                )
+            else:
+                # Simply registered user have access only to "Public" and configured restricted access
+                queryset = self.filter(
+                    Q(status=self.model.SRV_RESTRICTED, restricted_client__in=(user,)) |
+                    Q(status=self.model.SRV_PUBLIC)
+                )
+        # Non logged in user have only access to public services
+        else:
+            queryset = self.filter(status=self.model.SRV_PUBLIC)
+        if for_api:
+            queryset = queryset.filter(api_on=True)
+        else:
+            queryset = queryset.filter(web_on=True)
+        return queryset
+
+    def get_api_services(self, user=None):
+        """ Return all waves_api enabled service to User
+        """
+        return self.get_services(user, for_api=True)
+
+    def get_web_services(self, user=None):
+        """ Return all web enabled services """
+        return self.get_services(user)
+
+    def get_by_natural_key(self, api_name, version, status):
+        return self.get(api_name=api_name, version=version, status=status)
 
 
 class ServiceCategory(MPTTModel, Ordered, Described, ApiModel):
@@ -33,7 +84,6 @@ class ServiceCategory(MPTTModel, Ordered, Described, ApiModel):
         level_attr = 'mptt_level'
         order_insertion_by = ['name']
 
-    objects = ServiceCategoryManager()
     name = models.CharField('Category Name', null=False, blank=False, max_length=255, help_text='Category name')
     ref = models.URLField('Reference', null=True, blank=True, help_text='Category online reference')
     parent = TreeForeignKey('self', null=True, blank=True, help_text='Parent category',
@@ -231,3 +281,5 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
     @property
     def running_jobs(self):
         return self.jobs.filter(status__in=[JOB_CREATED, JOB_COMPLETED])
+
+

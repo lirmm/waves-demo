@@ -160,7 +160,6 @@ class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
         :rtype: JobAdaptor
         """
         if self._adaptor is None:
-            print "in adaptor property"
             if self.has_changed:
                 self._adaptor = self.get_concrete_adaptor()
             else:

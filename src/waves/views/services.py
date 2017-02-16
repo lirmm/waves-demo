@@ -9,8 +9,8 @@ from django.views import generic
 
 from base import WavesBaseContextMixin
 from waves.exceptions.jobs import JobException
-from waves.managers.servicejobs import ServiceJobManager
-from waves.models import ServiceCategory, Service, ServiceMeta
+# from waves.managers.servicejobs import ServiceJobManager
+from waves.models import ServiceCategory, Service, ServiceMeta, Job
 from waves.models.submissions import Submission
 from waves.views.forms.services import ServiceSubmissionForm
 
@@ -142,6 +142,7 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
         if form.is_valid():
             return self.form_valid(form)
         else:
+            print dict(form.errors.items())
             return self.form_invalid(**{'form': form})
 
     def form_valid(self, form):
@@ -151,10 +152,10 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
             ass_email = self.request.user.email
         user = self.request.user if self.request.user.is_authenticated() else None
         try:
-            self.job = ServiceJobManager.create_new_job(submission=self.selected_submission,
-                                                        email_to=ass_email,
-                                                        submitted_inputs=form.cleaned_data,
-                                                        user=user)
+            self.job = Job.objects.create_from_submission(submission=self.selected_submission,
+                                                                email_to=ass_email,
+                                                                submitted_inputs=form.cleaned_data,
+                                                                user=user)
             messages.success(
                 self.request,
                 "Job successfully submitted"

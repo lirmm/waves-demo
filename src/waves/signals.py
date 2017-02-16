@@ -111,9 +111,7 @@ for subclass in get_all_subclasses(HasAdaptorParamsMixin):
 @receiver(pre_save, sender=AdaptorInitParam)
 def adaptor_param_pre_save_handler(sender, instance, **kwargs):
     """ Runner param pre save handler """
-    print "in pre save"
     if instance.has_changed and instance.crypt:
-        print "instance has changed"
         from waves.utils.encrypt import Encrypt
         instance.value = Encrypt.encrypt(instance.value)
 

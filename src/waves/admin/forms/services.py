@@ -9,8 +9,11 @@ from django import forms
 from django.core import validators
 from django.core.exceptions import ValidationError
 import waves.settings
-from waves.models import BooleanParam, ListParam, FileInput, TextParam, Submission, Runner, ServiceMeta
-from waves.models.services import *
+from waves.models.inputs import *
+from waves.models.submissions import Submission
+from waves.models.services import Service, ServiceCategory
+from waves.models.runners import Runner
+from waves.models.metas import ServiceMeta
 
 
 __all__ = ['ServiceForm', 'ImportForm', 'ServiceMetaForm', 'SubmissionInlineForm',
@@ -98,11 +101,11 @@ class SampleDepForm(forms.ModelForm):
 class InputInlineForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(InputInlineForm, self).__init__(*args, **kwargs)
-        if isinstance(self.instance, BooleanParam) or isinstance(self.instance, ListParam):
-            self.fields['default'] = forms.ChoiceField(choices=self.instance.choices)
+        if isinstance(self.instance, ListParam) or isinstance(self.instance, BooleanParam):
+            self.fields['default'] = forms.ChoiceField(choices=self.instance.choices, initial=self.instance.default)
             self.fields['default'].required = False
         elif isinstance(self.instance, FileInput):
-            self.fields['default'].widget.attrs['disabled'] = True
+            self.fields['default'].widget.attrs['style'] = 'display:none'
 
 
 class TextParamForm(forms.ModelForm):

@@ -180,6 +180,7 @@ class ListParamAdmin(BaseParamAdmin):
     extra_fieldset_title = 'List params'
 
 
+
 @admin.register(IntegerParam)
 class IntegerParamAdmin(BaseParamAdmin):
     """ IntegerParam subclass Admin """
