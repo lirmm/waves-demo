@@ -77,8 +77,9 @@ class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
 
     class_label.short_description = "Input type"
 
-    def has_add_permission(self, request):
+    """def has_add_permission(self, request):
         return False
+    """
 
     def get_queryset(self, request):
         # TODO order fields according to related also (display first level items just followed by their dependents)

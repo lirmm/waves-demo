@@ -1,12 +1,11 @@
 /**
  * Created by marc on 23/09/16.
  */
-
+var RelatedInlinePopup = function () {
+    inline_source = undefined
+};
 
 (function ($) {
-    var RelatedInlinePopup = function () {
-        inline_source = undefined
-    };
     RelatedInlinePopup.prototype = {
         popupInline: function (href) {
             console.log(href.href, typeof href);
@@ -15,7 +14,6 @@
             } else {
                 href += '&_popup=1';
             }
-            console.log('I am called youpi!');
             var $document = $(window.top.document);
             var $container = $document.find('.related-popup-container');
             var $loading = $container.find('.loading-indicator');
@@ -120,7 +118,7 @@
         });
         $('#add_submission_link').click(function (e) {
             e.preventDefault();
-            console.log("submussion link " + $(this) + ' / ' + e.target);
+            console.log("submission link " + $(this) + ' / ' + e.target);
             var rel = new RelatedInlinePopup();
             rel.popupInline(e.target.href);
         });
@@ -137,5 +135,5 @@
 
     });
 
-})(jQuery || django.jQuery);
+})(django.jQuery);
 
