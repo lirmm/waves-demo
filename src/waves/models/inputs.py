@@ -1,12 +1,13 @@
 """ All Input related models """
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.conf import settings
 from polymorphic.models import PolymorphicModel
-from waves.models.base import Ordered
+
 from waves.models.adaptors import DTOMixin
+from waves.models.base import Ordered
 from waves.models.submissions import Submission
 from waves.utils.storage import waves_storage, file_sample_directory
 from waves.utils.validators import validate_list_comma, validate_list_param
@@ -36,6 +37,8 @@ class RepeatedGroup(DTOMixin, Ordered):
 class AParam(PolymorphicModel):
     class Meta:
         ordering = ['order']
+        verbose_name_plural = "Submission Params"
+        verbose_name = "Submission Param"
 
     OPT_TYPE_NONE = 0
     OPT_TYPE_VALUATED = 1
@@ -96,8 +99,8 @@ class AParam(PolymorphicModel):
 class TextParam(AParam):
     """ Base class for services submission params """
     class Meta:
-        verbose_name = "Submission param"
-        verbose_name_plural = "Submission params"
+        verbose_name = "Text param"
+        verbose_name_plural = "Text params"
 
     # TODO validate name with no space
     #: Input default value
@@ -150,6 +153,10 @@ class TextParam(AParam):
 
 class BooleanParam(TextParam):
     """ Boolean param (usually check box for a submission option)"""
+    class Meta:
+        verbose_name = "Boolean input"
+        verbose_name_plural = "Boolean input"
+
     class_label = "Boolean"
     true_value = models.CharField('True value', default='True', max_length=50)
     false_value = models.CharField('False value', default='False', max_length=50)
@@ -194,6 +201,9 @@ class NumberParam(TextParam):
 class DecimalParam(NumberParam):
     """ Number param (decimal or float) """
     # TODO add specific validator
+    class Meta:
+        verbose_name = "Decimal"
+        verbose_name_plural = "Decimal"
     class_label = "Decimal"
     min_val = models.DecimalField('Min value', decimal_places=3, max_digits=50, default=None, null=True, blank=True,
                                   help_text="Leave blank if no min")
@@ -211,7 +221,8 @@ class IntegerParam(NumberParam):
 
     # TODO add specific validator
     class Meta:
-        verbose_name = "Integer input"
+        verbose_name = "Integer"
+        verbose_name_plural = "Integer"
 
     class_label = "Integer"
     min_val = models.IntegerField('Min value', default=0, null=True, blank=True,
@@ -225,15 +236,21 @@ class IntegerParam(NumberParam):
         return TextParam.TYPE_INT
 
 
-class RelatedParam(TextParam):
+class RelatedParam(AParam):
     """ Proxy class for related params (dependents on other params) """
 
     class Meta:
         proxy = True
+        verbose_name = "Related Param"
+        verbose_name_plural = "Related params"
 
 
 class ListParam(TextParam):
     """ Param to be issued from a list of values (select / radio / check) """
+
+    class Meta:
+        verbose_name = "List of values"
+        verbose_name_plural = "Lists"
 
     DISPLAY_SELECT = 'select'
     DISPLAY_RADIO = 'radio'
@@ -292,6 +309,8 @@ class FileInput(TextParam):
     class Meta:
         db_table = 'waves_service_file'
         ordering = ['order', ]
+        verbose_name = "Input file"
+        verbose_name_plural = "Input files"
 
     class_label = "File Input"
 
@@ -314,8 +333,8 @@ class FileInputSample(AParam):
     """ Any file input can provide samples """
 
     class Meta:
-        verbose_name_plural = "File samples"
-        verbose_name = "File sample"
+        verbose_name_plural = "Input samples"
+        verbose_name = "Input sample"
 
     class_label = "File Input Sample"
     file = models.FileField('Sample file', upload_to=file_sample_directory, storage=waves_storage, blank=False,
@@ -341,8 +360,8 @@ class SampleDepParam(models.Model):
 
     class Meta:
         db_table = 'waves_sample_dependent_input'
-        verbose_name_plural = "Sample dependencies"
-        verbose_name = "Sample dependency"
+        verbose_name_plural = "Sample selection dependencies"
+        verbose_name = "Sample selection dependency"
 
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='sample_dependent_params')
     sample = models.ForeignKey(FileInputSample, on_delete=models.CASCADE, related_name='dependent_inputs')

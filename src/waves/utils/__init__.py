@@ -25,4 +25,4 @@ def normalize_value(value):
 def url_to_edit_object(obj):
     """ Retrieve url to access admin change object """
     url = reverse('admin:%s_%s_change' % (obj._meta.app_label, obj._meta.model_name), args=[obj.id])
-    return mark_safe('<a class="" href="{}">Edit {}</a>'.format(url, str(obj)))
+    return mark_safe('<a class="" href="{}" title="Edit {}">{}</a>'.format(url, obj._meta.model_name, str(obj)))

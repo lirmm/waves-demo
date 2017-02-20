@@ -48,7 +48,7 @@
     <div id="modal_alert" style="display: none"
          class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myAlertDialog"
          aria-hidden="true">
-        <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-dialog" role="document">
             <div class="modal-content" id="alert_modal_content">
                 <div class="modal-header">
                     <h4>Info</h4>
@@ -63,11 +63,20 @@
         </div>
     </div>
     <script type="text/javascript">
-        (function($) {
-            $(document).ready(function() {
+        (function ($) {
+            $(document).ready(function () {
                 $('fieldset.collapse.open').removeClass('collapsed');
+                $('#modal_alert').on('show.bs.modal', function () {
+                    console.log('opened !');
+                    $(this).find('.modal-dialog').css({
+                        'max-height': '50%'
+                    });
+                }).on('hidden.bs.modal', function () {
+                    $(this).find('.modal-body').html("");
+                    console.log("closed");
+                });
             });
-        })(django.jQuery);
+        })(jQuery || django.jQuery);
         {% block javascript_init %}
         {% endblock %}
     </script>

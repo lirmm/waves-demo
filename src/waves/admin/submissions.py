@@ -3,11 +3,12 @@ from __future__ import unicode_literals
 
 from adminsortable2.admin import SortableInlineAdminMixin
 from django.contrib import admin
-from polymorphic.admin import PolymorphicInlineSupportMixin, StackedPolymorphicInline
+from django.utils.safestring import mark_safe
+from polymorphic.admin import PolymorphicInlineSupportMixin
 
 from waves.admin.adaptors import SubmissionRunnerParamInLine
 from waves.admin.base import WavesModelAdmin, DynamicInlinesAdmin
-from waves.admin.forms.services import SampleDepForm, InputInlineForm, TextParamForm, InputSampleForm, SubmissionForm
+from waves.admin.forms.services import SampleDepForm, InputInlineForm, InputSampleForm, SubmissionForm
 from waves.compat import CompactInline
 from waves.models.inputs import *
 from waves.models.submissions import *
@@ -63,27 +64,31 @@ class ExitCodeInline(admin.TabularInline):
 class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
     model = AParam
     form = InputInlineForm
-    fields = ['class_label', 'label', 'name', 'required', 'cmd_format', 'default', 'step', 'order']
-    readonly_fields = ['class_label', 'step']
+    fields = ['label', 'class_label', 'name', 'required', 'cmd_format', 'default', 'step', 'order']
+    readonly_fields = ['class_label', 'step', 'aparam_ptr']
     classes = ('grp-collapse', 'grp-closed', 'collapse', 'show-change-link-popup')
     can_delete = True
     extra = 0
     show_change_link = True
+    list_per_page = 5
 
     def class_label(self, obj):
-        # if obj.related_to:
-        #    return "-- %s (%s)" % (obj.class_label, obj.related_to.label)
-        return obj.class_label
+        if obj.related_to:
+            level = 0
+            init = obj.related_to
+            while init:
+                level += 1
+                init = init.related_to
+            return mark_safe("<span class='icon-arrow-right'></span>" * level +
+                             "%s (when %s:%s)" % (obj._meta.verbose_name, obj.related_to.name, obj.when_value))
+        return obj._meta.verbose_name
 
     class_label.short_description = "Input type"
 
-    """def has_add_permission(self, request):
-        return False
-    """
-
     def get_queryset(self, request):
         # TODO order fields according to related also (display first level items just followed by their dependents)
-        return AParam.objects.all()
+        # print AParam.objects.all().order_by('-required', 'related_to__id', 'order').query
+        return AParam.objects.all().order_by('-required', 'related_to__order', 'order', )
 
     def step(self, obj):
         if hasattr(obj, 'step'):
@@ -112,6 +117,7 @@ class FileInputSampleInline(CompactInline):
             kwargs['queryset'] = FileInput.objects.filter(submission=request.current_obj)
         return super(FileInputSampleInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
+
 @admin.register(RepeatedGroup)
 class RepeatGroupAdmin(WavesModelAdmin):
     # readonly_fields = ['submission']
@@ -138,7 +144,7 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
     form = SubmissionForm
     exclude = ['order']
     save_on_top = True
-    list_display = ['name', 'available_online', 'available_api', 'service_link', 'runner']
+    list_display = ['get_name', 'service_link', 'available_online', 'available_api', 'runner']
     readonly_fields = ['available_online', 'available_api']
     list_filter = (
         'service__name',
@@ -201,7 +207,11 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
         """ Back link to related service """
         return url_to_edit_object(obj.service)
 
-    service_link.short_description = "Related Service"
+    def get_name(self, obj):
+        return mark_safe("<span title='Edit submission'>%s (%s)</span>" % (obj.name, obj.service))
+
+    service_link.short_description = "Service"
+    get_name.short_description = "Name"
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = list(super(ServiceSubmissionAdmin, self).get_readonly_fields(request, obj))
