@@ -149,4 +149,3 @@ class ServiceMetaForm(forms.ModelForm):
             if self.instance.type in (self.instance.META_WEBSITE, self.instance.META_DOC, self.instance.META_DOWNLOAD):
                 raise e
 
-

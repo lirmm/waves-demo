@@ -29,10 +29,6 @@ class ServiceMetaInline(CompactInline):
     suit_classes = 'suit-tab suit-tab-metas'
     classes = ('grp-collapse grp-closed', 'collapse')
     fields = ['type', 'title', 'value', 'description']
-    # sortable_field_name = "order"
-    # sortable_options = []
-
-
 
 
 class ServiceSubmissionInline(admin.TabularInline):
@@ -60,8 +56,6 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
 
     class Media(WavesModelAdmin):
         js = ('waves/admin/js/services.js',)
-
-
 
     form = ServiceForm
     filter_horizontal = ['restricted_client']
@@ -93,7 +87,7 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
         self.inlines = _inlines
         if obj:
             self.inlines.append(ServiceSubmissionInline)
-            if obj.runner is not None:
+            if obj.runner is not None and obj.runner.adaptor_params.filter(prevent_override=False).count() > 0:
                 self.inlines.append(ServiceRunnerParamInLine)
         return self.inlines
 
@@ -151,7 +145,8 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
 @admin.register(ServiceCategory)
 class ServiceCategoryAdmin(MPTTModelAdmin):
     """ Model admin for ServiceCategory model objects"""
-    list_display = ('name', 'parent', 'api_name', 'short', 'ref')
+    list_display = ('name', 'parent', 'api_name', 'short', 'count_serv')
+    readonly_fields = ('count_serv', )
     sortable_field_name = 'order'
     mptt_indent_field = 'name'
     fieldsets = [
@@ -166,3 +161,9 @@ class ServiceCategoryAdmin(MPTTModelAdmin):
     def short(self, obj):
         """ Truncate short description in list display """
         return truncatechars(obj.short_description, 100)
+
+    def count_serv(self, obj):
+        return obj.category_tools.count()
+
+    short.short_description = "Description"
+    count_serv.short_description = "Services"

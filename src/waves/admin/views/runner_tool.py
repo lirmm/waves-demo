@@ -148,13 +148,14 @@ class RunnerTestConnectionView(JSONDetailView):
         context = {'connection_result': 'Failed :'}
         message = '<ul class="messagelist"><li class="{}">{}</li></ul>'
         try:
-            self.adaptor.connect()
-            context['connection_result'] = message.format('success',
-                                                          'Connexion successful to %s' %
-                                                          self.get_object_name())
+            if self.adaptor.test_connection():
+                context['connection_result'] = message.format('success',
+                                                              'Connexion successful to %s' %
+                                                              self.get_object_name())
+            else:
+                raise AdaptorConnectException('Unknown error')
         except AdaptorConnectException as e:
             context['connection_result'] = message.format('error', "Adaptor connection error %s" % e)
         except Exception as e:
             context['connection_result'] = message.format('error', "Unexpected error %s " % e)
         return context
-

@@ -23,7 +23,7 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^$', HomePage.as_view(), name='home'),
     url(r'^waves/', include('waves.urls.urls')),
-    url(r'^waves_api/', include('waves_api.urls', namespace='waves_api')),
+    url(r'^waves/api/', include('waves_api.urls', namespace='waves_api')),
     url(r'^accounts/', include('accounts.urls', namespace='account')),
     url(r'^profiles/', include('profiles.urls', namespace='profile')),
     url(r'^jet/', include('jet.urls', 'jet')),  # Django JET URLS

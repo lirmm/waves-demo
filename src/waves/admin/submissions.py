@@ -241,7 +241,7 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
 
         ]
         self.inlines = _inlines
-        if obj.runner is not None:
+        if obj.runner is not None and obj.runner.adaptor_params.filter(prevent_override=False).count() > 0:
             self.inlines.append(SubmissionRunnerParamInLine)
         return self.inlines
 
