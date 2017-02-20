@@ -20,7 +20,7 @@ from waves.exceptions import WavesException
 from waves.exceptions.jobs import JobInconsistentStateError, JobRunException, JobMissingMandatoryParam
 from waves.models.adaptors import DTOMixin
 from waves.models.base import TimeStamped, Slugged, Ordered, UrlMixin
-from waves.models.inputs import BaseParam, FileInputSample
+from waves.models.inputs import TextParam, FileInputSample
 from waves.models.submissions import Submission
 from waves.utils import normalize_value
 from waves.utils.jobs import default_run_details
@@ -333,7 +333,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: list of JobInput models instance
         :rtype: QuerySet
         """
-        return self.job_inputs.filter(type=BaseParam.TYPE_FILE)
+        return self.job_inputs.filter(type=TextParam.TYPE_FILE)
 
     @property
     def output_files_exists(self):
@@ -365,7 +365,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: list of `JobInput` models instance
         :rtype: QuerySet
         """
-        return self.job_inputs.exclude(type=BaseParam.TYPE_FILE)
+        return self.job_inputs.exclude(type=TextParam.TYPE_FILE)
 
     @property
     def working_dir(self):
@@ -707,7 +707,7 @@ class JobInputManager(models.Manager):
         :return: return the newly created JobInput
         :rtype: :class:`waves.models.jobs.JobInput`
         """
-        from waves.models.inputs import BaseParam, FileInput, FileInputSample
+        from waves.models.inputs import TextParam, FileInput, FileInputSample
         input_dict = dict(job=job,
                           order=order,
                           name=service_input.name,
@@ -722,7 +722,7 @@ class JobInputManager(models.Manager):
                 input_dict['value'] = normalize_value(input_dict['value'])
         except ObjectDoesNotExist:
             pass
-        if service_input.param_type == BaseParam.TYPE_FILE:
+        if service_input.param_type == TextParam.TYPE_FILE:
             if isinstance(submitted_input, TemporaryUploadedFile) or isinstance(submitted_input, InMemoryUploadedFile):
                 # classic uploaded file
                 filename = path.join(job.working_dir, submitted_input.name)
@@ -769,10 +769,10 @@ class JobInput(Ordered, Slugged):
                              help_text='Input value (filename, boolean value, int value etc.)')
     #: Each input may have its own identifier on remote adaptor
     remote_input_id = models.CharField('Remote input ID (on adaptor)', max_length=255, editable=False, null=True)
-    type = models.CharField('Param type', choices=BaseParam.IN_TYPE, max_length=50, editable=False, null=True)
+    type = models.CharField('Param type', choices=TextParam.IN_TYPE, max_length=50, editable=False, null=True)
     name = models.CharField('Param name', max_length=200, editable=False, null=True)
-    param_type = models.IntegerField('Parameter Type', choices=BaseParam.OPT_TYPE, editable=False,
-                                     default=BaseParam.OPT_TYPE_POSIX)
+    param_type = models.IntegerField('Parameter Type', choices=TextParam.OPT_TYPE, editable=False,
+                                     default=TextParam.OPT_TYPE_POSIX)
     label = models.CharField('Label', max_length=100, editable=False, null=True)
 
     def natural_key(self):
@@ -791,7 +791,7 @@ class JobInput(Ordered, Slugged):
         :return: path to file
         :rtype: unicode
         """
-        if self.type == BaseParam.TYPE_FILE:
+        if self.type == TextParam.TYPE_FILE:
             return os.path.join(self.job.working_dir, str(self.value))
         else:
             return ""
@@ -802,17 +802,17 @@ class JobInput(Ordered, Slugged):
 
         :return: determined from related SubmissionParam type
         """
-        if self.type == BaseParam.TYPE_FILE:
+        if self.type == TextParam.TYPE_FILE:
             return self.value
-        elif self.type == BaseParam.TYPE_BOOLEAN:
+        elif self.type == TextParam.TYPE_BOOLEAN:
             return bool(self.value)
-        elif self.type == BaseParam.TYPE_TEXT:
+        elif self.type == TextParam.TYPE_TEXT:
             return self.value
-        elif self.type == BaseParam.TYPE_INT:
+        elif self.type == TextParam.TYPE_INT:
             return int(self.value)
-        elif self.type == BaseParam.TYPE_DECIMAL:
+        elif self.type == TextParam.TYPE_DECIMAL:
             return float(self.value)
-        elif self.type == BaseParam.TYPE_LIST:
+        elif self.type == TextParam.TYPE_LIST:
             if self.value == 'None':
                 return False
             return self.value
@@ -836,39 +836,40 @@ class JobInput(Ordered, Slugged):
         :return: depends on parameter type
         """
         value = self.validated_value if forced_value is None else forced_value
-        if self.param_type == BaseParam.OPT_TYPE_VALUATED:
+        if self.param_type == TextParam.OPT_TYPE_VALUATED:
             return '--%s=%s' % (self.name, value)
-        elif self.param_type == BaseParam.OPT_TYPE_SIMPLE:
+        elif self.param_type == TextParam.OPT_TYPE_SIMPLE:
             if value:
                 return '-%s %s' % (self.name, value)
             else:
                 return ''
-        elif self.param_type == BaseParam.OPT_TYPE_OPTION:
+        elif self.param_type == TextParam.OPT_TYPE_OPTION:
             if value:
                 return '-%s' % self.name
             return ''
-        elif self.param_type == BaseParam.OPT_TYPE_NAMED_OPTION:
+        elif self.param_type == TextParam.OPT_TYPE_NAMED_OPTION:
             if value:
                 return '--%s' % self.name
             return ''
-        elif self.param_type == BaseParam.OPT_TYPE_POSIX:
+        elif self.param_type == TextParam.OPT_TYPE_POSIX:
             if value:
                 return '%s' % value
             else:
                 return ''
-        elif self.param_type == BaseParam.OPT_TYPE_NONE:
+        elif self.param_type == TextParam.OPT_TYPE_NONE:
             return ''
         # By default it's OPT_TYPE_SIMPLE way
         return '-%s %s' % (self.name, self.value)
 
     @property
     def get_label_for_choice(self):
+        # TODO check if still used !
         """ Try to get label for value issued from a service list input"""
-        from waves.models.inputs import BaseParam
+        from waves.models.inputs import AParam
         try:
-            srv_input = BaseParam.objects.get(submission=self.job.submission,
+            srv_input = AParam.objects.get(submission=self.job.submission,
                                               name=self.name)
-            return srv_input.get_choises(self.value)
+            return srv_input.get_choices(self.value)
         except ObjectDoesNotExist:
             pass
         return self.value
@@ -899,7 +900,7 @@ class JobOutputManager(models.Manager):
             srv_submission_output = service_output.from_input
             value_to_normalize = submitted_inputs.get(srv_submission_output.name,
                                                       srv_submission_output.default)
-            if srv_submission_output.param_type == BaseParam.TYPE_FILE:
+            if srv_submission_output.param_type == TextParam.TYPE_FILE:
                 value_to_normalize = value_to_normalize.name
             input_value = normalize_value(value_to_normalize)
             formatted_value = service_output.file_pattern % input_value

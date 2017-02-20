@@ -26,7 +26,7 @@ from waves.models.serializers.services import ServiceSerializer
 from .daemon.command import DaemonCommand
 
 __all__ = ['JobQueueCommand', 'PurgeDaemonCommand', 'InitDbCommand', 'CleanUpCommand', 'ImportCommand',
-           'DumpConfigCommand']
+           'DumpConfigCommand', 'CreateDefaultRunner']
 
 
 def boolean_input(question, default=None):
@@ -205,6 +205,7 @@ class InitDbCommand(BaseCommand):
                 self.stdout.write("... Done")
                 self.stdout.write("Your site configuration is ready, site is currently in 'maintenance' mode")
                 if boolean_input('Do you want to init your job runners ? [y/N]', False):
+                    # TODO call submcommand wavesadmin run_init instead (duplicated code)
                     self.stdout.write('Creating runners ...')
                     from waves.utils.runners import get_runners_list
                     for clazz in get_runners_list(flat=True):
@@ -221,6 +222,22 @@ class InitDbCommand(BaseCommand):
                     exc.__class__.__name__, str(exc)))
         else:
             action_cancelled(self.stdout)
+
+
+class CreateDefaultRunner(BaseCommand):
+
+    def handle(self, *args, **options):
+        try:
+            from waves.models import Runner
+            self.stdout.write('Creating runners ...')
+            from waves.utils.runners import get_runners_list
+            for clazz in get_runners_list(flat=True):
+                Runner.objects.create(name="%s Runner" % clazz[1], clazz=clazz[0])
+                self.stdout.write("Created 'Runner Adaptor: %s'" % clazz[1])
+            self.stdout.write("... Ready !")
+        except Exception as exc:
+            self.stderr.write('Error occurred, you database may be inconsistent ! \n %s - %s ' % (
+                exc.__class__.__name__, str(exc)))
 
 
 class CleanUpCommand(BaseCommand):

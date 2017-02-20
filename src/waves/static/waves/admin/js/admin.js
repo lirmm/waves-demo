@@ -122,18 +122,7 @@ var RelatedInlinePopup = function () {
             var rel = new RelatedInlinePopup();
             rel.popupInline(e.target.href);
         });
-        $('#test_connect').click(function (e) {
-            e.preventDefault();
-            $('#modal_alert .modal-content .modal-header > h4').html('Connection test');
-            $("#alert_modal_content > div.modal-body").html('<img src="/static/waves/img/progress-bar.gif">');
-            $('#modal_alert').modal('toggle');
-            console.log('test_connect clicked ' + $(this).attr('href'));
-            $.getJSON($(this).attr('href'), function (data) {
-                $('#modal_alert .modal-content .modal-body').html(data['connection_result']);
-            })
-        });
-
     });
 
-})(django.jQuery);
+})(django.jQuery || jQuery);
 

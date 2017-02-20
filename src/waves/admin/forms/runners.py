@@ -21,7 +21,8 @@ class RunnerForm(ModelForm):
 
     class Media:
         """ Medias """
-        js = ('waves/admin/js/runner.js',)
+        js = ('waves/admin/js/runner.js',
+              'waves/admin/js/connect.js')
 
     update_init_params = BooleanField(required=False, label='Reset related services')
 

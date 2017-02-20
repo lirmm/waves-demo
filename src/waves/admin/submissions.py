@@ -29,7 +29,7 @@ class ServiceOutputInline(CompactInline):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "from_input":
-            kwargs['queryset'] = BaseParam.objects.filter(submission=request.current_obj)
+            kwargs['queryset'] = AParam.objects.filter(submission=request.current_obj)
         return super(ServiceOutputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -47,7 +47,7 @@ class SampleDependentInputInline(CompactInline):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "related_to":
-            kwargs['queryset'] = BaseParam.objects.filter(submission=request.current_obj).not_instance_of(FileInput)
+            kwargs['queryset'] = AParam.objects.filter(submission=request.current_obj).not_instance_of(FileInput)
         return super(SampleDependentInputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -61,7 +61,7 @@ class ExitCodeInline(admin.TabularInline):
 
 
 class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
-    model = BaseParam
+    model = AParam
     form = InputInlineForm
     fields = ['class_label', 'label', 'name', 'required', 'cmd_format', 'default', 'step', 'order']
     readonly_fields = ['class_label', 'step']
@@ -83,82 +83,13 @@ class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
 
     def get_queryset(self, request):
         # TODO order fields according to related also (display first level items just followed by their dependents)
-        return BaseParam.objects.all()
+        return AParam.objects.all()
 
     def step(self, obj):
         if hasattr(obj, 'step'):
             return obj.step
         else:
             return 'N/A'
-
-
-class PolymorphicInputInlineChild(StackedPolymorphicInline.Child):
-    classes = ['collapse', ]
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == 'repeat_group':
-            kwargs['queryset'] = RepeatedGroup.objects.filter(submission=request.current_obj)
-        return super(PolymorphicInputInlineChild, self).formfield_for_foreignkey(db_field, request, **kwargs)
-
-    def get_fields(self, request, obj=None):
-        # TODO only use required fields
-        return super(PolymorphicInputInlineChild, self).get_fields(request, obj)
-
-
-class SubmitInputsInline(StackedPolymorphicInline):
-    class BooleanParamInline(PolymorphicInputInlineChild):
-        model = BooleanParam
-        exclude = ['order']
-        classes = ['collapse']
-
-    class ListParamInline(PolymorphicInputInlineChild):
-        model = ListParam
-        exclude = ['order']
-
-    class DecimalParamInline(PolymorphicInputInlineChild):
-        model = DecimalParam
-        exclude = ['order']
-
-    class IntegerParamInline(PolymorphicInputInlineChild):
-        model = IntegerParam
-        exclude = ['order']
-
-    class BaseParamInline(PolymorphicInputInlineChild):
-        model = BaseParam
-
-    class TextParamInline(PolymorphicInputInlineChild):
-        model = BaseParam
-        exclude = ['order']
-        form = TextParamForm
-
-    class FileInputInline(PolymorphicInputInlineChild):
-        model = FileInput
-        exclude = ['order']
-
-    model = BaseParam
-    exclude = ['order']
-    verbose_name = "Param"
-    verbose_name_plural = "Params"
-    classes = ['collapse', ]
-    show_change_link = True
-    show_full_result_count = True
-    child_inlines = (
-        TextParamInline,
-        FileInputInline,
-        BooleanParamInline,
-        ListParamInline,
-        IntegerParamInline,
-        DecimalParamInline,
-    )
-    list_display_links = None
-    list_display = ('name', '__class__', 'default')
-
-    def get_fields(self, request, obj=None):
-        # TODO only use required fields
-        return super(SubmitInputsInline, self).get_fields(request, obj)
-
-    def __init__(self, parent_model, admin_site):
-        super(SubmitInputsInline, self).__init__(parent_model, admin_site)
 
 
 class FileInputSampleInline(CompactInline):
@@ -221,15 +152,6 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
         }),
     ]
     show_full_result_count = True
-    tabs = [
-        ('FileInputs', (
-            SubmitInputsInline,
-        )),
-        ('Outputs', (
-            ServiceOutputInline,
-            ExitCodeInline
-        ))
-    ]
 
     def get_inlines(self, request, obj=None):
         _inlines = [

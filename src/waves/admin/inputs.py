@@ -15,9 +15,9 @@ import json
 __all__ = ['AllParamModelAdmin']
 
 
-class BaseParamAdmin(PolymorphicChildModelAdmin):
+class AParamAdmin(PolymorphicChildModelAdmin):
     """ Base Input admin """
-    base_model = BaseParam
+    base_model = AParam
     exclude = ['order', 'repeat_group']
 
     base_fieldsets = (
@@ -48,7 +48,7 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
         return {}  # super(AllParamModelAdmin, self).get_model_perms(request)
 
     def get_object(self, request, object_id, from_field=None):
-        self._object = super(BaseParamAdmin, self).get_object(request, object_id, from_field)
+        self._object = super(AParamAdmin, self).get_object(request, object_id, from_field)
         return self._object
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -57,24 +57,24 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
             if db_field.name == 'repeat_group':
                 kwargs['queryset'] = RepeatedGroup.objects.filter(submission=request.current_obj.submission)
             elif db_field.name == "related_to":
-                kwargs['queryset'] = BaseParam.objects.filter(submission=request.current_obj.submission).exclude(
+                kwargs['queryset'] = AParam.objects.filter(submission=request.current_obj.submission).exclude(
                     pk=request.current_obj.pk)
         if request.submission:
             if db_field.name == 'repeat_group':
                 kwargs['queryset'] = RepeatedGroup.objects.filter(submission=request.submission)
             elif db_field.name == "related_to":
                 pk = self._object.pk if self._object else -1
-                kwargs['queryset'] = BaseParam.objects.filter(submission=request.submission).not_instance_of(
+                kwargs['queryset'] = AParam.objects.filter(submission=request.submission).not_instance_of(
                     FileInput).exclude(pk=pk)
             elif db_field.name == 'submission':
                 kwargs['queryset'] = Submission.objects.filter(pk=request.submission.pk)
-        return super(BaseParamAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+        return super(AParamAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
         if request.submission:
             obj.submission = request.submission
         try:
-            super(BaseParamAdmin, self).save_model(request, obj, form, change)
+            super(AParamAdmin, self).save_model(request, obj, form, change)
         except BaseException:
             pass
         else:
@@ -82,7 +82,7 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         request.current_obj = obj
-        form = super(BaseParamAdmin, self).get_form(request, obj, **kwargs)
+        form = super(AParamAdmin, self).get_form(request, obj, **kwargs)
         form.base_fields['related_to'].widget.can_add_related = False
         form.base_fields['related_to'].widget.can_change_related = False
         form.base_fields['related_to'].widget.can_delete_related = False
@@ -102,17 +102,17 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
         else:
             request.submission = None
         # TODO add error message, can't edit this object outside popup
-        return super(BaseParamAdmin, self).add_view(request, form_url, extra_context)
+        return super(AParamAdmin, self).add_view(request, form_url, extra_context)
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        request.submission = BaseParam.objects.get(pk=object_id).submission
-        return super(BaseParamAdmin, self).change_view(request, object_id, form_url, extra_context)
+        request.submission = AParam.objects.get(pk=object_id).submission
+        return super(AParamAdmin, self).change_view(request, object_id, form_url, extra_context)
 
     def get_readonly_fields(self, request, obj=None):
-        return super(BaseParamAdmin, self).get_readonly_fields(request, obj)
+        return super(AParamAdmin, self).get_readonly_fields(request, obj)
 
     def get_prepopulated_fields(self, request, obj=None):
-        return super(BaseParamAdmin, self).get_prepopulated_fields(request, obj)
+        return super(AParamAdmin, self).get_prepopulated_fields(request, obj)
 
     def response_add(self, request, obj, post_url_continue=None):
         if IS_POPUP_VAR in request.POST:
@@ -129,7 +129,7 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
             return SimpleTemplateResponse('admin/waves/baseparam/popup_response.html', {
                 'popup_response_data': popup_response_data,
             })
-        return super(BaseParamAdmin, self).response_add(request, obj, post_url_continue)
+        return super(AParamAdmin, self).response_add(request, obj, post_url_continue)
 
     def response_change(self, request, obj):
         if IS_POPUP_VAR in request.POST:
@@ -147,11 +147,11 @@ class BaseParamAdmin(PolymorphicChildModelAdmin):
             return SimpleTemplateResponse('admin/waves/baseparam/popup_response.html', {
                 'popup_response_data': popup_response_data,
             })
-        return super(BaseParamAdmin, self).response_change(request, obj)
+        return super(AParamAdmin, self).response_change(request, obj)
 
 
 @admin.register(FileInput)
-class FileInputAdmin(BaseParamAdmin):
+class FileInputAdmin(AParamAdmin):
     """ FileInput subclass Admin """
     base_model = FileInput
     show_in_index = False
@@ -159,20 +159,20 @@ class FileInputAdmin(BaseParamAdmin):
 
 
 @admin.register(TextParam)
-class TextParamAdmin(BaseParamAdmin):
+class TextParamAdmin(AParamAdmin):
     """ TextParam subclass Admin """
     base_model = TextParam
 
 
 @admin.register(BooleanParam)
-class BooleanParamAdmin(BaseParamAdmin):
+class BooleanParamAdmin(AParamAdmin):
     """ BooleanParam subclass Admin """
     base_model = BooleanParam
     extra_fieldset_title = 'Boolean params'
 
 
 @admin.register(ListParam)
-class ListParamAdmin(BaseParamAdmin):
+class ListParamAdmin(AParamAdmin):
     """ ListParam subclass Admin """
     base_model = ListParam
     show_in_index = False
@@ -180,26 +180,25 @@ class ListParamAdmin(BaseParamAdmin):
     extra_fieldset_title = 'List params'
 
 
-
 @admin.register(IntegerParam)
-class IntegerParamAdmin(BaseParamAdmin):
+class IntegerParamAdmin(AParamAdmin):
     """ IntegerParam subclass Admin """
     base_model = IntegerParam
     extra_fieldset_title = 'Integer range'
 
 
 @admin.register(DecimalParam)
-class DecimalParamAdmin(BaseParamAdmin):
+class DecimalParamAdmin(AParamAdmin):
     """ DecimalParam subclass Admin """
 
     base_model = DecimalParam
     extra_fieldset_title = 'Decimal range'
 
 
-@admin.register(BaseParam)
-class AllParamModelAdmin(PolymorphicParentModelAdmin, admin.ModelAdmin):
+@admin.register(AParam)
+class AllParamModelAdmin(PolymorphicParentModelAdmin):
     """ Main polymorphic params Admin """
-    base_model = BaseParam
+    base_model = AParam
     child_models = (FileInput, BooleanParam, DecimalParam, IntegerParam, ListParam, TextParam)
     list_filter = (PolymorphicChildModelFilter, 'submission', 'submission__service')
     list_display = ('get_class_label', 'name', 'submission')

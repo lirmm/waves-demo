@@ -4,11 +4,11 @@ from __future__ import unicode_literals
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from rest_framework import serializers as rest_serializer
-from waves_api.serializers.services import ServiceSerializer as BaseServiceSerializer, \
+from waves_api.v1.serializers.services import ServiceSerializer as BaseServiceSerializer, \
     ServiceSubmissionSerializer as BaseServiceSubmissionSerializer
 
 import waves.settings
-from waves_api.serializers.dynamic import DynamicFieldsModelSerializer
+from waves_api.v1.serializers.dynamic import DynamicFieldsModelSerializer
 from waves.models import *
 from waves.models.serializers.base import RelatedSerializerMixin
 from waves.models.serializers.categories import CategorySerializer
@@ -37,7 +37,7 @@ class ServiceInputSerializer(DynamicFieldsModelSerializer, RelatedSerializerMixi
     """ Serialize a basic service input with its dependents parameters"""
 
     class Meta:
-        model = BaseParam
+        model = TextParam
         fields = ('order', 'label', 'name', 'default', 'type', 'param_type', 'format',
                   'mandatory', 'multiple', 'display', 'description', 'short_description',
                   'dependents_inputs')
@@ -46,7 +46,7 @@ class ServiceInputSerializer(DynamicFieldsModelSerializer, RelatedSerializerMixi
 
     def create(self, validated_data):
         dependent_inputs = validated_data.pop('dependents_inputs')
-        srv_input = BaseParam.objects.create(**validated_data)
+        srv_input = TextParam.objects.create(**validated_data)
         self.create_related(foreign={'related_to': srv_input},
                             serializer=RelatedInputSerializer,
                             datas=dependent_inputs)

@@ -127,7 +127,7 @@ class SubmissionOutput(TimeStamped, ):
     label = models.CharField('Label', max_length=255, null=True, blank=False, help_text="Label")
     name = models.CharField('File name', max_length=200, null=False, blank=True, help_text='Output file name')
     submission = models.ForeignKey(Submission, related_name='outputs', on_delete=models.CASCADE)
-    from_input = models.ForeignKey('BaseParam', null=True, blank=True, related_name='to_outputs',
+    from_input = models.ForeignKey('TextParam', null=True, blank=True, related_name='to_outputs',
                                    help_text='Valuated with input')
     ext = models.CharField('File extension', max_length=5, blank=True, null=True)
     optional = models.BooleanField('May be empty ?', default=False)

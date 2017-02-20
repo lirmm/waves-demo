@@ -55,7 +55,8 @@ class ServiceAdmin(ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixi
     """ Service model objects Admin"""
 
     class Media(WavesModelAdmin):
-        js = ('waves/admin/js/services.js',)
+        js = ('waves/admin/js/services.js',
+              'waves/admin/js/connect.js')
 
     form = ServiceForm
     filter_horizontal = ['restricted_client']

@@ -10,12 +10,13 @@ DUMP = 'dump'
 LOAD = 'load'
 QUEUE = 'queue'
 PURGE = 'purge'
+RUNNERS = 'run_init'
 
 
 class Command(SubcommandDispatcher):
     """ WAVES dedicated administration Django subcommand line interface (./manage.py) """
     help = 'WAVES Administration dedicated commands: type manage.py wavesadmin <sub_command> --help for sub-commands help'
-    command_list = (CLEAN, CONFIG, INIT, LOAD, QUEUE, PURGE)
+    command_list = (CLEAN, CONFIG, INIT, LOAD, QUEUE, PURGE, RUNNERS)
 
     def _subcommand(self, name):
         if name == CLEAN:
@@ -30,6 +31,8 @@ class Command(SubcommandDispatcher):
             return DumpConfigCommand()
         elif name == PURGE:
             return PurgeDaemonCommand()
+        elif name == RUNNERS:
+            return CreateDefaultRunner()
         else:
             return None
 

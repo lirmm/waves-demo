@@ -11,7 +11,7 @@ from rest_framework.test import APITestCase
 import waves.models.services
 import waves.settings
 from waves.models import Job
-from waves.models.inputs import BaseParam
+from waves.models.inputs import TextParam
 from waves.tests.base import WavesBaseTestCase
 
 logger = logging.getLogger(__name__)
@@ -113,18 +113,18 @@ class JobTests(WavesAPITestCase):
             submissions = tool_data.get('submissions')
             for submission in submissions:
                 for job_input in submission['inputs']:
-                    if job_input['type'] == BaseParam.TYPE_FILE:
+                    if job_input['type'] == TextParam.TYPE_FILE:
                         i += 1
                         input_data = _create_test_file(job_input['name'], i)
                         # input_datas[job_input['name']] = input_data.name
                         logger.debug('file input %s', input_data)
-                    elif job_input['type'] == BaseParam.TYPE_INTEGER:
+                    elif job_input['type'] == TextParam.TYPE_INTEGER:
                         input_data = int(random.randint(0, 199))
                         logger.debug('number input%s', input_data)
-                    elif job_input['type'] == BaseParam.TYPE_FLOAT:
+                    elif job_input['type'] == TextParam.TYPE_FLOAT:
                         input_data = int(random.randint(0, 199))
                         logger.debug('number input%s', input_data)
-                    elif job_input['type'] == BaseParam.TYPE_BOOLEAN:
+                    elif job_input['type'] == TextParam.TYPE_BOOLEAN:
                         input_data = random.randrange(100) < 50
                     elif job_input['type'] == 'text':
                         input_data = ''.join(random.sample(string.letters, 15))

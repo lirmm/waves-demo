@@ -113,10 +113,6 @@ class TextParamForm(forms.ModelForm):
         model = TextParam
         exclude = ['order']
 
-    def save(self, commit=True):
-        self.instance.__class__ = TextParam
-        return super(TextParamForm, self).save(commit)
-
 
 class InputSampleForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):

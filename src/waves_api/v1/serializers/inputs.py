@@ -5,11 +5,11 @@ from .dynamic import DynamicFieldsModelSerializer
 from waves.models.inputs import *
 
 
-class BaseParamSerializer(serializers.ModelSerializer):
+class AParamSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ['label', 'name', 'default', 'type', 'mandatory', 'short_description', 'multiple', 'edam_formats',
                   'edam_datas']
-        model = BaseParam
+        model = AParam
 
     mandatory = serializers.NullBooleanField(source='required')
     short_description = serializers.CharField(source='help_text')
@@ -17,32 +17,32 @@ class BaseParamSerializer(serializers.ModelSerializer):
     edam_datas = CommaSeparatedListField()
 
 
-class IntegerSerializer(BaseParamSerializer):
-    class Meta(BaseParamSerializer.Meta):
+class IntegerSerializer(AParamSerializer):
+    class Meta(AParamSerializer.Meta):
         model = IntegerParam
 
 
-class BooleanSerializer(BaseParamSerializer):
-    class Meta(BaseParamSerializer.Meta):
+class BooleanSerializer(AParamSerializer):
+    class Meta(AParamSerializer.Meta):
         model = BooleanParam
-        fields = BaseParamSerializer.Meta.fields + ['true_value', 'false_value']
+        fields = AParamSerializer.Meta.fields + ['true_value', 'false_value']
 
 
-class DecimalSerializer(BaseParamSerializer):
+class DecimalSerializer(AParamSerializer):
     class Meta:
         exclude = ('polymorphic_ctype',)
         model = DecimalParam
 
 
-class FileSerializer(BaseParamSerializer):
-    class Meta(BaseParamSerializer.Meta):
+class FileSerializer(AParamSerializer):
+    class Meta(AParamSerializer.Meta):
         model = FileInput
 
 
-class ListSerialzer(BaseParamSerializer):
-    class Meta(BaseParamSerializer.Meta):
+class ListSerialzer(AParamSerializer):
+    class Meta(AParamSerializer.Meta):
         model = ListParam
-        fields = BaseParamSerializer.Meta.fields + ['values_list']
+        fields = AParamSerializer.Meta.fields + ['values_list']
 
     values_list = ListElementField(source='list_elements')
 
@@ -51,8 +51,8 @@ class InputSerializer(DynamicFieldsModelSerializer):
     """ Serialize JobInput """
 
     class Meta:
-        model = BaseParam
-        queryset = BaseParam.objects.all()
+        model = TextParam
+        queryset = TextParam.objects.all()
         exclude = ('polymorphic_ctype',)
         fields = ('label', 'name', 'default', 'type', 'cmd_format', 'mandatory', 'help_text', 'multiple')
         extra_kwargs = {
@@ -77,7 +77,7 @@ class InputSerializer(DynamicFieldsModelSerializer):
         elif isinstance(obj, DecimalParam):
             return DecimalSerializer(obj, context=self.context).to_representation(obj)
         else:
-            return BaseParamSerializer(obj, context=self.context).to_representation(obj)
+            return AParamSerializer(obj, context=self.context).to_representation(obj)
 
         """
         if instance.dependents_inputs.count() > 0:
@@ -105,7 +105,7 @@ class ConditionalInputSerializer(serializers.ModelSerializer):
     """ Serialize inputs if it's a conditional one """
 
     class Meta:
-        model = BaseParam
+        model = TextParam
         fields = ('label', 'name', 'default', 'type', 'cmd_format', 'mandatory', 'short_description', 'description',
                   'multiple', 'when')
 
