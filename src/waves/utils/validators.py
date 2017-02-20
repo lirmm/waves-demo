@@ -128,3 +128,9 @@ def validate_list_param(value):
     pattern = re.compile("^([\w ()+.&-_;:,]+)(\|)([\w+;,:\"'])+$")
     if not all([pattern.match(val) for val in value.splitlines()]):
         raise ValidationError('Wrong format for list elements : spaces allowed for labels, not for values')
+
+def validate_name_param(value):
+    import re
+    pattern = re.compile('^[A-Za-z]+[A-Za-z0-9]*$')
+    if not pattern.match(value):
+        raise ValidationError('Wrong parameter name : one word, no space, char followed by char or number')
