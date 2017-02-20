@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 from rest_framework import serializers
-from waves_api.serializers.services import ServiceSerializer
+from .services import ServiceSerializer
 from waves.models import ServiceCategory, Service
 
 

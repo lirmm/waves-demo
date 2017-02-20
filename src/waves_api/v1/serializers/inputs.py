@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import empty
-from waves_api.serializers.fields import CommaSeparatedListField, ListElementField, InputFormatField
-from waves_api.serializers.dynamic import DynamicFieldsModelSerializer
+from .fields import CommaSeparatedListField, ListElementField, InputFormatField
+from .dynamic import DynamicFieldsModelSerializer
 from waves.models.inputs import *
 
 

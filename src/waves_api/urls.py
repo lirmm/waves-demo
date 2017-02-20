@@ -5,7 +5,7 @@ from rest_framework import routers
 from rest_framework.renderers import CoreJSONRenderer
 from rest_framework.schemas import get_schema_view
 from rest_framework_swagger.views import get_swagger_view
-from waves_api.views import services, categories, jobs
+from waves_api.v1.views import services, categories, jobs
 from waves.views.jobs import JobOutputView
 
 # API router setup

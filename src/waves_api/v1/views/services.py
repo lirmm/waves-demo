@@ -8,14 +8,14 @@ from rest_framework import viewsets, generics
 from rest_framework.decorators import detail_route
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
-from waves_api.serializers.services import ServiceSerializer, ServiceFormSerializer, ServiceMetaSerializer, \
+from ..serializers.services import ServiceSerializer, ServiceFormSerializer, ServiceMetaSerializer, \
     ServiceSubmissionSerializer
-from waves_api.serializers.jobs import JobSerializer
+from ..serializers.jobs import JobSerializer
 from waves.exceptions.jobs import JobException
 # from waves.managers.servicejobs import ServiceJobManager
 from waves.models import Service, Job
 from waves.models.submissions import Submission
-from waves_api.views.base import WavesBaseView
+from ..views.base import WavesBaseView
 
 
 class ServiceViewSet(viewsets.ReadOnlyModelViewSet, WavesBaseView):

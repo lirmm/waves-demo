@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-from dynamic import DynamicFieldsModelSerializer
+from .dynamic import DynamicFieldsModelSerializer
 from waves.models import Service, JobInput, Job, JobOutput
 from waves.models.history import JobHistory
 

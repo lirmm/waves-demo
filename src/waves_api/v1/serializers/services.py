@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse as reverse
 
 import waves.settings
-from waves_api.serializers.inputs import InputSerializer
+from .inputs import InputSerializer
 from dynamic import DynamicFieldsModelSerializer
 from waves.models.metas import ServiceMeta
 from waves.models.services import *
