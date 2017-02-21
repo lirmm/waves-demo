@@ -125,20 +125,17 @@ class SubmissionOutput(TimeStamped, ):
         ordering = ['-created']
 
     label = models.CharField('Label', max_length=255, null=True, blank=False, help_text="Label")
-    name = models.CharField('File name', max_length=200, null=False, blank=True, help_text='Output file name')
     submission = models.ForeignKey(Submission, related_name='outputs', on_delete=models.CASCADE)
-    from_input = models.ForeignKey('TextParam', null=True, blank=True, related_name='to_outputs',
+    from_input = models.ForeignKey('BaseParam', null=True, blank=True, related_name='to_outputs',
                                    help_text='Valuated with input')
-    ext = models.CharField('File extension', max_length=5, blank=True, null=True)
-    optional = models.BooleanField('May be empty ?', default=False)
-    file_pattern = models.CharField('File name / pattern', max_length=100, blank=True, default="%s",
-                                    help_text="Pattern used to match input value (%s to retrieve value from input)")
+    file_pattern = models.CharField('File name or name pattern', max_length=100, blank=False,
+                                    help_text="Pattern is used to match input value (%s to retrieve value from input)")
     edam_format = models.CharField('Edam format', max_length=255, null=True, blank=True, help_text="Edam format")
     edam_data = models.CharField('Edam data', max_length=255, null=True, blank=True, help_text="Edam data")
     help_text = models.TextField('Content description', null=True, blank=True, )
 
     def __str__(self):
-        return '%s' % self.label
+        return '%s (%s)' % (self.label, self.ext)
 
     def clean(self):
         cleaned_data = super(SubmissionOutput, self).clean()
@@ -152,6 +149,24 @@ class SubmissionOutput(TimeStamped, ):
         if not self.name and self.from_input is not None:
             self.name = self.from_input.default
         super(SubmissionOutput, self).save(*args, **kwargs)
+
+
+    @property
+    def name(self):
+        return self.file_pattern
+
+    @property
+    def ext(self):
+        """ return expected file output extension """
+        file_name = "fake.txt"
+        if '%s' in self.name and self.from_input.default:
+            file_name = self.name % self.from_input.default
+        elif '%s' not in self.name and self.name:
+            file_name = self.name
+        if '.' in file_name:
+            return '.' + file_name.rsplit('.', 1)[1]
+        else:
+            return '.txt'
 
 
 class SubmissionExitCode(models.Model):

@@ -51,8 +51,8 @@ class InputSerializer(DynamicFieldsModelSerializer):
     """ Serialize JobInput """
 
     class Meta:
-        model = TextParam
-        queryset = TextParam.objects.all()
+        model = BaseParam
+        queryset = BaseParam.objects.all()
         exclude = ('polymorphic_ctype',)
         fields = ('label', 'name', 'default', 'type', 'cmd_format', 'mandatory', 'help_text', 'multiple')
         extra_kwargs = {
@@ -105,7 +105,7 @@ class ConditionalInputSerializer(serializers.ModelSerializer):
     """ Serialize inputs if it's a conditional one """
 
     class Meta:
-        model = TextParam
+        model = BaseParam
         fields = ('label', 'name', 'default', 'type', 'cmd_format', 'mandatory', 'short_description', 'description',
                   'multiple', 'when')
 

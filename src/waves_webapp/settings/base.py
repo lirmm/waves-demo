@@ -60,9 +60,11 @@ STATICFILES_DIRS = (
 )
 # Application definition
 INSTALLED_APPS = (
-    'polymorphic',
     'jet.dashboard',
     'jet',
+    'polymorphic_tree',
+    'polymorphic',
+    'mptt',
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'django.contrib.admin',
@@ -76,7 +78,6 @@ INSTALLED_APPS = (
     'waves_api',
     'profiles',
     'accounts',
-    'mptt',
     'django_countries',
     'crispy_forms',
     'easy_thumbnails',

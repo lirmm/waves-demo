@@ -24,7 +24,7 @@ class ServiceOutputInline(CompactInline):
     sortable_field_name = "order"
     sortable_options = []
     fk_name = 'submission'
-    fields = ['label', 'ext', 'name', 'optional', 'from_input', 'file_pattern', 'edam_format', 'edam_data']
+    fields = ['label', 'file_pattern', 'from_input', 'edam_format', 'edam_data']
     verbose_name_plural = "Outputs"
     classes = ('grp-collapse', 'grp-closed', 'collapse')
 
@@ -47,7 +47,7 @@ class SampleDependentInputInline(CompactInline):
         return False
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "related_to":
+        if db_field.name == "parent":
             kwargs['queryset'] = AParam.objects.filter(submission=request.current_obj).not_instance_of(FileInput)
         return super(SampleDependentInputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -80,15 +80,14 @@ class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
                 level += 1
                 init = init.related_to
             return mark_safe("<span class='icon-arrow-right'></span>" * level +
-                             "%s (when %s:%s)" % (obj._meta.verbose_name, obj.related_to.name, obj.when_value))
+                             "%s (%s:%s)" % (obj._meta.verbose_name, obj.related_to.name, obj.when_value))
         return obj._meta.verbose_name
 
     class_label.short_description = "Input type"
 
     def get_queryset(self, request):
         # TODO order fields according to related also (display first level items just followed by their dependents)
-        # print AParam.objects.all().order_by('-required', 'related_to__id', 'order').query
-        return AParam.objects.all().order_by('-required', 'related_to__order', 'order', )
+        return super(OrganizeInputInline, self).get_queryset(request).order_by('-required', 'tree_id', 'lft', 'order')
 
     def step(self, obj):
         if hasattr(obj, 'step'):
@@ -153,7 +152,7 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
     search_fields = ('service__name', 'label', 'override_runner__name', 'service__runner__name')
     fieldsets = [
         ('General', {
-            'fields': ['name', 'api_name', 'availability', 'service', 'runner', ],
+            'fields': ['service', 'name', 'availability', 'api_name', 'runner', ],
             'classes': ['collapse']
         }),
     ]

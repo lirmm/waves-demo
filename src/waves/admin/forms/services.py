@@ -106,6 +106,9 @@ class InputInlineForm(forms.ModelForm):
             self.fields['default'].required = False
         elif isinstance(self.instance, FileInput):
             self.fields['default'].widget.attrs['style'] = 'display:none'
+        if self.instance.parent is not None:
+            self.fields['required'].widget.attrs['disabled'] = 'disabled'
+            self.fields['required'].widget.attrs['title'] = 'Inputs with dependencies must be optional'
 
 
 class TextParamForm(forms.ModelForm):

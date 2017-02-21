@@ -11,11 +11,12 @@ from django.template.response import SimpleTemplateResponse
 from django.contrib import messages
 from django.utils import six
 import json
+from polymorphic_tree.admin import PolymorphicMPTTParentModelAdmin, PolymorphicMPTTChildModelAdmin
 
 __all__ = ['AllParamModelAdmin']
 
 
-class AParamAdmin(PolymorphicChildModelAdmin):
+class AParamAdmin(PolymorphicMPTTChildModelAdmin):
     """ Base Input admin """
     base_model = AParam
     exclude = ['order', 'repeat_group']
@@ -30,7 +31,7 @@ class AParamAdmin(PolymorphicChildModelAdmin):
             'classes': ['collapse']
         }),
         ('Dependencies', {
-            'fields': ('related_to', 'when_value'),
+            'fields': ('parent', 'when_value'),
             'classes': ['collapse']
         }),
     )
@@ -56,13 +57,13 @@ class AParamAdmin(PolymorphicChildModelAdmin):
         if request.current_obj:
             if db_field.name == 'repeat_group':
                 kwargs['queryset'] = RepeatedGroup.objects.filter(submission=request.current_obj.submission)
-            elif db_field.name == "related_to":
+            elif db_field.name == "parent":
                 kwargs['queryset'] = AParam.objects.filter(submission=request.current_obj.submission).exclude(
                     pk=request.current_obj.pk)
         if request.submission:
             if db_field.name == 'repeat_group':
                 kwargs['queryset'] = RepeatedGroup.objects.filter(submission=request.submission)
-            elif db_field.name == "related_to":
+            elif db_field.name == "parent":
                 pk = self._object.pk if self._object else -1
                 kwargs['queryset'] = AParam.objects.filter(submission=request.submission).not_instance_of(
                     FileInput).exclude(pk=pk)
@@ -83,9 +84,9 @@ class AParamAdmin(PolymorphicChildModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         request.current_obj = obj
         form = super(AParamAdmin, self).get_form(request, obj, **kwargs)
-        form.base_fields['related_to'].widget.can_add_related = False
-        form.base_fields['related_to'].widget.can_change_related = False
-        form.base_fields['related_to'].widget.can_delete_related = False
+        form.base_fields['parent'].widget.can_add_related = False
+        form.base_fields['parent'].widget.can_change_related = False
+        form.base_fields['parent'].widget.can_delete_related = False
         # TODO reactivate repeat_group management from inside inputs
         # form.base_fields['repeat_group'].widget.can_add_related = False
         # form.base_fields['repeat_group'].widget.can_change_related = False
@@ -160,7 +161,7 @@ class FileInputAdmin(AParamAdmin):
 
 @admin.register(TextParam)
 class TextParamAdmin(AParamAdmin):
-    """ TextParam subclass Admin """
+    """ BaseParam subclass Admin """
     base_model = TextParam
 
 
@@ -196,12 +197,24 @@ class DecimalParamAdmin(AParamAdmin):
 
 
 @admin.register(AParam)
-class AllParamModelAdmin(PolymorphicParentModelAdmin):
+class AllParamModelAdmin(PolymorphicMPTTParentModelAdmin):
     """ Main polymorphic params Admin """
     base_model = AParam
-    child_models = (FileInput, BooleanParam, DecimalParam, IntegerParam, ListParam, TextParam)
+    child_models = (
+        (FileInput, FileInputAdmin),
+        (BooleanParam, BooleanParamAdmin),
+        (DecimalParam, DecimalParamAdmin),
+        (IntegerParam, IntegerParamAdmin),
+        (ListParam, ListParamAdmin),
+        (TextParam, TextParamAdmin)
+    )
     list_filter = (PolymorphicChildModelFilter, 'submission', 'submission__service')
     list_display = ('get_class_label', 'name', 'submission')
+
+    class Media:
+        css = {
+            'all': ('admin/treenode/admin.css',)
+        }
 
     def get_model_perms(self, request):
         return {}  # super(AllParamModelAdmin, self).get_model_perms(request)

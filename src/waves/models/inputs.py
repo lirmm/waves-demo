@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from polymorphic.models import PolymorphicModel
+from polymorphic_tree.models import PolymorphicMPTTModel, PolymorphicTreeForeignKey
 
 from waves.models.adaptors import DTOMixin
 from waves.models.base import Ordered
@@ -12,8 +12,8 @@ from waves.models.submissions import Submission
 from waves.utils.storage import waves_storage, file_sample_directory
 from waves.utils.validators import validate_list_comma, validate_list_param
 
-__all__ = ['AParam', 'TextParam', 'RepeatedGroup', 'FileInput', 'BooleanParam', 'DecimalParam', 'NumberParam',
-           'ListParam', 'SampleDepParam', 'FileInputSample', 'TextParam', 'RelatedParam', 'IntegerParam']
+__all__ = ['AParam', 'BaseParam', 'RepeatedGroup', 'FileInput', 'BooleanParam', 'DecimalParam', 'NumberParam',
+           'ListParam', 'SampleDepParam', 'FileInputSample', 'BaseParam', 'RelatedParam', 'IntegerParam', 'TextParam']
 
 
 class RepeatedGroup(DTOMixin, Ordered):
@@ -34,7 +34,7 @@ class RepeatedGroup(DTOMixin, Ordered):
         return '[%s]' % (self.name)
 
 
-class AParam(PolymorphicModel):
+class AParam(PolymorphicMPTTModel):
     class Meta:
         ordering = ['order']
         verbose_name_plural = "Submission Params"
@@ -69,11 +69,13 @@ class AParam(PolymorphicModel):
         (TYPE_TEXT, 'Text')
     ]
 
-    order = models.PositiveIntegerField(default=0)
+    # objects = PolymorphicManager()
+    order = models.PositiveIntegerField('Ordering in forms', default=0)
     #: Input Label
     label = models.CharField('Label', max_length=100, blank=False, null=False, help_text='Input displayed label')
     #: Input submission name
     name = models.CharField('Name', max_length=50, blank=False, null=False, help_text='Input runner\'s job param name')
+    multiple = models.BooleanField('Multiple', default=False, help_text="Can hold multiple values")
     help_text = models.TextField('Help Text', null=True, blank=True)
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, null=False, related_name='submission_inputs')
     required = models.NullBooleanField('Required', choices={(False, "Optional"), (True, "Required"),
@@ -87,24 +89,28 @@ class AParam(PolymorphicModel):
     # Submission params dependency
     when_value = models.CharField('When value', max_length=255, null=True, blank=True,
                                   help_text='Input is treated only for this parent value')
-    related_to = models.ForeignKey('self', related_name="dependents_inputs", on_delete=models.CASCADE,
-                                   null=True, blank=True, help_text='Input is associated to')
+    parent = PolymorphicTreeForeignKey('self', related_name="dependents_inputs", on_delete=models.CASCADE,
+                                       null=True, blank=True, help_text='Input is associated to')
 
     def save(self, *args, **kwargs):
-        if self.related_to is not None and self.required is True:
-            self.required = None
+        if self.parent is not None and self.required is True:
+            self.required = False
         super(AParam, self).save(*args, **kwargs)
 
+    @property
+    def related_to(self):
+        return self.parent
 
-class TextParam(AParam):
+
+class BaseParam(AParam):
     """ Base class for services submission params """
+
     class Meta:
-        verbose_name = "Text param"
-        verbose_name_plural = "Text params"
+        verbose_name = "Base param"
+        verbose_name_plural = "Base params"
 
     # TODO validate name with no space
     #: Input default value
-    multiple = models.BooleanField('Multiple', default=False, help_text="Can hold multiple values")
     edam_formats = models.CharField('Edam format(s)', max_length=255, null=True, blank=True,
                                     help_text="comma separated list of supported edam format")
     edam_datas = models.CharField('Edam data(s)', max_length=255, null=True, blank=True,
@@ -122,18 +128,18 @@ class TextParam(AParam):
 
     @property
     def param_type(self):
-        return TextParam.TYPE_TEXT
+        return BaseParam.TYPE_TEXT
 
     def save(self, *args, **kwargs):
         if self.repeat_group is not None:
             self.multiple = True
-        super(TextParam, self).save(*args, **kwargs)
+        super(BaseParam, self).save(*args, **kwargs)
 
     def clean(self):
         if self.required is None and not self.default:
             # param is mandatory
             raise ValidationError('Not displayed parameters must have a default value %s:%s' % (self.name, self.label))
-        if self.related_to and not self.when_value:
+        if self.parent and not self.when_value:
             raise ValidationError({'when_value': 'If you set a dependency, you must set this value'})
         if (isinstance(self.related_to, BooleanParam) or isinstance(self.related_to, ListParam)) \
                 and self.when_value not in self.related_to.values:
@@ -151,8 +157,18 @@ class TextParam(AParam):
         return self.required == True
 
 
-class BooleanParam(TextParam):
+class TextParam(BaseParam):
+    class Meta:
+        proxy = True
+
+    class Meta:
+        verbose_name = "Text input"
+        verbose_name_plural = "Text input"
+
+
+class BooleanParam(BaseParam):
     """ Boolean param (usually check box for a submission option)"""
+
     class Meta:
         verbose_name = "Boolean input"
         verbose_name_plural = "Boolean input"
@@ -163,7 +179,7 @@ class BooleanParam(TextParam):
 
     @property
     def param_type(self):
-        return TextParam.TYPE_BOOLEAN
+        return BaseParam.TYPE_BOOLEAN
 
     @property
     def choices(self):
@@ -183,10 +199,11 @@ class BooleanParam(TextParam):
         return [self.true_value, self.false_value]
 
 
-class NumberParam(TextParam):
+class NumberParam(object):
     """ Abstract Base class for 'number' validation """
 
     class Meta:
+        proxy = True
         abstract = True
 
     def clean(self):
@@ -198,12 +215,14 @@ class NumberParam(TextParam):
                 raise ValidationError({'min_val': 'Minimum value can\'t equal maximum value'})
 
 
-class DecimalParam(NumberParam):
+class DecimalParam(NumberParam, BaseParam):
     """ Number param (decimal or float) """
+
     # TODO add specific validator
     class Meta:
         verbose_name = "Decimal"
         verbose_name_plural = "Decimal"
+
     class_label = "Decimal"
     min_val = models.DecimalField('Min value', decimal_places=3, max_digits=50, default=None, null=True, blank=True,
                                   help_text="Leave blank if no min")
@@ -213,10 +232,10 @@ class DecimalParam(NumberParam):
 
     @property
     def param_type(self):
-        return TextParam.TYPE_DECIMAL
+        return BaseParam.TYPE_DECIMAL
 
 
-class IntegerParam(NumberParam):
+class IntegerParam(NumberParam, BaseParam):
     """ Integer param """
 
     # TODO add specific validator
@@ -233,10 +252,10 @@ class IntegerParam(NumberParam):
 
     @property
     def param_type(self):
-        return TextParam.TYPE_INT
+        return BaseParam.TYPE_INT
 
 
-class RelatedParam(AParam):
+class RelatedParam(BaseParam):
     """ Proxy class for related params (dependents on other params) """
 
     class Meta:
@@ -245,7 +264,7 @@ class RelatedParam(AParam):
         verbose_name_plural = "Related params"
 
 
-class ListParam(TextParam):
+class ListParam(BaseParam):
     """ Param to be issued from a list of values (select / radio / check) """
 
     class Meta:
@@ -292,7 +311,7 @@ class ListParam(TextParam):
 
     @property
     def param_type(self):
-        return TextParam.TYPE_LIST
+        return BaseParam.TYPE_LIST
 
     @property
     def labels(self):
@@ -303,7 +322,7 @@ class ListParam(TextParam):
         return [line.split('|')[1] for line in self.list_elements.splitlines()]
 
 
-class FileInput(TextParam):
+class FileInput(BaseParam):
     """ Submission file inputs """
 
     class Meta:
@@ -326,7 +345,7 @@ class FileInput(TextParam):
 
     @property
     def param_type(self):
-        return TextParam.TYPE_FILE
+        return BaseParam.TYPE_FILE
 
 
 class FileInputSample(AParam):
@@ -340,10 +359,10 @@ class FileInputSample(AParam):
     file = models.FileField('Sample file', upload_to=file_sample_directory, storage=waves_storage, blank=False,
                             null=False)
     file_input = models.ForeignKey(FileInput, on_delete=models.CASCADE, related_name='input_samples')
-    dependent_params = models.ManyToManyField(TextParam, blank=True, through='SampleDepParam')
+    dependent_params = models.ManyToManyField(BaseParam, blank=True, through='SampleDepParam')
 
     def __str__(self):
-        return self.name + "/" + self.label
+        return '%s (%s)' % (self.label, self.name)
 
     def save_base(self, *args, **kwargs):
         self.name = self.file_input.name
@@ -352,7 +371,7 @@ class FileInputSample(AParam):
 
     @property
     def param_type(self):
-        return TextParam.TYPE_FILE
+        return BaseParam.TYPE_FILE
 
 
 class SampleDepParam(models.Model):
@@ -365,7 +384,7 @@ class SampleDepParam(models.Model):
 
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='sample_dependent_params')
     sample = models.ForeignKey(FileInputSample, on_delete=models.CASCADE, related_name='dependent_inputs')
-    related_to = models.ForeignKey(TextParam, on_delete=models.CASCADE, related_name='related_samples')
+    related_to = models.ForeignKey(BaseParam, on_delete=models.CASCADE, related_name='related_samples')
     set_default = models.CharField('Set value to ', max_length=200, null=False, blank=False)
 
     def clean(self):

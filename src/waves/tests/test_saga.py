@@ -15,7 +15,7 @@ from waves_adaptors.core.saga_adaptors.cluster import SshUserPassClusterAdaptor
 from waves_adaptors.core.saga_adaptors.shell.local import LocalShellAdaptor
 from waves_adaptors.core.saga_adaptors.shell.ssh import SshUserPassShellAdaptor
 # from waves.managers.servicejobs import ServiceJobManager
-from waves.models import JobInput, JobOutput, Service, Job, TextParam
+from waves.models import JobInput, JobOutput, Service, Job, BaseParam
 from waves.tests.test_runner import TestJobRunner, sample_job
 from waves.tests.utils import get_sample_dir
 
@@ -42,10 +42,10 @@ class ShellRunnerTestCase(TestJobRunner):
         self.current_job = sample_job(self.service)
         self.current_job.adaptor.command = os.path.join(test_util.get_sample_dir(), 'services/hello_world.sh')
         self.current_job.job_inputs.add(
-            JobInput.objects.create(job=self.current_job, value='Test Input 1', type=TextParam.TYPE_TEXT,
+            JobInput.objects.create(job=self.current_job, value='Test Input 1', type=BaseParam.TYPE_TEXT,
                                     srv_input=None))
         self.current_job.job_inputs.add(
-            JobInput.objects.create(job=self.current_job, value='Test Input 2', type=TextParam.TYPE_TEXT,
+            JobInput.objects.create(job=self.current_job, value='Test Input 2', type=BaseParam.TYPE_TEXT,
                                     srv_input=None))
         self.current_job.job_outputs.add(JobOutput.objects.create(job=self.current_job, value='hello_world_output.txt',
                                                                   srv_output=None))
