@@ -37,7 +37,8 @@ def allow_display_online(file_name):
     """
     display_file_online = 1024 * 1024 * 1
     try:
-        return os.path.getsize(file_name) <= display_file_online
+        size = os.path.getsize(file_name)
+        return display_file_online >= size > 0
     except os.error:
         return False
     return False

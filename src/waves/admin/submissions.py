@@ -73,21 +73,22 @@ class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
     list_per_page = 5
 
     def class_label(self, obj):
-        if obj.related_to:
+        if obj.parent:
             level = 0
-            init = obj.related_to
+            init = obj.parent
             while init:
                 level += 1
-                init = init.related_to
+                init = init.parent
             return mark_safe("<span class='icon-arrow-right'></span>" * level +
-                             "%s (%s:%s)" % (obj._meta.verbose_name, obj.related_to.name, obj.when_value))
+                             "%s (%s:%s)" % (obj._meta.verbose_name, obj.parent.name, obj.when_value))
         return obj._meta.verbose_name
 
     class_label.short_description = "Input type"
 
     def get_queryset(self, request):
         # TODO order fields according to related also (display first level items just followed by their dependents)
-        return super(OrganizeInputInline, self).get_queryset(request).order_by('-required', 'tree_id', 'lft', 'order')
+        return super(OrganizeInputInline, self).get_queryset(request).not_instance_of(FileInputSample).order_by(
+            '-required', 'tree_id', 'lft', 'order')
 
     def step(self, obj):
         if hasattr(obj, 'step'):

@@ -124,25 +124,27 @@
                                          class="panel-collapse {% if not job.results_available %}collapse{% endif %}">
                                         <div class="panel-body">
                                             <dl>
-                                                {% for job_output in job.output_files_exists %}
+                                                {% for job_output in job.job_outputs.all %}
                                                     <dt>{{ job_output.name }}
                                                     </dt>
                                                     <dd class="input_output">
-                                                        {% if  job_output.srv_output.short_description %}
-                                                            (
-                                                            {{ job_output.srv_output.short_description|stringformat:"(%s)<br/>" }}
-                                                            )<br/>
-                                                        {% endif %}
                                                         {{ job_output.value|default:'Not available' }}
                                                         <div class="pull-right">
+                                                        {%  if job_output.available %}
                                                             {% if job_output.display_online %}
                                                                 <a href="{% url 'waves:job_output' job_output.slug %}">See
                                                                     online</a>
                                                                 &nbsp;|&nbsp;
                                                             {% endif %}
+
                                                             <a href="{{ job_output.download_url }}">Download
                                                                 File
                                                                 <i class="glyphicon glyphicon-download-alt"></i></a>
+                                                            {% else %}
+                                                            <p class="text-muted">
+                                                                <em>Not available for now</em>
+                                                            </p>
+                                                        {% endif %}
                                                         </div>
                                                         {% if not forloop.last %}
                                                             <hr/>
@@ -164,8 +166,10 @@
                                     <div id="panel-runon-{{ job.id }}" class="panel-collapse collapse">
                                         <div class="panel-body">
                                             <p>Your job is currently planned to run on
-                                                our {{ job.submission.get_runner.name }}</p>
-                                            <p>{{ job.submission.get_runner.description|safe }}</p>
+                                                "{{ job.submission.get_runner.name }}"</p>
+                                            <blockquote>
+                                                <small>{{ job.submission.get_runner.description|safe }}</small>
+                                            </blockquote>
                                         </div>
                                     </div>
                                 </div>

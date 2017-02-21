@@ -53,13 +53,13 @@ class FormHelper(BaseFormHelper, BaseHelper):
             id=field_id,
             title=service_input.help_text,
         )
-        if service_input.related_to is not None:
-            field_id += '_' + service_input.related_to.name + '_' + service_input.when_value
-            dependent_on = service_input.related_to.name
+        if service_input.parent is not None:
+            field_id += '_' + service_input.parent.name + '_' + service_input.when_value
+            dependent_on = service_input.parent.name
             dependent_4_value = service_input.when_value
-            field_dict.update(dict(dependent_on=service_input.related_to.name,
+            field_dict.update(dict(dependent_on=service_input.parent.name,
                                    dependent_4_value=service_input.when_value))
-            when_value = form.data.get(service_input.related_to.name, service_input.related_to.default)
+            when_value = form.data.get(service_input.parent.name, service_input.parent.default)
             if service_input.when_value != when_value:
                 wrapper_class = "hid_dep_parameter"
                 field_dict.update(dict(wrapper_class="hid_dep_parameter", disabled="disabled"))

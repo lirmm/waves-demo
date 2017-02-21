@@ -22,7 +22,7 @@ class OutputSerializer(DynamicFieldsModelSerializer):
 
     class Meta:
         model = SubmissionOutput
-        fields = ('name', 'ext', 'optional', 'file_pattern')
+        fields = ('name', 'file_pattern')
 
 
 class MetaSerializer(serializers.ModelSerializer):

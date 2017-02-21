@@ -141,10 +141,10 @@ class BaseParam(AParam):
             raise ValidationError('Not displayed parameters must have a default value %s:%s' % (self.name, self.label))
         if self.parent and not self.when_value:
             raise ValidationError({'when_value': 'If you set a dependency, you must set this value'})
-        if (isinstance(self.related_to, BooleanParam) or isinstance(self.related_to, ListParam)) \
-                and self.when_value not in self.related_to.values:
+        if (isinstance(self.parent, BooleanParam) or isinstance(self.parent, ListParam)) \
+                and self.when_value not in self.parent.values:
             raise ValidationError({'when_value': 'This value is not possible for related input [%s]' % ', '.join(
-                self.related_to.values)})
+                self.parent.values)})
         for dep in self.dependents_inputs.all():
             if (isinstance(self, ListParam) or isinstance(self, BooleanParam)) and dep.when_value not in self.values:
                 raise ValidationError('Input "%s" depends on missing value: \'%s\'  ' % (dep.label, dep.when_value))

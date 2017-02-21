@@ -47,7 +47,7 @@ class ServiceInputSerializer(DynamicFieldsModelSerializer, RelatedSerializerMixi
     def create(self, validated_data):
         dependent_inputs = validated_data.pop('dependents_inputs')
         srv_input = BaseParam.objects.create(**validated_data)
-        self.create_related(foreign={'related_to': srv_input},
+        self.create_related(foreign={'parent': srv_input},
                             serializer=RelatedInputSerializer,
                             datas=dependent_inputs)
         return srv_input
@@ -92,7 +92,7 @@ class SubmissionOutputSerializer(rest_serializer.ModelSerializer):
 class ServiceOutputSerializer(rest_serializer.ModelSerializer):
     class Meta:
         model = SubmissionOutput
-        fields = ('order', 'name', 'from_input', 'ext', 'optional', 'description',
+        fields = ('order', 'name', 'from_input', 'description',
                   'short_description', 'from_input', 'file_pattern')
 
     def create(self, validated_data):

@@ -21,7 +21,7 @@ from waves.exceptions.jobs import JobInconsistentStateError, JobRunException, Jo
 from waves.models.adaptors import DTOMixin
 from waves.models.base import TimeStamped, Slugged, Ordered, UrlMixin
 from waves.models.inputs import BaseParam, FileInputSample
-from waves.models.submissions import Submission
+from waves.models.submissions import Submission, SubmissionOutput
 from waves.utils import normalize_value
 from waves.utils.jobs import default_run_details
 from waves.utils.storage import allow_display_online
@@ -169,6 +169,9 @@ class JobManager(models.Manager):
         for service_output in submission.outputs.all():
             job.job_outputs.add(
                 JobOutput.objects.create_from_submission(job, service_output, submitted_inputs))
+        # initiate default outputs
+        job.create_default_outputs()
+
         logger.debug('Job %s created with %i inputs', job.slug, job.job_inputs.count())
         if logger.isEnabledFor(logging.DEBUG):
             # LOG full command line
@@ -176,7 +179,7 @@ class JobManager(models.Manager):
             logger.debug('%s', job.command_line)
             logger.debug('Expected outputs will be:')
             for j_output in job.job_outputs.all():
-                logger.debug('Output %s: %s (maybe_empty: %s)', j_output.name, j_output.value, j_output.optional)
+                logger.debug('Output %s: %s', j_output.name, j_output.value)
         return job
 
 
@@ -344,8 +347,9 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         all_files = self.job_outputs.all()
         existing = []
         for _file in all_files:
-            if os.path.isfile(_file.file_path) and os.path.getsize(_file.file_path) > 0:
-                existing.append(_file)
+            existing.append(
+                dict(file=_file,
+                     available=os.path.isfile(_file.file_path) and os.path.getsize(_file.file_path) > 0))
         return existing
 
     @property
@@ -445,7 +449,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
                     if nb_sent > 0:
                         self.job_history.create(message='Sent notification email', status=self.status, is_admin=True)
                     else:
-                        self.job_history.create(message='Mail not sent',status=self.status, job=self, is_admin=True)
+                        self.job_history.create(message='Mail not sent', status=self.status, job=self, is_admin=True)
                     self.save()
                     return nb_sent
                 except Exception as e:
@@ -509,7 +513,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         """ Create standard default outputs for job (stdout and stderr)
         :return: None
         """
-        output_dict = dict(job=self, value=self.stdout, optional=False, _name='Standard output', type="txt")
+        output_dict = dict(job=self, value=self.stdout, _name='Standard output', type=".txt")
         out = JobOutput.objects.create(**output_dict)
         self.job_outputs.add(out)
         open(join(self.working_dir, self.stdout), 'a').close()
@@ -868,7 +872,7 @@ class JobInput(Ordered, Slugged):
         from waves.models.inputs import AParam
         try:
             srv_input = AParam.objects.get(submission=self.job.submission,
-                                              name=self.name)
+                                           name=self.name)
             return srv_input.get_choices(self.value)
         except ObjectDoesNotExist:
             pass
@@ -892,21 +896,21 @@ class JobOutputManager(models.Manager):
         return super(JobOutputManager, self).create(**kwargs)
 
     @transaction.atomic
-    def create_from_submission(self, job, service_output, submitted_inputs):
-        output_dict = dict(job=job, _name=service_output.name, type=service_output.ext,
-                           optional=service_output.optional)
-        if service_output.from_input:
+    def create_from_submission(self, job, submission_output, submitted_inputs):
+        assert(isinstance(submission_output, SubmissionOutput))
+        output_dict = dict(job=job, _name=submission_output.label, type=submission_output.ext)
+        if submission_output.from_input:
             # issued from a input value
-            srv_submission_output = service_output.from_input
+            srv_submission_output = submission_output.from_input
             value_to_normalize = submitted_inputs.get(srv_submission_output.name,
                                                       srv_submission_output.default)
             if srv_submission_output.param_type == BaseParam.TYPE_FILE:
                 value_to_normalize = value_to_normalize.name
             input_value = normalize_value(value_to_normalize)
-            formatted_value = service_output.file_pattern % input_value
+            formatted_value = submission_output.file_pattern % input_value
             output_dict.update(dict(value=formatted_value))
         else:
-            output_dict.update(dict(value=service_output.file_pattern))
+            output_dict.update(dict(value=submission_output.file_pattern))
         return self.create(**output_dict)
 
 
@@ -925,8 +929,6 @@ class JobOutput(Ordered, Slugged, UrlMixin):
     # srv_output = models.ForeignKey('SubmissionOutput', null=True, on_delete=models.CASCADE)
     #: Job Output value
     value = models.CharField('Output value', max_length=200, null=True, blank=True, default="")
-    #: Set whether this output may be empty (no output from Service)
-    optional = models.BooleanField('MayBe empty', default=True)
     #: Each output may have its own identifier on remote adaptor
     remote_output_id = models.CharField('Remote output ID (on adaptor)', max_length=255, editable=False, null=True)
     _name = models.CharField('Name', max_length=200, null=False, blank=False, help_text='Output displayed name')
@@ -948,6 +950,10 @@ class JobOutput(Ordered, Slugged, UrlMixin):
         return '%s - %s' % (self.name, self.value)
 
     @property
+    def file_name(self):
+        return self.value
+
+    @property
     def file_path(self):
         return os.path.join(self.job.working_dir, self.value)
 
@@ -964,8 +970,16 @@ class JobOutput(Ordered, Slugged, UrlMixin):
 
     @property
     def download_url(self):
-        return "%s?export=1" % self.get_absolute_url()
+        if self.available:
+            return "%s?export=1" % self.get_absolute_url()
+        else:
+            return "#"
 
     @property
     def display_online(self):
         return allow_display_online(self.file_path)
+
+    @property
+    def available(self):
+        return os.path.isfile(self.file_path) and os.path.getsize(self.file_path) > 0
+

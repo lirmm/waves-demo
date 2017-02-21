@@ -34,8 +34,6 @@ def job_post_save_handler(sender, instance, created, **kwargs):
             instance.save_status_history(instance.status)
             # create job working dirs locally
             instance.make_job_dirs()
-            # initiate default outputs
-            instance.create_default_outputs()
 
 
 @receiver(post_delete, sender=Job)

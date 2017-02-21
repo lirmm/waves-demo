@@ -60,9 +60,5 @@ class JobInputView(JobFileView):
     model = JobInput
 
     @property
-    def file_name(self):
-        return self.object.label
-
-    @property
     def file_description(self):
         return ""
