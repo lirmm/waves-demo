@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
-from waves_webapp.settings.base import *
 import logging.config
+
+from waves_webapp.settings.base import *
 DEBUG = True
 DEBUG404 = True
 # DEBUG
@@ -32,6 +33,13 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
+        'waves_daemon': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': join(LOG_ROOT, 'wavesdaemon.log'),
+            'formatter': 'verbose',
+            'backupCount': 10,
+            'maxBytes': 1024 * 1024 * 5
+        },
     },
     'loggers': {
         'django': {
@@ -43,9 +51,20 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
         },
-        'waves_adaptors.core': {
-            'handlers': ['console'],
+        'waves.management': {
+            'handlers': ['waves_daemon'],
             'level': 'DEBUG',
+            'propagate': False,
+        },
+        'waves_adaptors': {
+            'handlers': ['waves_daemon'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'waves_addons': {
+            'handlers': ['waves_daemon'],
+            'level': 'DEBUG',
+            'propagate': False,
         }
     }
 }

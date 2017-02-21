@@ -1,9 +1,11 @@
 from __future__ import unicode_literals
 
-from waves_adaptors.core.base import JobAdaptor, AdaptorImporter
-from django.test import TestCase
 import inspect
 import logging
+
+from django.test import TestCase
+from waves_adaptors.core.base import JobAdaptor, AdaptorImporter
+
 from waves.loader import load_core, load_extra_adaptors, load_extra_importers
 
 logger = logging.getLogger(__name__)

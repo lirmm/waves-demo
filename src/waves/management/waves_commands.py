@@ -3,16 +3,18 @@ from __future__ import unicode_literals
 
 import datetime
 import json
+import logging
 import os
 import sys
 import time
 import uuid
 from itertools import chain
 from shutil import rmtree
-from django.core.management import call_command
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import BaseCommand, CommandError
+from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.db import (
     DEFAULT_DB_ALIAS, transaction,
@@ -27,6 +29,8 @@ from .daemon.command import DaemonCommand
 
 __all__ = ['JobQueueCommand', 'PurgeDaemonCommand', 'InitDbCommand', 'CleanUpCommand', 'ImportCommand',
            'DumpConfigCommand', 'CreateDefaultRunner']
+
+logger = logging.getLogger(__name__)
 
 
 def boolean_input(question, default=None):
@@ -108,8 +112,6 @@ class JobQueueCommand(DaemonCommand):
 
         :return: Nothing
         """
-        import logging
-        logger = logging.getLogger(__name__)
         jobs = Job.objects.prefetch_related('job_inputs'). \
             prefetch_related('job_outputs').filter(status__lt=Job.JOB_TERMINATED)
         if jobs.count() > 0:
@@ -142,9 +144,8 @@ class JobQueueCommand(DaemonCommand):
                     job.error(message='Job error (too many errors) \n%s' % e.message)
             finally:
                 logger.info("Queue job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
-                # job.save()
                 job.check_send_mail()
-                # runner.disconnect()
+                runner.disconnect()
         logger.debug('Go to sleep for %i seconds' % self.SLEEP_TIME)
         time.sleep(self.SLEEP_TIME)
 
@@ -158,16 +159,15 @@ class PurgeDaemonCommand(DaemonCommand):
     log_level = 'WARNING'
 
     def loop_callback(self):
-        import logging
-        logging.info("Purge job launched at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
+        logger.info("Purge job launched at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
         date_anonymous = datetime.date.today() - datetime.timedelta(waves.settings.WAVES_KEEP_ANONYMOUS_JOBS)
         date_registered = datetime.date.today() - datetime.timedelta(waves.settings.WAVES_KEEP_REGISTERED_JOBS)
         anonymous = Job.objects.filter(client__isnull=True, updated__lt=date_anonymous)
         registered = Job.objects.filter(client__isnull=False, updated__lt=date_registered)
         for job in list(chain(*[anonymous, registered])):
-            logging.info('Deleting job %s created on %s', job.slug, job.created)
+            logger.info('Deleting job %s created on %s', job.slug, job.created)
             job.delete()
-        logging.info("Purge job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
+        logger.info("Purge job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
 
 
 class InitDbCommand(BaseCommand):

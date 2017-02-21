@@ -50,12 +50,11 @@ class JobOutputInline(TabularInline):
 class JobHistoryInline(TabularInline):
     """ Job's history events """
     model = JobHistory
-    classes = ('collapse',)
     verbose_name = 'Job History'
     verbose_name_plural = "Job history events"
 
-    readonly_fields = ('timestamp', 'status', 'message', 'is_admin')
-    fields = ('status', 'timestamp', 'message', 'is_admin')
+    readonly_fields = ('timestamp', 'status', 'message')
+    fields = ('status', 'timestamp', 'message')
     can_delete = False
     extra = 0
 
@@ -109,16 +108,16 @@ class JobAdmin(WavesModelAdmin):
     list_per_page = 30
     search_fields = ('client__email', 'submission__service_name', 'get_run_on')
     readonly_fields = ('title', 'slug', 'email_to', 'status', 'created', 'updated', 'get_run_on',
-                       'command_line', 'submission_name', 'nb_retry')
+                       'command_line', 'submission_name', 'nb_retry', 'connexion_string', 'get_command_line')
 
     fieldsets = [
         ('Main', {'classes': ('collapse', 'suit-tab', 'suit-tab-general',),
                   'fields': ['title', 'slug', 'email_to', 'status', 'created', 'updated',
-                             'get_run_on', 'command_line', 'client']
+                             'client']
                   }
          ),
         ('Submission', {
-            'fields': ['submission_name', 'nb_retry']
+            'fields': ['submission_name', 'get_run_on', 'connexion_string', 'get_command_line', 'nb_retry']
         }
          )
     ]
@@ -206,11 +205,19 @@ class JobAdmin(WavesModelAdmin):
         read_only_fields = list(super(JobAdmin, self).get_readonly_fields(request, obj))
         return read_only_fields
 
+    def connexion_string(self, obj):
+        return obj.adaptor.connexion_string()
+
+    def get_command_line(self, obj):
+        return obj.adaptor.command + obj.command_line
+
+    connexion_string.short_description = "Remote connexion string"
+    get_command_line.short_description = "Remote command line"
     get_colored_status.short_description = 'Status'
     get_run_on.short_description = 'Run on'
     get_client.short_description = 'Email'
-    get_slug.short_description = 'identifier'
-    get_slug.admin_order_field = 'slug'
+    get_slug.short_description = 'Identifier'
+    get_slug.admin_order_field = 'Slug'
     get_colored_status.admin_order_field = 'status'
     get_run_on.admin_order_field = 'service__runner'
     get_client.admin_order_field = 'client'

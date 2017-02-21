@@ -124,8 +124,6 @@ class JobManager(models.Manager):
         :return: a newly create Job instance
         :rtype: :class:`waves.models.jobs.Job`
         """
-        import logging
-        logger = logging.getLogger(__name__)
         try:
             job_title = submitted_inputs.pop('title')
         except KeyError:
@@ -336,7 +334,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: list of JobInput models instance
         :rtype: QuerySet
         """
-        return self.job_inputs.filter(type=BaseParam.TYPE_FILE)
+        return self.job_inputs.filter(type=BaseParam.TYPE_FILE).exclude(param_type=BaseParam.OPT_TYPE_NONE)
 
     @property
     def output_files_exists(self):
@@ -369,7 +367,8 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: list of `JobInput` models instance
         :rtype: QuerySet
         """
-        return self.job_inputs.exclude(type=BaseParam.TYPE_FILE)
+        print self.job_inputs.exclude(type=BaseParam.TYPE_FILE).exclude(param_type=BaseParam.OPT_TYPE_NONE).query
+        return self.job_inputs.exclude(type=BaseParam.TYPE_FILE).exclude(param_type=BaseParam.OPT_TYPE_NONE)
 
     @property
     def working_dir(self):
@@ -504,7 +503,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
                          service_input.name, service_input.default)
             self.job_inputs.add(JobInput.objects.create(job=self, name=service_input.name,
                                                         type=service_input.type,
-                                                        param_type=service_input.param_type,
+                                                        param_type=BaseParam.OPT_TYPE_NONE,
                                                         label=service_input.label,
                                                         order=service_input.order,
                                                         value=service_input.default))
@@ -543,7 +542,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     def error(self, message):
         """ Set job Status to ERROR, save error reason in JobAdminHistory, save job"""
         self.status = self.JOB_ERROR
-        self.job_history.create(message='[Error]%s' % message, status=self.status, is_admin=True)
+        self.job_history.create(message='[Error]%s' % message, status=self.status)
         self.save()
 
     def fatal_error(self, exception):
@@ -682,8 +681,9 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         self.message = "Job marked for re-run"
         self.nb_retry = 0
         self.status = self.JOB_CREATED
+        self.job_history.update(is_admin=True)
+        self.save_status_history()
         for job_out in self.job_outputs.all():
-            print "delete file", job_out.file_path
             open(job_out.file_path, 'w').close()
         self.save()
 
@@ -775,8 +775,8 @@ class JobInput(Ordered, Slugged):
     remote_input_id = models.CharField('Remote input ID (on adaptor)', max_length=255, editable=False, null=True)
     type = models.CharField('Param type', choices=BaseParam.IN_TYPE, max_length=50, editable=False, null=True)
     name = models.CharField('Param name', max_length=200, editable=False, null=True)
-    param_type = models.IntegerField('Parameter Type', choices=BaseParam.OPT_TYPE, editable=False,
-                                     default=BaseParam.OPT_TYPE_POSIX)
+    param_type = models.IntegerField('Parameter Type', choices=BaseParam.OPT_TYPE, editable=False, null=True,
+                                     default=BaseParam.OPT_TYPE_NONE)
     label = models.CharField('Label', max_length=100, editable=False, null=True)
 
     def natural_key(self):
@@ -897,7 +897,7 @@ class JobOutputManager(models.Manager):
 
     @transaction.atomic
     def create_from_submission(self, job, submission_output, submitted_inputs):
-        assert(isinstance(submission_output, SubmissionOutput))
+        assert (isinstance(submission_output, SubmissionOutput))
         output_dict = dict(job=job, _name=submission_output.label, type=submission_output.ext)
         if submission_output.from_input:
             # issued from a input value
@@ -982,4 +982,3 @@ class JobOutput(Ordered, Slugged, UrlMixin):
     @property
     def available(self):
         return os.path.isfile(self.file_path) and os.path.getsize(self.file_path) > 0
-

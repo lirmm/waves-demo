@@ -5,10 +5,10 @@ import logging
 import unittest
 
 from django.conf import settings
+from waves_adaptors.exceptions.adaptors import AdaptorConnectException
 
 import utils.galaxy_util as test_util
 import waves.settings
-from waves_adaptors.exceptions.adaptors import AdaptorConnectException
 try:
     __import__('waves_addons.adaptors.api.galaxy')
     from waves_addons.adaptors.api.galaxy import GalaxyJobAdaptor, GalaxyWorkFlowAdaptor

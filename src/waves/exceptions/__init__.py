@@ -3,21 +3,23 @@
 from __future__ import unicode_literals
 
 import sys
+import logging
 
 __all__ = ['WavesException', 'RunnerException', 'RunnerNotInitialized', 'RunnerNotReady', 'RunnerConnectionError',
            'RunnerUnexpectedInitParam']
+
 if sys.version_info[0] < 3:
     __all__ = [n.encode('ascii') for n in __all__]
 
+logger = logging.getLogger(__name__)
 
 class WavesException(Exception):
     """
     Waves base exception class, exception log
     """
     def __init__(self, *args, **kwargs):
-        import logging
         super(WavesException, self).__init__(*args, **kwargs)
-        logging.exception('[%s] - %s', self.__class__.__name__, self.message)
+        logger.exception('[%s] - %s', self.__class__.__name__, self.message)
         # TODO find new cool method to print stack trace related to THIS exception in logs
 
 

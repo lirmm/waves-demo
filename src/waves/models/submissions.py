@@ -126,7 +126,7 @@ class SubmissionOutput(TimeStamped, ):
 
     label = models.CharField('Label', max_length=255, null=True, blank=False, help_text="Label")
     submission = models.ForeignKey(Submission, related_name='outputs', on_delete=models.CASCADE)
-    from_input = models.ForeignKey('BaseParam', null=True, blank=True, related_name='to_outputs',
+    from_input = models.ForeignKey('AParam', null=True, blank=True, related_name='to_outputs',
                                    help_text='Valuated with input')
     file_pattern = models.CharField('File name or name pattern', max_length=100, blank=False,
                                     help_text="Pattern is used to match input value (%s to retrieve value from input)")
@@ -146,8 +146,6 @@ class SubmissionOutput(TimeStamped, ):
         return cleaned_data
 
     def save(self, *args, **kwargs):
-        if not self.name and self.from_input is not None:
-            self.name = self.from_input.default
         super(SubmissionOutput, self).save(*args, **kwargs)
 
 

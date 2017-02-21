@@ -60,17 +60,17 @@ STATICFILES_DIRS = (
 )
 # Application definition
 INSTALLED_APPS = (
-    'jet.dashboard',
-    'jet',
     'polymorphic_tree',
     'polymorphic',
     'mptt',
+    'django.contrib.staticfiles',
     'django.contrib.contenttypes',
     'django.contrib.auth',
+    'jet.dashboard',
+    'jet',
     'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'authtools',
     'adminsortable2',
     # WAVES required dependencies

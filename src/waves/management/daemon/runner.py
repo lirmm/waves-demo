@@ -6,11 +6,15 @@ Extended DaemonRunner class (from python-daemon):
 
 """
 from __future__ import unicode_literals
-import lockfile
+
+import logging
 import signal
 
+import lockfile
 from daemon.runner import DaemonRunner as BaseDaemonRunner, DaemonRunnerStopFailureError, \
     DaemonRunnerStartFailureError, emit_message
+
+logger = logging.getLogger(__name__)
 
 
 class DaemonRunner(BaseDaemonRunner):
@@ -30,32 +34,31 @@ class DaemonRunner(BaseDaemonRunner):
             import psutil
             running = psutil.pid_exists(self.pidfile.read_pid())
         except (OSError, TypeError):
+            emit_message(self.STATUS_UNKNOWN)
             return self.STATUS_UNKNOWN
         else:
             if running:
+                emit_message(self.STATUS_RUNNING)
                 return self.STATUS_RUNNING
             else:
+                emit_message(self.STATUS_STOPPED)
                 return self.STATUS_STOPPED
 
     def _start(self):
         try:
             super(DaemonRunner, self)._start()
         except DaemonRunnerStartFailureError as exc:
-            if self._verbose:
-                emit_message(self.START_ERROR % exc.message)
+            emit_message(self.START_ERROR % exc.message)
         except lockfile.LockTimeout as exc:
-            if self._verbose:
-                emit_message(self.LOCK_ERROR)
+            emit_message(self.LOCK_ERROR)
 
     def _stop(self):
         try:
             pid = self.pidfile.read_pid()
             super(DaemonRunner, self)._stop()
-            if self._verbose:
-                emit_message("Process %i stopped " % pid)
+            emit_message("Process %i stopped " % pid)
         except DaemonRunnerStopFailureError as exc:
-            if self._verbose:
-                emit_message(self.STOP_ERROR % exc.message)
+            emit_message(self.STOP_ERROR % exc.message)
 
     def _restart(self):
         super(DaemonRunner, self)._restart()
@@ -91,7 +94,6 @@ class DaemonRunner(BaseDaemonRunner):
               started.
 
             """
-        import logging
         super(DaemonRunner, self).__init__(app)
         # preserve file related loggers handlers
         for handler in logging.getLogger().handlers:

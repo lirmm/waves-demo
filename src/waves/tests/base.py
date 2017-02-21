@@ -2,13 +2,20 @@
 Base Waves Unit Test class
 """
 from __future__ import unicode_literals
+
 import json
+import logging
 import os
 from os.path import dirname
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import override_settings, TestCase
+
+from waves.models import Service
 from waves.tests.utils import get_sample_dir
+
+logger = logging.getLogger(__name__)
 
 
 @override_settings(
@@ -26,9 +33,6 @@ class WavesBaseTestCase(TestCase):
         Test specific phyisic_ist job submission
         Returns:
         """
-        import logging
-        from waves.models import Service
-        logger = logging.getLogger(__name__)
         jobs_submitted_input = []
         try:
             self.service = Service.objects.get(api_name=api_name)

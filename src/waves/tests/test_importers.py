@@ -3,12 +3,12 @@ from __future__ import unicode_literals
 
 import logging
 
+from waves_adaptors import working_dir, sample_file
+from waves_adaptors.core.api.galaxy import GalaxyJobAdaptor
 from waves_adaptors.importers.dto import Job, JobInput, JobOutput
 
 import waves.tests.utils.galaxy_util as test_util
-from waves_adaptors import working_dir, sample_file
 from waves import tests as settings
-from waves_adaptors.core.api.galaxy import GalaxyJobAdaptor
 from waves.tests import TestBaseJobRunner
 
 logger = logging.getLogger(__name__)

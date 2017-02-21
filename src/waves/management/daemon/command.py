@@ -5,6 +5,8 @@ from django.core.management.base import BaseCommand, CommandError
 from waves.management.daemon.runner import DaemonRunner
 import logging
 
+logger = logging.getLogger(__name__)
+
 
 class DaemonCommand(BaseCommand):
     """
@@ -35,7 +37,7 @@ class DaemonCommand(BaseCommand):
     log_backup_count = 5
     log_max_bytes = 5 * 1024 * 1024
     log_file = '/tmp/daemon_command.log'
-    log_level = logging.WARNING
+    log_level = 'WARNING'
 
     def add_arguments(self, parser):
         """
@@ -83,10 +85,10 @@ class DaemonCommand(BaseCommand):
         """
         Method called upon 'start' command from daemon manager, must be overriden in actual job daemon subclass
         """
-        logging.debug("Starting Daemon...")
+        logger.debug("Starting Daemon...")
         try:
             self.preloop_callback()
-            logging.debug("Starting loopback...")
+            logger.debug("Starting loopback...")
             while True:
                 self.loop_callback()
         except (SystemExit, KeyboardInterrupt):
@@ -94,15 +96,7 @@ class DaemonCommand(BaseCommand):
             pass
         except Exception as exc:
             # Something unexpected happened?
-            logging.exception("Unexpected Exception %s", exc.message)
-
-    def _set_up_logger(self):
-        from logging.handlers import RotatingFileHandler
-        handler = RotatingFileHandler(self.log_file, maxBytes=self.log_max_bytes, backupCount=self.log_backup_count)
-        formatter = logging.Formatter('[%(asctime)s] %(levelname)s [%(pathname)s] %(message)s')
-        handler.setFormatter(formatter)
-        logging.getLogger().addHandler(handler)
-        logging.getLogger().setLevel(self.log_level)
+            logger.exception("Unexpected Exception %s", exc.message)
 
     def handle(self, **options):
         """
@@ -114,7 +108,6 @@ class DaemonCommand(BaseCommand):
             # refactor sys.argv in order to remove the django command and setup action from Django command option
             sys.argv.pop(0)
             sys.argv[1] = options.pop('action')
-            self._set_up_logger()
             run = DaemonRunner(self, **options)
             run.do_action()
         except KeyError:

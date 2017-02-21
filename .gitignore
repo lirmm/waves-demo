@@ -83,3 +83,4 @@ default_profile.png.*
 /waves.sqlite3
 !tests/data/.gitkeep
 /dist/
+/pip_install_adaptors.py

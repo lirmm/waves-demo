@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
-from waves_webapp.settings.base import *             # NOQA
 import logging.config
+
+from waves_webapp.settings.base import *             # NOQA
 
 ALLOWED_HOSTS = [] #env.list('ALLOWED_HOSTS')
 
@@ -42,19 +43,19 @@ LOGGING = {
         'root': {
             'handlers': ['waves_log_file'],
             'propagate': False,
-            'level': logging.ERROR,
+            'level': 'ERROR',
         },
         'django': {
             'handlers': ['waves_log_file'],
-            'level': logging.ERROR,
+            'level': 'ERROR',
         },
         'radical.saga': {
             'handlers': ['waves_log_file'],
-            'level': logging.ERROR,
+            'level': 'ERROR',
         },
         'waves': {
             'handlers': ['waves_log_file'],
-            'level': logging.ERROR,
+            'level': 'ERROR',
         },
     }
 }
