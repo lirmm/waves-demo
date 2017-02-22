@@ -200,6 +200,7 @@ class DecimalParamAdmin(AParamAdmin):
 class AllParamModelAdmin(PolymorphicMPTTParentModelAdmin):
     """ Main polymorphic params Admin """
     base_model = AParam
+
     child_models = (
         (FileInput, FileInputAdmin),
         (BooleanParam, BooleanParamAdmin),
@@ -209,12 +210,8 @@ class AllParamModelAdmin(PolymorphicMPTTParentModelAdmin):
         (TextParam, TextParamAdmin)
     )
     list_filter = (PolymorphicChildModelFilter, 'submission', 'submission__service')
-    list_display = ('get_class_label', 'name', 'submission')
+    list_display = ('get_class_label', 'label', 'name', 'submission')
 
-    class Media:
-        css = {
-            'all': ('admin/treenode/admin.css',)
-        }
 
     def get_model_perms(self, request):
         return {}  # super(AllParamModelAdmin, self).get_model_perms(request)

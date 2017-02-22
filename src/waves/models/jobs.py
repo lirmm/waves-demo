@@ -1,4 +1,5 @@
-""" WVES job related models class objects """
+# coding: utf8
+""" WAVES job related models class objects """
 from __future__ import unicode_literals
 
 import json
@@ -28,9 +29,6 @@ from waves.utils.storage import allow_display_online
 
 logger = logging.getLogger(__name__)
 
-__license__ = "MIT"
-__revision__ = " $Id: actor.py 1586 2009-01-30 15:56:25Z cokelaer $ "
-__docformat__ = 'reStructuredText'
 __all__ = ['Job', 'JobInput', 'JobOutput']
 
 
@@ -367,7 +365,6 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: list of `JobInput` models instance
         :rtype: QuerySet
         """
-        print self.job_inputs.exclude(type=BaseParam.TYPE_FILE).exclude(param_type=BaseParam.OPT_TYPE_NONE).query
         return self.job_inputs.exclude(type=BaseParam.TYPE_FILE).exclude(param_type=BaseParam.OPT_TYPE_NONE)
 
     @property
@@ -534,26 +531,27 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         """ Add a new try for job execution, save retry reason in JobAdminHistory, save job """
         if self.nb_retry <= settings.WAVES_JOBS_MAX_RETRY:
             self.nb_retry += 1
-            self.job_history.create(message='[Retry]%s' % message, status=self.status, is_admin=True)
+            self.job_history.create(message='[Retry]%s' % message.decode('utf8'), status=self.status, is_admin=True)
             self.save()
         else:
             self.error(message)
 
     def error(self, message):
         """ Set job Status to ERROR, save error reason in JobAdminHistory, save job"""
-        self.status = self.JOB_ERROR
-        self.job_history.create(message='[Error]%s' % message, status=self.status)
-        self.save()
+        self.save_status_history(Job.JOB_ERROR, message='[Error]%s' % message, is_admin=True)
 
     def fatal_error(self, exception):
         logger.exception(exception)
         self.error(exception.message)
 
-    def save_status_history(self, state=None, message=None):
+    def save_status_history(self, state, message=None, is_admin=False):
         """ Save new state in DB, add history message id needed """
         h_message = message or self.message or 'Job %s' % self.get_status_display().lower()
-        self.job_history.create(message=h_message, status=state or self.status, is_admin=False)
-        logger.debug('Job [%s] status set to [%s]', self.slug, self.get_status_display())
+        self.status = state
+        self.job_history.create(message=h_message, status=self.status, is_admin=is_admin)
+        self.message = ""
+        self.save()
+        logger.debug('Job and history saved [%d] status: %s', self.id, self.get_status_display())
 
     def _run_action(self, action):
         """ Check if current job status is coherent with requested action """
@@ -578,21 +576,20 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         try:
             returned = getattr(self.adaptor, action)(self)
             self.nb_retry = 0
-            self.save()
+           # self.save_status_history(self.next_status)
             return returned
         except waves_adaptors.exceptions.adaptors.AdaptorException as exc:
             self.retry(exc.message)
-            raise JobRunException('[%s][%s] %s' % (action, exc.__class__.__name__, str(exc)), job=self)
-        except WavesException as exc:
+        except (WavesException, Exception) as exc:
             self.error(exc.message)
-            raise exc
-        except Exception as exc:
-            self.fatal_error(exc)
-            raise JobRunException('[%s][%s] %s' % (action, exc.__class__.__name__, str(exc)), job=self)
 
     @property
     def next_status(self):
         """ Automatically retrieve next expected status """
+        if self.status in self.NEXT_STATUS:
+            return Job.NEXT_STATUS[self.status]
+        else:
+            return Job.JOB_UNDEFINED
         try:
             logger.debug("next status %s", self.NEXT_STATUS[self.status])
             return self.NEXT_STATUS[self.status]
@@ -602,12 +599,12 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     def run_prepare(self):
         """ Ask job adaptor to prepare run (manage input files essentially) """
         self._run_action('prepare_job')
-        self.save_status_history()
+        self.save_status_history(Job.JOB_PREPARED)
 
     def run_launch(self):
         """ Ask job adaptor to actually launch job """
         self._run_action('run_job')
-        self.save_status_history()
+        self.save_status_history(Job.JOB_QUEUED)
 
     def run_status(self):
         """ Ask job adaptor current job status """
@@ -618,26 +615,24 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
             self.run_results()
         if self.status == self.JOB_UNDEFINED and self.nb_retry > settings.WAVES_JOBS_MAX_RETRY:
             self.run_cancel()
-        self.save_status_history()
+        self.save_status_history(self.status)
         return self.status
 
     def run_cancel(self):
         """ Ask job adaptor to cancel job if possible """
         self._run_action('cancel_job')
         self.message = 'Job cancelled'
-        self.save_status_history(self.JOB_CANCELLED)
+        self.save_status_history(Job.JOB_CANCELLED)
 
     def run_results(self):
         """ Ask job adaptor to get results files (dowload files if needed) """
         self._run_action('job_results')
         self.run_details()
         logger.debug("Results %s %s ", self.get_status_display(), self.exit_code)
-        if self.exit_code != 0 or len(self.stderr_txt) > 0:
+        if self.exit_code != 0 or os.stat(join(self.working_dir, self.stderr)).ST_SIZE != 0:
             logger.debug('Error found %s %s ', self.exit_code, self.stderr_txt)
-            self.status = self.JOB_ERROR
-            self.save_status_history(state=self.JOB_ERROR, message=self.stderr_txt)
+            self.save_status_history(state=Job.JOB_ERROR, message=self.stderr_txt)
         else:
-            self.status = self.JOB_TERMINATED
             self.save_status_history(state=self.JOB_TERMINATED)
         self.save()
 
@@ -680,9 +675,10 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         # self.job_history.all().delete()
         self.message = "Job marked for re-run"
         self.nb_retry = 0
-        self.status = self.JOB_CREATED
-        self.job_history.update(is_admin=True)
-        self.save_status_history()
+        self.job_history.all().delete()
+        self.save_status_history(Job.JOB_CREATED)
+
+        self.save_status_history(Job.JOB_CREATED)
         for job_out in self.job_outputs.all():
             open(job_out.file_path, 'w').close()
         self.save()

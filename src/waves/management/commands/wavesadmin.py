@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from waves.management.base import SubcommandDispatcher
 from waves.management.waves_commands import *
+from waves.management.daemon.command import JobQueueCommand, PurgeDaemonCommand
 
 CLEAN = 'clean'
 CONFIG = 'config'

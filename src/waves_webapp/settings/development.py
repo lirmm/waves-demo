@@ -9,10 +9,7 @@ DEBUG404 = True
 THUMBNAIL_DEBUG = DEBUG
 TEMPLATES[0]['OPTIONS'].update({'debug': DEBUG})
 
-# Django Debug Toolbar
-INSTALLED_APPS += ('debug_toolbar.apps.DebugToolbarConfig',)
-MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
-# LOGGING_CONFIG = None
+LOGGING_CONFIG = None
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -35,7 +32,7 @@ LOGGING = {
         },
         'waves_daemon': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': join(LOG_ROOT, 'wavesdaemon.log'),
+            'filename': join(LOG_ROOT, 'daemon.log'),
             'formatter': 'verbose',
             'backupCount': 10,
             'maxBytes': 1024 * 1024 * 5

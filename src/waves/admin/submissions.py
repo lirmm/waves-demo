@@ -144,7 +144,7 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
     form = SubmissionForm
     exclude = ['order']
     save_on_top = True
-    list_display = ['get_name', 'service_link', 'available_online', 'available_api', 'runner']
+    list_display = ['get_name', 'service_link', 'runner_link', 'available_online', 'available_api', 'runner']
     readonly_fields = ['available_online', 'available_api']
     list_filter = (
         'service__name',
@@ -232,3 +232,6 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
 
     def has_add_permission(self, request):
         return False
+
+    def runner_link(self, obj):
+        return url_to_edit_object(obj.get_runner())

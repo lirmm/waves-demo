@@ -1,9 +1,23 @@
 """ Daemonized WAVES system commands """
 from __future__ import unicode_literals
-import sys
-from django.core.management.base import BaseCommand, CommandError
-from waves.management.daemon.runner import DaemonRunner
+
+import datetime
 import logging
+import os
+import sys
+import time
+from itertools import chain
+
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
+from waves_adaptors.exceptions.adaptors import AdaptorException
+
+import waves.exceptions
+import waves.settings
+
+from waves.management.daemon.runner import DaemonRunner
+from waves.management.waves_commands import logger
+from waves.models import Job
 
 logger = logging.getLogger(__name__)
 
@@ -112,3 +126,85 @@ class DaemonCommand(BaseCommand):
             run.do_action()
         except KeyError:
             raise CommandError('You must specify an action with this command')
+
+
+class JobQueueCommand(DaemonCommand):
+    """
+    Dedicated command to summarize current WAVES specific settings
+    """
+    help = 'Managing WAVES job queue states'
+    SLEEP_TIME = 2
+    work_dir = waves.settings.WAVES_DATA_ROOT
+    pidfile_path = os.path.join(waves.settings.WAVES_DATA_ROOT, 'waves_queue.pid')
+    pidfile_timeout = 5
+    log_file = os.path.join(waves.settings.WAVES_LOG_ROOT, "waves_daemon.log")
+    log_level = settings.WAVES_QUEUE_LOG_LEVEL
+
+    def loop_callback(self):
+        """
+        Very very simple daemon to monitor jobs queue.
+
+        - Retrieve all current non terminated job, and process according to current status.
+        - Jobs are run on a stateless process
+
+        .. todo::
+            Implement this as separated forked processes for each jobs, inspired by Galaxy queue treatment.
+
+        :return: Nothing
+        """
+        jobs = Job.objects.prefetch_related('job_inputs'). \
+            prefetch_related('job_outputs').filter(status__lt=Job.JOB_TERMINATED)
+        if jobs.count() > 0:
+            logger.info("Starting queue process with %i(s) unfinished jobs", jobs.count())
+        for job in jobs:
+            runner = job.adaptor
+            logger.debug('[Runner]-------\n%s\n----------------', job.adaptor.dump_config())
+            try:
+                job.check_send_mail()
+                logger.debug("Launching Job %s (adaptor:%s)", job, job.adaptor)
+                if job.status == Job.JOB_CREATED:
+                    job.run_prepare()
+                    # runner.prepare_job(job=job)
+                    logger.debug("[PrepareJob] %s (adaptor:%s)", job, job.adaptor)
+                elif job.status == Job.JOB_PREPARED:
+                    logger.debug("[LaunchJob] %s (adaptor:%s)", job, job.adaptor)
+                    job.run_launch()
+                    # runner.run_job(job)
+                elif job.status == Job.JOB_COMPLETED:
+                    # runner.job_run_details(job)
+                    job.run_results()
+                    logger.debug("[JobExecutionEnded] %s (adaptor:%s)", job.get_status_display(), job.adaptor)
+                else:
+                    job.run_status()
+                    # runner.job_status(job)
+            except (waves.exceptions.WavesException, AdaptorException) as e:
+                logger.error("Error Job %s (adaptor:%s-state:%s): %s", job, runner, job.get_status_display(),
+                              e.message)
+                if job.nb_retry >= waves.settings.WAVES_JOBS_MAX_RETRY:
+                    job.error(message='Job error (too many errors) \n%s' % e.message)
+            finally:
+                logger.info("Queue job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
+                job.check_send_mail()
+                runner.disconnect()
+        logger.debug('Go to sleep for %i seconds' % self.SLEEP_TIME)
+        time.sleep(self.SLEEP_TIME)
+
+
+class PurgeDaemonCommand(DaemonCommand):
+    help = 'Clean up old jobs '
+    SLEEP_TIME = 86400
+    work_dir = waves.settings.WAVES_DATA_ROOT
+    pidfile_path = os.path.join(waves.settings.WAVES_DATA_ROOT, 'waves_clean.pid')
+    log_file = os.path.join(waves.settings.WAVES_LOG_ROOT, "waves_daemon.log")
+    log_level = 'WARNING'
+
+    def loop_callback(self):
+        logger.info("Purge job launched at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
+        date_anonymous = datetime.date.today() - datetime.timedelta(waves.settings.WAVES_KEEP_ANONYMOUS_JOBS)
+        date_registered = datetime.date.today() - datetime.timedelta(waves.settings.WAVES_KEEP_REGISTERED_JOBS)
+        anonymous = Job.objects.filter(client__isnull=True, updated__lt=date_anonymous)
+        registered = Job.objects.filter(client__isnull=False, updated__lt=date_registered)
+        for job in list(chain(*[anonymous, registered])):
+            logger.info('Deleting job %s created on %s', job.slug, job.created)
+            job.delete()
+        logger.info("Purge job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))

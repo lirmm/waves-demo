@@ -96,9 +96,15 @@ class DaemonRunner(BaseDaemonRunner):
             """
         super(DaemonRunner, self).__init__(app)
         # preserve file related loggers handlers
-        for handler in logging.getLogger().handlers:
-            if isinstance(handler, logging.FileHandler):
-                self.daemon_context.files_preserve = [handler.stream]
+        self.daemon_context.files_preserve = self.getLogFilesHandles(logger)
         self.daemon_context.detach_process = True
         self.daemon_context.working_directory = options.get('work_dir')
         self.daemon_context.signal_map[signal.SIGTERM] = app.exit_callback
+
+    def getLogFilesHandles(self, logger):
+        handles = []
+        for handler in logger.handlers:
+            handles.append(handler.stream.fileno())
+        if logger.parent:
+            handles += self.getLogFilesHandles(logger.parent)
+        return handles

@@ -48,7 +48,5 @@ class Encrypt(object):
             try:
                 return cipher.decrypt(base64.b64decode(to_decode))
             except Exception as e:
-                print "Exception %s %s " % (e, to_decode)
-
                 pass
         return None

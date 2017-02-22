@@ -190,7 +190,7 @@ class JobAdmin(WavesModelAdmin):
         return form
 
     def get_run_on(self, obj):
-        return obj.service.runner.name
+        return obj.submission.get_runner().name
 
     def get_client(self, obj):
         return obj.client.email if obj.client else "Anonymous"

@@ -74,7 +74,7 @@ class WavesSiteAdmin(WavesModelAdmin):
         return actions
 
     def current_queue_state(self, obj):
-        from waves.management.waves_commands import JobQueueCommand
+        from waves.management.daemon.command import JobQueueCommand
         from waves.management.daemon.runner import DaemonRunner
         import sys
         sys.argv[0] = 'wavesqueue'
