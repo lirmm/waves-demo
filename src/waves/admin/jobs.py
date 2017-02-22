@@ -108,7 +108,7 @@ class JobAdmin(WavesModelAdmin):
     list_per_page = 30
     search_fields = ('client__email', 'submission__service_name', 'get_run_on')
     readonly_fields = ('title', 'slug', 'email_to', 'status', 'created', 'updated', 'get_run_on',
-                       'command_line', 'submission_name', 'nb_retry', 'connexion_string', 'get_command_line')
+                       'command_line', 'remote_job_id', 'submission_name', 'nb_retry', 'connexion_string', 'get_command_line')
 
     fieldsets = [
         ('Main', {'classes': ('collapse', 'suit-tab', 'suit-tab-general',),
@@ -117,7 +117,7 @@ class JobAdmin(WavesModelAdmin):
                   }
          ),
         ('Submission', {
-            'fields': ['submission_name', 'get_run_on', 'connexion_string', 'get_command_line', 'nb_retry']
+            'fields': ['remote_job_id', 'submission_name', 'get_run_on', 'connexion_string', 'get_command_line', 'nb_retry']
         }
          )
     ]
@@ -209,7 +209,7 @@ class JobAdmin(WavesModelAdmin):
         return obj.adaptor.connexion_string()
 
     def get_command_line(self, obj):
-        return obj.adaptor.command + obj.command_line
+        return " ".join((obj.adaptor.command, obj.command_line))
 
     connexion_string.short_description = "Remote connexion string"
     get_command_line.short_description = "Remote command line"

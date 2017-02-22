@@ -270,9 +270,9 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     #: Job last status retry count (max before Error set in conf)
     nb_retry = models.IntegerField('Nb Retry', editable=False, default=0)
     #: Jobs are remotely executed, store the adaptor job identifier
-    remote_job_id = models.CharField('Remote job ID (on adaptor)', max_length=255, editable=False, null=True)
+    remote_job_id = models.CharField('Remote job ID', max_length=255, editable=False, null=True)
     #: Jobs sometime can gain access to a remote history, store the adaptor history identifier
-    remote_history_id = models.CharField('Remote history ID (on adaptor)', max_length=255, editable=False, null=True)
+    remote_history_id = models.CharField('Remote history ID', max_length=255, editable=False, null=True)
 
     @property
     def service(self):
