@@ -8,7 +8,7 @@ import os
 from os import path as path
 from os.path import join
 
-import waves_adaptors.exceptions.adaptors
+import waves.adaptors.exceptions.adaptors
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
@@ -19,6 +19,7 @@ from django.utils.html import format_html
 
 from waves.exceptions import WavesException
 from waves.exceptions.jobs import JobInconsistentStateError, JobRunException, JobMissingMandatoryParam
+import waves.adaptors.core
 from waves.models.adaptors import DTOMixin
 from waves.models.base import TimeStamped, Slugged, Ordered, UrlMixin
 from waves.models.inputs import BaseParam, FileInputSample
@@ -380,7 +381,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     def adaptor(self):
         """ Return current related service adaptor effective class
         :return: a child class of `JobRunnerAdaptor`
-        :rtype: `waves_adaptors.runner.JobRunnerAdaptor`
+        :rtype: `waves.adaptors.runner.JobRunnerAdaptor`
         """
         return self.submission.adaptor
 
@@ -578,7 +579,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
             self.nb_retry = 0
            # self.save_status_history(self.next_status)
             return returned
-        except waves_adaptors.exceptions.adaptors.AdaptorException as exc:
+        except waves.adaptors.exceptions.adaptors.AdaptorException as exc:
             self.retry(exc.message)
         except (WavesException, Exception) as exc:
             self.error(exc.message)
@@ -628,8 +629,8 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         """ Ask job adaptor to get results files (dowload files if needed) """
         self._run_action('job_results')
         self.run_details()
-        logger.debug("Results %s %s ", self.get_status_display(), self.exit_code)
-        if self.exit_code != 0 or os.stat(join(self.working_dir, self.stderr)).ST_SIZE != 0:
+        logger.debug("Results %s %s %d", self.get_status_display(), self.exit_code, os.stat(join(self.working_dir, self.stderr)).st_size)
+        if self.exit_code != 0 or os.stat(join(self.working_dir, self.stderr)).st_size > 0:
             logger.debug('Error found %s %s ', self.exit_code, self.stderr_txt)
             self.save_status_history(state=Job.JOB_ERROR, message=self.stderr_txt)
         else:
@@ -638,17 +639,17 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
 
     def run_details(self):
         """ Ask job adaptor to get JobRunDetails information (started, finished, exit_code ...)"""
-        from waves_adaptors.core.base import JobRunDetails
+
         file_run_details = join(self.working_dir, 'job_run_details.json')
         if os.path.isfile(file_run_details):
             # Details have already been downloaded
             with open(file_run_details) as fp:
-                details = JobRunDetails(*json.load(fp))
+                details = waves.adaptors.core.JobRunDetails(*json.load(fp))
             return details
         else:
             try:
                 remote_details = self._run_action('job_run_details')
-            except waves_adaptors.exceptions.adaptors.AdaptorException:
+            except waves.adaptors.exceptions.adaptors.AdaptorException:
                 remote_details = default_run_details(self)
             with open(file_run_details, 'w') as fp:
                 json.dump(obj=remote_details, fp=fp, ensure_ascii=False)

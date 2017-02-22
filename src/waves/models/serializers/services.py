@@ -4,11 +4,11 @@ from __future__ import unicode_literals
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from rest_framework import serializers as rest_serializer
-from waves_api.v1.serializers.services import ServiceSerializer as BaseServiceSerializer, \
-    ServiceSubmissionSerializer as BaseServiceSubmissionSerializer
 
 import waves.settings
-from waves_api.v1.serializers.dynamic import DynamicFieldsModelSerializer
+from waves.api.v1.serializers.dynamic import DynamicFieldsModelSerializer
+from waves.api.v1.serializers import ServiceSerializer as BaseServiceSerializer, \
+    ServiceSubmissionSerializer as BaseServiceSubmissionSerializer
 from waves.models import *
 from waves.models.serializers.base import RelatedSerializerMixin
 from waves.models.serializers.categories import CategorySerializer

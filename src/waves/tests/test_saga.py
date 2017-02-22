@@ -9,9 +9,9 @@ import time
 import unittest
 
 from django.conf import settings
-from waves_adaptors.core.saga_adaptors.cluster import SshUserPassClusterAdaptor
-from waves_adaptors.core.saga_adaptors.shell.local import LocalShellAdaptor
-from waves_adaptors.core.saga_adaptors.shell.ssh import SshUserPassShellAdaptor
+from waves.adaptors.core.saga_adaptors.cluster import SshUserPassClusterAdaptor
+from waves.adaptors.core.saga_adaptors.shell.local import LocalShellAdaptor
+from waves.adaptors.core.saga_adaptors.shell.ssh import SshUserPassShellAdaptor
 
 import waves.tests.utils.shell_util as test_util
 from waves.models import JobInput, JobOutput, Service, Job, BaseParam

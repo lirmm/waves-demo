@@ -1,1 +1,0 @@
-""" WAVES API views """

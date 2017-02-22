@@ -53,13 +53,8 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
-        'waves_adaptors': {
-            'handlers': ['waves_daemon'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
-        'waves_addons': {
-            'handlers': ['waves_daemon'],
+        'waves.adaptors': {
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         }

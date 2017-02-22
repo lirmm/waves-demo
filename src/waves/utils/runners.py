@@ -4,10 +4,10 @@ from __future__ import unicode_literals
 
 def get_runners_list(flat=False):
     """
-    Retrieve enabled waves_adaptors list from waves settings env file
+    Retrieve enabled waves.adaptors list from waves settings env file
     :return: a list of Tuple 'value'/'label'
     """
-    from waves.loader import load_core, load_extra_adaptors
+    from waves.addons.loader import load_core, load_extra_adaptors
     grp_impls = {'': 'Select a implementation class...'}
     grp_name = "WAVES Core"
     grp_impls[grp_name] = []

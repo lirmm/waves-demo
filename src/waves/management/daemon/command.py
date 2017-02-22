@@ -10,13 +10,11 @@ from itertools import chain
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from waves_adaptors.exceptions.adaptors import AdaptorException
+from waves.adaptors.exceptions.adaptors import AdaptorException
 
 import waves.exceptions
 import waves.settings
-
 from waves.management.daemon.runner import DaemonRunner
-from waves.management.waves_commands import logger
 from waves.models import Job
 
 logger = logging.getLogger(__name__)

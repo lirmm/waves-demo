@@ -75,7 +75,6 @@ INSTALLED_APPS = (
     'adminsortable2',
     # WAVES required dependencies
     'waves',
-    'waves_api',
     'profiles',
     'accounts',
     'django_countries',

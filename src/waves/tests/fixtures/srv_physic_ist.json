@@ -21,7 +21,7 @@
     "short_description": null,
     "name": "SGE Job Runner",
     "available": true,
-    "clazz": "waves_adaptors.saga_adaptor.ClusterJobAdaptor"
+    "clazz": "waves.adaptors.saga_adaptor.ClusterJobAdaptor"
   }
 },
 {
@@ -36,7 +36,7 @@
       "command",
       [
         "SGE Job Runner",
-        "waves_adaptors.saga_adaptor.ClusterJobAdaptor"
+        "waves.adaptors.saga_adaptor.ClusterJobAdaptor"
       ]
     ],
     "_value": null
@@ -54,7 +54,7 @@
       "queue",
       [
         "SGE Job Runner",
-        "waves_adaptors.saga_adaptor.ClusterJobAdaptor"
+        "waves.adaptors.saga_adaptor.ClusterJobAdaptor"
       ]
     ],
     "_value": null
@@ -72,7 +72,7 @@
       "protocol",
       [
         "SGE Job Runner",
-        "waves_adaptors.saga_adaptor.ClusterJobAdaptor"
+        "waves.adaptors.saga_adaptor.ClusterJobAdaptor"
       ]
     ],
     "_value": null
@@ -90,7 +90,7 @@
     "version": "1.0",
     "run_on": [
       "SGE Job Runner",
-      "waves_adaptors.saga_adaptor.ClusterJobAdaptor"
+      "waves.adaptors.saga_adaptor.ClusterJobAdaptor"
     ],
     "clazz": "",
     "category": [
@@ -533,7 +533,7 @@
     "default": null,
     "runner": [
       "SGE Job Runner",
-      "waves_adaptors.saga_adaptor.ClusterJobAdaptor"
+      "waves.adaptors.saga_adaptor.ClusterJobAdaptor"
     ],
     "prevent_override": false
   }
@@ -545,7 +545,7 @@
     "default": "mainqueue",
     "runner": [
       "SGE Job Runner",
-      "waves_adaptors.saga_adaptor.ClusterJobAdaptor"
+      "waves.adaptors.saga_adaptor.ClusterJobAdaptor"
     ],
     "prevent_override": false
   }
@@ -557,7 +557,7 @@
     "default": "sge",
     "runner": [
       "SGE Job Runner",
-      "waves_adaptors.saga_adaptor.ClusterJobAdaptor"
+      "waves.adaptors.saga_adaptor.ClusterJobAdaptor"
     ],
     "prevent_override": true
   }
