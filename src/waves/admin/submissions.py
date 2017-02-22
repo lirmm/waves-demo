@@ -167,7 +167,6 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
             FileInputSampleInline,
             SampleDependentInputInline,
             ExitCodeInline,
-
         ]
         self.inlines = _inlines
         if obj.runner is not None and obj.runner.adaptor_params.filter(prevent_override=False).count() > 0:

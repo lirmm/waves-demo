@@ -1,7 +1,9 @@
+from __future__ import unicode_literals
+
 import importlib
 import pkgutil
 from inspect import getmembers, isabstract, isclass
-from waves_adaptors.core.base import JobAdaptor, AdaptorImporter
+from waves.adaptors.core.adaptor import JobAdaptor, AdaptorImporter
 
 __all__ = ['load_extra_adaptors']
 
@@ -11,15 +13,15 @@ def isAdaptorClass(value):
 
 
 def load_core():
-    return sorted(__load_addons('waves_adaptors.core', parent=JobAdaptor), key=lambda x: x[0])
+    return sorted(__load_addons('waves.adaptors.core', parent=JobAdaptor), key=lambda x: x[0])
 
 
 def load_extra_adaptors():
-    return sorted(__load_addons('waves_addons.adaptors', parent=JobAdaptor), key=lambda x: x[0])
+    return sorted(__load_addons('waves.adaptors.addons', parent=JobAdaptor), key=lambda x: x[0])
 
 
 def load_extra_importers():
-    return sorted(__load_addons('waves_addons.importers', parent=AdaptorImporter), key=lambda x: x[0])
+    return sorted(__load_addons('waves.adaptors.importers', parent=AdaptorImporter), key=lambda x: x[0])
 
 
 def __load_addons(path, parent):
@@ -38,7 +40,7 @@ def __import_submodules(package, recursive=True):
     :type package: str | module
     :rtype: dict[str, types.ModuleType]
     """
-    if isinstance(package, str):
+    if isinstance(package, basestring):
         package = importlib.import_module(package)
     results = {}
     for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):

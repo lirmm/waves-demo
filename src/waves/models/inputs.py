@@ -379,8 +379,8 @@ class SampleDepParam(models.Model):
 
     class Meta:
         db_table = 'waves_sample_dependent_input'
-        verbose_name_plural = "Sample selection dependencies"
-        verbose_name = "Sample selection dependency"
+        verbose_name_plural = "Sample dependencies"
+        verbose_name = "Sample dependency"
 
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='sample_dependent_params')
     sample = models.ForeignKey(FileInputSample, on_delete=models.CASCADE, related_name='dependent_inputs')
