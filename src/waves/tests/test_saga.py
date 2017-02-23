@@ -46,7 +46,7 @@ class ShellRunnerTestCase(TestJobRunner):
         self.current_job.job_inputs.add(
             JobInput.objects.create(job=self.current_job, value='Test Input 2', type=BaseParam.TYPE_TEXT,
                                     srv_input=None))
-        self.current_job.job_outputs.add(JobOutput.objects.create(job=self.current_job, value='hello_world_output.txt',
+        self.current_job.outputs.add(JobOutput.objects.create(job=self.current_job, value='hello_world_output.txt',
                                                                   srv_output=None))
 
     def testHelloWorld(self):
@@ -107,7 +107,7 @@ class ShellRunnerTestCase(TestJobRunner):
             JobInput.objects.create(job=self.current_job,
                                     srv_input=self.service.service_submission_inputs().get(name='output_name'),
                                     value=self.service.service_submission_inputs().get(name='output_name').default))
-        self.current_job.job_outputs.add(JobOutput.objects.create(job=self.current_job,
+        self.current_job.outputs.add(JobOutput.objects.create(job=self.current_job,
                                                                   srv_output=self.service.service_outputs.get(
                                                                       name='Copied file')))
         self.runJobWorkflow()

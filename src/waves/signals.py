@@ -33,8 +33,7 @@ def job_post_save_handler(sender, instance, created, **kwargs):
         if created:
             # create job working dirs locally
             instance.make_job_dirs()
-            instance.job_history.create(message="Created", status=instance.status)
-        # instance.save_status_history(instance.status)
+            instance.job_history.create(message="Job Created", status=instance.status)
 
 
 @receiver(post_delete, sender=Job)
@@ -54,7 +53,7 @@ def service_post_delete_handler(sender, instance, **kwargs):
 def service_post_save_handler(sender, instance, created, **kwargs):
     """ service post delete handler """
     if created and not kwargs.get('raw', False):
-        instance.submissions.add(Submission.objects.create(name="default", service=instance))
+        instance.submissions.add(Submission.objects.create(name='default', service=instance))
 
 
 @receiver(pre_save, sender=Submission)

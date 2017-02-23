@@ -8,9 +8,10 @@ from polymorphic_tree.models import PolymorphicMPTTModel, PolymorphicTreeForeign
 
 from waves.models.adaptors import DTOMixin
 from waves.models.base import Ordered
-from waves.models.submissions import Submission
 from waves.utils.storage import waves_storage, file_sample_directory
 from waves.utils.validators import validate_list_comma, validate_list_param
+from django.utils.safestring import mark_safe
+from decimal import Decimal
 
 __all__ = ['AParam', 'BaseParam', 'RepeatedGroup', 'FileInput', 'BooleanParam', 'DecimalParam', 'NumberParam',
            'ListParam', 'SampleDepParam', 'FileInputSample', 'BaseParam', 'RelatedParam', 'IntegerParam', 'TextParam']
@@ -22,7 +23,7 @@ class RepeatedGroup(DTOMixin, Ordered):
     class Meta:
         db_table = "waves_repeat_group"
 
-    submission = models.ForeignKey(Submission, related_name='submission_groups', null=True,
+    submission = models.ForeignKey('Submission', related_name='submission_groups', null=True,
                                    on_delete=models.CASCADE)
     name = models.CharField('Group name', max_length=255, null=False, blank=False)
     title = models.CharField('Group title', max_length=255, null=False, blank=False)
@@ -57,7 +58,7 @@ class AParam(PolymorphicMPTTModel):
     TYPE_BOOLEAN = 'boolean'
     TYPE_FILE = 'file'
     TYPE_LIST = 'list'
-    TYPE_DECIMAL = 'number'
+    TYPE_DECIMAL = 'decimal'
     TYPE_TEXT = 'text'
     TYPE_INT = 'int'
     IN_TYPE = [
@@ -77,7 +78,7 @@ class AParam(PolymorphicMPTTModel):
     name = models.CharField('Name', max_length=50, blank=False, null=False, help_text='Input runner\'s job param name')
     multiple = models.BooleanField('Multiple', default=False, help_text="Can hold multiple values")
     help_text = models.TextField('Help Text', null=True, blank=True)
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, null=False, related_name='submission_inputs')
+    submission = models.ForeignKey('Submission', on_delete=models.CASCADE, null=False, related_name='submission_inputs')
     required = models.NullBooleanField('Required', choices={(False, "Optional"), (True, "Required"),
                                                             (None, "Not submitted")},
                                        default=True, help_text="Submitted and/or Required")
@@ -101,6 +102,14 @@ class AParam(PolymorphicMPTTModel):
     def related_to(self):
         return self.parent
 
+    @property
+    def type(self):
+        """ Backward compatibility with old property """
+        return self.param_type
+
+    def check_when_value(self, value):
+        return True
+
 
 class BaseParam(AParam):
     """ Base class for services submission params """
@@ -122,11 +131,6 @@ class BaseParam(AParam):
     class_label = "Basic"
 
     @property
-    def type(self):
-        """ Backward compatibility with old property """
-        return self.param_type
-
-    @property
     def param_type(self):
         return BaseParam.TYPE_TEXT
 
@@ -141,10 +145,8 @@ class BaseParam(AParam):
             raise ValidationError('Not displayed parameters must have a default value %s:%s' % (self.name, self.label))
         if self.parent and not self.when_value:
             raise ValidationError({'when_value': 'If you set a dependency, you must set this value'})
-        if (isinstance(self.parent, BooleanParam) or isinstance(self.parent, ListParam)) \
-                and self.when_value not in self.parent.values:
-            raise ValidationError({'when_value': 'This value is not possible for related input [%s]' % ', '.join(
-                self.parent.values)})
+        if self.parent is not None:
+            self.parent.check_when_value(self.when_value)
         for dep in self.dependents_inputs.all():
             if (isinstance(self, ListParam) or isinstance(self, BooleanParam)) and dep.when_value not in self.values:
                 raise ValidationError('Input "%s" depends on missing value: \'%s\'  ' % (dep.label, dep.when_value))
@@ -160,8 +162,6 @@ class BaseParam(AParam):
 class TextParam(BaseParam):
     class Meta:
         proxy = True
-
-    class Meta:
         verbose_name = "Text input"
         verbose_name_plural = "Text input"
 
@@ -198,6 +198,11 @@ class BooleanParam(BaseParam):
     def values(self):
         return [self.true_value, self.false_value]
 
+    def check_when_value(self, value):
+        if value not in self.values:
+            raise ValidationError({'when_value': 'This value is not possible for related input [%s]' % ', '.join(
+                self.values)})
+
 
 class NumberParam(object):
     """ Abstract Base class for 'number' validation """
@@ -208,11 +213,42 @@ class NumberParam(object):
 
     def clean(self):
         super(NumberParam, self).clean()
+        if self.default:
+            raises = False
+            min_val = self.min_val
+            max_val = self.max_val
+            if self.min_val is not None and self.max_val is None:
+                raises = not (Decimal(self.min_val) <= Decimal(self.default.strip()))
+                max_val = '+&infin;'
+            elif self.max_val is not None and self.min_val is None:
+                raises = not (Decimal(self.default.strip()) <= Decimal(self.max_val))
+                min_val = '-&infin;'
+            elif self.max_val is not None and self.min_val is not None:
+                raises = not (Decimal(self.min_val) <= Decimal(self.default.strip()) <= Decimal(self.max_val))
+            if raises:
+                raise ValidationError({'default': mark_safe('Default value is not in range [%s, %s]' % (
+                    min_val, max_val))})
         if self.min_val and self.max_val:
             if self.min_val > self.max_val:
                 raise ValidationError({'min_val': 'Minimum value can\'t exceed maximum value'})
             elif self.min_val == self.max_val:
                 raise ValidationError({'min_val': 'Minimum value can\'t equal maximum value'})
+
+    def check_when_value(self, value):
+        min_val = self.min_val
+        max_val = self.max_val
+        raises = False
+        if self.min_val is not None and self.max_val is None:
+            raises = not (Decimal(self.min_val) <= Decimal(value.strip()))
+            max_val = '+&infin;'
+        elif self.max_val is not None and self.min_val is None:
+            raises = not (Decimal(value.strip()) <= Decimal(self.max_val))
+            min_val = '-&infin;'
+        elif self.max_val is not None and self.min_val is not None:
+            raises = not (Decimal(self.min_val) <= Decimal(value.strip()) <= Decimal(self.max_val))
+        if raises:
+            raise ValidationError({'when_value': 'This value is not possible for related input range [%s, %s]' % (
+                min_val, max_val)})
 
 
 class DecimalParam(NumberParam, BaseParam):
@@ -321,6 +357,11 @@ class ListParam(BaseParam):
     def values(self):
         return [line.split('|')[1] for line in self.list_elements.splitlines()]
 
+    def check_when_value(self, value):
+        if value not in self.values:
+            raise ValidationError({'when_value': 'This value is not possible for related input [%s]' % ', '.join(
+                self.values)})
+
 
 class FileInput(BaseParam):
     """ Submission file inputs """
@@ -382,7 +423,7 @@ class SampleDepParam(models.Model):
         verbose_name_plural = "Sample dependencies"
         verbose_name = "Sample dependency"
 
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='sample_dependent_params')
+    submission = models.ForeignKey('Submission', on_delete=models.CASCADE, related_name='sample_dependent_params')
     sample = models.ForeignKey(FileInputSample, on_delete=models.CASCADE, related_name='dependent_inputs')
     related_to = models.ForeignKey(BaseParam, on_delete=models.CASCADE, related_name='related_samples')
     set_default = models.CharField('Set value to ', max_length=200, null=False, blank=False)
@@ -392,3 +433,6 @@ class SampleDepParam(models.Model):
                 and self.set_default not in self.related_to.values:
             raise ValidationError({'set_default': 'This value is not possible for related input [%s]' % ', '.join(
                 self.related_to.values)})
+
+    def __str__(self):
+        return "%s > %s=%s" % (self.sample.label, self.related_to.name, self.set_default)

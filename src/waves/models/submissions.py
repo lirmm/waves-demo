@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from waves.models import TimeStamped, ApiModel, Ordered, Slugged, Service
+from waves.models.inputs import FileInputSample
 from waves.models.adaptors import AdaptorInitParam, HasRunnerParamsMixin
 
 __all__ = ['Submission', 'SubmissionOutput', 'SubmissionExitCode', 'SubmissionRunParam']
@@ -71,7 +72,8 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
     @property
     def expected_inputs(self):
         """ Retrieve only expected inputs to submit a job """
-        return self.submission_inputs.filter(parent__isnull=True).exclude(required=None)
+        return self.submission_inputs.filter(parent__isnull=True).exclude(required=None).not_instance_of(
+            FileInputSample)
 
     def duplicate(self, service):
         """ Duplicate a submission with all its inputs """
@@ -132,7 +134,7 @@ class SubmissionOutput(TimeStamped, ):
                                     help_text="Pattern is used to match input value (%s to retrieve value from input)")
     edam_format = models.CharField('Edam format', max_length=255, null=True, blank=True, help_text="Edam format")
     edam_data = models.CharField('Edam data', max_length=255, null=True, blank=True, help_text="Edam data")
-    help_text = models.TextField('Content description', null=True, blank=True, )
+    help_text = models.TextField('Help Text', null=True, blank=True, )
 
     def __str__(self):
         return '%s (%s)' % (self.label, self.ext)
@@ -147,7 +149,6 @@ class SubmissionOutput(TimeStamped, ):
 
     def save(self, *args, **kwargs):
         super(SubmissionOutput, self).save(*args, **kwargs)
-
 
     @property
     def name(self):

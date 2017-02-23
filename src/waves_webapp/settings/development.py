@@ -35,7 +35,7 @@ LOGGING = {
             'filename': join(LOG_ROOT, 'daemon.log'),
             'formatter': 'verbose',
             'backupCount': 10,
-            'maxBytes': 1024 * 1024 * 5
+            'maxBytes': 1024 * 2
         },
     },
     'loggers': {

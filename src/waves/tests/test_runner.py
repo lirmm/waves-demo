@@ -182,7 +182,7 @@ class TestJobRunner(WavesBaseTestCase):
             logger.debug("History timestamp %s", localtime(history.timestamp))
             logger.debug("Job status timestamp %s", self.current_job.status_time)
             self.assertTrue(self.current_job.results_available)
-            for output_job in self.current_job.job_outputs.all():
+            for output_job in self.current_job.outputs.all():
                 # TODO reactivate job output verification as soon as possible
                 if not os.path.isfile(output_job.file_path):
                     logger.warning("Job <<%s>> did not output expected %s (test_data/jobs/%s/) ",

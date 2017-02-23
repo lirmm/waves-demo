@@ -8,6 +8,7 @@ import os
 from os import path as path
 from os.path import join
 
+import waves.adaptors.core
 import waves.adaptors.exceptions.adaptors
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -18,8 +19,7 @@ from django.db.models import Q
 from django.utils.html import format_html
 
 from waves.exceptions import WavesException
-from waves.exceptions.jobs import JobInconsistentStateError, JobRunException, JobMissingMandatoryParam
-import waves.adaptors.core
+from waves.exceptions.jobs import JobInconsistentStateError, JobMissingMandatoryParam
 from waves.models.adaptors import DTOMixin
 from waves.models.base import TimeStamped, Slugged, Ordered, UrlMixin
 from waves.models.inputs import BaseParam, FileInputSample
@@ -134,7 +134,7 @@ class JobManager(models.Manager):
         client = user if user is not None and not user.is_anonymous() else None
         job = self.create(email_to=email_to, client=client, title=job_title, submission=submission)
         job.create_non_editable_inputs(submission)
-        mandatory_params = submission.expected_inputs
+        mandatory_params = submission.expected_inputs.filter(required=True)
         missings = {}
         for m in mandatory_params:
             if m.name not in submitted_inputs.keys():
@@ -164,7 +164,7 @@ class JobManager(models.Manager):
 
         # create expected outputs
         for service_output in submission.outputs.all():
-            job.job_outputs.add(
+            job.outputs.add(
                 JobOutput.objects.create_from_submission(job, service_output, submitted_inputs))
         # initiate default outputs
         job.create_default_outputs()
@@ -175,7 +175,7 @@ class JobManager(models.Manager):
             logger.debug('Job %s command will be :', job.title)
             logger.debug('%s', job.command_line)
             logger.debug('Expected outputs will be:')
-            for j_output in job.job_outputs.all():
+            for j_output in job.outputs.all():
                 logger.debug('Output %s: %s', j_output.name, j_output.value)
         return job
 
@@ -195,27 +195,27 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     #: Job run details retrieved or not
     _run_details = None
 
-    STR_JOB_UNDEFINED = 'Unknown'
-    STR_JOB_CREATED = 'Created'
-    STR_JOB_PREPARED = 'Prepared for run'
-    STR_JOB_QUEUED = 'Queued'
-    STR_JOB_RUNNING = 'Running'
-    STR_JOB_COMPLETED = 'Run completed'
-    STR_JOB_TERMINATED = 'Results available'
-    STR_JOB_CANCELLED = 'Cancelled'
-    STR_JOB_SUSPENDED = 'Suspended'
-    STR_JOB_ERROR = 'In Error'
+    STR_JOB_UNDEFINED = waves.adaptors.core.STR_JOB_UNDEFINED
+    STR_JOB_CREATED = waves.adaptors.core.STR_JOB_CREATED
+    STR_JOB_PREPARED = waves.adaptors.core.STR_JOB_PREPARED
+    STR_JOB_QUEUED = waves.adaptors.core.STR_JOB_QUEUED
+    STR_JOB_RUNNING = waves.adaptors.core.STR_JOB_RUNNING
+    STR_JOB_COMPLETED = waves.adaptors.core.STR_JOB_COMPLETED
+    STR_JOB_TERMINATED = waves.adaptors.core.STR_JOB_TERMINATED
+    STR_JOB_CANCELLED = waves.adaptors.core.STR_JOB_CANCELLED
+    STR_JOB_SUSPENDED = waves.adaptors.core.STR_JOB_SUSPENDED
+    STR_JOB_ERROR = waves.adaptors.core.STR_JOB_ERROR
 
-    JOB_UNDEFINED = -1
-    JOB_CREATED = 0
-    JOB_PREPARED = 1
-    JOB_QUEUED = 2
-    JOB_RUNNING = 3
-    JOB_SUSPENDED = 4
-    JOB_COMPLETED = 5
-    JOB_TERMINATED = 6
-    JOB_CANCELLED = 7
-    JOB_ERROR = 9
+    JOB_UNDEFINED = waves.adaptors.core.JOB_UNDEFINED
+    JOB_CREATED = waves.adaptors.core.JOB_CREATED
+    JOB_PREPARED = waves.adaptors.core.JOB_PREPARED
+    JOB_QUEUED = waves.adaptors.core.JOB_QUEUED
+    JOB_RUNNING = waves.adaptors.core.JOB_RUNNING
+    JOB_SUSPENDED = waves.adaptors.core.JOB_SUSPENDED
+    JOB_COMPLETED = waves.adaptors.core.JOB_COMPLETED
+    JOB_TERMINATED = waves.adaptors.core.JOB_TERMINATED
+    JOB_CANCELLED = waves.adaptors.core.JOB_CANCELLED
+    JOB_ERROR = waves.adaptors.core.JOB_ERROR
 
     STATUS_LIST = [
         (JOB_UNDEFINED, STR_JOB_UNDEFINED),
@@ -341,11 +341,13 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: list of file path
         :rtype: list
         """
-        all_files = self.job_outputs.all()
+        all_files = self.outputs.all()
         existing = []
         for _file in all_files:
             existing.append(
                 dict(file=_file,
+                     name=os.path.basename(_file.file_path),
+                     slug=_file.slug,
                      available=os.path.isfile(_file.file_path) and os.path.getsize(_file.file_path) > 0))
         return existing
 
@@ -357,14 +359,14 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: a list of JobOuput objects
         :rtype: list
         """
-        all_files = self.job_outputs.all()
+        all_files = self.outputs.all()
         return all_files
 
     @property
     def input_params(self):
         """ Return all non-file (i.e tool params) job inputs, i.e job execution parameters
         :return: list of `JobInput` models instance
-        :rtype: QuerySet
+        :rtype: [list of JobInput objects]
         """
         return self.job_inputs.exclude(type=BaseParam.TYPE_FILE).exclude(param_type=BaseParam.OPT_TYPE_NONE)
 
@@ -446,7 +448,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
                     if nb_sent > 0:
                         self.job_history.create(message='Sent notification email', status=self.status, is_admin=True)
                     else:
-                        self.job_history.create(message='Mail not sent', status=self.status, job=self, is_admin=True)
+                        self.job_history.create(message='Mail not sent', status=self.status, is_admin=True)
                     self.save()
                     return nb_sent
                 except Exception as e:
@@ -512,12 +514,12 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         """
         output_dict = dict(job=self, value=self.stdout, _name='Standard output', type=".txt")
         out = JobOutput.objects.create(**output_dict)
-        self.job_outputs.add(out)
+        self.outputs.add(out)
         open(join(self.working_dir, self.stdout), 'a').close()
         output_dict['value'] = self.stderr
         output_dict['_name'] = "Standard error"
         out1 = JobOutput.objects.create(**output_dict)
-        self.job_outputs.add(out1)
+        self.outputs.add(out1)
         open(join(self.working_dir, self.stderr), 'a').close()
 
     @property
@@ -549,8 +551,9 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         """ Save new state in DB, add history message id needed """
         h_message = message or self.message or 'Job %s' % self.get_status_display().lower()
         self.status = state
-        self.job_history.create(message=h_message, status=self.status, is_admin=is_admin)
-        self.message = ""
+        if self.changed_status:
+            self.job_history.create(message=h_message.decode('utf8',  errors='replace'), status=self.status, is_admin=is_admin)
+            self.message = ""
         self.save()
         logger.debug('Job and history saved [%d] status: %s', self.id, self.get_status_display())
 
@@ -591,11 +594,6 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
             return Job.NEXT_STATUS[self.status]
         else:
             return Job.JOB_UNDEFINED
-        try:
-            logger.debug("next status %s", self.NEXT_STATUS[self.status])
-            return self.NEXT_STATUS[self.status]
-        except KeyError:
-            return self.status
 
     def run_prepare(self):
         """ Ask job adaptor to prepare run (manage input files essentially) """
@@ -609,7 +607,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
 
     def run_status(self):
         """ Ask job adaptor current job status """
-        self.status = self._run_action('job_status')
+        self._run_action('job_status')
         logger.debug('job current state :%s', self.status)
         self.save()
         if self.status == self.JOB_COMPLETED:
@@ -629,13 +627,15 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         """ Ask job adaptor to get results files (dowload files if needed) """
         self._run_action('job_results')
         self.run_details()
-        logger.debug("Results %s %s %d", self.get_status_display(), self.exit_code, os.stat(join(self.working_dir, self.stderr)).st_size)
+        logger.debug("Results %s %s %d", self.get_status_display(), self.exit_code,
+                     os.stat(join(self.working_dir, self.stderr)).st_size)
         if self.exit_code != 0 or os.stat(join(self.working_dir, self.stderr)).st_size > 0:
-            logger.debug('Error found %s %s ', self.exit_code, self.stderr_txt)
-            self.save_status_history(state=Job.JOB_ERROR, message=self.stderr_txt)
+            logger.error('Error found %s %s ', self.exit_code, self.stderr_txt.decode('ascii', errors="replace"))
+            self.save_status_history(state=Job.JOB_ERROR, message="Error detected in job.stderr")
+            self.job_history.create(state=Job.JOB_ERROR, message=self.stderr_txt.decode('ascii', errors="replace"),
+                                    is_admin=True)
         else:
-            self.save_status_history(state=self.JOB_TERMINATED)
-        self.save()
+            self.save_status_history(state=self.JOB_TERMINATED, message="Data retrieved")
 
     def run_details(self):
         """ Ask job adaptor to get JobRunDetails information (started, finished, exit_code ...)"""
@@ -680,7 +680,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         self.save_status_history(Job.JOB_CREATED)
 
         self.save_status_history(Job.JOB_CREATED)
-        for job_out in self.job_outputs.all():
+        for job_out in self.outputs.all():
             open(job_out.file_path, 'w').close()
         self.save()
 
@@ -921,7 +921,7 @@ class JobOutput(Ordered, Slugged, UrlMixin):
 
     objects = JobOutputManager()
     #: Related :class:`waves.models.jobs.Job`
-    job = models.ForeignKey(Job, related_name='job_outputs', on_delete=models.CASCADE)
+    job = models.ForeignKey(Job, related_name='outputs', on_delete=models.CASCADE)
     #: Related :class:`waves.models.services.SubmissionOutput`
     # srv_output = models.ForeignKey('SubmissionOutput', null=True, on_delete=models.CASCADE)
     #: Job Output value

@@ -104,11 +104,12 @@ class JobAdmin(WavesModelAdmin):
     ]
     actions = [mark_rerun, delete_model]
     list_filter = ('status', 'client')
-    list_display = ('get_slug', 'get_colored_status', 'submission', 'get_run_on', 'get_client', 'created', 'updated')
+    list_display = ('get_slug', 'get_colored_status', 'submission__service_name', 'get_run_on', 'get_client', 'created', 'updated')
     list_per_page = 30
-    search_fields = ('client__email', 'submission__service_name', 'get_run_on')
-    readonly_fields = ('title', 'slug', 'email_to', 'status', 'created', 'updated', 'get_run_on',
-                       'command_line', 'remote_job_id', 'submission_name', 'nb_retry', 'connexion_string', 'get_command_line')
+    search_fields = ('client__email', 'get_run_on')
+    readonly_fields = ('title', 'slug', 'submission__service_name', 'email_to', 'status', 'created', 'updated',
+                       'get_run_on', 'command_line', 'remote_job_id', 'submission_name', 'nb_retry',
+                       'connexion_string', 'get_command_line')
 
     fieldsets = [
         ('Main', {'classes': ('collapse', 'suit-tab', 'suit-tab-general',),
@@ -210,6 +211,9 @@ class JobAdmin(WavesModelAdmin):
 
     def get_command_line(self, obj):
         return " ".join((obj.adaptor.command, obj.command_line))
+
+    def submission__service_name(self, obj):
+        return "%s [%s]" % (obj.submission.service.name, obj.submission.name)
 
     connexion_string.short_description = "Remote connexion string"
     get_command_line.short_description = "Remote command line"

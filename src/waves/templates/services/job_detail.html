@@ -84,7 +84,7 @@
                                     </div>
                                 {% endif %}
                                 {% endfor %}
-                                {% for job_input in job.input_params.all %}
+                                {% for job_input in job.input_params %}
                                     {% if forloop.first %}
                                         <div class="panel panel-default">
                                         <div class="panel-heading">
@@ -121,14 +121,14 @@
                                            href="#panel-output-{{ job.id }}">Outputs</a>
                                     </div>
                                     <div id="panel-output-{{ job.id }}"
-                                         class="panel-collapse {% if not job.results_available %}collapse{% endif %}">
+                                         class="panel-collapse {% if not job.results_available %}collapsed{% endif %}">
                                         <div class="panel-body">
                                             <dl>
-                                                {% for job_output in job.job_outputs.all %}
+                                                {% for job_output in job.outputs.all %}
                                                     <dt>{{ job_output.name }}
                                                     </dt>
                                                     <dd class="input_output">
-                                                        {{ job_output.value|default:'Not available' }}
+                                                        {{ job_output.value }}
                                                         <div class="pull-right">
                                                         {%  if job_output.available %}
                                                             {% if job_output.display_online %}

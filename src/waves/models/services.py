@@ -275,7 +275,7 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
         return self.runner.importer
 
     def publishUnPublish(self):
-        self.status = Service.SRV_DRAFT if Service.SRV_PUBLIC else Service.SRV_PUBLIC
+        self.status = Service.SRV_DRAFT if self.status is Service.SRV_PUBLIC else Service.SRV_PUBLIC
         self.save()
 
     @property

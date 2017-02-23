@@ -3,9 +3,10 @@ from rest_framework import serializers
 
 class CommaSeparatedListField(serializers.ListField, serializers.ReadOnlyField):
     def to_representation(self, value):
-        if value.split(','):
-            return super(CommaSeparatedListField, self).to_representation(value.split(','))
-        return super(CommaSeparatedListField, self).to_representation(None)
+        if ',' in value:
+            str_txt = value.split(',')
+            return super(CommaSeparatedListField, self).to_representation(str_txt)
+        return super(CommaSeparatedListField, self).to_representation([])
 
 
 class ListElementField(serializers.ListField, serializers.ReadOnlyField):

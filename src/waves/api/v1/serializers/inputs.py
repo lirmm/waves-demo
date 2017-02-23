@@ -7,19 +7,28 @@ from waves.models.inputs import *
 
 class AParamSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ['label', 'name', 'default', 'type', 'mandatory', 'short_description', 'multiple', 'edam_formats',
+        fields = ['label', 'name', 'default', 'type', 'mandatory', 'description', 'multiple', 'edam_formats',
                   'edam_datas']
         model = AParam
 
     mandatory = serializers.NullBooleanField(source='required')
-    short_description = serializers.CharField(source='help_text')
+    description = serializers.CharField(source='help_text')
     edam_formats = CommaSeparatedListField()
     edam_datas = CommaSeparatedListField()
+
+    @staticmethod
+    def get_type(param):
+        return param.type
 
 
 class IntegerSerializer(AParamSerializer):
     class Meta(AParamSerializer.Meta):
         model = IntegerParam
+        fields = AParamSerializer.Meta.fields + ['min_val', 'max_val']
+
+    default = serializers.IntegerField()
+    min_val = serializers.IntegerField()
+    max_val = serializers.IntegerField()
 
 
 class BooleanSerializer(AParamSerializer):
@@ -30,13 +39,18 @@ class BooleanSerializer(AParamSerializer):
 
 class DecimalSerializer(AParamSerializer):
     class Meta:
-        exclude = ('polymorphic_ctype',)
         model = DecimalParam
+        fields = AParamSerializer.Meta.fields + ['min_val', 'max_val']
+
+    default = serializers.DecimalField(decimal_places=3, max_digits=50, coerce_to_string=False)
+    min_val = serializers.DecimalField(decimal_places=3, max_digits=50, coerce_to_string=False)
+    max_val = serializers.DecimalField(decimal_places=3, max_digits=50, coerce_to_string=False)
 
 
 class FileSerializer(AParamSerializer):
     class Meta(AParamSerializer.Meta):
         model = FileInput
+        fields = AParamSerializer.Meta.fields + ['max_size', 'allowed_extensions']
 
 
 class ListSerialzer(AParamSerializer):
@@ -53,39 +67,33 @@ class InputSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = BaseParam
         queryset = BaseParam.objects.all()
-        exclude = ('polymorphic_ctype',)
-        fields = ('label', 'name', 'default', 'type', 'cmd_format', 'mandatory', 'help_text', 'multiple')
+        fields = ('label', 'name', 'default', 'type', 'mandatory', 'description', 'multiple')
         extra_kwargs = {
             'url': {'view_name': 'waves_api:waves-services-detail', 'lookup_field': 'api_name'}
         }
 
-    cmd_format = InputFormatField()
+    description = serializers.CharField(source='help_text')
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super(InputSerializer, self).__init__(instance, data, **kwargs)
 
     def to_representation(self, obj):
         """ Return representation for an Input, including dependents inputs if needed """
-        if isinstance(obj, FileInput):
-            return FileSerializer(obj, context=self.context).to_representation(obj)
-        elif isinstance(obj, ListParam):
-            return ListSerialzer(obj, context=self.context).to_representation(obj)
-        elif isinstance(obj, BooleanParam):
-            return BooleanSerializer(obj, context=self.context).to_representation(obj)
-        elif isinstance(obj, IntegerParam):
-            return IntegerSerializer(obj, context=self.context).to_representation(obj)
-        elif isinstance(obj, DecimalParam):
-            return DecimalSerializer(obj, context=self.context).to_representation(obj)
+        if obj.dependents_inputs.count() > 0:
+            return ConditionalInputSerializer(obj, context=self.context).to_representation(obj)
         else:
-            return AParamSerializer(obj, context=self.context).to_representation(obj)
-
-        """
-        if instance.dependents_inputs.count() > 0:
-            representation = ConditionalInputSerializer(instance, context=self.context).to_representation(instance)
-        else:
-            representation = super(InputSerializer, self).to_representation(instance)
-        return representation
-        """
+            if isinstance(obj, FileInput):
+                return FileSerializer(obj, context=self.context).to_representation(obj)
+            elif isinstance(obj, ListParam):
+                return ListSerialzer(obj, context=self.context).to_representation(obj)
+            elif isinstance(obj, BooleanParam):
+                return BooleanSerializer(obj, context=self.context).to_representation(obj)
+            elif isinstance(obj, IntegerParam):
+                return IntegerSerializer(obj, context=self.context).to_representation(obj)
+            elif isinstance(obj, DecimalParam):
+                return DecimalSerializer(obj, context=self.context).to_representation(obj)
+            else:
+                return AParamSerializer(obj, context=self.context).to_representation(obj)
 
 
 class RelatedInputSerializer(InputSerializer):
@@ -101,13 +109,12 @@ class RelatedInputSerializer(InputSerializer):
         return {instance.when_value: initial_repr}
 
 
-class ConditionalInputSerializer(serializers.ModelSerializer):
+class ConditionalInputSerializer(DynamicFieldsModelSerializer):
     """ Serialize inputs if it's a conditional one """
 
     class Meta:
         model = BaseParam
-        fields = ('label', 'name', 'default', 'type', 'cmd_format', 'mandatory', 'short_description', 'description',
-                  'multiple', 'when')
+        fields = ('label', 'name', 'default', 'type', 'cmd_format', 'mandatory', 'description', 'multiple', 'when')
 
     when = RelatedInputSerializer(source='dependents_inputs', many=True, read_only=True)
-    format = InputFormatField()
+    description = serializers.CharField(source='help_text')

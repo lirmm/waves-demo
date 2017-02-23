@@ -64,23 +64,21 @@ Thumbs.db
 Desktop.ini
 
 # Project settings
-/data
-/test_data/jobs/
-/media/profile
 *.sav.sqlite3
 /config/waves_uwsgi.ini
-/.venv/
+.venv/
 waves.apache.conf
-/staticfiles/
+staticfiles/
 local.env
-/src/data/
+data/
 /src/waves/tests/data/jobs/
-waves.env
 default_profile.png.*
 /docs/_build/
-/tests/data/
+!src/waves/tests/data/jobs/.gitkeep
 /src/media/profile/
 /waves.sqlite3
-!tests/data/.gitkeep
 /dist/
 /pip_install_adaptors.py
+/logs/
+!logs/.gitkeep
+!/src/waves/tests/data/jobs/.gitkeep

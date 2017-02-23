@@ -119,7 +119,7 @@ class ServiceJobSubmissionView(MultipleFieldLookupMixin, generics.RetrieveAPIVie
             from waves.api.serializers.jobs import JobCreateSerializer
             from django.db.models import Q
             job = Job.objects.create_from_submission(submission=service_submission, email_to=ass_email,
-                                                           submitted_inputs=request.data, user=request.user)
+                                                     submitted_inputs=request.data, user=request.user)
             # Now job is created (or raise an exception),
             serializer = JobSerializer(job, many=False, context={'request': request},
                                        fields=('slug', 'url', 'created', 'status',))

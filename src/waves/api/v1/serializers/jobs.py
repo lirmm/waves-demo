@@ -17,6 +17,7 @@ class JobHistorySerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = JobHistory
         fields = ('status_txt', 'status_code', 'timestamp', 'message')
+
     status_txt = serializers.SerializerMethodField()
     status_code = serializers.IntegerField(source='status')
 
@@ -36,7 +37,7 @@ class JobHistoryDetailSerializer(serializers.HyperlinkedModelSerializer):
         }
     last_status = serializers.IntegerField(source='status')
     last_status_txt = serializers.SerializerMethodField()
-    job_history = JobHistorySerializer(many=True, read_only=True)
+    job_history = JobHistorySerializer(many=True, read_only=True, source="public_history")
 
     @staticmethod
     def get_last_status_txt(obj):
@@ -95,17 +96,18 @@ class JobOutputSerializer(serializers.ModelSerializer):
         from waves.utils import normalize_value
         to_repr = {}
         for output in instance:
-            to_repr[normalize_value(output.name)] = {
-                "label": output.name,
-                "download_uri": self.get_download_url(output),
-                "content": self.file_get_content(output)
-            }
+            if output['available']:
+                to_repr[normalize_value(output['name'])] = {
+                    "label": output['name'],
+                    "download_uri": self.get_download_url(output['slug']),
+                    "content": self.file_get_content(output['file'])
+                }
         return to_repr
 
-    def get_download_url(self, obj):
+    def get_download_url(self, slug):
         """ Link to jobOutput download uri """
         return "%s?export=1" % reverse(viewname='waves_api:job-waves_api-output', request=self.context['request'],
-                                       kwargs={'slug': obj.slug})
+                                       kwargs={'slug': slug})
 
 
 class JobOutputDetailSerializer(serializers.HyperlinkedModelSerializer):

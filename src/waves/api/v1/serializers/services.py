@@ -51,7 +51,7 @@ class ServiceMetaSerializer(serializers.HyperlinkedModelSerializer, DynamicField
 
     class Meta:
         model = ServiceMeta
-        fields = ('url', 'name', 'metas')
+        fields = ('url', 'metas')
         extra_kwargs = {
             'url': {'view_name': 'waves_api:waves-services-detail', 'lookup_field': 'api_name'}
         }
@@ -71,7 +71,7 @@ class ServiceSubmissionSerializer(DynamicFieldsModelSerializer, serializers.Hype
 
     view_name = 'waves_api:waves-services-submissions'
     submission_uri = serializers.SerializerMethodField()
-    inputs = InputSerializer(many=True, source="submission_inputs")
+    inputs = InputSerializer(many=True, source="expected_inputs")
     form = serializers.SerializerMethodField()
     service = serializers.SerializerMethodField()
 
@@ -139,7 +139,7 @@ class ServiceFormSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ('label', 'service', 'js', 'css', 'template_pack', 'post_uri', 'form')
+        fields = ('name', 'service', 'js', 'css', 'template_pack', 'post_uri', 'form')
 
     js = serializers.SerializerMethodField()
     css = serializers.SerializerMethodField()

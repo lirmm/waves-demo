@@ -4,7 +4,7 @@ import logging.config
 
 from waves_webapp.settings.base import *             # NOQA
 
-ALLOWED_HOSTS = [] #env.list('ALLOWED_HOSTS')
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
 DEBUG = False
 # Cache the templates in memory for speed-up

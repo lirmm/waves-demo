@@ -15,7 +15,7 @@ from waves.models.submissions import *
 from waves.utils import url_to_edit_object
 
 
-class ServiceOutputInline(CompactInline):
+class SubmissionOutputInline(CompactInline):
     """ Service Submission Outputs Inlines """
     model = SubmissionOutput
     # form = ServiceOutputForm
@@ -24,14 +24,14 @@ class ServiceOutputInline(CompactInline):
     sortable_field_name = "order"
     sortable_options = []
     fk_name = 'submission'
-    fields = ['label', 'file_pattern', 'from_input', 'edam_format', 'edam_data']
+    fields = ['label', 'file_pattern', 'from_input', 'help_text', 'edam_format', 'edam_data']
     verbose_name_plural = "Outputs"
     classes = ('grp-collapse', 'grp-closed', 'collapse')
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "from_input":
             kwargs['queryset'] = AParam.objects.filter(submission=request.current_obj)
-        return super(ServiceOutputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+        return super(SubmissionOutputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class SampleDependentInputInline(CompactInline):
@@ -47,8 +47,11 @@ class SampleDependentInputInline(CompactInline):
         return False
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "parent":
-            kwargs['queryset'] = AParam.objects.filter(submission=request.current_obj).not_instance_of(FileInput)
+        if db_field.name == "related_to":
+            kwargs['queryset'] = BaseParam.objects.filter(submission=request.current_obj,
+                                                          cmd_format__gt=0).not_instance_of(FileInput)
+        elif db_field.name == "sample":
+            kwargs['queryset'] = FileInputSample.objects.filter(submission=request.current_obj)
         return super(SampleDependentInputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -163,7 +166,7 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
         _inlines = [
             OrganizeInputInline,
             # OrgRepeatGroupInline,
-            ServiceOutputInline,
+            SubmissionOutputInline,
             FileInputSampleInline,
             SampleDependentInputInline,
             ExitCodeInline,

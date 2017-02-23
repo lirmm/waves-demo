@@ -151,7 +151,7 @@ class JobQueueCommand(DaemonCommand):
         :return: Nothing
         """
         jobs = Job.objects.prefetch_related('job_inputs'). \
-            prefetch_related('job_outputs').filter(status__lt=Job.JOB_TERMINATED)
+            prefetch_related('outputs').filter(status__lt=Job.JOB_TERMINATED)
         if jobs.count() > 0:
             logger.info("Starting queue process with %i(s) unfinished jobs", jobs.count())
         for job in jobs:
@@ -184,7 +184,7 @@ class JobQueueCommand(DaemonCommand):
                 logger.info("Queue job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
                 job.check_send_mail()
                 runner.disconnect()
-        logger.debug('Go to sleep for %i seconds' % self.SLEEP_TIME)
+        # logger.debug('Go to sleep for %i seconds' % self.SLEEP_TIME)
         time.sleep(self.SLEEP_TIME)
 
 
