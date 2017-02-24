@@ -5,3 +5,4 @@ from waves.admin.runners import *
 from waves.admin.services import *
 from waves.admin.submissions import *
 from waves.admin.inputs import *
+from waves.admin.admin import *

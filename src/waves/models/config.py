@@ -9,7 +9,6 @@ __all__ = ['WavesSiteConfig']
 
 config_keys = [
     "WAVES_ACCOUNT_ACTIVATION_DAYS",
-    "WAVES_BOOTSTRAP_THEME",
     "WAVES_APP_NAME",
     "WAVES_FORM_PROCESSOR",
     "WAVES_APP_VERBOSE_NAME",

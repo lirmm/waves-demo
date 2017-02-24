@@ -7,6 +7,7 @@ import environ
 import sys
 from os.path import dirname, join
 
+
 LOGGING_CONFIG = None
 BASE_DIR = dirname(dirname(dirname(__file__)))
 STATIC_URL = '/static/'
@@ -32,6 +33,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
                 'waves.utils.context_theme_processor.css_theme',
+                'constance.context_processors.config',
             ],
         },
     },
@@ -75,8 +77,10 @@ INSTALLED_APPS = (
     'adminsortable2',
     # WAVES required dependencies
     'waves',
+    'waves.constance',
     'profiles',
     'accounts',
+    'constance.backends.database',
     'django_countries',
     'crispy_forms',
     'easy_thumbnails',
@@ -191,3 +195,5 @@ CKEDITOR_CONFIGS = {
 # TODO in order to enable sibling, either overwrite to set-it up per model, or add custom filter for submissions
 # (keep current service)
 JET_CHANGE_FORM_SIBLING_LINKS = False
+
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'

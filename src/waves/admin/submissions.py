@@ -104,20 +104,21 @@ class FileInputSampleInline(CompactInline):
     model = FileInputSample
     form = InputSampleForm
     extra = 0
-    fk_name = 'submission'
+    fk_name = 'file_input'
     fields = ['label', 'file', 'file_input']
     exclude = ['order']
     readonly_fields = ['aparam_ptr']
     classes = ('grp-collapse grp-closed', 'collapse')
 
-    def has_add_permission(self, request):
+    """def has_add_permission(self, request):
         if request.current_obj is not None and request.current_obj.submission_inputs.instance_of(FileInput).count() > 0:
             return True
         return False
-
+"""
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "file_input":
+        """if db_field.name == "file_input":
             kwargs['queryset'] = FileInput.objects.filter(submission=request.current_obj)
+        """
         return super(FileInputSampleInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -167,7 +168,7 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
             OrganizeInputInline,
             # OrgRepeatGroupInline,
             SubmissionOutputInline,
-            FileInputSampleInline,
+            # FileInputSampleInline,
             SampleDependentInputInline,
             ExitCodeInline,
         ]
