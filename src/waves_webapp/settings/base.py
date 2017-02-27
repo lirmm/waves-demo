@@ -82,7 +82,6 @@ INSTALLED_APPS = (
     'easy_thumbnails',
     'mail_templated',
     'rest_framework',
-    'rest_framework_docs',
     'rest_framework_swagger',
     # 'corsheaders',
     'ckeditor',
