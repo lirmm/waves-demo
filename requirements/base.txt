@@ -12,7 +12,7 @@ django-jet==1.0.4
 django-mail-templated==2.6.5
 django-mptt==0.8.7
 django-nested-admin==3.0.12
-django-polymorhic==1.0.2
+django-polymorhic==1.1
 django-polymorphic-tree==1.4
 django-registration==2.2
 django-rest-swagger==2.1.1
