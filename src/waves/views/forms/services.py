@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 
 import copy
-
+from constance import config
 from django import forms
 from django.core.exceptions import ValidationError
 from multiupload.fields import MultiFileField
-
+from constance import config
 import waves.models.services
 import waves.settings
 from waves.models.inputs import *
@@ -67,7 +67,7 @@ class ServiceSubmissionForm(forms.ModelForm):
         if isinstance(service_input, FileInput):
             field_dict.update(dict(allow_empty_file=False, required=False))
             if service_input.multiple:
-                field_dict.update(dict(min_num=1, max_file_size=waves.settings.WAVES_UPLOAD_MAX_SIZE))
+                field_dict.update(dict(min_num=1, max_file_size=config.WAVES_UPLOAD_MAX_SIZE))
                 form_field = MultiFileField(**field_dict)
             else:
                 form_field = forms.FileField(**field_dict)
@@ -106,7 +106,7 @@ class ServiceSubmissionForm(forms.ModelForm):
             return FormHelper(**kwargs)
         except ImportError as e:
             raise RuntimeError(
-                'Wrong form processor, unable to create any form (%s) -- %s' % (waves.settings.WAVES_FORM_PROCESSOR, e))
+                'Wrong form processor, unable to create any form (%s) -- %s' % (config.WAVES_FORM_PROCESSOR, e))
 
     def _create_copy_paste_field(self, service_input):
         # service_input.mandatory = False # Field is validated in clean process

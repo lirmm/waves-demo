@@ -3,15 +3,14 @@ from __future__ import unicode_literals
 
 import os
 
+from constance import config
 from django.core.files.storage import FileSystemStorage
-
-import waves.settings
 
 
 class WavesStorage(FileSystemStorage):
     """ Waves FileSystem Storage engine """
     def __init__(self):
-        super(WavesStorage, self).__init__(location=waves.settings.WAVES_DATA_ROOT,
+        super(WavesStorage, self).__init__(location=config.WAVES_DATA_ROOT,
                                            directory_permissions_mode=0o775,
                                            file_permissions_mode=0o775)
 

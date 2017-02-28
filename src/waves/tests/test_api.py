@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import logging
 from urlparse import urlparse
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from rest_framework import status
@@ -20,7 +21,7 @@ AuthModel = get_user_model()
 
 def _create_test_file(path, index):
     import os
-    full_path = os.path.join(waves.settings.WAVES_DATA_ROOT, 'jobs', '_' + str(index) + '_' + path)
+    full_path = os.path.join(settings.BASE_DIR, 'jobs', '_' + str(index) + '_' + path)
     f = open(full_path, 'w')
     f.write('sample content for input file %s' % ('_' + str(index) + '_' + path))
     f.close()

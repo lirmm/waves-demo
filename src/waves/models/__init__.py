@@ -7,7 +7,6 @@ from waves.models.adaptors import *
 from waves.models.runners import *
 from waves.models.services import *
 from waves.models.jobs import *
-from waves.models.config import *
 from waves.models.submissions import *
 from waves.models.inputs import *
 from waves.models.metas import *
@@ -15,8 +14,6 @@ from waves.models.metas import *
 """
 List of different constants used for models
 """
-
-
 OUT_TYPE = (
     ('stout', 'Standard output'),
     ('file', 'Output file')

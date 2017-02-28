@@ -151,9 +151,6 @@ class ServiceSerializer(BaseServiceSerializer, RelatedSerializerMixin):
     category = CategorySerializer(many=False, required=False, validators=[])
     srv_run_params = ServiceRunnerParamSerializer(many=True, required=False)
 
-    def get_db_version(self, obj):
-        return waves.settings.WAVES_DB_VERSION
-
     def __init__(self, *args, **kwargs):
         self.skip_category = kwargs.pop('skip_cat', False)
         self.skip_runner = kwargs.pop('skip_run', False)

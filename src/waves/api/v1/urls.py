@@ -30,7 +30,6 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     url(r'^', include(router.urls)),
-    url(r'^docs/html/', include('rest_framework_docs.urls')),
     url(r'^docs/swagger/$', swagger_doc_schema_view),
     url(r'^services/(?P<service>[^/.]+)/submissions/(?P<api_name>[^/.]+)/$',
         services.ServiceJobSubmissionView.as_view(), name='waves-services-submissions'),

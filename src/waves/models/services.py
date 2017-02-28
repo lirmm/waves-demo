@@ -5,16 +5,15 @@ from __future__ import unicode_literals
 
 import os
 
+from constance import config
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models import Q
 from mptt.models import MPTTModel, TreeForeignKey
 
-import waves.settings
 from waves.models.adaptors import *
 from waves.models.base import *
-from waves.models.config import WavesSiteConfig
 
 __all__ = ['ServiceRunParam', 'ServiceCategory', 'Service']
 
@@ -219,7 +218,7 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
     @property
     def sample_dir(self):
         """ Return expected sample dir for a Service """
-        return os.path.join(waves.settings.WAVES_SAMPLE_DIR, self.api_name)
+        return os.path.join(config.WAVES_SAMPLE_DIR, self.api_name)
 
     @property
     def default_submission(self):

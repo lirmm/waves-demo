@@ -7,7 +7,7 @@ import logging
 import os
 from os import path as path
 from os.path import join
-
+from constance import config
 import waves.adaptors.core
 import waves.adaptors.exceptions.adaptors
 from django.conf import settings
@@ -377,7 +377,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: working dir
         :rtype: unicode
         """
-        return os.path.join(settings.WAVES_JOB_DIR, str(self.slug))
+        return os.path.join(config.WAVES_JOB_DIR, str(self.slug))
 
     @property
     def adaptor(self):
@@ -430,7 +430,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         mailer = JobMailer(job=self)
         if self.status != self.status_mail and self.status == self.JOB_ERROR:
             mailer.send_job_admin_error()
-        if settings.WAVES_NOTIFY_RESULTS and self.service.email_on:
+        if config.WAVES_NOTIFY_RESULTS and self.service.email_on:
             if self.email_to is not None and self.status != self.status_mail:
                 # should send a email
                 try:
@@ -532,7 +532,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
 
     def retry(self, message):
         """ Add a new try for job execution, save retry reason in JobAdminHistory, save job """
-        if self.nb_retry <= settings.WAVES_JOBS_MAX_RETRY:
+        if self.nb_retry <= config.WAVES_JOBS_MAX_RETRY:
             self.nb_retry += 1
             self.job_history.create(message='[Retry]%s' % message.decode('utf8'), status=self.status, is_admin=True)
             self.save()
@@ -612,7 +612,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         self.save()
         if self.status == self.JOB_COMPLETED:
             self.run_results()
-        if self.status == self.JOB_UNDEFINED and self.nb_retry > settings.WAVES_JOBS_MAX_RETRY:
+        if self.status == self.JOB_UNDEFINED and self.nb_retry > config.WAVES_JOBS_MAX_RETRY:
             self.run_cancel()
         self.save_status_history(self.status)
         return self.status

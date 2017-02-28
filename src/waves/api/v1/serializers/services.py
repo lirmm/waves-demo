@@ -5,7 +5,7 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from django.utils.html import strip_tags
 from rest_framework import serializers
 from rest_framework.reverse import reverse as reverse
-
+from constance import config
 import waves.settings
 from .inputs import InputSerializer
 from dynamic import DynamicFieldsModelSerializer
@@ -150,7 +150,7 @@ class ServiceFormSerializer(serializers.ModelSerializer):
 
     def get_template_pack(self, obj):
         """ Retrieve WAVES TEMPLATE PACK """
-        return waves.settings.WAVES_TEMPLATE_PACK
+        return config.WAVES_TEMPLATE_PACK
 
     def get_css(self, obj):
         """ link to service css """

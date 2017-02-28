@@ -14,7 +14,7 @@
     <title>{% block title %} :: {% include "_brandname.html" %} :: {% endblock %}</title>
 
     <!-- Bootstrap core CSS -->
-    {% bootstrap_styles theme=css_theme type='min.css' %}
+    {% bootstrap_styles theme=config.WAVES_BOOTSTRAP_THEME type='min.css' %}
     <!-- Custom styles for this site -->
     {% block styles %}
         <link href="{% static 'waves/css/main.css' %}" rel="stylesheet"/>
