@@ -3,6 +3,7 @@ from __future__ import  unicode_literals
 
 import os
 import sys
+# Load saga before anything related to Django: avoid user warning about loggers
 import saga
 
 if __name__ == "__main__":

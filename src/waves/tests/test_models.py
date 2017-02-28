@@ -6,9 +6,9 @@ import os
 
 from django.test import TestCase
 from django.utils.module_loading import import_string
-from waves.adaptors.core.base import JobAdaptor
+from waves.adaptors.core.adaptor import JobAdaptor
 
-from waves.models import Job, Service, Runner, JobAdminHistory
+from waves.models import Job, Service, Runner
 from waves.models.history import JobHistory, JobAdminHistory
 from waves.models.submissions import Submission
 from waves.tests.base import WavesBaseTestCase
@@ -88,10 +88,9 @@ class TestJobs(WavesBaseTestCase):
         self.assertEqual(job.status, Job.JOB_CREATED)
         self.assertEqual(job.job_history.count(), 1)
         job.message = "Test job Message"
-        job.status = Job.JOB_PREPARED
+        job.save_status_history(Job.JOB_PREPARED)
         job.save()
-        self.assertEqual(job.job_history.count(), 2)
-        self.assertEqual(job.job_history.first().message, job.message)
+        self.assertGreaterEqual(job.job_history.filter(message__contains=job.message).all(), 0)
         job.delete()
         self.assertFalse(os.path.isdir(job.working_dir))
         logger.debug('Job directories has been deleted')
@@ -99,8 +98,8 @@ class TestJobs(WavesBaseTestCase):
     def test_basic_job_history(self):
         job = Job.objects.create(submission=Submission.objects.create(name="Sample Sub", service=Service.objects.create(
             name='SubmissionSample Service')))
-        job.job_history.add(JobAdminHistory.objects.create(job=job, message="Test Admin message", status=job.get_status_display()))
-        job.job_history.add(JobHistory.objects.create(job=job, message="Test public message", status=job.get_status_display()))
+        job.job_history.create(message="Test Admin message", status=job.status, is_admin=True)
+        job.job_history.create(message="Test public message", status=job.status)
         try:
             self.assertEqual(job.job_history.count(), 3)
             self.assertEqual(job.public_history.count(), 2)

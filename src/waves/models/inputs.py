@@ -1,11 +1,11 @@
 """ All Input related models """
 from __future__ import unicode_literals
 
-from django.conf import settings
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from polymorphic_tree.models import PolymorphicMPTTModel, PolymorphicTreeForeignKey
-from constance import config
+import waves.settings
 from waves.models.adaptors import DTOMixin
 from waves.models.base import Ordered
 from waves.utils.storage import waves_storage, file_sample_directory
@@ -374,7 +374,7 @@ class FileInput(BaseParam):
 
     class_label = "File Input"
 
-    max_size = models.BigIntegerField('Maximum allowed file size ', default=config.WAVES_UPLOAD_MAX_SIZE / 1024,
+    max_size = models.BigIntegerField('Maximum allowed file size ', default=waves.settings.WAVES_UPLOAD_MAX_SIZE / 1024,
                                       help_text="in Ko")
     allowed_extensions = models.CharField('Filter by extensions', max_length=255,
                                           help_text="Comma separated list, * means no filter",

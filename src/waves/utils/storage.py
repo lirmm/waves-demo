@@ -3,29 +3,28 @@ from __future__ import unicode_literals
 
 import os
 
-from constance import config
+import waves.settings
 from django.core.files.storage import FileSystemStorage
 
 
 class WavesStorage(FileSystemStorage):
     """ Waves FileSystem Storage engine """
+
     def __init__(self):
-        super(WavesStorage, self).__init__(location=config.WAVES_DATA_ROOT,
+        super(WavesStorage, self).__init__(location=waves.settings.WAVES_DATA_ROOT,
                                            directory_permissions_mode=0o775,
                                            file_permissions_mode=0o775)
 
 
 def file_sample_directory(instance, filename):
     """ Submission file sample directory upload pattern """
-    return 'sample/{0}/{1}/{2}'.format(str(instance.submission.service.api_name), str(instance.submission.slug), filename)
+    return 'sample/{0}/{1}/{2}'.format(str(instance.submission.service.api_name), str(instance.submission.slug),
+                                       filename)
 
 
 def job_file_directory(instance, filename):
     """ Submitted job input files """
     return 'jobs/{0}/{1}'.format(str(instance.job.slug), filename)
-
-
-waves_storage = WavesStorage()
 
 
 def allow_display_online(file_name):
@@ -41,3 +40,5 @@ def allow_display_online(file_name):
     except os.error:
         return False
     return False
+
+waves_storage = WavesStorage()

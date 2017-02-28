@@ -2,12 +2,12 @@ from __future__ import unicode_literals
 
 import logging
 
+from constance import config
 from django.conf import settings
 from django.core import mail
 from django.test import override_settings
 from django.utils import timezone
 
-import waves.settings
 from waves.models import Job, JobInput, JobOutput, Service, Submission
 from waves.tests.base import WavesBaseTestCase
 
@@ -39,7 +39,7 @@ class JobMailTest(WavesBaseTestCase):
         sent_mail = mail.outbox[-1]
         self.assertTrue(job.service.name in sent_mail.subject)
         self.assertEqual(job.email_to, sent_mail.to[0])
-        self.assertEqual(waves.settings.WAVES_SERVICES_EMAIL, sent_mail.from_email)
+        self.assertEqual(config.WAVES_SERVICES_EMAIL, sent_mail.from_email)
         logger.debug('Mail subject: %s', sent_mail.subject)
         logger.debug('Mail from: %s', sent_mail.from_email)
         logger.debug('Mail content: \n%s', sent_mail.body)

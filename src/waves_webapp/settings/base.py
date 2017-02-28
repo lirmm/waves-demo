@@ -61,34 +61,33 @@ STATICFILES_DIRS = (
 )
 # Application definition
 INSTALLED_APPS = (
+    'django.contrib.staticfiles',
     'polymorphic_tree',
     'polymorphic',
     'mptt',
-    'django.contrib.staticfiles',
     'django.contrib.contenttypes',
     'django.contrib.auth',
-    'jet.dashboard',
     'jet',
+    'jet.dashboard',
     'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'waves',
+    # WAVES required dependencies
     'authtools',
     'adminsortable2',
-    # WAVES required dependencies
-    'waves',
-    'waves.apps.WavesConstanceConfig',
-    'profiles',
     'accounts',
+    'bootstrap_themes',
+    'ckeditor',
+    'constance',
     'constance.backends.database',
     'django_countries',
     'crispy_forms',
     'easy_thumbnails',
     'mail_templated',
+    'profiles',
     'rest_framework',
     'rest_framework_swagger',
-    # 'corsheaders',
-    'ckeditor',
-    'bootstrap_themes',
 )
 
 MIDDLEWARE_CLASSES = (

@@ -1,8 +1,10 @@
+""" Development configuration """
 from __future__ import unicode_literals
 
-import logging.config
 
+import logging.config
 from waves_webapp.settings.base import *
+
 DEBUG = True
 DEBUG404 = True
 # DEBUG

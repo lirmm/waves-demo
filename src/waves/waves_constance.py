@@ -3,7 +3,7 @@ Set up mandatory constance configuration entries for WAVES
 """
 from __future__ import unicode_literals
 
-from django.conf import settings
+from waves.settings import settings, WAVES_DATA_ROOT
 from os.path import join, dirname
 from bootstrap_themes import list_themes
 
@@ -17,13 +17,13 @@ WAVES_CONSTANCE_CONFIG = {
     'WAVES_APP_VERBOSE_NAME': ('Web Application for Versatile & Easy bioinformatics Services',
                                'Application verbose name'),
     'WAVES_BOOTSTRAP_THEME': ('slate', 'Bootstrap theme for front end', 'select_theme'),
-    'WAVES_DATA_ROOT': (join(dirname(settings.BASE_DIR), 'data'), 'Data root dir'),
+    'WAVES_DATA_ROOT': (WAVES_DATA_ROOT, 'Data root dir'),
     'WAVES_FORM_PROCESSOR': ('crispy', 'WAVES form processor'),
-    'WAVES_JOB_DIR': (join(dirname(settings.BASE_DIR), 'data', 'jobs'), 'Job working base dir'),
+    'WAVES_JOB_DIR': (join(WAVES_DATA_ROOT, 'jobs'), 'Job working base dir'),
     'WAVES_JOBS_MAX_RETRY': (5, 'Default retry for failing jobs', int),
     'WAVES_KEEP_ANONYMOUS_JOBS': (30, 'Number of day to keep anonymous jobs data'),
     'WAVES_KEEP_REGISTERED_JOBS': (120, 'Number of day to keep registered users jobs data'),
-    'WAVES_LOG_ROOT': (join(dirname(settings.BASE_DIR), 'logs'), 'Log directory'),
+    'WAVES_LOG_ROOT': (join(WAVES_DATA_ROOT, 'logs'), 'Log directory'),
     'WAVES_NOTIFY_RESULTS': (True, 'Notify results to clients'),
     'WAVES_REGISTRATION_ALLOWED': (True, 'User registration enabled'),
     'WAVES_SAMPLE_DIR': (join(dirname(settings.MEDIA_ROOT), 'sample'), 'Sample directory'),
