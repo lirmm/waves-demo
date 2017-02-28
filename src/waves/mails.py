@@ -2,8 +2,7 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 from mail_templated import send_mail
-
-import waves.settings
+from constance import config
 
 
 class JobMailer(object):
@@ -23,8 +22,8 @@ class JobMailer(object):
 
     def get_context_data(self):
         return {'job': self.job,
-                'WAVES_APP_NAME': waves.settings.WAVES_APP_NAME,
-                'contact': waves.settings.WAVES_SERVICES_EMAIL}
+                'WAVES_APP_NAME': config.WAVES_APP_NAME,
+                'contact': config.WAVES_SERVICES_EMAIL}
 
     @property
     def mail_activated(self):
@@ -34,7 +33,7 @@ class JobMailer(object):
         :return: True if mail are to be sent, False either
         :rtype: bool
         """
-        return waves.settings.WAVES_NOTIFY_RESULTS and self.job.service.email_on
+        return config.WAVES_NOTIFY_RESULTS and self.job.service.email_on
 
     def _send_job_mail(self, template):
         """ Check if send mail is needed, in such case, create a template email and... send it to specified client
@@ -44,7 +43,7 @@ class JobMailer(object):
         """
         if self.mail_activated:
             context = self.get_context_data()
-            return send_mail(template_name=template, context=context, from_email=waves.settings.WAVES_SERVICES_EMAIL,
+            return send_mail(template_name=template, context=context, from_email=config.WAVES_SERVICES_EMAIL,
                              recipient_list=[self.job.email_to], subject='Job Submitted',
                              fail_silently=not settings.DEBUG)
         else:

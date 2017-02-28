@@ -8,6 +8,7 @@ from crispy_forms.layout import Layout, Field
 from django import forms
 from django.core import validators
 from django.core.exceptions import ValidationError
+from constance import config
 import waves.settings
 from waves.models.inputs import *
 from waves.models.submissions import Submission
@@ -78,13 +79,13 @@ class ServiceForm(forms.ModelForm):
         self.fields['restricted_client'].label = "Restrict access to specified user"
         if not self.fields['created_by'].initial:
             self.fields['created_by'].initial = self.current_user
-        if not waves.settings.WAVES_NOTIFY_RESULTS:
-            self.fields['email_on'].widget.attrs['readonly'] = True
+        if not config.WAVES_NOTIFY_RESULTS:
+            self.fields['email_on'].widget.attrs['disabled'] = 'disabled'
             self.fields['email_on'].help_text = '<span class="warning">Disabled by main configuration</span><br/>' \
                                                 + self.fields['email_on'].help_text
 
     def clean_email_on(self):
-        if not waves.settings.WAVES_NOTIFY_RESULTS:
+        if not config.WAVES_NOTIFY_RESULTS:
             return self.instance.email_on
         else:
             return self.cleaned_data.get('email_on')

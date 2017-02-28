@@ -7,7 +7,7 @@ import os
 import sys
 import time
 from itertools import chain
-
+from constance import config
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from waves.adaptors.exceptions.adaptors import AdaptorException
@@ -49,7 +49,6 @@ class DaemonCommand(BaseCommand):
     log_backup_count = 5
     log_max_bytes = 5 * 1024 * 1024
     log_file = '/tmp/daemon_command.log'
-    log_level = 'WARNING'
 
     def add_arguments(self, parser):
         """
@@ -132,11 +131,10 @@ class JobQueueCommand(DaemonCommand):
     """
     help = 'Managing WAVES job queue states'
     SLEEP_TIME = 2
-    work_dir = waves.settings.WAVES_DATA_ROOT
-    pidfile_path = os.path.join(waves.settings.WAVES_DATA_ROOT, 'waves_queue.pid')
+    work_dir = config.WAVES_DATA_ROOT
+    pidfile_path = os.path.join(config.WAVES_DATA_ROOT, 'waves_queue.pid')
     pidfile_timeout = 5
-    log_file = os.path.join(waves.settings.WAVES_LOG_ROOT, "waves_daemon.log")
-    log_level = settings.WAVES_QUEUE_LOG_LEVEL
+    log_file = os.path.join(config.WAVES_LOG_ROOT, "waves_daemon.log")
 
     def loop_callback(self):
         """
@@ -178,7 +176,7 @@ class JobQueueCommand(DaemonCommand):
             except (waves.exceptions.WavesException, AdaptorException) as e:
                 logger.error("Error Job %s (adaptor:%s-state:%s): %s", job, runner, job.get_status_display(),
                               e.message)
-                if job.nb_retry >= waves.settings.WAVES_JOBS_MAX_RETRY:
+                if job.nb_retry >= config.WAVES_JOBS_MAX_RETRY:
                     job.error(message='Job error (too many errors) \n%s' % e.message)
             finally:
                 logger.info("Queue job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
@@ -191,15 +189,14 @@ class JobQueueCommand(DaemonCommand):
 class PurgeDaemonCommand(DaemonCommand):
     help = 'Clean up old jobs '
     SLEEP_TIME = 86400
-    work_dir = waves.settings.WAVES_DATA_ROOT
-    pidfile_path = os.path.join(waves.settings.WAVES_DATA_ROOT, 'waves_clean.pid')
-    log_file = os.path.join(waves.settings.WAVES_LOG_ROOT, "waves_daemon.log")
-    log_level = 'WARNING'
+    work_dir = config.WAVES_DATA_ROOT
+    pidfile_path = os.path.join(config.WAVES_DATA_ROOT, 'waves_clean.pid')
+    log_file = os.path.join(config.WAVES_LOG_ROOT, "waves_daemon.log")
 
     def loop_callback(self):
         logger.info("Purge job launched at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
-        date_anonymous = datetime.date.today() - datetime.timedelta(waves.settings.WAVES_KEEP_ANONYMOUS_JOBS)
-        date_registered = datetime.date.today() - datetime.timedelta(waves.settings.WAVES_KEEP_REGISTERED_JOBS)
+        date_anonymous = datetime.date.today() - datetime.timedelta(config.WAVES_KEEP_ANONYMOUS_JOBS)
+        date_registered = datetime.date.today() - datetime.timedelta(config.WAVES_KEEP_REGISTERED_JOBS)
         anonymous = Job.objects.filter(client__isnull=True, updated__lt=date_anonymous)
         registered = Job.objects.filter(client__isnull=False, updated__lt=date_registered)
         for job in list(chain(*[anonymous, registered])):

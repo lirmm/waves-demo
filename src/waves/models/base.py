@@ -3,23 +3,13 @@ from __future__ import unicode_literals
 
 import uuid
 
-from django.conf import settings
-# from django.contrib.sites.models import Site
+from constance import config
 from django.db import models
 
-import waves.settings
 from waves.compat import RichTextField
-from waves.models.config import WavesSiteConfig
 
 __all__ = ['TimeStamped', 'Ordered', 'ExportAbleMixin', 'Described', 'Slugged', 'ApiModel',
            'UrlMixin']
-
-
-class BaseModel(models.Model):
-    class Meta:
-        abstract = True
-
-    sites = models.ManyToManyField(WavesSiteConfig)
 
 
 class TimeStamped(models.Model):
@@ -147,7 +137,7 @@ class ExportAbleMixin(object):
         """ Import model object serializer, serialize and write data to disk """
         from os.path import join
         import json
-        file_path = join(waves.settings.WAVES_DATA_ROOT, self.export_file_name)
+        file_path = join(config.WAVES_DATA_ROOT, self.export_file_name)
         with open(file_path, 'w', 0) as fp:
             try:
                 serializer = self.serializer()

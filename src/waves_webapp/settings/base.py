@@ -7,6 +7,7 @@ import environ
 import sys
 from os.path import dirname, join
 
+
 LOGGING_CONFIG = None
 BASE_DIR = dirname(dirname(dirname(__file__)))
 STATIC_URL = '/static/'
@@ -31,7 +32,7 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
-                'waves.utils.context_theme_processor.css_theme',
+                'constance.context_processors.config',
             ],
         },
     },
@@ -60,32 +61,33 @@ STATICFILES_DIRS = (
 )
 # Application definition
 INSTALLED_APPS = (
+    'django.contrib.staticfiles',
     'polymorphic_tree',
     'polymorphic',
     'mptt',
-    'django.contrib.staticfiles',
     'django.contrib.contenttypes',
     'django.contrib.auth',
-    'jet.dashboard',
     'jet',
+    'jet.dashboard',
     'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'waves',
+    # WAVES required dependencies
     'authtools',
     'adminsortable2',
-    # WAVES required dependencies
-    'waves',
-    'profiles',
     'accounts',
+    'bootstrap_themes',
+    'ckeditor',
+    'constance',
+    'constance.backends.database',
     'django_countries',
     'crispy_forms',
     'easy_thumbnails',
     'mail_templated',
+    'profiles',
     'rest_framework',
     'rest_framework_swagger',
-    # 'corsheaders',
-    'ckeditor',
-    'bootstrap_themes',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -136,15 +138,6 @@ REST_FRAMEWORK = {
 # FILE_UPLOAD_MAX_MEMORY_SIZE = 0FILE_UPLOAD_DIRECTORY_PERMISSIONS
 FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
 FILE_UPLOAD_PERMISSIONS = 0o775
-# Default Site id
-SITE_ID = 1
-# Tabbed Admin configuration
-TABBED_ADMIN_USE_JQUERY_UI = False
-THUMBNAIL_EXTENSION = 'png'
-# DJANGO crontab settings
-CRONTAB_LOCK_JOBS = True
-CRONTAB_DJANGO_SETTINGS_MODULE = 'waves_webapp.settings.cron'
-CRONJOBS = [('1 0 * * *', 'waves.managers.cron.purge_old_jobs')]
 # Django countries first items
 COUNTRIES_FIRST = ['FR', 'GB', 'US', 'DE']
 JET_SIDE_MENU_COMPACT = True
@@ -190,3 +183,4 @@ CKEDITOR_CONFIGS = {
 # TODO in order to enable sibling, either overwrite to set-it up per model, or add custom filter for submissions
 # (keep current service)
 JET_CHANGE_FORM_SIBLING_LINKS = False
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'

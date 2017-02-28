@@ -7,7 +7,7 @@ import logging
 import os
 from os import path as path
 from os.path import join
-
+from constance import config
 import waves.adaptors.core
 import waves.adaptors.exceptions.adaptors
 from django.conf import settings
@@ -27,6 +27,7 @@ from waves.models.submissions import Submission, SubmissionOutput
 from waves.utils import normalize_value
 from waves.utils.jobs import default_run_details
 from waves.utils.storage import allow_display_online
+from waves.mails import JobMailer
 
 logger = logging.getLogger(__name__)
 
@@ -377,7 +378,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: working dir
         :rtype: unicode
         """
-        return os.path.join(settings.WAVES_JOB_DIR, str(self.slug))
+        return os.path.join(config.WAVES_JOB_DIR, str(self.slug))
 
     @property
     def adaptor(self):
@@ -426,11 +427,10 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: the nmmber of mail sent (should be one)
         :rtype: int
         """
-        from waves.mails import JobMailer
         mailer = JobMailer(job=self)
         if self.status != self.status_mail and self.status == self.JOB_ERROR:
             mailer.send_job_admin_error()
-        if settings.WAVES_NOTIFY_RESULTS and self.service.email_on:
+        if config.WAVES_NOTIFY_RESULTS and self.service.email_on:
             if self.email_to is not None and self.status != self.status_mail:
                 # should send a email
                 try:
@@ -452,7 +452,8 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
                     self.save()
                     return nb_sent
                 except Exception as e:
-                    logger.error('Unable to send mail : %s', e)
+                    logger.error('Mail error: %s %s', e.__class__.__name__, e.message)
+                    raise e
                     pass
 
     def get_absolute_url(self):
@@ -532,7 +533,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
 
     def retry(self, message):
         """ Add a new try for job execution, save retry reason in JobAdminHistory, save job """
-        if self.nb_retry <= settings.WAVES_JOBS_MAX_RETRY:
+        if self.nb_retry <= config.WAVES_JOBS_MAX_RETRY:
             self.nb_retry += 1
             self.job_history.create(message='[Retry]%s' % message.decode('utf8'), status=self.status, is_admin=True)
             self.save()
@@ -549,10 +550,16 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
 
     def save_status_history(self, state, message=None, is_admin=False):
         """ Save new state in DB, add history message id needed """
-        h_message = message or self.message or 'Job %s' % self.get_status_display().lower()
-        self.status = state
+        if message is not None:
+            h_message = message
+        elif self.message is not None:
+            h_message = self.message
+        else:
+            h_message = ""
+        self.status = state or 'Job %s' % self.get_status_display().lower()
         if self.changed_status:
-            self.job_history.create(message=h_message.decode('utf8',  errors='replace'), status=self.status, is_admin=is_admin)
+            self.job_history.create(message=h_message.decode('utf8',  errors='replace'), status=self.status,
+                                    is_admin=is_admin)
             self.message = ""
         self.save()
         logger.debug('Job and history saved [%d] status: %s', self.id, self.get_status_display())
@@ -612,7 +619,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         self.save()
         if self.status == self.JOB_COMPLETED:
             self.run_results()
-        if self.status == self.JOB_UNDEFINED and self.nb_retry > settings.WAVES_JOBS_MAX_RETRY:
+        if self.status == self.JOB_UNDEFINED and self.nb_retry > config.WAVES_JOBS_MAX_RETRY:
             self.run_cancel()
         self.save_status_history(self.status)
         return self.status

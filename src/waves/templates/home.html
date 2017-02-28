@@ -14,9 +14,10 @@
     <div class="jumbotron jumbotron-carousel corporate-jumbo">
         <div class="container">
             <div class="row">
+
                 <div class="col-md-8 col-sm-8">
                     <h1>{% include "_brandname.html" %}</h1>
-                    <p>{% get_app_verbose_name %}</p>
+                    <p>{{ config.WAVES_APP_VERBOSE_NAME }}</p>
                     <a class="btn btn-primary" href="{% url 'waves:about' %}" role="button">More info</a>
                 </div>
                 <div class="col-md-4 col-sm-4">

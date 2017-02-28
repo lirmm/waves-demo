@@ -1,17 +1,19 @@
 """ Submission Polymorphic Inputs models Admin """
 from __future__ import unicode_literals
 
-from django.contrib import admin
-from polymorphic.admin import PolymorphicParentModelAdmin, PolymorphicChildModelAdmin, PolymorphicChildModelFilter
-from waves.models.inputs import *
-from waves.models.submissions import Submission
+import json
+
 from django import forms
+from django.contrib import admin
+from django.contrib import messages
 from django.contrib.admin.options import IS_POPUP_VAR, TO_FIELD_VAR
 from django.template.response import SimpleTemplateResponse
-from django.contrib import messages
 from django.utils import six
-import json
+from polymorphic.admin import PolymorphicChildModelFilter
 from polymorphic_tree.admin import PolymorphicMPTTParentModelAdmin, PolymorphicMPTTChildModelAdmin
+from waves.admin.submissions import FileInputSampleInline
+from waves.models.inputs import *
+from waves.models.submissions import Submission
 
 __all__ = ['AllParamModelAdmin']
 
@@ -158,6 +160,7 @@ class FileInputAdmin(AParamAdmin):
     show_in_index = False
     extra_fieldset_title = 'File params'
 
+    inlines = [FileInputSampleInline,]
 
 @admin.register(TextParam)
 class TextParamAdmin(AParamAdmin):

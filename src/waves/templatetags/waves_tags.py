@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django import template
 import waves.settings
+from constance import config
 from waves.models import ServiceCategory
 register = template.Library()
 
@@ -9,19 +10,19 @@ register = template.Library()
 @register.simple_tag
 def get_admin_title():
     """ Returns Admin-Interface title """
-    return waves.settings.WAVES_ADMIN_TITLE
+    return config.WAVES_ADMIN_TITLE
 
 
 @register.simple_tag
 def get_app_verbose_name():
     """ return current app Verbose name"""
-    return waves.settings.WAVES_APP_VERBOSE_NAME
+    return config.WAVES_APP_VERBOSE_NAME
 
 
 @register.simple_tag
 def get_app_name():
     """ return current app name """
-    return waves.settings.WAVES_APP_NAME
+    return config.WAVES_APP_NAME
 
 
 @register.inclusion_tag('services/_category_menu.html')

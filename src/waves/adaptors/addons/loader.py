@@ -40,9 +40,12 @@ def __import_submodules(package, recursive=True):
     :type package: str | module
     :rtype: dict[str, types.ModuleType]
     """
-    if isinstance(package, basestring):
-        package = importlib.import_module(package)
     results = {}
+    if isinstance(package, basestring):
+        try:
+            package = importlib.import_module(package)
+        except ImportError:
+            return results
     for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
         full_name = package.__name__ + '.' + name
         results[full_name] = importlib.import_module(full_name)

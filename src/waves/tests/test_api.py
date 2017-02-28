@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import logging
 from urlparse import urlparse
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from rest_framework import status
@@ -20,7 +21,7 @@ AuthModel = get_user_model()
 
 def _create_test_file(path, index):
     import os
-    full_path = os.path.join(waves.settings.WAVES_DATA_ROOT, 'jobs', '_' + str(index) + '_' + path)
+    full_path = os.path.join(settings.BASE_DIR, 'jobs', '_' + str(index) + '_' + path)
     f = open(full_path, 'w')
     f.write('sample content for input file %s' % ('_' + str(index) + '_' + path))
     f.close()
@@ -79,7 +80,7 @@ class ServiceTests(WavesAPITestCase):
 
     def test_list_categories(self):
         category_list = self.client.get(
-            reverse('waves:waves-services-category-list'), data=self._dataUser())
+            reverse('waves_api:waves-services-category-list'), data=self._dataUser())
         self.assertEqual(category_list.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(category_list.data), 0)
         for category in category_list.data:
@@ -96,8 +97,8 @@ class JobTests(WavesAPITestCase):
         """
         import random
         import string
-        logger.debug('Retrieving service-list from ' + reverse('waves:waves-services-list'))
-        tool_list = self.client.get(reverse('waves:waves-services-list'), data=self._dataUser())
+        logger.debug('Retrieving service-list from ' + reverse('waves_api:waves-services-list'))
+        tool_list = self.client.get(reverse('waves_api:waves-services-list'), data=self._dataUser())
         self.assertEqual(tool_list.status_code, status.HTTP_200_OK)
         self.assertGreater(len(tool_list.data), 0)
         for servicetool in tool_list.data:
@@ -160,7 +161,7 @@ class JobTests(WavesAPITestCase):
         pass
 
     def testPhysicIST(self):
-        url_post = self.client.get(reverse('waves:waves-services-detail',
+        url_post = self.client.get(reverse('waves_api:waves-services-detail',
                                            kwargs={'api_name': 'physic_ist'}),
                                    data=self._dataUser())
         if url_post.status_code == status.HTTP_200_OK:
@@ -174,7 +175,7 @@ class JobTests(WavesAPITestCase):
                                             format='multipart')
                 logger.debug(response)
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-                job_details = self.client.get(reverse('waves:waves-jobs-detail',
+                job_details = self.client.get(reverse('waves_api:waves-jobs-detail',
                                                       kwargs={'slug': response.data['slug']}),
                                               data=self._dataUser())
                 self.assertEqual(job_details.status_code, status.HTTP_200_OK)

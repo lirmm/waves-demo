@@ -8,6 +8,7 @@ from crispy_forms.bootstrap import PrependedText
 from django.contrib.auth import get_user_model
 from django_countries.fields import LazyTypedChoiceField
 from django_countries import countries
+from constance import config
 from authtools import forms as authtoolsforms
 from django.contrib.auth import forms as authforms
 from django.core.urlresolvers import reverse
@@ -72,7 +73,7 @@ class SignupForm(registration.forms.RegistrationFormTermsOfService,
         self.helper.label_class = 'col-md-4 col-xs-4 hidden-sm hidden-xs'
         self.helper.field_class = 'col-md-8 col-xs-12'
         # self.helper.form_show_labels = False
-        if 'bootstrap' in waves.settings.WAVES_TEMPLATE_PACK:
+        if 'bootstrap' in config.WAVES_TEMPLATE_PACK:
             email_field = PrependedText('email', '@', placeholder="Enter Email", autofocus="")
         else:
             email_field = Field('email', placeholder="Enter Email", autofocus="")
