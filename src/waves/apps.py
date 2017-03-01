@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 from os.path import dirname
 from django.apps import AppConfig
+import waves_constance
 
 
 class WavesAppConfig(AppConfig):
@@ -22,5 +23,4 @@ class WavesAppConfig(AppConfig):
         Just import waves signals
         :return: None
         """
-        import waves_constance
         import waves.signals
