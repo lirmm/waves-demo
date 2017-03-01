@@ -90,8 +90,9 @@ class InitDbCommand(BaseCommand):
 
     def handle(self, *args, **options):
         """ Handle InitDB command """
-        from waves.models import Service, Runner, WavesSiteConfig, ServiceCategory
+        from waves.models import Service, Runner, ServiceCategory
         from bootstrap_themes import available_themes
+        from constance import config
         from django.contrib.auth import get_user_model
         process = True
         self.stdout.write(self.style.WARNING('Warning, this action reset ALL waves data to initial'))
@@ -103,7 +104,6 @@ class InitDbCommand(BaseCommand):
             ServiceCategory.objects.all().delete()
             Service.objects.all().delete()
             Runner.objects.all().delete()
-            WavesSiteConfig.objects.all().delete()
             Job.objects.all().delete()
             User = get_user_model()
             User.objects.all().delete()
@@ -112,14 +112,18 @@ class InitDbCommand(BaseCommand):
                 site_theme = choice_input('Choose your bootstrap theme (def:%s)' % config.WAVES_BOOTSTRAP_THEME,
                                           choices=[theme[1] for theme in available_themes],
                                           default=6)
-                allow_registration = boolean_input("Do you want to allow user registration ? [y/N]", False)
-                allow_submits = boolean_input("Do you want to allow job submissions ? [y/N]", False)
-                WavesSiteConfig.objects.create(theme=available_themes[site_theme][0], allow_registration=allow_registration,
-                                               allow_submits=allow_submits, maintenance=True)
+                call_command('constance', 'set', 'WAVES_BOOTSTRAP_THEME', available_themes[site_theme-1][0])
                 self.stdout.write("... Done")
+                allow_registration = boolean_input("Do you want to allow user registration ? [y/N]", False)
+                call_command('constance', 'set', 'WAVES_REGISTRATION_ALLOWED', bool(allow_registration))
+                self.stdout.write("... Done")
+                allow_submits = boolean_input("Do you want to allow job submissions ? [y/N]", False)
+                call_command('constance', 'set', 'WAVES_ALLOW_JOB_SUBMISSION', bool(allow_submits))
+                self.stdout.write("... Done")
+                call_command('constance', 'set', 'WAVES_SITE_MAINTENANCE', True)
                 self.stdout.write("Your site configuration is ready, site is currently in 'maintenance' mode")
                 if boolean_input('Do you want to init your job runners ? [y/N]', False):
-                    # TODO call submcommand wavesadmin run_init instead (duplicated code)
+                    # TODO call subcommand wavesadmin run_init instead (duplicated code)
                     self.stdout.write('Creating runners ...')
                     from waves.utils.runners import get_runners_list
                     for clazz in get_runners_list(flat=True):
@@ -281,13 +285,13 @@ class DumpConfigCommand(BaseCommand):
         self.stdout.write("*******************************")
         self.stdout.write("****  WAVES current setup *****")
         self.stdout.write("*******************************")
-        self.stdout.write('Current Django default database: %s' % settings.DATABASES['default'])
-        self.stdout.write('Current Django static files dirs: %s' % settings.STATICFILES_DIRS)
-        self.stdout.write('Current Django static root path: %s' % settings.STATIC_ROOT)
-        self.stdout.write('Current Django media root path: %s' % settings.MEDIA_ROOT)
+        self.stdout.write('Current Django default database: %s' % settings.DATABASES['default']['ENGINE'])
+        self.stdout.write('Current Django static dir: %s' % settings.STATICFILES_DIRS)
+        self.stdout.write('Current Django static root: %s' % settings.STATIC_ROOT)
+        self.stdout.write('Current Django media path: %s' % settings.MEDIA_ROOT)
         self.stdout.write('Current Django allowed hosts: %s' % settings.ALLOWED_HOSTS)
-        self.stdout.write("*******************************")
+        self.stdout.write("********* CONFIGURED IN local.env **************")
         for key in sorted(var_dict.keys()):
             if key.startswith('WAVES'):
                 self.stdout.write('%s: %s' % (key, var_dict[key]))
-        self.stdout.write("*******************************")
+        self.stdout.write("************************************************")

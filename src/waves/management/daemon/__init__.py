@@ -1,3 +1,0 @@
-"""
-WAVES Daemonized commands package
-"""

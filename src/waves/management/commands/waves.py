@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
-from waves.management.base import SubcommandDispatcher
-from waves.management.subcommands import *
-from waves.management.daemon.command import JobQueueCommand, PurgeDaemonCommand
+from ..command import JobQueueCommand, PurgeDaemonCommand
+from ..base import SubcommandDispatcher
+from ..subcommands import *
 
 CLEAN = 'clean'
 CONFIG = 'config'

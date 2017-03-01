@@ -7,14 +7,14 @@ import os
 import sys
 import time
 from itertools import chain
+
 from constance import config
-from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from waves.adaptors.exceptions.adaptors import AdaptorException
 
 import waves.exceptions
 import waves.settings
-from waves.management.daemon.runner import DaemonRunner
+from waves.management.runner import DaemonRunner
 from waves.models import Job
 
 logger = logging.getLogger(__name__)

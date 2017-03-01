@@ -9,7 +9,6 @@ from __future__ import unicode_literals
 
 import logging
 import signal
-
 import lockfile
 from daemon.runner import DaemonRunner as BaseDaemonRunner, DaemonRunnerStopFailureError, \
     DaemonRunnerStartFailureError, emit_message

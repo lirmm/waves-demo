@@ -253,10 +253,10 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
         """
         if user.is_anonymous():
             return (self.status == Service.SRV_PUBLIC and
-                    WavesSiteConfig.objects.get_current_config().allow_submits is True)
+                    config.WAVES_ALLOW_JOB_SUBMISSION is True)
         # RULES to set if user can access submissions
         return (self.status == Service.SRV_PUBLIC and
-                WavesSiteConfig.objects.get_current_config().allow_submits is True) or \
+                config.WAVES_ALLOW_JOB_SUBMISSION is True) or \
                (self.status == Service.SRV_DRAFT and self.created_by == user) or \
                (self.status == Service.SRV_TEST and user.is_staff) or \
                (self.status == Service.SRV_RESTRICTED and (

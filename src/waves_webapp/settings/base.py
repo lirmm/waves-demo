@@ -11,7 +11,7 @@ from os.path import dirname, join
 LOGGING_CONFIG = None
 BASE_DIR = dirname(dirname(dirname(__file__)))
 STATIC_URL = '/static/'
-MEDIA_ROOT = join(BASE_DIR, 'media')
+MEDIA_ROOT = join(dirname(BASE_DIR), 'media')
 MEDIA_URL = "/media/"
 TEMPLATES = [
     {
