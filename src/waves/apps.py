@@ -22,6 +22,5 @@ class WavesAppConfig(AppConfig):
         Just import waves signals
         :return: None
         """
-        print 'loaded ready'
         import waves_constance
         import waves.signals
