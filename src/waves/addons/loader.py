@@ -17,11 +17,11 @@ def load_core():
 
 
 def load_extra_adaptors():
-    return sorted(__load_addons('waves.adaptors.addons', parent=JobAdaptor), key=lambda x: x[0])
+    return sorted(__load_addons('waves.addons', parent=JobAdaptor), key=lambda x: x[0])
 
 
 def load_extra_importers():
-    return sorted(__load_addons('waves.adaptors.importers', parent=AdaptorImporter), key=lambda x: x[0])
+    return sorted(__load_addons('waves.importers', parent=AdaptorImporter), key=lambda x: x[0])
 
 
 def __load_addons(path, parent):
