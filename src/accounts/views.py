@@ -58,7 +58,7 @@ class SignUpView(bracesviews.AnonymousRequiredMixin, bracesviews.FormValidMessag
     form_valid_message = "You are now registered, don't forget to activate !"
     email_body_template = 'accounts/emails/activation_email.txt'
     email_subject_template = 'accounts/emails/activation_email_subject.txt'
-    disallowed_url = 'waves:registration_disallowed'
+    disallowed_url = 'account:registration_disallowed'
 
     def get_success_url(self, user):
         """ Redirect to registration complete when done """
