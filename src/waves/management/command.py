@@ -41,7 +41,7 @@ class DaemonCommand(BaseCommand):
     stdin_path = '/dev/null'
     stdout_path = '/dev/stdout'
     stderr_path = '/dev/stderr'
-    work_dir = './'
+    work_dir = waves.settings.WAVES_DATA_ROOT
     # pid configuration
     pidfile_path = '/tmp/daemon_command.pid'
     pidfile_timeout = 5
@@ -131,10 +131,8 @@ class JobQueueCommand(DaemonCommand):
     """
     help = 'Managing WAVES job queue states'
     SLEEP_TIME = 2
-    work_dir = config.WAVES_DATA_ROOT
     pidfile_path = os.path.join(waves.settings.WAVES_DATA_ROOT, 'waves_queue.pid')
     pidfile_timeout = 5
-    log_file = os.path.join(waves.settings.WAVES_LOG_ROOT, "waves_daemon.log")
 
     def loop_callback(self):
         """
@@ -189,9 +187,7 @@ class JobQueueCommand(DaemonCommand):
 class PurgeDaemonCommand(DaemonCommand):
     help = 'Clean up old jobs '
     SLEEP_TIME = 86400
-    work_dir = config.WAVES_DATA_ROOT
     pidfile_path = os.path.join(waves.settings.WAVES_DATA_ROOT, 'waves_clean.pid')
-    log_file = os.path.join(waves.settings.WAVES_LOG_ROOT, "waves_daemon.log")
 
     def loop_callback(self):
         logger.info("Purge job launched at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
