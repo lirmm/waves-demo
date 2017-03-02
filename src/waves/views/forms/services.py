@@ -9,6 +9,7 @@ from constance import config
 import waves.models.services
 import waves.settings
 from waves.models.inputs import *
+from waves.models.samples import *
 from waves.models.submissions import Submission
 from waves.utils.validators import ServiceInputValidator
 from waves.views.forms.lib.crispy import FormHelper
@@ -40,28 +41,31 @@ class ServiceSubmissionForm(forms.ModelForm):
         extra_fields = []
         for service_input in self.list_inputs:
             assert isinstance(service_input, AParam)
-            if isinstance(service_input, FileInput) and not service_input.multiple:
-                extra_fields.append(self._create_copy_paste_field(service_input))
             self.add_field(service_input)
+            if isinstance(service_input, FileInput):
+                extra_fields.append(self._create_copy_paste_field(service_input))
+                for input_sample in service_input.input_samples.all():
+                    self.add_field(input_sample)
+
             self.helper.set_layout(service_input, self)
             for dependent_input in service_input.dependents_inputs.exclude(required=None):
                 # conditional parameters must not be required to use classic django form validation process
                 dependent_input.required = False
-                if dependent_input.param_type == BaseParam.TYPE_FILE and not dependent_input.multiple:
+                if isinstance(dependent_input, FileInput):
                     extra_fields.append(self._create_copy_paste_field(dependent_input))
+                    for input_sample in service_input.input_samples.all():
+                        self.add_field(input_sample)
                 self.add_field(dependent_input)
                 self.helper.set_layout(dependent_input, self)
         self.list_inputs.extend(extra_fields)
         self.helper.end_layout()
 
     def add_field(self, service_input):
-        assert isinstance(service_input, AParam)
         field_dict = dict(
             label=service_input.label,
             required=service_input.required,
             help_text=service_input.help_text,
-            initial=self.data.get(service_input.name) or service_input.default if hasattr(service_input,
-                                                                                          "default") else ""
+            initial=self.data.get(service_input.name) or service_input.default
         )
         field_name = service_input.name
         if isinstance(service_input, FileInput):
@@ -95,7 +99,7 @@ class ServiceSubmissionForm(forms.ModelForm):
             form_field.widget.attrs['step'] = service_input.step
         elif isinstance(service_input, FileInputSample):
             form_field = forms.BooleanField(widget=forms.CheckboxInput(attrs={'class': 'no-switch'}), **field_dict)
-            field_name = 'sp_%s_%s' % (service_input.name, service_input.pk)
+            field_name = 'sp_%s_%s' % (service_input.file_input.name, service_input.pk)
         else:
             form_field = forms.CharField(**field_dict)
         self.fields[field_name] = form_field

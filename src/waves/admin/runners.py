@@ -66,11 +66,12 @@ class RunnerAdmin(ExportInMassMixin, WavesModelAdmin, DynamicInlinesAdmin):
     model = Runner
     form = RunnerForm
     # inlines = (RunnerParamInline, ServiceRunInline)
-    list_display = ('name', 'clazz', 'short_description', 'nb_services')
+    list_display = ('name', 'connexion_string', 'short_description', 'nb_services')
     list_filter = ('name', 'clazz')
+    readonly_fields = ['connexion_string']
     fieldsets = [
         ('Main', {
-            'fields': ['name', 'clazz', 'update_init_params']
+            'fields': ['name', 'clazz', 'connexion_string', 'update_init_params']
         }),
         ('Description', {
             'fields': ['short_description', 'description'],
@@ -117,3 +118,11 @@ class RunnerAdmin(ExportInMassMixin, WavesModelAdmin, DynamicInlinesAdmin):
                         job.adaptor.cancel_job(job=job)
                         message += '<br/>- Related pending job %s has been cancelled' % job.title
                     messages.info(request, message)
+
+    def connexion_string(self, obj):
+        if obj.clazz:
+            return obj.adaptor.connexion_string()
+        else:
+            return 'n/a'
+
+    connexion_string.short_description = 'Connexion String'

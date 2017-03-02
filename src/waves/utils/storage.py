@@ -18,7 +18,8 @@ class WavesStorage(FileSystemStorage):
 
 def file_sample_directory(instance, filename):
     """ Submission file sample directory upload pattern """
-    return 'sample/{0}/{1}/{2}'.format(str(instance.submission.service.api_name), str(instance.submission.slug),
+    return 'sample/{0}/{1}/{2}'.format(str(instance.file_input.submission.service.api_name),
+                                       str(instance.file_input.submission.slug),
                                        filename)
 
 

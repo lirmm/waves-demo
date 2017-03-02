@@ -93,8 +93,6 @@ class InitDbCommand(BaseCommand):
         from waves.models import Service, Runner, ServiceCategory
         from bootstrap_themes import available_themes
         from constance import config
-        from django.contrib.auth import get_user_model
-        process = True
         self.stdout.write(self.style.WARNING('Warning, this action reset ALL waves data to initial'))
         process = False
         if boolean_input("Do you want to proceed ? [y/N]", False):
@@ -103,10 +101,7 @@ class InitDbCommand(BaseCommand):
             # Delete all WAVES data
             ServiceCategory.objects.all().delete()
             Service.objects.all().delete()
-            Runner.objects.all().delete()
             Job.objects.all().delete()
-            User = get_user_model()
-            User.objects.all().delete()
             try:
                 self.stdout.write("Configuring WAVES application:")
                 site_theme = choice_input('Choose your bootstrap theme (def:%s)' % config.WAVES_BOOTSTRAP_THEME,
@@ -124,15 +119,9 @@ class InitDbCommand(BaseCommand):
                 self.stdout.write("Your site configuration is ready, site is currently in 'maintenance' mode")
                 if boolean_input('Do you want to init your job runners ? [y/N]', False):
                     # TODO call subcommand wavesadmin run_init instead (duplicated code)
-                    self.stdout.write('Creating runners ...')
-                    from waves.utils.runners import get_runners_list
-                    for clazz in get_runners_list(flat=True):
-                        Runner.objects.create(name="%s Runner" % clazz[1], clazz=clazz[0])
-                        self.stdout.write("Created 'Runner Adaptor: %s'" % clazz[1])
-                    self.stdout.write("... Ready !")
-
+                    call_command('waves', 'run_init')
                 # TODO add ask for import sample services ?
-                if boolean_input("Do you want to setup a superadmin user ? [y/N]", False):
+                if boolean_input("Do you want to create a superadmin user ? [y/N]", False):
                     call_command('createsuperuser')
                 self.stdout.write('Your WAVES data are ready :-)')
             except Exception as exc:
@@ -145,8 +134,10 @@ class InitDbCommand(BaseCommand):
 class CreateDefaultRunner(BaseCommand):
 
     def handle(self, *args, **options):
+        from waves.models import Runner
+        if boolean_input('Do you wish to erase current runners ? [y/N]', False):
+            Runner.objects.all().delete()
         try:
-            from waves.models import Runner
             self.stdout.write('Creating runners ...')
             from waves.utils.runners import get_runners_list
             for clazz in get_runners_list(flat=True):
@@ -171,7 +162,7 @@ class CleanUpCommand(BaseCommand):
 
     def handle(self, *args, **options):
         removed = []
-        for dir_name in os.listdir(config.WAVES_JOB_DIR):
+        for dir_name in os.listdir(waves.settings.WAVES_JOB_DIR):
             try:
                 # DO nothing, job exists in DB
                 Job.objects.get(slug=uuid.UUID('{%s}' % dir_name))
@@ -191,12 +182,12 @@ class CleanUpCommand(BaseCommand):
             if choice == 1:
                 self.stdout.write("Directories to delete: ")
                 for dir_name in removed:
-                    self.stdout.write(os.path.join(config.WAVES_JOB_DIR, dir_name))
+                    self.stdout.write(os.path.join(waves.settings.WAVES_JOB_DIR, dir_name))
             elif choice == 2:
                 for dir_name in removed:
                     self.stdout.write('Removed directory: %s' % dir_name)
                     # onerror(os.path.islink, path, sys.exc_info())
-                    rmtree(os.path.join(config.WAVES_JOB_DIR, dir_name),
+                    rmtree(os.path.join(waves.settings.WAVES_JOB_DIR, dir_name),
                            onerror=self.print_file_error)
             else:
                 action_cancelled(self.stdout)

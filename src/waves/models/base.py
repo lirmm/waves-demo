@@ -54,7 +54,8 @@ class Described(models.Model):
     #: Text field to set up a complete description of model object, with HTML editor enabled
     description = RichTextField('Description', null=True, blank=True, help_text='Description (HTML)')
     #: text field for short version, no html
-    short_description = models.TextField('Short Description', null=True, blank=True, help_text='Short description (Text)')
+    short_description = models.TextField('Short Description', null=True, blank=True,
+                                         help_text='Short description (Text)')
 
 
 class Slugged(models.Model):

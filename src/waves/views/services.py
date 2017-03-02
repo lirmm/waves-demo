@@ -128,7 +128,7 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
     def _get_selected_submission(self):
         slug = self.request.POST.get('slug', None)
         if slug is None:
-            return self.get_object().default_submission # Submission.objects.get(default=True, service=)
+            return self.get_object().default_submission  # Submission.objects.get(default=True, service=)
         else:
             submission = Submission.objects.get(slug=UUID(slug))
             return Submission.objects.get(slug=UUID(slug))
@@ -136,13 +136,13 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
     def post(self, request, *args, **kwargs):
         self.user = self.request.user
         self.selected_submission = self._get_selected_submission()
-        form = ServiceSubmissionForm(parent=self.get_object(), instance=self.selected_submission,
+        form = ServiceSubmissionForm(parent=self.get_object(),
+                                     instance=self.selected_submission,
                                      data=self.request.POST,
                                      files=self.request.FILES)
         if form.is_valid():
             return self.form_valid(form)
         else:
-            print dict(form.errors.items())
             return self.form_invalid(**{'form': form})
 
     def form_valid(self, form):
@@ -153,9 +153,9 @@ class JobSubmissionView(ServiceDetailView, generic.FormView, WavesBaseContextMix
         user = self.request.user if self.request.user.is_authenticated() else None
         try:
             self.job = Job.objects.create_from_submission(submission=self.selected_submission,
-                                                                email_to=ass_email,
-                                                                submitted_inputs=form.cleaned_data,
-                                                                user=user)
+                                                          email_to=ass_email,
+                                                          submitted_inputs=form.cleaned_data,
+                                                          user=user)
             messages.success(
                 self.request,
                 "Job successfully submitted"

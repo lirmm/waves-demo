@@ -10,6 +10,7 @@ from waves.models.jobs import *
 from waves.models.submissions import *
 from waves.models.inputs import *
 from waves.models.metas import *
+from waves.models.samples import *
 
 """
 List of different constants used for models

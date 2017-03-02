@@ -43,3 +43,5 @@ WAVES_SAMPLE_DIR = __init_setting('WAVES_SAMPLE_DIR',
                                   default=env.str('WAVES_SAMPLE_DIR', str(join(settings.MEDIA_ROOT, 'sample'))))
 WAVES_UPLOAD_MAX_SIZE = __init_setting('WAVES_UPLOAD_MAX_SIZE',
                                        default=env.int('WAVES_UPLOAD_MAX_SIZE', 20 * 1024 * 1024))
+
+WAVES_TEMPLATE_PACK = __init_setting('WAVES_TEMPLATE_PACK', default='bootstrap3', override='CRISPY_TEMPLATE_PACK')

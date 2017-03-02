@@ -12,6 +12,7 @@ from waves.admin.forms.services import SampleDepForm, InputInlineForm, InputSamp
 from waves.compat import CompactInline
 from waves.models.inputs import *
 from waves.models.submissions import *
+from waves.models.samples import *
 from waves.utils import url_to_edit_object
 
 
@@ -37,21 +38,19 @@ class SubmissionOutputInline(CompactInline):
 class SampleDependentInputInline(CompactInline):
     model = SampleDepParam
     form = SampleDepForm
-    fk_name = 'submission'
+    fk_name = 'file_input'
     extra = 0
     classes = ('grp-collapse grp-closed', 'collapse')
 
     def has_add_permission(self, request):
-        if request.current_obj is not None and request.current_obj.submission_samples.count() > 0:
+        if request.current_obj is not None and request.current_obj.sample_dependencies.count() > 0:
             return True
         return False
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "related_to":
-            kwargs['queryset'] = BaseParam.objects.filter(submission=request.current_obj,
+        if db_field.name == "related_to" and request.current_obj is not None:
+            kwargs['queryset'] = BaseParam.objects.filter(submission=request.current_obj.submission,
                                                           cmd_format__gt=0).not_instance_of(FileInput)
-        elif db_field.name == "sample":
-            kwargs['queryset'] = FileInputSample.objects.filter(submission=request.current_obj)
         return super(SampleDependentInputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -90,8 +89,7 @@ class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
 
     def get_queryset(self, request):
         # TODO order fields according to related also (display first level items just followed by their dependents)
-        return super(OrganizeInputInline, self).get_queryset(request).not_instance_of(FileInputSample).order_by(
-            '-required', 'tree_id', 'lft', 'order')
+        return super(OrganizeInputInline, self).get_queryset(request).order_by('-required', 'tree_id', 'lft', 'order')
 
     def step(self, obj):
         if hasattr(obj, 'step'):
@@ -107,19 +105,7 @@ class FileInputSampleInline(CompactInline):
     fk_name = 'file_input'
     fields = ['label', 'file', 'file_input']
     exclude = ['order']
-    readonly_fields = ['aparam_ptr']
     classes = ('grp-collapse grp-closed', 'collapse')
-
-    """def has_add_permission(self, request):
-        if request.current_obj is not None and request.current_obj.submission_inputs.instance_of(FileInput).count() > 0:
-            return True
-        return False
-"""
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        """if db_field.name == "file_input":
-            kwargs['queryset'] = FileInput.objects.filter(submission=request.current_obj)
-        """
-        return super(FileInputSampleInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(RepeatedGroup)
@@ -168,17 +154,12 @@ class ServiceSubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, Dyn
             OrganizeInputInline,
             # OrgRepeatGroupInline,
             SubmissionOutputInline,
-            # FileInputSampleInline,
-            SampleDependentInputInline,
             ExitCodeInline,
         ]
         self.inlines = _inlines
         if obj.runner is not None and obj.runner.adaptor_params.filter(prevent_override=False).count() > 0:
             self.inlines.append(SubmissionRunnerParamInLine)
         return self.inlines
-
-    def get_model_perms(self, request):
-        return super(ServiceSubmissionAdmin, self).get_model_perms(request)
 
     def add_view(self, request, form_url='', extra_context=None):
         context = extra_context or {}

@@ -16,6 +16,7 @@ from waves.models.jobs import Job, JobOutput
 from waves.models.runners import *
 from waves.models.services import *
 from waves.models.submissions import *
+from waves.models.samples import *
 from waves.utils import get_all_subclasses
 
 

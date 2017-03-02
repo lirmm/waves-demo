@@ -77,6 +77,7 @@ class ServiceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ServiceForm, self).__init__(*args, **kwargs)
         self.fields['restricted_client'].label = "Restrict access to specified user"
+        self.fields['runner'].required = False
         if not self.fields['created_by'].initial:
             self.fields['created_by'].initial = self.current_user
         if not config.WAVES_NOTIFY_RESULTS:

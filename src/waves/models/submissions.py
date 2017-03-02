@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from waves.models import TimeStamped, ApiModel, Ordered, Slugged, Service
-from waves.models.inputs import FileInputSample
+from waves.models.samples import FileInputSample
 from waves.models.adaptors import AdaptorInitParam, HasRunnerParamsMixin
 
 __all__ = ['Submission', 'SubmissionOutput', 'SubmissionExitCode', 'SubmissionRunParam']
@@ -72,8 +72,7 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
     @property
     def expected_inputs(self):
         """ Retrieve only expected inputs to submit a job """
-        return self.submission_inputs.filter(parent__isnull=True).exclude(required=None).not_instance_of(
-            FileInputSample)
+        return self.submission_inputs.filter(parent__isnull=True).exclude(required=None)
 
     def duplicate(self, service):
         """ Duplicate a submission with all its inputs """
@@ -105,8 +104,8 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
 
     @property
     def submission_samples(self):
-        from waves.models.inputs import FileInputSample
-        return self.submission_inputs.instance_of(FileInputSample).all()
+        from waves.models.samples import FileInputSample
+        return FileInputSample.objects.filter(file_input__submission=self)
 
     @property
     def pending_jobs(self):

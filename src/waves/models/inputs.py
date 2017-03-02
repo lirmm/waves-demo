@@ -1,20 +1,20 @@
 """ All Input related models """
 from __future__ import unicode_literals
 
+from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.safestring import mark_safe
 from polymorphic_tree.models import PolymorphicMPTTModel, PolymorphicTreeForeignKey
+
 import waves.settings
 from waves.models.adaptors import DTOMixin
 from waves.models.base import Ordered
-from waves.utils.storage import waves_storage, file_sample_directory
 from waves.utils.validators import validate_list_comma, validate_list_param
-from django.utils.safestring import mark_safe
-from decimal import Decimal
 
 __all__ = ['AParam', 'BaseParam', 'RepeatedGroup', 'FileInput', 'BooleanParam', 'DecimalParam', 'NumberParam',
-           'ListParam', 'SampleDepParam', 'FileInputSample', 'BaseParam', 'RelatedParam', 'IntegerParam', 'TextParam']
+           'ListParam', 'BaseParam', 'RelatedParam', 'IntegerParam', 'TextParam']
 
 
 class RepeatedGroup(DTOMixin, Ordered):
@@ -387,52 +387,3 @@ class FileInput(BaseParam):
     @property
     def param_type(self):
         return BaseParam.TYPE_FILE
-
-
-class FileInputSample(AParam):
-    """ Any file input can provide samples """
-
-    class Meta:
-        verbose_name_plural = "Input samples"
-        verbose_name = "Input sample"
-
-    class_label = "File Input Sample"
-    file = models.FileField('Sample file', upload_to=file_sample_directory, storage=waves_storage, blank=False,
-                            null=False)
-    file_input = models.ForeignKey(FileInput, on_delete=models.CASCADE, related_name='input_samples')
-    dependent_params = models.ManyToManyField(BaseParam, blank=True, through='SampleDepParam')
-
-    def __str__(self):
-        return '%s (%s)' % (self.label, self.name)
-
-    def save_base(self, *args, **kwargs):
-        self.name = self.file_input.name
-        self.required = False
-        super(FileInputSample, self).save_base(*args, **kwargs)
-
-    @property
-    def param_type(self):
-        return BaseParam.TYPE_FILE
-
-
-class SampleDepParam(models.Model):
-    """ When a file sample is selected, some params may be set accordingly. This class represent this behaviour"""
-
-    class Meta:
-        db_table = 'waves_sample_dependent_input'
-        verbose_name_plural = "Sample dependencies"
-        verbose_name = "Sample dependency"
-
-    submission = models.ForeignKey('Submission', on_delete=models.CASCADE, related_name='sample_dependent_params')
-    sample = models.ForeignKey(FileInputSample, on_delete=models.CASCADE, related_name='dependent_inputs')
-    related_to = models.ForeignKey(BaseParam, on_delete=models.CASCADE, related_name='related_samples')
-    set_default = models.CharField('Set value to ', max_length=200, null=False, blank=False)
-
-    def clean(self):
-        if (isinstance(self.related_to, BooleanParam) or isinstance(self.related_to, ListParam)) \
-                and self.set_default not in self.related_to.values:
-            raise ValidationError({'set_default': 'This value is not possible for related input [%s]' % ', '.join(
-                self.related_to.values)})
-
-    def __str__(self):
-        return "%s > %s=%s" % (self.sample.label, self.related_to.name, self.set_default)

@@ -7,9 +7,10 @@ import logging
 import os
 from os import path as path
 from os.path import join
-from constance import config
+
 import waves.adaptors.core
 import waves.adaptors.exceptions.adaptors
+from constance import config
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
@@ -18,16 +19,17 @@ from django.db import models, transaction
 from django.db.models import Q
 from django.utils.html import format_html
 
+import waves.settings
 from waves.exceptions import WavesException
 from waves.exceptions.jobs import JobInconsistentStateError, JobMissingMandatoryParam
+from waves.mails import JobMailer
 from waves.models.adaptors import DTOMixin
 from waves.models.base import TimeStamped, Slugged, Ordered, UrlMixin
-from waves.models.inputs import BaseParam, FileInputSample
+from waves.models.inputs import BaseParam
 from waves.models.submissions import Submission, SubmissionOutput
 from waves.utils import normalize_value
 from waves.utils.jobs import default_run_details
 from waves.utils.storage import allow_display_online
-from waves.mails import JobMailer
 
 logger = logging.getLogger(__name__)
 
@@ -143,8 +145,7 @@ class JobManager(models.Manager):
         if len(missings) > 0:
             raise ValidationError(missings)
         # First create inputs
-        submission_inputs = submission.submission_inputs.not_instance_of(FileInputSample). \
-            filter(name__in=submitted_inputs.keys()).exclude(required=None)
+        submission_inputs = submission.submission_inputs.filter(name__in=submitted_inputs.keys()).exclude(required=None)
         for service_input in submission_inputs:
             # Treat only non dependent inputs first
             incoming_input = submitted_inputs.get(service_input.name, None)
@@ -378,7 +379,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: working dir
         :rtype: unicode
         """
-        return os.path.join(config.WAVES_JOB_DIR, str(self.slug))
+        return os.path.join(waves.settings.WAVES_JOB_DIR, str(self.slug))
 
     @property
     def adaptor(self):
@@ -715,7 +716,8 @@ class JobInputManager(models.Manager):
         :return: return the newly created JobInput
         :rtype: :class:`waves.models.jobs.JobInput`
         """
-        from waves.models.inputs import BaseParam, FileInput, FileInputSample
+        from waves.models.inputs import BaseParam, FileInput
+        from waves.models.samples import FileInputSample
         input_dict = dict(job=job,
                           order=order,
                           name=service_input.name,
@@ -744,6 +746,7 @@ class JobInputManager(models.Manager):
                 filename = path.join(job.working_dir, path.basename(input_sample.file.name))
                 input_dict['param_type'] = input_sample.file_input.cmd_format
                 input_dict['value'] = path.basename(input_sample.file.name)
+                # TODO simply copy related file ?
                 with open(filename, 'wb+') as uploaded_file:
                     for chunk in input_sample.file.chunks():
                         uploaded_file.write(chunk)
@@ -754,7 +757,6 @@ class JobInputManager(models.Manager):
                 with open(filename, 'wb+') as uploaded_file:
                     uploaded_file.write(submitted_input)
         new_input = self.create(**input_dict)
-        print "new input", new_input
         return new_input
 
 
