@@ -16,7 +16,7 @@ RUNNERS = 'run_init'
 
 class Command(SubcommandDispatcher):
     """ WAVES dedicated administration Django subcommand line interface (./manage.py) """
-    help = 'WAVES Administration dedicated commands: type manage.py wavesadmin <sub_command> --help for sub-commands help'
+    help = 'WAVES Administration dedicated commands: type manage.py waves <sub_command> --help for sub-commands help'
     command_list = (CLEAN, CONFIG, INIT, LOAD, QUEUE, PURGE, RUNNERS)
 
     def _subcommand(self, name):

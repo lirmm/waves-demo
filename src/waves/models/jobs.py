@@ -454,7 +454,6 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
                     return nb_sent
                 except Exception as e:
                     logger.error('Mail error: %s %s', e.__class__.__name__, e.message)
-                    raise e
                     pass
 
     def get_absolute_url(self):

@@ -173,12 +173,9 @@ class JobQueueCommand(DaemonCommand):
                     # runner.job_status(job)
             except (waves.exceptions.WavesException, AdaptorException) as e:
                 logger.error("Error Job %s (adaptor:%s-state:%s): %s", job, runner, job.get_status_display(),
-                              e.message)
-                if job.nb_retry >= config.WAVES_JOBS_MAX_RETRY:
-                    job.error(message='Job error (too many errors) \n%s' % e.message)
+                             e.message)
             finally:
                 logger.info("Queue job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
-                job.check_send_mail()
                 runner.disconnect()
         # logger.debug('Go to sleep for %i seconds' % self.SLEEP_TIME)
         time.sleep(self.SLEEP_TIME)

@@ -171,26 +171,26 @@ class CleanUpCommand(BaseCommand):
             except ValueError:
                 pass
         if len(removed) > 0:
-            choice = choice_input(
-                "%i directory(ies) to be deleted, this operation is not reversible, are you sure ?"
-                % len(removed), choices=[
-                    "List directories to delete",
-                    "Perform delete",
-                    "Cancel"
-                ])
-
-            if choice == 1:
-                self.stdout.write("Directories to delete: ")
-                for dir_name in removed:
-                    self.stdout.write(os.path.join(waves.settings.WAVES_JOB_DIR, dir_name))
-            elif choice == 2:
-                for dir_name in removed:
-                    self.stdout.write('Removed directory: %s' % dir_name)
-                    # onerror(os.path.islink, path, sys.exc_info())
-                    rmtree(os.path.join(waves.settings.WAVES_JOB_DIR, dir_name),
-                           onerror=self.print_file_error)
-            else:
-                action_cancelled(self.stdout)
+            while True:
+                choice = choice_input("%i directory(ies) to be deleted, this operation is not reversible" % len(removed), choices=[
+                        "List directories to delete",
+                        "Perform delete",
+                        "Exit"
+                    ])
+                if choice == 1:
+                    self.stdout.write("Directories to delete: ")
+                    for dir_name in removed:
+                        self.stdout.write(os.path.join(waves.settings.WAVES_JOB_DIR, dir_name))
+                elif choice == 2:
+                    for dir_name in removed:
+                        self.stdout.write('Removed directory: %s' % dir_name)
+                        # onerror(os.path.islink, path, sys.exc_info())
+                        rmtree(os.path.join(waves.settings.WAVES_JOB_DIR, dir_name),
+                               onerror=self.print_file_error)
+                    removed = []
+                else:
+                    break
+            self.stdout.write("...Bye")
         else:
             self.stdout.write("Your jobs data dir is sane, nothing wrong here")
 
