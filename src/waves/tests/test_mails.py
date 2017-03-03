@@ -35,6 +35,7 @@ class JobMailTest(WavesBaseTestCase):
         job.outputs.add(JobOutput.objects.create(_name="out2", value="out2", job=job))
         job.status_time = timezone.datetime.now()
         job.check_send_mail()
+        self.assertTrue(job.link.startswith("http://localhost"))
         self.assertEqual(len(mail.outbox), 1)
         sent_mail = mail.outbox[-1]
         self.assertTrue(job.service.name in sent_mail.subject)

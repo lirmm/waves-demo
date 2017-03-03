@@ -45,3 +45,4 @@ WAVES_UPLOAD_MAX_SIZE = __init_setting('WAVES_UPLOAD_MAX_SIZE',
                                        default=env.int('WAVES_UPLOAD_MAX_SIZE', 20 * 1024 * 1024))
 
 WAVES_TEMPLATE_PACK = __init_setting('WAVES_TEMPLATE_PACK', default='bootstrap3', override='CRISPY_TEMPLATE_PACK')
+WAVES_HOST = __init_setting('WAVES_HOST', default='http://localhost')
