@@ -140,7 +140,7 @@ def job_output_post_save_handler(sender, instance, created, **kwargs):
     """
 
 # Connect all ApiModel subclass to pre_save_handler
-for subclass in ApiModel.__subclasses__():
+for subclass in get_all_subclasses(ApiModel): #.__subclasses__():
     pre_save.connect(api_able_pre_save_handler, subclass)
 
 

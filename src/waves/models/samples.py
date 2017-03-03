@@ -20,7 +20,7 @@ class FileInputSample(models.Model):
     file = models.FileField('Sample file', upload_to=file_sample_directory, storage=waves_storage, blank=False,
                             null=False)
     file_input = models.ForeignKey('FileInput', on_delete=models.CASCADE, related_name='input_samples')
-    dependent_params = models.ManyToManyField('BaseParam', blank=True, through='SampleDepParam')
+    dependent_params = models.ManyToManyField('AParam', blank=True, through='SampleDepParam')
 
     def __str__(self):
         return '%s (%s)' % (self.label, self.name)
@@ -56,7 +56,7 @@ class SampleDepParam(models.Model):
     # submission = models.ForeignKey('Submission', on_delete=models.CASCADE, related_name='sample_dependent_params')
     file_input = models.ForeignKey('FileInput', null=True, on_delete=models.CASCADE, related_name="sample_dependencies")
     sample = models.ForeignKey(FileInputSample, on_delete=models.CASCADE, related_name='dependent_inputs')
-    related_to = models.ForeignKey('BaseParam', on_delete=models.CASCADE, related_name='related_samples')
+    related_to = models.ForeignKey('AParam', on_delete=models.CASCADE, related_name='related_samples')
     set_default = models.CharField('Set value to ', max_length=200, null=False, blank=False)
 
     """

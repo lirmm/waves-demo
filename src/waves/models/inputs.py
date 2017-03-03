@@ -10,11 +10,11 @@ from polymorphic_tree.models import PolymorphicMPTTModel, PolymorphicTreeForeign
 
 import waves.settings
 from waves.models.adaptors import DTOMixin
-from waves.models.base import Ordered
+from waves.models.base import Ordered, ApiModel
 from waves.utils.validators import validate_list_comma, validate_list_param
 
-__all__ = ['AParam', 'BaseParam', 'RepeatedGroup', 'FileInput', 'BooleanParam', 'DecimalParam', 'NumberParam',
-           'ListParam', 'BaseParam', 'RelatedParam', 'IntegerParam', 'TextParam']
+__all__ = ['AParam', 'RepeatedGroup', 'FileInput', 'BooleanParam', 'DecimalParam', 'NumberParam',
+           'ListParam', 'RelatedParam', 'IntegerParam', 'TextParam']
 
 
 class RepeatedGroup(DTOMixin, Ordered):
@@ -35,7 +35,7 @@ class RepeatedGroup(DTOMixin, Ordered):
         return '[%s]' % (self.name)
 
 
-class AParam(PolymorphicMPTTModel):
+class AParam(PolymorphicMPTTModel, ApiModel):
     class Meta:
         ordering = ['order']
         verbose_name_plural = "Submission Params"
@@ -86,7 +86,17 @@ class AParam(PolymorphicMPTTModel):
     cmd_format = models.IntegerField('Command line format', choices=OPT_TYPE,
                                      default=OPT_TYPE_SIMPLE,
                                      help_text='Command line pattern')
-
+    # TODO validate name with no space
+    #: Input default value
+    edam_formats = models.CharField('Edam format(s)', max_length=255, null=True, blank=True,
+                                    help_text="comma separated list of supported edam format")
+    edam_datas = models.CharField('Edam data(s)', max_length=255, null=True, blank=True,
+                                  help_text="comma separated list of supported edam data type")
+    # TODO remote multiple from base class, only needed for list / file inputs
+    repeat_group = models.ForeignKey(RepeatedGroup, null=True, blank=True, on_delete=models.SET_NULL,
+                                     help_text="Group and repeat items")
+    """ Main class for Basic data related to Service submissions inputs """
+    class_label = "Basic"
     # Submission params dependency
     when_value = models.CharField('When value', max_length=255, null=True, blank=True,
                                   help_text='Input is treated only for this parent value')
@@ -96,6 +106,8 @@ class AParam(PolymorphicMPTTModel):
     def save(self, *args, **kwargs):
         if self.parent is not None and self.required is True:
             self.required = False
+        if self.repeat_group is not None:
+            self.multiple = True
         super(AParam, self).save(*args, **kwargs)
 
     @property
@@ -110,34 +122,9 @@ class AParam(PolymorphicMPTTModel):
     def check_when_value(self, value):
         return True
 
-
-class BaseParam(AParam):
-    """ Base class for services submission params """
-
-    class Meta:
-        verbose_name = "Base param"
-        verbose_name_plural = "Base params"
-
-    # TODO validate name with no space
-    #: Input default value
-    edam_formats = models.CharField('Edam format(s)', max_length=255, null=True, blank=True,
-                                    help_text="comma separated list of supported edam format")
-    edam_datas = models.CharField('Edam data(s)', max_length=255, null=True, blank=True,
-                                  help_text="comma separated list of supported edam data type")
-    # TODO remote multiple from base class, only needed for list / file inputs
-    repeat_group = models.ForeignKey(RepeatedGroup, null=True, blank=True, on_delete=models.SET_NULL,
-                                     help_text="Group and repeat items")
-    """ Main class for Basic data related to Service submissions inputs """
-    class_label = "Basic"
-
     @property
     def param_type(self):
-        return BaseParam.TYPE_TEXT
-
-    def save(self, *args, **kwargs):
-        if self.repeat_group is not None:
-            self.multiple = True
-        super(BaseParam, self).save(*args, **kwargs)
+        return AParam.TYPE_TEXT
 
     def clean(self):
         if self.required is None and not self.default:
@@ -156,17 +143,17 @@ class BaseParam(AParam):
 
     @property
     def mandatory(self):
-        return self.required == True
+        return self.required is True
 
 
-class TextParam(BaseParam):
+class TextParam(AParam):
     class Meta:
         proxy = True
         verbose_name = "Text input"
         verbose_name_plural = "Text input"
 
 
-class BooleanParam(BaseParam):
+class BooleanParam(AParam):
     """ Boolean param (usually check box for a submission option)"""
 
     class Meta:
@@ -179,7 +166,7 @@ class BooleanParam(BaseParam):
 
     @property
     def param_type(self):
-        return BaseParam.TYPE_BOOLEAN
+        return AParam.TYPE_BOOLEAN
 
     @property
     def choices(self):
@@ -251,7 +238,7 @@ class NumberParam(object):
                 min_val, max_val)})
 
 
-class DecimalParam(NumberParam, BaseParam):
+class DecimalParam(NumberParam, AParam):
     """ Number param (decimal or float) """
 
     # TODO add specific validator
@@ -268,10 +255,10 @@ class DecimalParam(NumberParam, BaseParam):
 
     @property
     def param_type(self):
-        return BaseParam.TYPE_DECIMAL
+        return AParam.TYPE_DECIMAL
 
 
-class IntegerParam(NumberParam, BaseParam):
+class IntegerParam(NumberParam, AParam):
     """ Integer param """
 
     # TODO add specific validator
@@ -288,10 +275,10 @@ class IntegerParam(NumberParam, BaseParam):
 
     @property
     def param_type(self):
-        return BaseParam.TYPE_INT
+        return AParam.TYPE_INT
 
 
-class RelatedParam(BaseParam):
+class RelatedParam(AParam):
     """ Proxy class for related params (dependents on other params) """
 
     class Meta:
@@ -300,7 +287,7 @@ class RelatedParam(BaseParam):
         verbose_name_plural = "Related params"
 
 
-class ListParam(BaseParam):
+class ListParam(AParam):
     """ Param to be issued from a list of values (select / radio / check) """
 
     class Meta:
@@ -347,7 +334,7 @@ class ListParam(BaseParam):
 
     @property
     def param_type(self):
-        return BaseParam.TYPE_LIST
+        return AParam.TYPE_LIST
 
     @property
     def labels(self):
@@ -363,7 +350,7 @@ class ListParam(BaseParam):
                 self.values)})
 
 
-class FileInput(BaseParam):
+class FileInput(AParam):
     """ Submission file inputs """
 
     class Meta:
@@ -386,4 +373,4 @@ class FileInput(BaseParam):
 
     @property
     def param_type(self):
-        return BaseParam.TYPE_FILE
+        return AParam.TYPE_FILE

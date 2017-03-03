@@ -65,8 +65,8 @@ class InputSerializer(DynamicFieldsModelSerializer):
     """ Serialize JobInput """
 
     class Meta:
-        model = BaseParam
-        queryset = BaseParam.objects.all()
+        model = AParam
+        queryset = AParam.objects.all()
         fields = ('label', 'name', 'default', 'type', 'mandatory', 'description', 'multiple')
         extra_kwargs = {
             'url': {'view_name': 'waves_api:waves-services-detail', 'lookup_field': 'api_name'}
@@ -113,7 +113,7 @@ class ConditionalInputSerializer(DynamicFieldsModelSerializer):
     """ Serialize inputs if it's a conditional one """
 
     class Meta:
-        model = BaseParam
+        model = AParam
         fields = ('label', 'name', 'default', 'type', 'cmd_format', 'mandatory', 'description', 'multiple', 'when')
 
     when = RelatedInputSerializer(source='dependents_inputs', many=True, read_only=True)

@@ -19,10 +19,10 @@ class JobInputInline(TabularInline):
     extra = 0
     suit_classes = 'suit-tab suit-tab-inputs'
     exclude = ('order',)
-    readonly_fields = ('name', 'value', 'file_path')
+    readonly_fields = ('name', 'api_name', 'value', 'file_path')
     can_delete = False
     ordering = ('order',)
-    fields = ('name', 'value', 'file_path')
+    fields = ('name', 'api_name', 'value', 'file_path')
     classes = ('collapse',)
 
     def has_add_permission(self, request):
