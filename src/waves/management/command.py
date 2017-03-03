@@ -176,6 +176,7 @@ class JobQueueCommand(DaemonCommand):
                              e.message)
             finally:
                 logger.info("Queue job terminated at: %s", datetime.datetime.now().strftime('%A, %d %B %Y %H:%M:%I'))
+                job.check_send_mail()
                 runner.disconnect()
         # logger.debug('Go to sleep for %i seconds' % self.SLEEP_TIME)
         time.sleep(self.SLEEP_TIME)
