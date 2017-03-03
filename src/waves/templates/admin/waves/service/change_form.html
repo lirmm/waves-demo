@@ -1,8 +1,5 @@
 {% extends "admin/change_form.html" %}
 {% load i18n admin_modify admin_urls admin_static waves_tags %}
-{% block content %}
-    {{ block.super }}
-{% endblock %}
 {% block object-tools-items %}
     <li>
         <a type="button" href="{% url 'admin:waves_job_changelist' %}?service__id__exact={{ original.pk }}"

@@ -15,6 +15,8 @@ urlpatterns = [
         name="service_duplicate"),
     url(r'^job/(?P<job_id>[0-9]+)/cancel/$', staff_member_required(JobCancelView.as_view()),
         name='job_cancel'),
+    url(r'^job/(?P<job_id>[0-9]+)/rerun/$', staff_member_required(JobRerunView.as_view()),
+        name='job_rerun'),
     url(r'^service/(?P<pk>\d+)/export$', staff_member_required(ServiceExportView.as_view()),
         name="service_export_form"),
     url(r'^runner/(?P<pk>\d+)/export$', staff_member_required(RunnerExportView.as_view()),

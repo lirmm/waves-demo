@@ -681,12 +681,10 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     def re_run(self):
         """ Reset attributes and mark job as CREATED to be re-run"""
         # self.job_history.all().delete()
-        self.message = "Job marked for re-run"
         self.nb_retry = 0
-        self.job_history.all().delete()
-        self.save_status_history(Job.JOB_CREATED)
-
-        self.save_status_history(Job.JOB_CREATED)
+        self.job_history.all().update(is_admin=True)
+        self.status = self.JOB_CREATED
+        self.job_history.create(message='Marked for re-run', status=self.status)
         for job_out in self.outputs.all():
             open(job_out.file_path, 'w').close()
         self.save()

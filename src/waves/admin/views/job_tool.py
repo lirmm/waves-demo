@@ -22,3 +22,18 @@ class JobCancelView(View):
         except WavesException as e:
             messages.add_message(request, level=messages.ERROR, message=e.message)
         return redirect(reverse('admin:waves_job_change', args=[self.kwargs['job_id']]))
+
+
+class JobRerunView(View):
+
+    def get(self, request, *args, **kwargs):
+        job = get_object_or_404(Job, id=self.kwargs['job_id'])
+        if job.allow_rerun:
+            try:
+                job.re_run()
+                messages.success(request, message="Job '%s' successfully marked for re-run" % job.title)
+            except WavesException as exc:
+                messages.error(request, message="Error occured %s " % exc.message)
+        else:
+            messages.error(request, message="You can't rerun this job")
+        return redirect(reverse('admin:waves_job_changelist'))
