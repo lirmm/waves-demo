@@ -25,7 +25,7 @@ class AParamAdmin(PolymorphicMPTTChildModelAdmin):
 
     base_fieldsets = (
         ('General', {
-            'fields': ('label', 'name', 'cmd_format', 'default', 'required', 'submission'),
+            'fields': ('label', 'name', 'api_name', 'cmd_format', 'default', 'required', 'submission'),
             'classes': []
         }),
         ('Details', {

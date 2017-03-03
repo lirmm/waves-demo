@@ -117,9 +117,6 @@ class InitDbCommand(BaseCommand):
                 self.stdout.write("... Done")
                 call_command('constance', 'set', 'WAVES_SITE_MAINTENANCE', True)
                 self.stdout.write("Your site configuration is ready, site is currently in 'maintenance' mode")
-                if boolean_input('Do you want to init your job runners ? [y/N]', False):
-                    # TODO call subcommand wavesadmin run_init instead (duplicated code)
-                    call_command('waves', 'run_init')
                 # TODO add ask for import sample services ?
                 if boolean_input("Do you want to create a superadmin user ? [y/N]", False):
                     call_command('createsuperuser')

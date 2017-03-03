@@ -114,7 +114,7 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
         return self.service_jobs.filter(status__in=Job.PENDING_STATUS)
 
 
-class SubmissionOutput(TimeStamped, ):
+class SubmissionOutput(TimeStamped, ApiModel):
     """
     Represents usual service parameters output values (share same attributes with ServiceParameters)
     """
@@ -125,6 +125,7 @@ class SubmissionOutput(TimeStamped, ):
         verbose_name_plural = 'Outputs'
         ordering = ['-created']
 
+    field_api_name = 'label'
     label = models.CharField('Label', max_length=255, null=True, blank=False, help_text="Label")
     submission = models.ForeignKey(Submission, related_name='outputs', on_delete=models.CASCADE)
     from_input = models.ForeignKey('AParam', null=True, blank=True, related_name='to_outputs',

@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from .dynamic import DynamicFieldsModelSerializer
-from waves.models import Service, JobInput, Job, JobOutput
+from waves.models import Service, JobInput, Job, JobOutput, AParam
 from waves.models.history import JobHistory
 
 User = get_user_model()
@@ -57,6 +57,23 @@ class JobInputSerializer(DynamicFieldsModelSerializer):
         """ Return input label """
         return obj.label
 
+    def to_representation(self, instance):
+        """ Representation for a output """
+        to_repr = {}
+        for j_input in instance.all():
+            to_repr[j_input.api_name] = {
+                "label": j_input.label,
+                "value": j_input.value,
+            }
+            if j_input.type == AParam.TYPE_FILE:
+                to_repr[j_input.api_name]["download_uri"] = self.get_download_url(j_input.slug)
+        return to_repr
+
+    def get_download_url(self, slug):
+        """ Link to jobOutput download uri """
+        return "%s?export=1" % reverse(viewname='waves_api:waves-job-input', request=self.context['request'],
+                                       kwargs={'slug': slug})
+
 
 class JobInputDetailSerializer(serializers.HyperlinkedModelSerializer):
     """ Job Input Details serializer """
@@ -67,7 +84,7 @@ class JobInputDetailSerializer(serializers.HyperlinkedModelSerializer):
             'url': {'view_name': 'waves_api:waves-jobs-detail', 'lookup_field': 'slug'}
         }
     status = serializers.SerializerMethodField()
-    inputs = JobInputSerializer(source='job_inputs', many=True, read_only=True)
+    inputs = JobInputSerializer(source='job_inputs', read_only=True)
 
     @staticmethod
     def get_status(obj):
@@ -97,8 +114,8 @@ class JobOutputSerializer(serializers.ModelSerializer):
         to_repr = {}
         for output in instance:
             if output['available']:
-                to_repr[normalize_value(output['name'])] = {
-                    "label": output['name'],
+                to_repr[normalize_value(output['api_name'])] = {
+                    "label": output['label'],
                     "download_uri": self.get_download_url(output['slug']),
                     "content": self.file_get_content(output['file'])
                 }
@@ -106,7 +123,7 @@ class JobOutputSerializer(serializers.ModelSerializer):
 
     def get_download_url(self, slug):
         """ Link to jobOutput download uri """
-        return "%s?export=1" % reverse(viewname='waves_api:job-waves_api-output', request=self.context['request'],
+        return "%s?export=1" % reverse(viewname='waves_api:waves-job-output', request=self.context['request'],
                                        kwargs={'slug': slug})
 
 

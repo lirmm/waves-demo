@@ -6,7 +6,7 @@ from rest_framework.renderers import CoreJSONRenderer
 from rest_framework.schemas import get_schema_view
 from rest_framework_swagger.views import get_swagger_view
 from views import categories, jobs, services
-from waves.views.jobs import JobOutputView
+from waves.views.jobs import JobOutputView, JobInputView
 
 # API router setup
 router = routers.DefaultRouter()
@@ -35,6 +35,7 @@ urlpatterns = [
         services.ServiceJobSubmissionView.as_view(), name='waves-services-submissions'),
     url(r'^services/(?P<service>[^/.]+)/submissions/(?P<api_name>[^/.]+)/form/',
         services.ServiceJobSubmissionViewForm.as_view(), name='waves-services-submissions-form'),
-    url(r'^jobs/outputs/(?P<slug>[\w-]+)/$', JobOutputView.as_view(), name="job-waves_api-output"),
+    url(r'^jobs/outputs/(?P<slug>[\w-]+)/$', JobOutputView.as_view(), name="waves-job-output"),
+    url(r'^jobs/inputs/(?P<slug>[\w-]+)/$', JobInputView.as_view(), name="waves-job-input"),
 ]
 

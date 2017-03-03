@@ -25,7 +25,7 @@ class SubmissionOutputInline(CompactInline):
     sortable_field_name = "order"
     sortable_options = []
     fk_name = 'submission'
-    fields = ['label', 'file_pattern', 'from_input', 'help_text', 'edam_format', 'edam_data']
+    fields = ['label', 'api_name', 'file_pattern', 'from_input', 'help_text', 'edam_format', 'edam_data']
     verbose_name_plural = "Outputs"
     classes = ('grp-collapse', 'grp-closed', 'collapse')
 
@@ -49,8 +49,8 @@ class SampleDependentInputInline(CompactInline):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "related_to" and request.current_obj is not None:
-            kwargs['queryset'] = BaseParam.objects.filter(submission=request.current_obj.submission,
-                                                          cmd_format__gt=0).not_instance_of(FileInput)
+            kwargs['queryset'] = AParam.objects.filter(submission=request.current_obj.submission,
+                                                       cmd_format__gt=0).not_instance_of(FileInput)
         return super(SampleDependentInputInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -66,7 +66,7 @@ class ExitCodeInline(admin.TabularInline):
 class OrganizeInputInline(SortableInlineAdminMixin, admin.TabularInline):
     model = AParam
     form = InputInlineForm
-    fields = ['label', 'class_label', 'name', 'required', 'cmd_format', 'default', 'step', 'order']
+    fields = ['label', 'class_label', 'api_name', 'name', 'required', 'cmd_format', 'default', 'step', 'order']
     readonly_fields = ['class_label', 'step', 'aparam_ptr']
     classes = ('grp-collapse', 'grp-closed', 'collapse', 'show-change-link-popup')
     can_delete = True

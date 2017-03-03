@@ -19,7 +19,7 @@ def normalize_value(value):
     import inflection
     import re
     value = re.sub(r'[^\w\.]+', '_', value)
-    return inflection.underscore(value)
+    return inflection.underscore(value).lower()
 
 
 def url_to_edit_object(obj):

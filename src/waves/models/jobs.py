@@ -24,8 +24,8 @@ from waves.exceptions import WavesException
 from waves.exceptions.jobs import JobInconsistentStateError, JobMissingMandatoryParam
 from waves.mails import JobMailer
 from waves.models.adaptors import DTOMixin
-from waves.models.base import TimeStamped, Slugged, Ordered, UrlMixin
-from waves.models.inputs import BaseParam
+from waves.models.base import TimeStamped, Slugged, Ordered, UrlMixin, ApiModel
+from waves.models.inputs import AParam
 from waves.models.submissions import Submission, SubmissionOutput
 from waves.utils import normalize_value
 from waves.utils.jobs import default_run_details
@@ -335,7 +335,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: list of JobInput models instance
         :rtype: QuerySet
         """
-        return self.job_inputs.filter(type=BaseParam.TYPE_FILE).exclude(param_type=BaseParam.OPT_TYPE_NONE)
+        return self.job_inputs.filter(type=AParam.TYPE_FILE).exclude(param_type=AParam.OPT_TYPE_NONE)
 
     @property
     def output_files_exists(self):
@@ -343,14 +343,16 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: list of file path
         :rtype: list
         """
-        all_files = self.outputs.all()
+        all_outputs = self.outputs.all()
         existing = []
-        for _file in all_files:
+        for the_output in all_outputs:
             existing.append(
-                dict(file=_file,
-                     name=os.path.basename(_file.file_path),
-                     slug=_file.slug,
-                     available=os.path.isfile(_file.file_path) and os.path.getsize(_file.file_path) > 0))
+                dict(file=the_output,
+                     name=os.path.basename(the_output.file_path),
+                     api_name=the_output.get_api_name(),
+                     label=the_output.name,
+                     slug=the_output.slug,
+                     available=os.path.isfile(the_output.file_path) and os.path.getsize(the_output.file_path) > 0))
         return existing
 
     @property
@@ -370,7 +372,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         :return: list of `JobInput` models instance
         :rtype: [list of JobInput objects]
         """
-        return self.job_inputs.exclude(type=BaseParam.TYPE_FILE).exclude(param_type=BaseParam.OPT_TYPE_NONE)
+        return self.job_inputs.exclude(type=AParam.TYPE_FILE).exclude(param_type=AParam.OPT_TYPE_NONE)
 
     @property
     def working_dir(self):
@@ -504,7 +506,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
                          service_input.name, service_input.default)
             self.job_inputs.add(JobInput.objects.create(job=self, name=service_input.name,
                                                         type=service_input.type,
-                                                        param_type=BaseParam.OPT_TYPE_NONE,
+                                                        param_type=AParam.OPT_TYPE_NONE,
                                                         label=service_input.label,
                                                         order=service_input.order,
                                                         value=service_input.default))
@@ -713,12 +715,13 @@ class JobInputManager(models.Manager):
         :return: return the newly created JobInput
         :rtype: :class:`waves.models.jobs.JobInput`
         """
-        from waves.models.inputs import BaseParam, FileInput
+        from waves.models.inputs import AParam, FileInput
         from waves.models.samples import FileInputSample
         input_dict = dict(job=job,
                           order=order,
                           name=service_input.name,
                           type=service_input.param_type,
+                          api_name=service_input.api_name,
                           param_type=service_input.cmd_format if hasattr(service_input,
                                                                          'cmd_format') else service_input.param_type,
                           label=service_input.label,
@@ -729,7 +732,7 @@ class JobInputManager(models.Manager):
                 input_dict['value'] = normalize_value(input_dict['value'])
         except ObjectDoesNotExist:
             pass
-        if service_input.param_type == BaseParam.TYPE_FILE:
+        if service_input.param_type == AParam.TYPE_FILE:
             if isinstance(submitted_input, TemporaryUploadedFile) or isinstance(submitted_input, InMemoryUploadedFile):
                 # classic uploaded file
                 filename = path.join(job.working_dir, submitted_input.name)
@@ -757,7 +760,7 @@ class JobInputManager(models.Manager):
         return new_input
 
 
-class JobInput(Ordered, Slugged):
+class JobInput(Ordered, Slugged, ApiModel):
     """
     Job Inputs is association between a Job, a SubmissionParam, setting a value specific for this job
     """
@@ -776,10 +779,10 @@ class JobInput(Ordered, Slugged):
                              help_text='Input value (filename, boolean value, int value etc.)')
     #: Each input may have its own identifier on remote adaptor
     remote_input_id = models.CharField('Remote input ID (on adaptor)', max_length=255, editable=False, null=True)
-    type = models.CharField('Param type', choices=BaseParam.IN_TYPE, max_length=50, editable=False, null=True)
+    type = models.CharField('Param type', choices=AParam.IN_TYPE, max_length=50, editable=False, null=True)
     name = models.CharField('Param name', max_length=200, editable=False, null=True)
-    param_type = models.IntegerField('Parameter Type', choices=BaseParam.OPT_TYPE, editable=False, null=True,
-                                     default=BaseParam.OPT_TYPE_NONE)
+    param_type = models.IntegerField('Parameter Type', choices=AParam.OPT_TYPE, editable=False, null=True,
+                                     default=AParam.OPT_TYPE_NONE)
     label = models.CharField('Label', max_length=100, editable=False, null=True)
 
     def natural_key(self):
@@ -798,7 +801,7 @@ class JobInput(Ordered, Slugged):
         :return: path to file
         :rtype: unicode
         """
-        if self.type == BaseParam.TYPE_FILE:
+        if self.type == AParam.TYPE_FILE:
             return os.path.join(self.job.working_dir, str(self.value))
         else:
             return ""
@@ -809,17 +812,17 @@ class JobInput(Ordered, Slugged):
 
         :return: determined from related SubmissionParam type
         """
-        if self.type == BaseParam.TYPE_FILE:
+        if self.type == AParam.TYPE_FILE:
             return self.value
-        elif self.type == BaseParam.TYPE_BOOLEAN:
+        elif self.type == AParam.TYPE_BOOLEAN:
             return bool(self.value)
-        elif self.type == BaseParam.TYPE_TEXT:
+        elif self.type == AParam.TYPE_TEXT:
             return self.value
-        elif self.type == BaseParam.TYPE_INT:
+        elif self.type == AParam.TYPE_INT:
             return int(self.value)
-        elif self.type == BaseParam.TYPE_DECIMAL:
+        elif self.type == AParam.TYPE_DECIMAL:
             return float(self.value)
-        elif self.type == BaseParam.TYPE_LIST:
+        elif self.type == AParam.TYPE_LIST:
             if self.value == 'None':
                 return False
             return self.value
@@ -843,27 +846,27 @@ class JobInput(Ordered, Slugged):
         :return: depends on parameter type
         """
         value = self.validated_value if forced_value is None else forced_value
-        if self.param_type == BaseParam.OPT_TYPE_VALUATED:
+        if self.param_type == AParam.OPT_TYPE_VALUATED:
             return '--%s=%s' % (self.name, value)
-        elif self.param_type == BaseParam.OPT_TYPE_SIMPLE:
+        elif self.param_type == AParam.OPT_TYPE_SIMPLE:
             if value:
                 return '-%s %s' % (self.name, value)
             else:
                 return ''
-        elif self.param_type == BaseParam.OPT_TYPE_OPTION:
+        elif self.param_type == AParam.OPT_TYPE_OPTION:
             if value:
                 return '-%s' % self.name
             return ''
-        elif self.param_type == BaseParam.OPT_TYPE_NAMED_OPTION:
+        elif self.param_type == AParam.OPT_TYPE_NAMED_OPTION:
             if value:
                 return '--%s' % self.name
             return ''
-        elif self.param_type == BaseParam.OPT_TYPE_POSIX:
+        elif self.param_type == AParam.OPT_TYPE_POSIX:
             if value:
                 return '%s' % value
             else:
                 return ''
-        elif self.param_type == BaseParam.OPT_TYPE_NONE:
+        elif self.param_type == AParam.OPT_TYPE_NONE:
             return ''
         # By default it's OPT_TYPE_SIMPLE way
         return '-%s %s' % (self.name, self.value)
@@ -885,6 +888,18 @@ class JobInput(Ordered, Slugged):
     def display_online(self):
         return allow_display_online(self.file_path)
 
+    @property
+    def download_url(self):
+        if self.available:
+            return "%s?export=1" % self.get_absolute_url()
+        else:
+            return "#"
+
+    @property
+    def available(self):
+        return self.type == AParam.TYPE_FILE and os.path.isfile(self.file_path) \
+               and os.path.getsize(self.file_path) > 0
+
 
 class JobOutputManager(models.Manager):
     """ JobInput model Manager """
@@ -901,13 +916,14 @@ class JobOutputManager(models.Manager):
     @transaction.atomic
     def create_from_submission(self, job, submission_output, submitted_inputs):
         assert (isinstance(submission_output, SubmissionOutput))
-        output_dict = dict(job=job, _name=submission_output.label, type=submission_output.ext)
+        output_dict = dict(job=job, _name=submission_output.label, type=submission_output.ext,
+                           api_name=submission_output.api_name)
         if submission_output.from_input:
             # issued from a input value
             srv_submission_output = submission_output.from_input
             value_to_normalize = submitted_inputs.get(srv_submission_output.name,
                                                       srv_submission_output.default)
-            if srv_submission_output.param_type == BaseParam.TYPE_FILE:
+            if srv_submission_output.param_type == AParam.TYPE_FILE:
                 value_to_normalize = value_to_normalize.name
             input_value = normalize_value(value_to_normalize)
             formatted_value = submission_output.file_pattern % input_value
@@ -917,7 +933,7 @@ class JobOutputManager(models.Manager):
         return self.create(**output_dict)
 
 
-class JobOutput(Ordered, Slugged, UrlMixin):
+class JobOutput(Ordered, Slugged, UrlMixin, ApiModel):
     """ JobOutput is association fro a Job, a SubmissionOutput, and the effective value set for this Job
     """
 
@@ -926,6 +942,7 @@ class JobOutput(Ordered, Slugged, UrlMixin):
         unique_together = ('_name', 'job')
 
     objects = JobOutputManager()
+    field_api_name = "value"
     #: Related :class:`waves.models.jobs.Job`
     job = models.ForeignKey(Job, related_name='outputs', on_delete=models.CASCADE)
     #: Related :class:`waves.models.services.SubmissionOutput`
@@ -945,6 +962,13 @@ class JobOutput(Ordered, Slugged, UrlMixin):
         elif self.value == self.job.stderr:
             return "Standard error"
         return self._name
+
+    def get_api_name(self):
+        if self.value == self.job.stdout:
+            return "standard_output"
+        elif self.value == self.job.stderr:
+            return "standard_error"
+        return self.api_name
 
     def natural_key(self):
         return self.job.natural_key(), self._name
