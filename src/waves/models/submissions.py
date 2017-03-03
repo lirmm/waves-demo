@@ -113,6 +113,10 @@ class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):
         from waves.models import Job
         return self.service_jobs.filter(status__in=Job.PENDING_STATUS)
 
+    def duplicate_api_name(self):
+        """ Check is another entity is set with same api_name """
+        return Submission.objects.filter(api_name__startswith=self.api_name, service=self.service)
+
 
 class SubmissionOutput(TimeStamped, ApiModel):
     """
