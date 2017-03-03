@@ -75,7 +75,8 @@ class AParam(PolymorphicMPTTModel, ApiModel):
     #: Input Label
     label = models.CharField('Label', max_length=100, blank=False, null=False, help_text='Input displayed label')
     #: Input submission name
-    name = models.CharField('Name', max_length=50, blank=False, null=False, help_text='Input runner\'s job param name')
+    name = models.CharField('Parameter name', max_length=50, blank=False, null=False,
+                            help_text='Input runner\'s job param command line name')
     multiple = models.BooleanField('Multiple', default=False, help_text="Can hold multiple values")
     help_text = models.TextField('Help Text', null=True, blank=True)
     submission = models.ForeignKey('Submission', on_delete=models.CASCADE, null=False, related_name='submission_inputs')
