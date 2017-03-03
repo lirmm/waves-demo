@@ -641,7 +641,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         if self.exit_code != 0 or os.stat(join(self.working_dir, self.stderr)).st_size > 0:
             logger.error('Error found %s %s ', self.exit_code, self.stderr_txt.decode('ascii', errors="replace"))
             self.save_status_history(state=Job.JOB_ERROR, message="Error detected in job.stderr")
-            self.job_history.create(state=Job.JOB_ERROR, message=self.stderr_txt.decode('ascii', errors="replace"),
+            self.job_history.create(status=Job.JOB_ERROR, message=self.stderr_txt.decode('ascii', errors="replace"),
                                     is_admin=True)
         else:
             self.save_status_history(state=self.JOB_TERMINATED, message="Data retrieved")
