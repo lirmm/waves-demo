@@ -3,8 +3,6 @@ Main WAVES application settings files
 """
 from __future__ import unicode_literals
 
-import environ
-import sys
 from os.path import dirname, join
 
 
@@ -38,27 +36,14 @@ TEMPLATES = [
     },
 ]
 
-# Django main environment file (issued from local.env)
-env = environ.Env()
-environ.Env.read_env(join(dirname(__file__), 'local.env'))
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env.str('SECRET_KEY')
-WAVES_ENV_FILE = env.str('WAVES_ENV_FILE', None)
-# DATABASE configuration
-DATABASES = {
-    'default': env.db(default='sqlite:///' + dirname(BASE_DIR) + '/waves.sample.sqlite3'),
-}
-# patch to use in memory database for testing
-if 'test' in sys.argv:
-    DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
 
-REGISTRATION_SALT = env.str('REGISTRATION_SALT')
 # LOG FILE ROOT
 LOG_ROOT = dirname(BASE_DIR) + '/logs'
 STATIC_ROOT = join(dirname(BASE_DIR), 'staticfiles')
-STATICFILES_DIRS = (
+STATICFILES_DIRS = [
     join(BASE_DIR, 'waves', 'static'),
-)
+]
+
 # Application definition
 INSTALLED_APPS = (
     'django.contrib.staticfiles',

@@ -1,12 +1,29 @@
 from __future__ import unicode_literals
 
-import logging.config
-
 from waves_webapp.settings.base import *             # NOQA
+import logging.config
+import environ
+import sys
+
+# Django main environment file (issued from local.env)
+env = environ.Env()
+environ.Env.read_env(join(dirname(__file__), 'local.env'))
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = env.str('SECRET_KEY')
+DEBUG = env.bool('DEBUG', False)
+WAVES_ENV_FILE = env.str('WAVES_ENV_FILE', None)
+# DATABASE configuration
+DATABASES = {
+    'default': env.db(default='sqlite:///' + dirname(BASE_DIR) + '/waves.sample.sqlite3'),
+}
+# patch to use in memory database for testing
+if 'test' in sys.argv:
+    DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
+
+REGISTRATION_SALT = env.str('REGISTRATION_SALT')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
-DEBUG = False
 # Cache the templates in memory for speed-up
 loaders = [
     ('django.template.loaders.cached.Loader', [
