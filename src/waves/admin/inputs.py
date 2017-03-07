@@ -29,7 +29,7 @@ class AParamAdmin(PolymorphicMPTTChildModelAdmin):
             'classes': []
         }),
         ('Details', {
-            'fields': ('help_text', 'edam_formats', 'edam_datas', 'multiple'),
+            'fields': ('help_text', 'regexp', 'edam_formats', 'edam_datas', 'multiple'),
             'classes': ['collapse']
         }),
         ('Dependencies', {
@@ -163,12 +163,14 @@ class FileInputAdmin(AParamAdmin):
     inlines = [FileInputSampleInline]
     # TODO activate sample selection dependencies (both on forms and on submission)
     # TOD, SampleDependentInputInline,]
+    readonly_fields = ['regexp',]
 
 
 @admin.register(TextParam)
 class TextParamAdmin(AParamAdmin):
     """ BaseParam subclass Admin """
     base_model = TextParam
+
 
 
 @admin.register(BooleanParam)

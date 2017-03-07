@@ -38,8 +38,8 @@ class RepeatedGroup(DTOMixin, Ordered):
 class AParam(PolymorphicMPTTModel, ApiModel):
     class Meta:
         ordering = ['order']
-        verbose_name_plural = "Submission Params"
-        verbose_name = "Submission Param"
+        verbose_name_plural = "Params"
+        verbose_name = "Param"
 
     OPT_TYPE_NONE = 0
     OPT_TYPE_VALUATED = 1
@@ -49,11 +49,11 @@ class AParam(PolymorphicMPTTModel, ApiModel):
     OPT_TYPE_NAMED_OPTION = 5
     OPT_TYPE = [
         (OPT_TYPE_NONE, 'Not used'),
-        (OPT_TYPE_SIMPLE, 'Simple (-[name] value)'),
-        (OPT_TYPE_VALUATED, 'Named (--[name]=value)'),
-        (OPT_TYPE_OPTION, 'Option (-[name])'),
-        (OPT_TYPE_NAMED_OPTION, 'Named option (--[name])'),
-        (OPT_TYPE_POSIX, 'Positional')
+        (OPT_TYPE_SIMPLE, '-[name] value'),
+        (OPT_TYPE_VALUATED, '--[name]=value'),
+        (OPT_TYPE_OPTION, '-[name]'),
+        (OPT_TYPE_NAMED_OPTION, '--[name]'),
+        (OPT_TYPE_POSIX, 'Posix')
     ]
     TYPE_BOOLEAN = 'boolean'
     TYPE_FILE = 'file'
@@ -103,6 +103,7 @@ class AParam(PolymorphicMPTTModel, ApiModel):
                                   help_text='Input is treated only for this parent value')
     parent = PolymorphicTreeForeignKey('self', related_name="dependents_inputs", on_delete=models.CASCADE,
                                        null=True, blank=True, help_text='Input is associated to')
+    regexp = models.CharField('Validation Regexp', max_length=255, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if self.parent is not None and self.required is True:
@@ -140,7 +141,7 @@ class AParam(PolymorphicMPTTModel, ApiModel):
                 raise ValidationError('Input "%s" depends on missing value: \'%s\'  ' % (dep.label, dep.when_value))
 
     def __str__(self):
-        return self.label
+        return self.label + ' (' + self.param_type + ')'
 
     @property
     def mandatory(self):
@@ -150,16 +151,16 @@ class AParam(PolymorphicMPTTModel, ApiModel):
 class TextParam(AParam):
     class Meta:
         proxy = True
-        verbose_name = "Text input"
-        verbose_name_plural = "Text input"
+        verbose_name = "Text"
+        verbose_name_plural = "Text"
 
 
 class BooleanParam(AParam):
     """ Boolean param (usually check box for a submission option)"""
 
     class Meta:
-        verbose_name = "Boolean input"
-        verbose_name_plural = "Boolean input"
+        verbose_name = "Boolean choice"
+        verbose_name_plural = "Boolean choices"
 
     class_label = "Boolean"
     true_value = models.CharField('True value', default='True', max_length=50)
@@ -292,7 +293,7 @@ class ListParam(AParam):
     """ Param to be issued from a list of values (select / radio / check) """
 
     class Meta:
-        verbose_name = "List of values"
+        verbose_name = "List"
         verbose_name_plural = "Lists"
 
     DISPLAY_SELECT = 'select'
@@ -357,8 +358,8 @@ class FileInput(AParam):
     class Meta:
         db_table = 'waves_service_file'
         ordering = ['order', ]
-        verbose_name = "Input file"
-        verbose_name_plural = "Input files"
+        verbose_name = "File"
+        verbose_name_plural = "Files input"
 
     class_label = "File Input"
 
@@ -368,9 +369,6 @@ class FileInput(AParam):
                                           help_text="Comma separated list, * means no filter",
                                           default="*",
                                           validators=[validate_list_comma, ])
-
-    def __str__(self):
-        return self.label
 
     @property
     def param_type(self):
