@@ -6,7 +6,7 @@ import os
 
 from django.test import TestCase
 from django.utils.module_loading import import_string
-from waves.adaptors.core.adaptor import JobAdaptor
+from waves_adaptors.core.adaptor import JobAdaptor
 
 from waves.models import Job, Service, Runner
 from waves.models.history import JobHistory, JobAdminHistory

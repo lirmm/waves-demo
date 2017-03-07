@@ -55,7 +55,7 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
-        'waves.adaptors': {
+        'waves_adaptors': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,

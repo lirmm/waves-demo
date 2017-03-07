@@ -8,8 +8,8 @@ import os
 from os import path as path
 from os.path import join
 
-import waves.adaptors.core
-import waves.adaptors.exceptions.adaptors
+import waves_adaptors.core
+import waves_adaptors.exceptions.adaptors
 from constance import config
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -197,27 +197,27 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     #: Job run details retrieved or not
     _run_details = None
 
-    STR_JOB_UNDEFINED = waves.adaptors.core.STR_JOB_UNDEFINED
-    STR_JOB_CREATED = waves.adaptors.core.STR_JOB_CREATED
-    STR_JOB_PREPARED = waves.adaptors.core.STR_JOB_PREPARED
-    STR_JOB_QUEUED = waves.adaptors.core.STR_JOB_QUEUED
-    STR_JOB_RUNNING = waves.adaptors.core.STR_JOB_RUNNING
-    STR_JOB_COMPLETED = waves.adaptors.core.STR_JOB_COMPLETED
-    STR_JOB_TERMINATED = waves.adaptors.core.STR_JOB_TERMINATED
-    STR_JOB_CANCELLED = waves.adaptors.core.STR_JOB_CANCELLED
-    STR_JOB_SUSPENDED = waves.adaptors.core.STR_JOB_SUSPENDED
-    STR_JOB_ERROR = waves.adaptors.core.STR_JOB_ERROR
+    STR_JOB_UNDEFINED = waves_adaptors.core.STR_JOB_UNDEFINED
+    STR_JOB_CREATED = waves_adaptors.core.STR_JOB_CREATED
+    STR_JOB_PREPARED = waves_adaptors.core.STR_JOB_PREPARED
+    STR_JOB_QUEUED = waves_adaptors.core.STR_JOB_QUEUED
+    STR_JOB_RUNNING = waves_adaptors.core.STR_JOB_RUNNING
+    STR_JOB_COMPLETED = waves_adaptors.core.STR_JOB_COMPLETED
+    STR_JOB_TERMINATED = waves_adaptors.core.STR_JOB_TERMINATED
+    STR_JOB_CANCELLED = waves_adaptors.core.STR_JOB_CANCELLED
+    STR_JOB_SUSPENDED = waves_adaptors.core.STR_JOB_SUSPENDED
+    STR_JOB_ERROR = waves_adaptors.core.STR_JOB_ERROR
 
-    JOB_UNDEFINED = waves.adaptors.core.JOB_UNDEFINED
-    JOB_CREATED = waves.adaptors.core.JOB_CREATED
-    JOB_PREPARED = waves.adaptors.core.JOB_PREPARED
-    JOB_QUEUED = waves.adaptors.core.JOB_QUEUED
-    JOB_RUNNING = waves.adaptors.core.JOB_RUNNING
-    JOB_SUSPENDED = waves.adaptors.core.JOB_SUSPENDED
-    JOB_COMPLETED = waves.adaptors.core.JOB_COMPLETED
-    JOB_TERMINATED = waves.adaptors.core.JOB_TERMINATED
-    JOB_CANCELLED = waves.adaptors.core.JOB_CANCELLED
-    JOB_ERROR = waves.adaptors.core.JOB_ERROR
+    JOB_UNDEFINED = waves_adaptors.core.JOB_UNDEFINED
+    JOB_CREATED = waves_adaptors.core.JOB_CREATED
+    JOB_PREPARED = waves_adaptors.core.JOB_PREPARED
+    JOB_QUEUED = waves_adaptors.core.JOB_QUEUED
+    JOB_RUNNING = waves_adaptors.core.JOB_RUNNING
+    JOB_SUSPENDED = waves_adaptors.core.JOB_SUSPENDED
+    JOB_COMPLETED = waves_adaptors.core.JOB_COMPLETED
+    JOB_TERMINATED = waves_adaptors.core.JOB_TERMINATED
+    JOB_CANCELLED = waves_adaptors.core.JOB_CANCELLED
+    JOB_ERROR = waves_adaptors.core.JOB_ERROR
 
     STATUS_LIST = [
         (JOB_UNDEFINED, STR_JOB_UNDEFINED),
@@ -387,7 +387,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
     def adaptor(self):
         """ Return current related service adaptor effective class
         :return: a child class of `JobRunnerAdaptor`
-        :rtype: `waves.adaptors.runner.JobRunnerAdaptor`
+        :rtype: `waves_adaptors.runner.JobRunnerAdaptor`
         """
         return self.submission.adaptor
 
@@ -591,7 +591,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
             self.nb_retry = 0
            # self.save_status_history(self.next_status)
             return returned
-        except waves.adaptors.exceptions.adaptors.AdaptorException as exc:
+        except waves_adaptors.exceptions.adaptors.AdaptorException as exc:
             self.retry(exc.message)
         except (WavesException, Exception) as exc:
             self.error(exc.message)
@@ -653,12 +653,12 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         if os.path.isfile(file_run_details):
             # Details have already been downloaded
             with open(file_run_details) as fp:
-                details = waves.adaptors.core.JobRunDetails(*json.load(fp))
+                details = waves_adaptors.core.JobRunDetails(*json.load(fp))
             return details
         else:
             try:
                 remote_details = self._run_action('job_run_details')
-            except waves.adaptors.exceptions.adaptors.AdaptorException:
+            except waves_adaptors.exceptions.adaptors.AdaptorException:
                 remote_details = default_run_details(self)
             with open(file_run_details, 'w') as fp:
                 json.dump(obj=remote_details, fp=fp, ensure_ascii=False)

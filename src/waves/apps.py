@@ -17,6 +17,10 @@ class WavesAppConfig(AppConfig):
     verbose_name = 'WAVES'
     path = dirname(__file__)
 
+    def __init__(self, app_name, app_module):
+        self.path = dirname(__file__)
+        super(WavesAppConfig, self).__init__(app_name, app_module)
+
     def ready(self):
         """
         Executed once when WAVES application startup !

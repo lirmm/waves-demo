@@ -4,7 +4,7 @@ import inspect
 import logging
 
 from django.test import TestCase
-from waves.adaptors.core.adaptor import JobAdaptor, AdaptorImporter
+from waves_adaptors.core.adaptor import JobAdaptor, AdaptorImporter
 
 from waves.addons.loader import load_core, load_extra_adaptors, load_extra_importers
 
