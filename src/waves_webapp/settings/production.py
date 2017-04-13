@@ -7,11 +7,11 @@ import sys
 
 # Django main environment file (issued from local.env)
 env = environ.Env()
-environ.Env.read_env(join(dirname(__file__), 'local.env'))
+environ.Env.read_env(WAVES_ENV_FILE)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str('SECRET_KEY')
 DEBUG = env.bool('DEBUG', False)
-WAVES_ENV_FILE = env.str('WAVES_ENV_FILE', None)
+
 # DATABASE configuration
 DATABASES = {
     'default': env.db(default='sqlite:///' + dirname(BASE_DIR) + '/waves.sample.sqlite3'),

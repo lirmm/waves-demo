@@ -13,7 +13,9 @@ from waves.models.samples import *
 from waves.models.submissions import Submission
 from waves.utils.validators import ServiceInputValidator
 from waves.views.forms.lib.crispy import FormHelper
+import logging
 
+logger = logging.getLogger(__name__)
 
 # TODO refactoring for the copy_paste field associated with FileInput (override formfield template ?)
 class ServiceForm(forms.ModelForm):
@@ -51,9 +53,10 @@ class ServiceSubmissionForm(forms.ModelForm):
             for dependent_input in service_input.dependents_inputs.exclude(required=None):
                 # conditional parameters must not be required to use classic django form validation process
                 dependent_input.required = False
+                logger.warn("current input %s %s ", dependent_input, dependent_input.label)
                 if isinstance(dependent_input, FileInput):
                     extra_fields.append(self._create_copy_paste_field(dependent_input))
-                    for input_sample in service_input.input_samples.all():
+                    for input_sample in dependent_input.input_samples.all():
                         self.add_field(input_sample)
                 self.add_field(dependent_input)
                 self.helper.set_layout(dependent_input, self)

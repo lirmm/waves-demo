@@ -16,6 +16,7 @@ class FormHelper(BaseFormHelper, BaseHelper):
     Extended FormHelper based on crispy FormHelper,
     Dynamic form fields according to inputs types and parameters
     """
+
     # TODO clean dirty code for tab layout (copy_paste field)
 
     def __init__(self, form=None, **kwargs):
@@ -68,12 +69,12 @@ class FormHelper(BaseFormHelper, BaseHelper):
                 field_dict.update(dict(wrapper_class="dis_dep_parameter"))
         input_field = Field(service_input.name, **field_dict)
         if isinstance(service_input, FileInput) and not service_input.multiple:
-            cp_input_field = Field('cp_' + service_input.name, css_id='id_'+'cp_' + service_input.name)
+            cp_input_field = Field('cp_' + service_input.name, css_id='id_' + 'cp_' + service_input.name)
             tab_input = Tab(
-                            "File Upload",
-                            input_field,
-                            css_id='tab_' + service_input.name
-                        )
+                "File Upload",
+                input_field,
+                css_id='tab_' + service_input.name
+            )
             if service_input.input_samples.count() > 0:
                 all_sample = []
                 for sample in service_input.input_samples.all():

@@ -169,3 +169,4 @@ CKEDITOR_CONFIGS = {
 # (keep current service)
 JET_CHANGE_FORM_SIBLING_LINKS = False
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+WAVES_ENV_FILE = join(dirname(__file__), 'local.env')

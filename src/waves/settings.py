@@ -33,7 +33,7 @@ def __init_setting(var, default=None, override=None):
     # in any case, register default value to settings
     return settings_val
 
-WAVES_DB_VERSION = '1.1'
+WAVES_VERSION = '1.1'
 
 WAVES_DATA_ROOT = __init_setting('WAVES_DATA_ROOT',
                                  default=env.str('WAVES_DATA_ROOT', str(join(dirname(settings.BASE_DIR), 'data'))))
@@ -45,4 +45,4 @@ WAVES_UPLOAD_MAX_SIZE = __init_setting('WAVES_UPLOAD_MAX_SIZE',
                                        default=env.int('WAVES_UPLOAD_MAX_SIZE', 20 * 1024 * 1024))
 
 WAVES_TEMPLATE_PACK = __init_setting('WAVES_TEMPLATE_PACK', default='bootstrap3', override='CRISPY_TEMPLATE_PACK')
-WAVES_HOST = __init_setting('WAVES_HOST', default='http://localhost')
+WAVES_HOST = __init_setting('WAVES_HOST', default=env.str('WAVES_HOST', 'http://localhost'))

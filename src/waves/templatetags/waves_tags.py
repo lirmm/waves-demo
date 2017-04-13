@@ -44,3 +44,7 @@ def online_exec_button(context, service, label=None):
     return {'available_for_submission': service.available_for_user(context['user']),
             'label': label, 'service': service}
 
+
+@register.simple_tag
+def get_app_version():
+    return waves.settings.WAVES_VERSION

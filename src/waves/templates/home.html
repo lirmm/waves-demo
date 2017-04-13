@@ -17,7 +17,7 @@
 
                 <div class="col-md-8 col-sm-8">
                     <h1>{% include "_brandname.html" %}</h1>
-                    <p>{{ config.WAVES_APP_VERBOSE_NAME }}</p>
+                    <p>{{ config.WAVES_APP_VERBOSE_NAME }} - v{% get_app_version  %}</p>
                     <a class="btn btn-primary" href="{% url 'waves:about' %}" role="button">More info</a>
                 </div>
                 <div class="col-md-4 col-sm-4">
