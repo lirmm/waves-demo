@@ -1,13 +1,12 @@
 from __future__ import unicode_literals
 
-from polymorphic.admin import PolymorphicInlineSupportMixin, StackedPolymorphicInline
+from polymorphic.admin import StackedPolymorphicInline
 
-from waves.admin.adaptors import SubmissionRunnerParamInLine
-from waves.admin.base import DynamicInlinesAdmin
+from waves.models.inputs import *
 from waves.admin.submissions import *
 
 
-class InputInline(StackedPolymorphicInline):
+class OrganizeInputInline(StackedPolymorphicInline):
     """
     An inline for a polymorphic model.
     The actual form appearance of each row is determined by
@@ -23,32 +22,21 @@ class InputInline(StackedPolymorphicInline):
     class BooleanFielInline(StackedPolymorphicInline.Child):
         model = BooleanParam
 
+    class TextFieldInline(StackedPolymorphicInline.Child):
+        model = TextParam
+
+    class DecimalFieldInline(StackedPolymorphicInline.Child):
+        model = DecimalParam
+
+    class ListFieldInline(StackedPolymorphicInline.Child):
+        model = ListParam
+
     model = AParam
     child_inlines = (
         FileInputInline,
+        DecimalFieldInline,
         IntegerFieldInline,
         BooleanFielInline,
+        ListFieldInline,
+        TextFieldInline
     )
-
-
-@admin.register(Submission)
-class SubmissionAdmin(PolymorphicInlineSupportMixin, WavesModelAdmin, DynamicInlinesAdmin):
-    """
-    Admin for orders.
-    The inline is polymorphic.
-    To make sure the inlines are properly handled,
-    the ``PolymorphicInlineSupportMixin`` is needed to
-    """
-    inlines = (InputInline,)
-
-    def get_inlines(self, request, obj=None):
-        _inlines = [
-            OrganizeInputInline,
-            # OrgRepeatGroupInline,
-            SubmissionOutputInline,
-            ExitCodeInline,
-        ]
-        self.inlines = _inlines
-        if obj.runner is not None and obj.runner.adaptor_params.filter(prevent_override=False).count() > 0:
-            self.inlines.append(SubmissionRunnerParamInLine)
-        return self.inlines
