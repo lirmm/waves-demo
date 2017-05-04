@@ -8,6 +8,7 @@ class AdaptorInitParamForm(ModelForm):
     """
     Runner defaults param form
     """
+
     class Meta:
         """ Metas """
         model = AdaptorInitParam
@@ -20,12 +21,13 @@ class AdaptorInitParamForm(ModelForm):
             try:
                 from django.utils.module_loading import import_string
                 from ast import literal_eval
-                if instance.content_object.adaptor_defaults.get(instance.name):
-                    param_defaults = instance.content_object.adaptor_defaults.get(instance.name)
+                concrete = instance.content_object.get_concrete_adaptor()
+                if concrete is not None :
                     default_value = None
                     initial = instance.value if instance.value else default_value
-                    if type(param_defaults) == tuple:
-                        self.fields['value'] = ChoiceField(choices=param_defaults, initial=initial)
+                    choices = getattr(concrete, instance.name + '_choices', None)
+                    if choices:
+                        self.fields['value'] = ChoiceField(choices=choices, initial=initial)
                 if instance.crypt:
                     self.fields['value'].widget = PasswordInput(render_value=instance.value,
                                                                 attrs={'autocomplete': 'new-password'})

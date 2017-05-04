@@ -42,7 +42,7 @@ class AdaptorInitParam(models.Model):
 
     name = models.CharField('Name', max_length=100, blank=True, null=True, help_text='Param name')
     value = models.CharField('Value', max_length=500, null=True, blank=True, help_text='Default value')
-    crypt = models.BooleanField('Crypted', default=False, editable=False)
+    crypt = models.BooleanField('Encrypted', default=False, editable=False)
     prevent_override = models.BooleanField('Prevent override', default=False, help_text="Prevent override")
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
@@ -115,7 +115,10 @@ class HasAdaptorParamsMixin(models.Model):
 
     def get_concrete_adaptor(self, init_params=None):
         """ Instantiate and return a new Adaptor class Instance initialized with setup parameters """
-        return import_string(self.clazz)(init_params=init_params or None)
+        try:
+            return import_string(self.clazz)(init_params=init_params or None)
+        except ImportError:
+            return None
 
     @property
     def adaptor_defaults(self):
@@ -136,6 +139,7 @@ class HasAdaptorClazzMixin(HasAdaptorParamsMixin):
     _adaptor = None
     clazz = models.CharField('Adaptor object', max_length=100, null=False,
                              help_text="This is the concrete class used to perform job execution")
+    clazz_params = GenericRelation(AdaptorInitParam)
 
     def __init__(self, *args, **kwargs):
         super(HasAdaptorClazzMixin, self).__init__(*args, **kwargs)
@@ -182,6 +186,7 @@ class HasRunnerParamsMixin(HasAdaptorParamsMixin):
     runner = models.ForeignKey('Runner', related_name='%(app_label)s_%(class)s_runs', null=True, blank=False,
                                on_delete=models.SET_NULL,
                                help_text='Service job runs adapter')
+    runner_params = GenericRelation(AdaptorInitParam)
 
     @classmethod
     def from_db(cls, db, field_names, values):

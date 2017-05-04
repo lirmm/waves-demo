@@ -3,16 +3,16 @@
 WAVES Constants
 ===============
 
-These constants can all be directly accessed with only ``waves.const`` prefix for simplicity.
+These constants can all be directly accessed with only ``waves.adaptors.const`` prefix for simplicity.
 
-    .. automodule:: waves.const
+    .. automodule:: waves.adaptors.const
         :members:
 
-    .. automodule:: waves.const.services
+    .. automodule:: waves.adaptors.const.services
         :members:
 
-    .. automodule:: waves.const.metas
+    .. automodule:: waves.adaptors.const.metas
         :members:
 
-    .. automodule:: waves.const.jobs
+    .. automodule:: waves.adaptors.const.jobs
         :members:

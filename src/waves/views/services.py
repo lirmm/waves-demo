@@ -9,7 +9,6 @@ from django.views import generic
 
 from base import WavesBaseContextMixin
 from waves.exceptions.jobs import JobException
-# from waves.managers.servicejobs import ServiceJobManager
 from waves.models import ServiceCategory, Service, ServiceMeta, Job
 from waves.models.submissions import Submission
 from waves.views.forms.services import ServiceSubmissionForm

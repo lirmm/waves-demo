@@ -3,7 +3,8 @@ from __future__ import unicode_literals
 import importlib
 import pkgutil
 from inspect import getmembers, isabstract, isclass
-from waves_adaptors.core.adaptor import JobAdaptor, AdaptorImporter
+
+from waves.adaptors.core.adaptor import JobAdaptor
 
 __all__ = ['load_extra_adaptors']
 
@@ -13,11 +14,11 @@ def isAdaptorClass(value):
 
 
 def load_core():
-    return sorted(__load_addons('waves_adaptors.core', parent=JobAdaptor), key=lambda x: x[0])
+    return sorted(__load_addons('waves.adaptors.core', parent=JobAdaptor), key=lambda x: x[0])
 
 
 def load_extra_adaptors():
-    return sorted(__load_addons('waves_adaptors.addons', parent=JobAdaptor), key=lambda x: x[0])
+    return sorted(__load_addons('waves.adaptors.addons', parent=JobAdaptor), key=lambda x: x[0])
 
 
 def __load_addons(path, parent):
@@ -38,15 +39,13 @@ def __import_submodules(package, recursive=True):
     """
     results = {}
     if isinstance(package, unicode):
-        if 'test' not in package:
-            try:
-                package = importlib.import_module(package)
-            except ImportError:
-                return results
-    if 'test' not in package.__path__:
-        for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
-            full_name = package.__name__ + '.' + name
-            results[full_name] = importlib.import_module(full_name)
-            if recursive and is_pkg and 'test' not in full_name:
-                results.update(__import_submodules(full_name))
+        try:
+            package = importlib.import_module(package)
+        except ImportError:
+            return results
+    for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
+        full_name = package.__name__ + '.' + name
+        results[full_name] = importlib.import_module(full_name)
+        if recursive and is_pkg and 'test' not in full_name:
+            results.update(__import_submodules(full_name))
     return results

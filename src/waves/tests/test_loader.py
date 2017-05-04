@@ -4,9 +4,9 @@ import inspect
 import logging
 
 from django.test import TestCase
-from waves_adaptors.core.adaptor import JobAdaptor, AdaptorImporter
+from waves.adaptors.core.base import JobAdaptor, AdaptorImporter
 
-from waves.addons.loader import load_core, load_extra_adaptors, load_extra_importers
+from waves.addons.loader import load_core, load_extra_adaptors #, load_extra_importers
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,9 @@ class TestLoadAddons(TestCase):
         if len(addons) > 0:
             self.assertTrue(all([issubclass(addon[1], JobAdaptor) for addon in addons]))
         [logger.debug(c) for c in addons]
+        """
         imps = load_extra_importers()
         if len(imps) > 0:
             self.assertTrue(all([issubclass(importer[1], AdaptorImporter) for importer in imps]))
         [logger.debug(c) for c in imps]
+        """

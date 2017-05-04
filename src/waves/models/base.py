@@ -139,7 +139,7 @@ class ExportAbleMixin(object):
         from os.path import join
         import json
         file_path = join(config.WAVES_DATA_ROOT, self.export_file_name)
-        with open(file_path, 'w', 0) as fp:
+        with open(file_path, 'w') as fp:
             try:
                 serializer = self.serializer()
                 data = serializer.to_representation(self)

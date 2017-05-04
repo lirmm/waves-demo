@@ -17,8 +17,8 @@ class Runner(Described, ExportAbleMixin, HasAdaptorClazzMixin):
     class Meta:
         ordering = ['name']
         db_table = 'waves_runner'
-        verbose_name = 'Execution environment'
-        verbose_name_plural = "Execution environments"
+        verbose_name = 'Execution'
+        verbose_name_plural = "Execution"
     name = models.CharField('Label', max_length=50, null=False, help_text='Displayed name')
     # TODO add choices issued from get_importers
     importer_clazz = models.CharField('Importer', max_length=200, null=True, blank=True, choices=[])

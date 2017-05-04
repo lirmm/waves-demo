@@ -27,8 +27,8 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '[%(levelname)s][%(name)s.%(funcName)s:line %(lineno)s] - %(message)s',
-            'datefmt': "%d/%b/%Y %H:%M:%S"
+            'format': '[%(levelname)s][%(asctime)s][%(pathname)s:line %(lineno)s][%(name)s.%(funcName)s] - %(message)s',
+            'datefmt': "%H:%M:%S"
         },
         'simple': {
             'format': '[%(levelname)s] - %(message)s'
@@ -50,6 +50,11 @@ LOGGING = {
             'maxBytes': 1024 * 2
         },
     },
+    'root': {
+        'handlers': ['console'],
+        'propagate': True,
+        'level': 'WARNING',
+    },
     'loggers': {
         'django': {
             'handlers': ['console'],
@@ -65,11 +70,6 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
-        'waves_adaptors': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': False,
-        }
     }
 }
 logging.config.dictConfig(LOGGING)

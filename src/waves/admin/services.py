@@ -5,7 +5,7 @@ from django.template.defaultfilters import truncatechars
 from mptt.admin import MPTTModelAdmin
 from django.utils.safestring import mark_safe
 
-from base import ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin
+from base import ExportInMassMixin, DuplicateInMassMixin, MarkPublicInMassMixin, DynamicInlinesAdmin
 from waves.admin.adaptors import ServiceRunnerParamInLine
 from waves.admin.forms.services import ServiceForm, SubmissionInlineForm, ServiceMetaForm
 from waves.admin.submissions import *

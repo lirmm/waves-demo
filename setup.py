@@ -1,13 +1,11 @@
-from distutils.core import setup
-
 import os
+
 from setuptools import setup, find_packages
-mod_root = "src/waves"
 
 
-def get_version(mod_root):
+def get_version():
     import imp
-    waves = imp.load_source('waves', os.path.join(os.path.dirname(os.path.realpath(__file__)), 'src', 'waves', '__init__.py'))
+    waves = imp.load_source('waves', os.path.join(os.path.dirname(__file__), 'src', 'waves', 'apps.py'))
     try:
         _version = waves.__version__
         _version_detail = waves.__version_detail__
@@ -18,14 +16,16 @@ def get_version(mod_root):
         _dist_name = None
     return _version, _version_detail, _dist_name
 
-version, version_detail, sdist_name = get_version(mod_root)
+
+version, version_detail, sdist_name = get_version()
 
 setup(
-    name='waves-webapp',
+    name='waves-waves_webapp',
     version=version,
     packages=find_packages('src'),
-    package_dir={'': 'src'},
-    url='https://github.com/lirmm/waves-webapp',
+    include_package_data=True,
+    package_dir={'': 'src', },
+    url='https://github.com/lirmm/waves-waves_webapp',
     license='GPL-v3',
     author='Marc Chakiachvili, Floreal Cabanattes, Vincent Berry, Anne-Muriel Arigon Chifolleau',
     author_email='marc.chakiachvili@gmail.com, '
@@ -36,7 +36,17 @@ setup(
     description='WebApp for Versatile and Easy bio-informatics Services',
     maintainer='LIRMM - MAB Laboratory - France',
     maintainer_email='vincent.lefort@lirmm.fr',
-    namespace_packages=['waves', 'addons', 'addons.adaptors', 'addons.importers'],
+    install_requires=[
+        'waves-adaptors>=0.1.0',
+        'django-admin-sortable2==0.6.10',
+        'django-bootstrap_themes==3.3.6',
+        'django-constance==2.0.0',
+        'django-countries==4.1',
+        'django-crispy-forms==1.6.1',
+        'easy_thumbnails==2.3',
+        'django-mail-templated==2.6.5',
+        'djangorestframework==3.5.4',
+    ],
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',

@@ -1,13 +1,12 @@
 from __future__ import unicode_literals
 
 import os
+from wsgiref.util import FileWrapper
 
-from django.views import generic
+from django.http import Http404
 from django.http import HttpResponse
 from django.utils.encoding import smart_str
-from django.http import Http404
-
-from wsgiref.util import FileWrapper
+from django.views import generic
 
 
 class DownloadFileView(generic.DetailView):

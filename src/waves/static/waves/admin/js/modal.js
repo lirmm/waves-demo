@@ -8,16 +8,13 @@
  * Generated using the Bootstrap Customizer (http://getbootstrap.com/customize/?id=01023b1897c2c8f14601144c093586b9)
  * Config saved to config.json and https://gist.github.com/01023b1897c2c8f14601144c093586b9
  */
-if (typeof jQuery === 'undefined') {
-  throw new Error('Bootstrap\'s JavaScript requires jQuery')
-}
 +function ($) {
   'use strict';
   var version = $.fn.jquery.split(' ')[0].split('.')
   if ((version[0] < 2 && version[1] < 9) || (version[0] == 1 && version[1] == 9 && version[2] < 1) || (version[0] > 3)) {
     throw new Error('Bootstrap\'s JavaScript requires jQuery version 1.9.1 or higher, but lower than version 4')
   }
-}(jQuery);
+}(jQuery || django.jQuery);
 
 /* ========================================================================
  * Bootstrap: modal.js v3.3.7
@@ -357,4 +354,4 @@ if (typeof jQuery === 'undefined') {
     Plugin.call($target, option, this)
   })
 
-}(jQuery);
+}(jQuery || django.jQuery);

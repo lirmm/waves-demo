@@ -76,7 +76,7 @@ class ServiceInputValidator(object):
         return True
 
     def _validate_input_int(self, the_input, value):
-        assert the_input.type == waves.const.TYPE_INTEGER
+        assert the_input.type == waves.adaptors.const.TYPE_INTEGER
         self.specific_message = 'value %s is not a valid integer' % value
         if not the_input.mandatory and value is None:
             return True
@@ -93,7 +93,7 @@ class ServiceInputValidator(object):
         return self._validate_input_int(the_input, value)
 
     def _validate_input_float(self, the_input, value):
-        assert the_input.type == waves.const.TYPE_FLOAT
+        assert the_input.type == waves.adaptors.const.TYPE_FLOAT
         self.specific_message = 'value %s is not a valid float' % value
         if not the_input.mandatory and value is None:
             return True

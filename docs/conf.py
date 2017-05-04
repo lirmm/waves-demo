@@ -17,7 +17,6 @@ import os
 import django
 from distutils.sysconfig import get_python_lib
 from mock import Mock as MagicMock
-import waves_services
 import waves
 
 
@@ -37,7 +36,7 @@ sys.path.append(os.path.abspath('.'))
 sys.path.append(os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../src'))
 sys.path.append(get_python_lib())
-os.environ['DJANGO_SETTINGS_MODULE'] = 'waves_services.settings.cli'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'waves_webapp.settings.production'
 # settings.configure()
 django.setup()
 
@@ -71,8 +70,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = waves_services.__name__
-copyright = waves_services.__copyright__
+project = waves.__name__
+copyright = waves.__copyright__
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

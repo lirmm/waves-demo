@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 def get_runners_list(flat=False):
     """
-    Retrieve enabled waves_adaptors list from waves settings env file
+    Retrieve enabled waves.adaptors list from waves settings env file
     :return: a list of Tuple 'value'/'label'
     """
     from waves.addons.loader import load_core, load_extra_adaptors

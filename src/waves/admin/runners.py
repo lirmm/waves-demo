@@ -66,7 +66,7 @@ class RunnerAdmin(ExportInMassMixin, WavesModelAdmin, DynamicInlinesAdmin):
     model = Runner
     form = RunnerForm
     # inlines = (RunnerParamInline, ServiceRunInline)
-    list_display = ('name', 'connexion_string', 'short_description', 'nb_services')
+    list_display = ('name', 'get_runner_clazz', 'connexion_string', 'short_description', 'nb_services')
     list_filter = ('name', 'clazz')
     readonly_fields = ['connexion_string']
     fieldsets = [
@@ -81,7 +81,7 @@ class RunnerAdmin(ExportInMassMixin, WavesModelAdmin, DynamicInlinesAdmin):
 
     def get_inlines(self, request, obj=None):
         _inlines = [
-            RunnerParamInline
+            RunnerParamInline,
         ]
         if obj and IS_POPUP_VAR not in request.GET:
             self.inlines = _inlines
@@ -120,9 +120,17 @@ class RunnerAdmin(ExportInMassMixin, WavesModelAdmin, DynamicInlinesAdmin):
                     messages.info(request, message)
 
     def connexion_string(self, obj):
-        if obj.clazz:
+        concrete = obj.get_concrete_adaptor()
+        if concrete:
             return obj.adaptor.connexion_string()
         else:
             return 'n/a'
 
     connexion_string.short_description = 'Connexion String'
+
+    def get_runner_clazz(self, obj):
+        concrete = obj.get_concrete_adaptor()
+        if concrete:
+            return obj.clazz
+        else:
+            return "Implementation class not available !"

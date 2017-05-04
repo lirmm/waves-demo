@@ -28,9 +28,8 @@ class RelatedInputSerializer(rest_serializer.ModelSerializer):
 
     class Meta:
         model = RelatedParam
-        fields = ('order', 'label', 'name', 'default', 'type', 'param_type', 'format',
-                  'mandatory', 'multiple', 'display', 'description', 'short_description',
-                  'when_value')
+        fields = ('order', 'label', 'name', 'default', 'type', 'param_type', 'format', 'mandatory', 'multiple',
+                  'display', 'description', 'short_description', 'when_value')
 
 
 class ServiceInputSerializer(DynamicFieldsModelSerializer, RelatedSerializerMixin):
