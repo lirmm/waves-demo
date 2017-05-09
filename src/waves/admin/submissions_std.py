@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from polymorphic.admin import StackedPolymorphicInline
 
+from waves.admin.forms.services import TextParamForm
 from waves.models.inputs import *
 from waves.admin.submissions import *
 
@@ -23,7 +24,9 @@ class OrganizeInputInline(StackedPolymorphicInline):
         model = BooleanParam
 
     class TextFieldInline(StackedPolymorphicInline.Child):
-        model = TextParam
+        model = AParam
+        exclude = ['order']
+        form = TextParamForm
 
     class DecimalFieldInline(StackedPolymorphicInline.Child):
         model = DecimalParam
@@ -40,3 +43,4 @@ class OrganizeInputInline(StackedPolymorphicInline):
         ListFieldInline,
         TextFieldInline
     )
+    classes = ["collapse",]

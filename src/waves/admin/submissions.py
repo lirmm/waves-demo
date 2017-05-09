@@ -9,17 +9,17 @@ from polymorphic.admin import PolymorphicInlineSupportMixin
 from waves.admin.adaptors import SubmissionRunnerParamInLine
 from waves.admin.base import WavesModelAdmin, DynamicInlinesAdmin
 from waves.admin.forms.services import SampleDepForm, InputSampleForm, SubmissionForm
-
-if 'jet' in settings.INSTALLED_APPS:
-    from waves.admin.submissions_jet import OrganizeInputInline
-else:
-    from waves.admin.submissions_std import OrganizeInputInline
 from waves.compat import CompactInline
 from waves.models.inputs import *
 from waves.models.samples import *
 from waves.models.submissions import *
 # TODO enable the standard django layout for polymorphic inlines
 from waves.utils import url_to_edit_object
+
+if 'jet' in settings.INSTALLED_APPS:
+    from waves.admin.submissions_jet import OrganizeInputInline
+else:
+    from waves.admin.submissions_std import OrganizeInputInline
 
 
 class SubmissionOutputInline(CompactInline):

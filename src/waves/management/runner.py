@@ -9,7 +9,9 @@ from __future__ import unicode_literals
 
 import logging
 import signal
+
 import lockfile
+import psutil
 from daemon.runner import DaemonRunner as BaseDaemonRunner, DaemonRunnerStopFailureError, \
     DaemonRunnerStartFailureError, emit_message
 
@@ -30,7 +32,6 @@ class DaemonRunner(BaseDaemonRunner):
 
     def _status(self):
         try:
-            import psutil
             running = psutil.pid_exists(self.pidfile.read_pid())
         except (OSError, TypeError):
             emit_message(self.STATUS_UNKNOWN)

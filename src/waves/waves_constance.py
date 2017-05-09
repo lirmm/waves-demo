@@ -3,9 +3,10 @@ Set up mandatory constance configuration entries for WAVES
 """
 from __future__ import unicode_literals
 
-from waves.settings import settings, WAVES_DATA_ROOT
 from os.path import join, dirname
-from bootstrap_themes import list_themes
+
+from waves.compat import list_themes
+from waves.settings import settings, WAVES_DATA_ROOT
 
 WAVES_CONSTANCE_CONFIG = {
     'WAVES_ACCOUNT_ACTIVATION_DAYS': (7, 'Number of days before activation is kept available'),

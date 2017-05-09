@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import os
+import magic
 from wsgiref.util import FileWrapper
 
 from django.http import Http404
@@ -48,8 +49,12 @@ class DownloadFileView(generic.DetailView):
         except AttributeError as e:
             raise Http404('File does not exists %s' % e)
         if 'export' not in self.request.GET:
-            with open(self.file_path) as fp:
-                context['file_content'] = fp.read()
+            file_type = magic.from_file(self.file_path)
+            if 'text' in file_type:
+                with open(self.file_path) as fp:
+                    context['file_content'] = fp.read()
+            else:
+                context['file_content'] = "Not Printable data (Human readable)"
             context['return_link'] = self.return_link
             context['file_description'] = self.file_description
             context['file_name'] = self.file_name

@@ -1,13 +1,14 @@
 from __future__ import unicode_literals
 
+import waves.adaptors.const
 from django.contrib import admin, messages
 from django.contrib.admin import TabularInline
 from django.db.models import Q
 
 from waves.admin.base import WavesModelAdmin
 from waves.admin.forms.jobs import JobInputForm, JobOutputForm, JobForm
-from waves.models.jobs import *
 from waves.models.history import JobHistory
+from waves.models.jobs import *
 
 __all__ = ['JobAdmin']
 
@@ -23,7 +24,7 @@ class JobInputInline(TabularInline):
     can_delete = False
     ordering = ('order',)
     fields = ('name', 'api_name', 'value', 'file_path')
-    classes = ('collapse',)
+    classes = ['collapse', ]
 
     def has_add_permission(self, request):
         """ Never add any job input from admin """
@@ -36,7 +37,7 @@ class JobOutputInline(TabularInline):
     form = JobOutputForm
     extra = 0
     suit_classes = 'suit-tab suit-tab-outputs'
-    classes = ('collapse',)
+    classes = ['collapse', ]
     can_delete = False
     readonly_fields = ('name', 'value', 'file_path')
     ordering = ('order',)
@@ -52,9 +53,9 @@ class JobHistoryInline(TabularInline):
     model = JobHistory
     verbose_name = 'Job History'
     verbose_name_plural = "Job history events"
-
-    readonly_fields = ('timestamp', 'status', 'message')
-    fields = ('status', 'timestamp', 'message')
+    classes = ['collapse', ]
+    readonly_fields = ('timestamp', 'status', 'get_message')
+    fields = ('status', 'timestamp', 'get_message')
     can_delete = False
     extra = 0
 
@@ -62,6 +63,9 @@ class JobHistoryInline(TabularInline):
         """ Never add any job output from admin """
         # TODO add possibly add new history items when admin
         return False
+
+    def get_message(self, obj):
+        return obj.message.encode('utf-8')
 
 
 def mark_rerun(modeladmin, request, queryset):
@@ -104,12 +108,13 @@ class JobAdmin(WavesModelAdmin):
     ]
     actions = [mark_rerun, delete_model]
     list_filter = ('status', 'client')
-    list_display = ('get_slug', 'get_colored_status', 'submission__service_name', 'get_run_on', 'get_client', 'created', 'updated')
+    list_display = ('get_slug', 'get_colored_status', 'submission__service_name', 'get_run_on', 'get_client',
+                    'created', 'updated')
     list_per_page = 30
     search_fields = ('client__email', 'get_run_on')
     readonly_fields = ('title', 'slug', 'submission__service_name', 'email_to', 'status', 'created', 'updated',
                        'get_run_on', 'command_line', 'remote_job_id', 'submission_name', 'nb_retry',
-                       'connexion_string', 'get_command_line')
+                       'connexion_string', 'get_command_line', 'working_dir')
 
     fieldsets = [
         ('Main', {'classes': ('collapse', 'suit-tab', 'suit-tab-general',),
@@ -118,7 +123,9 @@ class JobAdmin(WavesModelAdmin):
                   }
          ),
         ('Submission', {
-            'fields': ['remote_job_id', 'submission_name', 'get_run_on', 'connexion_string', 'get_command_line', 'nb_retry']
+            'classes': ('collapse', 'suit-tab', 'suit-tab-general',),
+            'fields': ['remote_job_id', 'submission_name', 'get_run_on', 'working_dir', 'connexion_string',
+                       'get_command_line', 'nb_retry']
         }
          )
     ]
@@ -136,6 +143,9 @@ class JobAdmin(WavesModelAdmin):
 
     def get_slug(self, obj):
         return str(obj.slug)
+
+    def get_working_dir(self, obj):
+        return obj.working_dir
 
     def get_queryset(self, request):
         if request.user.is_superuser:
@@ -174,12 +184,12 @@ class JobAdmin(WavesModelAdmin):
 
     def suit_row_attributes(self, obj, request):
         css_class = {
-            adaptors.const.JOB_COMPLETED: 'success',
-            adaptors.const.JOB_RUNNING: 'warning',
-            adaptors.const.JOB_ERROR: 'error',
-            adaptors.const.JOB_CANCELLED: 'error',
-            adaptors.const.JOB_PREPARED: 'info',
-            adaptors.const.JOB_CREATED: 'info',
+            waves.adaptors.const.JOB_COMPLETED: 'success',
+            waves.adaptors.const.JOB_RUNNING: 'warning',
+            waves.adaptors.const.JOB_ERROR: 'error',
+            waves.adaptors.const.JOB_CANCELLED: 'error',
+            waves.adaptors.const.JOB_PREPARED: 'info',
+            waves.adaptors.const.JOB_CREATED: 'info',
         }.get(obj.status)
         if css_class:
             return {'class': css_class}

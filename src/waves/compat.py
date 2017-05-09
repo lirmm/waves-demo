@@ -7,22 +7,31 @@ try:
     if 'jet' in settings.INSTALLED_APPS:
         from jet.admin import CompactInline
     else:
-        raise ImportError
+        from django.contrib.admin import StackedInline
+        class CompactInline(StackedInline):
+            """ Inherit base class """
+            pass
 except ImportError:
-    from django.contrib.admin import StackedInline
-
-    class CompactInline(StackedInline):
-        """ Inherit base class """
-        pass
+    raise
 
 try:
     if 'ckeditor' in settings.INSTALLED_APPS:
         from ckeditor.fields import RichTextField
     else:
-        raise ImportError
-except ImportError:
-    from django.db import models
+        from django.db import models
 
-    class RichTextField(models.TextField):
-        """ Override RichTextField """
-        pass
+        class RichTextField(models.TextField):
+            """ Override RichTextField """
+            pass
+except ImportError:
+    raise
+try:
+    if 'bootstrap_themes' in settings.INSTALLED_APPS:
+        from bootstrap_themes import list_themes
+    else:
+        def list_themes():
+            return ()
+except ImportError:
+    raise
+
+

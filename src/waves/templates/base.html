@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-{% load staticfiles bootstrap_themes waves_tags %}
-{% load thumbnail %}
+{% load staticfiles waves_tags %}
 <head>
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
@@ -9,12 +8,12 @@
     <meta name="description" content="{% block description %}{% get_app_verbose_name %}{% endblock description %}"/>
     <meta name="author" content="Marc Chakiachvili"/>
     <link rel="shortcut icon" href="{% static 'waves/ico/favicon.ico' %}" type="image/x-icon"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-toggle/2.2.2/css/bootstrap-toggle.css" />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-toggle/2.2.2/css/bootstrap-toggle.css"/>
 
     <title>{% block title %} :: {% include "_brandname.html" %} :: {% endblock %}</title>
-
-    <!-- Bootstrap core CSS -->
-    {% bootstrap_styles theme=config.WAVES_BOOTSTRAP_THEME type='min.css' %}
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <!-- Custom styles for this site -->
     {% block styles %}
         <link href="{% static 'waves/css/main.css' %}" rel="stylesheet"/>
@@ -41,7 +40,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="{% url 'home' %}">
+            <a class="navbar-brand" href="/">
                 {% block navbar-brand %}
                     <img src="{% static 'waves/logos/waves.png' %}" alt="logo" id="navbar-logo"/>
                 {% endblock %}
@@ -59,17 +58,6 @@
                                 {% load waves_tags %}
                                 <li><a href="{% url 'admin:index' %}">Admin</a></li>
                             {% endif %}
-                            <li class="dropdown">
-                                <a class="dropdown-toggle" id="dropdownAuthenticated" href="#"
-                                   data-toggle="dropdown" aria-expanded="false">
-                                    {{ user.get_full_name|truncatechars:20 }}
-                                    <span class="caret"></span>
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="{% url 'profile:show_self' %}">Your Profile</a></li>
-                                    <li><a href="{% url 'account:logout' %}">Logout</a></li>
-                                </ul>
-                            </li>
                         {% else %}
                             <li>
                                 <a class="btn btn-default" href="{% url 'account:login' %}" role="button">Log in</a>
@@ -164,7 +152,9 @@
     {% include 'tos/tos_modal.html' %}
 {% endblock modalcontent %}
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 <script type="text/javascript"
         src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.3/js/bootstrap-switch.min.js"></script>

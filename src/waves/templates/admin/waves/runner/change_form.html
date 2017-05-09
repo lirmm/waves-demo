@@ -18,7 +18,7 @@
     </li>
     {{ block.super }}
     <li>
-        <a type="button" href="{% url 'waves-admin:runner_export_form' original.pk %}"
+        <a type="button" href="{% url 'waves:runner_export_form' original.pk %}"
            title="View online"
            class="btn btn-high btn-info"
            id="view_jobs">
@@ -27,7 +27,7 @@
     </li>
     {% if original.clazz %}
         <li>
-            <a type="button" href="{% url 'waves-admin:runner_test_connection' original.pk %}"
+            <a type="button" href="{% url 'waves:runner_test_connection' original.pk %}"
                title="Connection Test"
                class="button"
                id="test_connect">
@@ -37,7 +37,7 @@
     {% endif %}
     {% if original.adaptor.importer_clazz %}
         <li>
-            <a type="button" href="{% url 'waves-admin:runner_import_form' original.pk %}"
+            <a type="button" href="{% url 'waves:runner_import_form' original.pk %}"
                title="Import from adapter"
                class="button"
                data-toggle="modal"

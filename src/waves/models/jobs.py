@@ -794,7 +794,8 @@ class JobInput(Ordered, Slugged, ApiModel):
         super(JobInput, self).save(*args, **kwargs)
 
     def __str__(self):
-        return u'|'.join([self.name, str(self.value)])
+        print self.name, self.value
+        return u'%s' % self.name
 
     @property
     def file_path(self):

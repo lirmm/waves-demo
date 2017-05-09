@@ -4,10 +4,8 @@ These settings may be overridden in your Django main configuration file
 """
 from __future__ import unicode_literals
 
-import environ
 from os.path import join, dirname
 from django.conf import settings
-env = environ.Env()
 
 
 def __init_setting(var, default=None, override=None):
@@ -34,15 +32,9 @@ def __init_setting(var, default=None, override=None):
     return settings_val
 
 WAVES_VERSION = '1.1'
-
-WAVES_DATA_ROOT = __init_setting('WAVES_DATA_ROOT',
-                                 default=env.str('WAVES_DATA_ROOT', str(join(dirname(settings.BASE_DIR), 'data'))))
-WAVES_JOB_DIR = __init_setting('WAVES_JOB_DIR',
-                               default=env.str('WAVES_JOB_DIR', str(join(WAVES_DATA_ROOT, 'jobs'))))
-WAVES_SAMPLE_DIR = __init_setting('WAVES_SAMPLE_DIR',
-                                  default=env.str('WAVES_SAMPLE_DIR', str(join(settings.MEDIA_ROOT, 'sample'))))
-WAVES_UPLOAD_MAX_SIZE = __init_setting('WAVES_UPLOAD_MAX_SIZE',
-                                       default=env.int('WAVES_UPLOAD_MAX_SIZE', 20 * 1024 * 1024))
-
+WAVES_DATA_ROOT = __init_setting('WAVES_DATA_ROOT', default=join(settings.BASE_DIR, 'data'))
+WAVES_JOB_DIR = __init_setting('WAVES_JOB_DIR', default=join(WAVES_DATA_ROOT, 'jobs'))
+WAVES_SAMPLE_DIR = __init_setting('WAVES_SAMPLE_DIR', default=join(settings.MEDIA_ROOT, 'sample'))
+WAVES_UPLOAD_MAX_SIZE = __init_setting('WAVES_UPLOAD_MAX_SIZE', default=20 * 1024 * 1024)
 WAVES_TEMPLATE_PACK = __init_setting('WAVES_TEMPLATE_PACK', default='bootstrap3', override='CRISPY_TEMPLATE_PACK')
-WAVES_HOST = __init_setting('WAVES_HOST', default=env.str('WAVES_HOST', 'http://localhost'))
+WAVES_HOST = __init_setting('WAVES_HOST', default='http://localhost')

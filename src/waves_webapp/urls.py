@@ -22,10 +22,10 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^$', HomePage.as_view(), name='home'),
-    url(r'^waves/', include('waves.urls.urls')),
+    url(r'^waves/', include('waves.urls.urls', namespace='waves')),
     url(r'^waves/api/', include('waves.api.v1.urls', namespace='waves_api')),
-    url(r'^accounts/', include('accounts.urls', namespace='account')),
-    url(r'^profiles/', include('profiles.urls', namespace='profile')),
+    # url(r'^accounts/', include('accounts.urls', namespace='account')),
+    # url(r'^profiles/', include('profiles.urls', namespace='profile')),
     url(r'^jet/', include('jet.urls', 'jet')),  # Django JET URLS
     url(r'^jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS
     # url(r'^chaining/', include('smart_selects.urls')),

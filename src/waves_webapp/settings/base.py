@@ -61,7 +61,7 @@ INSTALLED_APPS = (
     # WAVES required dependencies
     'authtools',
     'adminsortable2',
-    'accounts',
+    # 'accounts',
     'bootstrap_themes',
     'ckeditor',
     'constance',
@@ -70,7 +70,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'easy_thumbnails',
     'mail_templated',
-    'profiles',
+    # 'profiles',
     'rest_framework',
     'rest_framework_swagger',
 )

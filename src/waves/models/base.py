@@ -1,10 +1,13 @@
 """ Django models bases classes """
 from __future__ import unicode_literals
 
+import re
 import uuid
 
+import inflection
 from constance import config
 from django.db import models
+
 import waves.settings
 from waves.compat import RichTextField
 
@@ -90,8 +93,6 @@ class ApiModel(models.Model):
         Construct a new waves_api name issued from field_api_name
         :return:
         """
-        import inflection
-        import re
         return inflection.underscore(re.sub(r'[^\w]+', '_', getattr(self, self.field_api_name))).lower()
 
 
