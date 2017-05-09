@@ -7,7 +7,7 @@ from os.path import dirname, join
 
 
 LOGGING_CONFIG = None
-BASE_DIR = dirname(dirname(dirname(__file__)))
+BASE_DIR = dirname(dirname(dirname(dirname(__file__))))
 STATIC_URL = '/static/'
 MEDIA_ROOT = join(dirname(BASE_DIR), 'media')
 MEDIA_URL = "/media/"
@@ -15,9 +15,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            join(BASE_DIR, 'profiles', 'templates'),
-            join(BASE_DIR, 'accounts', 'templates'),
-            join(BASE_DIR, 'waves', 'templates'),
+            join(BASE_DIR, 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -38,10 +36,10 @@ TEMPLATES = [
 
 
 # LOG FILE ROOT
-LOG_ROOT = dirname(BASE_DIR) + '/logs'
-STATIC_ROOT = join(dirname(BASE_DIR), 'staticfiles')
+LOG_ROOT = BASE_DIR + '/logs'
+STATIC_ROOT = join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
-    join(BASE_DIR, 'waves', 'static'),
+    join(BASE_DIR, 'src', 'waves', 'static'),
 ]
 
 # Application definition
