@@ -1,9 +1,7 @@
 from __future__ import unicode_literals
-
 from rest_framework import serializers
-
-from waves.models import ServiceCategory, Service
 from .services import ServiceSerializer
+from waves.models import ServiceCategory, Service
 
 
 class CategorySerializer(serializers.HyperlinkedModelSerializer):
@@ -15,7 +13,7 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'name', 'short_description', 'tools')
         lookup_field = 'api_name'
         extra_kwargs = {
-            'url': {'view_name': 'waves_api_v1:waves-services-category-detail', 'lookup_field': 'api_name'}
+            'url': {'view_name': 'waves_api:waves-services-category-detail', 'lookup_field': 'api_name'}
         }
         depth = 1
 

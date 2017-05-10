@@ -1,94 +1,28 @@
 """ WAVES API services related serializers"""
 from __future__ import unicode_literals
 
-import logging
-
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.utils.html import strip_tags
 from rest_framework import serializers
-from rest_framework.fields import empty
 from rest_framework.reverse import reverse as reverse
-
+from constance import config
 import waves.settings
+from .inputs import InputSerializer
 from dynamic import DynamicFieldsModelSerializer
-from waves.models import AParam as ServiceInput, SubmissionOutput as ServiceOutput, ServiceMeta, Service, \
-    AParam as RelatedInput, Submission as ServiceSubmission
+from waves.models.metas import ServiceMeta
+from waves.models.services import *
+from waves.models.submissions import *
 
-__all__ = ['InputSerializer', 'InputSerializer', 'MetaSerializer', 'OutputSerializer', 'ServiceSerializer',
+__all__ = ['MetaSerializer', 'OutputSerializer', 'ServiceSerializer',
            'ServiceFormSerializer', 'ServiceSubmissionSerializer', 'ServiceMetaSerializer']
-logger = logging.getLogger(__name__)
-
-
-class InputFormatField(serializers.Field):
-
-    def __init__(self, read_only=False, write_only=False, required=None, default=empty, initial=empty, source=None,
-                 label=None, help_text=None, style=None, error_messages=None, validators=None, allow_null=False):
-        super(InputFormatField, self).__init__(read_only, write_only, required, default, initial, source, label,
-                                               help_text, style, error_messages, validators, allow_null)
-
-    def to_representation(self, instance):
-        return ', '.join(instance.splitlines()) if instance is not None else ''
-
-    def to_internal_value(self, data):
-        return data.replace(', ', '\n') if data else ''
-
-
-class InputSerializer(DynamicFieldsModelSerializer):
-    """ Serialize JobInput """
-
-    class Meta:
-        model = ServiceInput
-        queryset = ServiceInput.objects.all()
-        fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'help_text', 'multiple')
-        extra_kwargs = {
-            'url': {'view_name': 'waves_api_v1:waves-services-detail', 'lookup_field': 'api_name'}
-        }
-
-    format = InputFormatField()
-
-    def __init__(self, instance=None, data=empty, **kwargs):
-        super(InputSerializer, self).__init__(instance, data, **kwargs)
-
-    def to_representation(self, instance):
-        """ Return representation for an Input, including dependents inputs if needed """
-        if hasattr(instance, 'dependent_inputs') and instance.dependent_inputs.count() > 0:
-            representation = ConditionalInputSerializer(instance, context=self.context).to_representation(instance)
-        else:
-            representation = super(InputSerializer, self).to_representation(instance)
-        return representation
-
-
-class RelatedInputSerializer(InputSerializer):
-    """ Serialize a dependent Input (RelatedInput models) """
-
-    class Meta:
-        model = RelatedInput
-        fields = InputSerializer.Meta.fields
-
-    def to_representation(self, instance):
-        """ Return representation of a Related Input """
-        initial_repr = super(RelatedInputSerializer, self).to_representation(instance)
-        return {instance.when_value: initial_repr}
-
-
-class ConditionalInputSerializer(serializers.ModelSerializer):
-    """ Serialize inputs if it's a conditional one """
-
-    class Meta:
-        model = ServiceInput
-        fields = ('label', 'name', 'default', 'type', 'format', 'mandatory', 'help_text', 'description',
-                  'multiple', 'when')
-
-    when = RelatedInputSerializer(source='dependent_inputs', many=True, read_only=True)
-    format = InputFormatField()
 
 
 class OutputSerializer(DynamicFieldsModelSerializer):
     """ Serialize an service expected output """
 
     class Meta:
-        model = ServiceOutput
-        fields = ('name', 'ext', 'may_be_empty', 'file_pattern')
+        model = SubmissionOutput
+        fields = ('name', 'file_pattern')
 
 
 class MetaSerializer(serializers.ModelSerializer):
@@ -116,10 +50,10 @@ class ServiceMetaSerializer(serializers.HyperlinkedModelSerializer, DynamicField
     """ Serialize list of Service related metas """
 
     class Meta:
-        model = Service
-        fields = ('url', 'name', 'metas')
+        model = ServiceMeta
+        fields = ('url', 'metas')
         extra_kwargs = {
-            'url': {'view_name': 'waves_api_v1:waves-services-detail', 'lookup_field': 'api_name'}
+            'url': {'view_name': 'waves_api:waves-services-detail', 'lookup_field': 'api_name'}
         }
 
     metas = MetaSerializer(read_only=True)
@@ -129,38 +63,37 @@ class ServiceSubmissionSerializer(DynamicFieldsModelSerializer, serializers.Hype
     """ Serialize a Service submission """
 
     class Meta:
-        model = ServiceSubmission
-        fields = ('label', 'service', 'submission_uri', 'form', 'inputs')
+        model = Submission
+        fields = ('name', 'service', 'submission_uri', 'form', 'inputs')
         extra_kwargs = {
-            'api_name': {'view_name': 'waves_api_v1:waves-submission-detail', 'lookup_fields': {'api_name', 'api_name'}},
+            'api_name': {'view_name': 'waves_api:waves-submission-detail', 'lookup_fields': {'api_name', 'api_name'}},
         }
 
-    view_name = 'waves_api_v1:waves-services-submissions'
+    view_name = 'waves_api:waves-services-submissions'
     submission_uri = serializers.SerializerMethodField()
     inputs = InputSerializer(many=True, source="expected_inputs")
     form = serializers.SerializerMethodField()
     service = serializers.SerializerMethodField()
-    label = serializers.CharField(source='name')
 
     def get_form(self, obj):
         """ Return Service form endpoint uri"""
-        return reverse(viewname='waves_api_v1:waves-services-submissions-form', request=self.context['request'],
+        return reverse(viewname='waves_api:waves-services-submissions-form', request=self.context['request'],
                        kwargs={'service': obj.service.api_name, 'api_name': obj.api_name})
 
     def get_submission_uri(self, obj):
         """ Returned service submission endpoint uri"""
-        return reverse(viewname='waves_api_v1:waves-services-submissions', request=self.context['request'],
+        return reverse(viewname='waves_api:waves-services-submissions', request=self.context['request'],
                        kwargs={'service': obj.service.api_name,
                                'api_name': obj.api_name})
 
     def get_service(self, obj):
         """ Return service details uri """
-        return reverse(viewname='waves_api_v1:waves-services-detail', request=self.context['request'],
+        return reverse(viewname='waves_api:waves-services-detail', request=self.context['request'],
                        kwargs={'api_name': obj.service.api_name})
 
     def get_queryset(self):
-        """ Filter api enabled submissions """
-        return ServiceSubmission.objects.filter(available_api=True)
+        """ Filter waves_api enabled submissions """
+        return Submission.objects.filter(availability__gt=2)
 
 
 class ServiceSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsModelSerializer):
@@ -172,11 +105,11 @@ class ServiceSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsMod
                   'metas', 'jobs', 'submissions')
         lookup_field = 'api_name'
         extra_kwargs = {
-            'url': {'view_name': 'waves_api_v1:waves-services-detail', 'lookup_field': 'api_name'},
+            'url': {'view_name': 'waves_api:waves-services-detail', 'lookup_field': 'api_name'},
         }
 
     category = serializers.HyperlinkedRelatedField(many=False, read_only=True, lookup_field='api_name',
-                                                   view_name='waves_api_v1:waves-services-category-detail')
+                                                   view_name='waves_api:waves-services-category-detail')
     jobs = serializers.SerializerMethodField()
     metas = serializers.SerializerMethodField()
     submissions = ServiceSubmissionSerializer(many=True, read_only=True, hidden=('service',))
@@ -185,20 +118,19 @@ class ServiceSerializer(serializers.HyperlinkedModelSerializer, DynamicFieldsMod
     def get_default_submission_uri(self, obj):
         """ Return service default submission uri """
         if obj.default_submission_api is not None:
-            return reverse(viewname='waves_api_v1:waves-services-submissions', request=self.context['request'],
+            return reverse(viewname='waves_api:waves-services-submissions', request=self.context['request'],
                            kwargs={'service': obj.api_name, 'api_name': obj.default_submission_api.api_name})
         else:
-            logger.warning('Service %s has no default submission', obj)
             return ""
 
     def get_jobs(self, obj):
         """ return uri to access current service users' jobs """
-        return reverse(viewname='waves_api_v1:waves-services-jobs', request=self.context['request'],
+        return reverse(viewname='waves_api:waves-services-jobs', request=self.context['request'],
                        kwargs={'api_name': obj.api_name})
 
     def get_metas(self, obj):
         """ return uri to Service metas list """
-        return reverse(viewname='waves_api_v1:waves-services-metas', request=self.context['request'],
+        return reverse(viewname='waves_api:waves-services-metas', request=self.context['request'],
                        kwargs={'api_name': obj.api_name})
 
 
@@ -206,8 +138,8 @@ class ServiceFormSerializer(serializers.ModelSerializer):
     """ Service form serializer """
 
     class Meta:
-        model = ServiceSubmission
-        fields = ('label', 'service', 'js', 'css', 'template_pack', 'post_uri', 'form')
+        model = Submission
+        fields = ('name', 'service', 'js', 'css', 'template_pack', 'post_uri', 'form')
 
     js = serializers.SerializerMethodField()
     css = serializers.SerializerMethodField()
@@ -215,7 +147,6 @@ class ServiceFormSerializer(serializers.ModelSerializer):
     post_uri = serializers.SerializerMethodField()
     template_pack = serializers.SerializerMethodField()
     service = serializers.SerializerMethodField()
-    label = serializers.CharField(source='name')
 
     def get_template_pack(self, obj):
         """ Retrieve WAVES TEMPLATE PACK """
@@ -239,10 +170,10 @@ class ServiceFormSerializer(serializers.ModelSerializer):
 
     def get_post_uri(self, obj):
         """ Return expected form post uri """
-        return reverse(viewname='waves_api_v1:waves-services-submissions', request=self.context['request'],
+        return reverse(viewname='waves_api:waves-services-submissions', request=self.context['request'],
                        kwargs={'api_name': obj.api_name, 'service': obj.service.api_name})
 
     def get_service(self, obj):
-        """ Back-link to service api uri """
-        return reverse(viewname='waves_api_v1:waves-services-detail', request=self.context['request'],
+        """ Back-link to service waves_api uri """
+        return reverse(viewname='waves_api:waves-services-detail', request=self.context['request'],
                        kwargs={'api_name': obj.service.api_name})

@@ -5,10 +5,13 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from waves.models import TimeStamped, ApiModel, Ordered, Slugged, Service
-from waves.models.samples import FileInputSample
 from waves.models.adaptors import AdaptorInitParam, HasRunnerParamsMixin
 
 __all__ = ['Submission', 'SubmissionOutput', 'SubmissionExitCode', 'SubmissionRunParam']
+
+
+class SubmissionManager(models.Manager):
+    pass
 
 
 class Submission(TimeStamped, ApiModel, Ordered, Slugged, HasRunnerParamsMixin):

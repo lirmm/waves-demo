@@ -73,7 +73,4 @@ LOGGING = {
     }
 }
 logging.config.dictConfig(LOGGING)
-REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
-    'rest_framework.permissions.AllowAny',
-]
-REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = []
+

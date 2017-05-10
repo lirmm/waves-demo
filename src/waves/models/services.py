@@ -202,7 +202,7 @@ class Service(TimeStamped, Described, ApiModel, ExportAbleMixin, DTOMixin, HasRu
     @transaction.atomic
     def duplicate(self):
         """ Duplicate  a Service / with inputs / outputs / exit_code / runner params """
-        from waves.api.v1.serializers import ServiceSerializer
+        from waves.api.v2.serializers import ServiceSerializer
         from django.contrib import messages
         serializer = ServiceSerializer()
         data = serializer.to_representation(self)

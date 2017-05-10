@@ -77,6 +77,8 @@ class JobManager(models.Manager):
         :param service: service model object to filter
         :return: QuerySet
         """
+        if not user or user.is_anonymous:
+            return self.none()
         if user.is_superuser or user.is_staff:
             return self.filter(submission__service__in=[service, ])
         return self.filter(client=user, submission__service__in=[service, ])
@@ -349,7 +351,7 @@ class Job(TimeStamped, Slugged, UrlMixin, DTOMixin):
         existing = []
         for the_output in all_outputs:
             existing.append(
-                dict(file=the_output,
+                dict(file_path=the_output.file_path,
                      name=os.path.basename(the_output.file_path),
                      api_name=the_output.get_api_name(),
                      label=the_output.name,

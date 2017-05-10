@@ -6,8 +6,8 @@ from django.db import transaction
 from rest_framework import serializers as rest_serializer
 
 import waves.settings
-from waves.api.v1.serializers.dynamic import DynamicFieldsModelSerializer
-from waves.api.v1.serializers import ServiceSerializer as BaseServiceSerializer, \
+from waves.api.v2.serializers.dynamic import DynamicFieldsModelSerializer
+from waves.api.v2.serializers import ServiceSerializer as BaseServiceSerializer, \
     ServiceSubmissionSerializer as BaseServiceSubmissionSerializer
 from waves.models import *
 from waves.models.serializers.base import RelatedSerializerMixin

@@ -1,20 +1,17 @@
 """ WAVES API jobs endpoints """
 from __future__ import unicode_literals
 
-import logging
-
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import detail_route
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
-from waves.api.v1.serializers.jobs import JobSerializer, JobHistoryDetailSerializer, JobInputDetailSerializer, \
+
+from ..serializers.jobs import JobSerializer, JobHistoryDetailSerializer, JobInputDetailSerializer, \
     JobOutputDetailSerializer
 from waves.exceptions import WavesException
 from waves.models import Job
-from . import WavesBaseView
-
-logger = logging.getLogger(__name__)
+from .base import WavesBaseView
 
 
 class JobViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
@@ -50,7 +47,7 @@ class JobViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Destro
         try:
             service_job.run_cancel()
         except WavesException as e:
-            logger.warning('Job could not be remotely cancelled %s ' % e)
+            pass
         self.perform_destroy(service_job)
         return Response(status=status.HTTP_204_NO_CONTENT)
 

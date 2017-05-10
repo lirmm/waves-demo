@@ -11,13 +11,13 @@ from rest_framework.decorators import detail_route
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
 
-from waves.api.v1.serializers import ServiceSerializer, JobSerializer, ServiceFormSerializer, ServiceMetaSerializer, \
-    ServiceSubmissionSerializer
 from waves.exceptions.jobs import JobException
-from waves.models.jobs import Job, JobManager as ServiceJobManager
-from waves.models.services import Service
-from waves.models.submissions import Submission as ServiceSubmission
-from . import WavesBaseView
+from waves.models import Service, Job
+from waves.models.submissions import Submission
+from ..serializers.jobs import JobSerializer
+from ..serializers.services import ServiceSerializer, ServiceFormSerializer, ServiceMetaSerializer, \
+    ServiceSubmissionSerializer
+from ..views.base import WavesBaseView
 
 logger = logging.getLogger(__name__)
 
@@ -87,14 +87,14 @@ class MultipleFieldLookupMixin(object):
 class ServiceJobSubmissionView(MultipleFieldLookupMixin, generics.RetrieveAPIView, generics.CreateAPIView,
                                WavesBaseView):
     """ Service job Submission view """
-    queryset = ServiceSubmission.objects.all()
+    queryset = Submission.objects.all()
     serializer_class = ServiceSubmissionSerializer
     lookup_fields = ('service', 'api_name')
 
     def get_queryset(self):
         """ Retrieve for service, current submissions available for API """
-        return ServiceSubmission.objects.filter(api_name=self.kwargs.get('api_name'),
-                                                service__api_name=self.kwargs.get('service'), availability__gte=2)
+        return Submission.objects.filter(api_name=self.kwargs.get('api_name'),
+                                         service__api_name=self.kwargs.get('service'), availability__gt=2)
 
     def get_object(self):
         """ Retrieve object or redirect to 404 """
@@ -116,10 +116,10 @@ class ServiceJobSubmissionView(MultipleFieldLookupMixin, generics.RetrieveAPIVie
                 'client': request.user.pk,
                 'job_inputs': request.data
             }
-            from ..serializers.jobs import JobCreateSerializer
+            from waves.api.v2.serializers.jobs import JobCreateSerializer
             from django.db.models import Q
-            job = ServiceJobManager.create_new_job(submission=service_submission, email_to=ass_email,
-                                                   submitted_inputs=request.data, user=request.user)
+            job = Job.objects.create_from_submission(submission=service_submission, email_to=ass_email,
+                                                     submitted_inputs=request.data, user=request.user)
             # Now job is created (or raise an exception),
             serializer = JobSerializer(job, many=False, context={'request': request},
                                        fields=('slug', 'url', 'created', 'status',))

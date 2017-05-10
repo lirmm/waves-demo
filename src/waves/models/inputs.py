@@ -147,6 +147,10 @@ class AParam(PolymorphicMPTTModel, ApiModel):
     def mandatory(self):
         return self.required is True
 
+    @property
+    def format(self):
+        return ""
+
 
 class TextParam(AParam):
     class Meta:

@@ -34,7 +34,6 @@ TEMPLATES = [
     },
 ]
 
-
 # LOG FILE ROOT
 LOG_ROOT = BASE_DIR + '/logs'
 STATIC_ROOT = join(BASE_DIR, 'staticfiles')
@@ -59,7 +58,7 @@ INSTALLED_APPS = (
     # WAVES required dependencies
     'authtools',
     'adminsortable2',
-    # 'accounts',
+    'accounts',
     'bootstrap_themes',
     'ckeditor',
     'constance',
@@ -68,7 +67,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'easy_thumbnails',
     'mail_templated',
-    # 'profiles',
+    'profiles',
     'rest_framework',
     'rest_framework_swagger',
 )
@@ -102,7 +101,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'profiles.auth.APIKeyAuthBackend',
+        # 'profiles.auth.APIKeyAuthBackend',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PARSER_CLASSES': (
