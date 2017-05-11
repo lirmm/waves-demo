@@ -25,8 +25,8 @@ urlpatterns = [
     url(r'^waves/', include('waves.urls.urls', namespace='waves')),
     url(r'^waves/api/v1/', include('waves.api.v1.urls', namespace='waves_api_v1')),
     url(r'^waves/api/v2/', include('waves.api.v2.urls', namespace='waves_api')),
-    # url(r'^accounts/', include('accounts.urls', namespace='account')),
-    # url(r'^profiles/', include('profiles.urls', namespace='profile')),
+    url(r'^accounts/', include('accounts.urls', namespace='account')),
+    url(r'^profiles/', include('profiles.urls', namespace='profile')),
     url(r'^jet/', include('jet.urls', 'jet')),  # Django JET URLS
     url(r'^jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS
     # url(r'^chaining/', include('smart_selects.urls')),
