@@ -69,7 +69,6 @@ INSTALLED_APPS = (
     'mail_templated',
     'profiles',
     'rest_framework',
-    'rest_framework_swagger',
 )
 
 MIDDLEWARE_CLASSES = (

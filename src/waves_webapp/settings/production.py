@@ -14,7 +14,7 @@ DEBUG = env.bool('DEBUG', False)
 
 # DATABASE configuration
 DATABASES = {
-    'default': env.db(default='sqlite:///' + dirname(BASE_DIR) + '/waves.sample.sqlite3'),
+    'default': env.db(default='sqlite:///' + BASE_DIR + '/waves.sample.sqlite3'),
 }
 # patch to use in memory database for testing
 if 'test' in sys.argv:
