@@ -38,4 +38,4 @@ radical.utils==0.45
 requests==2.14.2
 saga-python==0.45.1
 six==1.10.0
-waves-core==1.0.0
+waves-core>=1.0.0
