@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_site.html" %}
 
 {% load staticfiles %}
 {% load thumbnail %}
@@ -15,7 +15,7 @@
                 <h1>{{ show_user.get_full_name }}</h1>
                 {% if editable %}
                     <a href="{% url 'profile:edit_self' %}" class="btn btn-info">Edit Profile</a>
-                    <a class="btn btn-default" href="{% url 'account:password-change' %}">Change Password</a>
+                    <a class="btn btn-default" href="{% url 'accounts:password-change' %}">Change Password</a>
                 {% endif %}
             </div>
             <div class="col-sm-2"><img title="profile picture" class="img-circle img-responsive"

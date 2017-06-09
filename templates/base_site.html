@@ -58,9 +58,23 @@
                                 {% load waves_tags %}
                                 <li><a href="{% url 'admin:index' %}">Admin</a></li>
                             {% endif %}
+                            <li class="dropdown">
+                                <a class="dropdown-toggle" id="dropdownAuthenticated" href="#"
+                                   data-toggle="dropdown" aria-expanded="false">
+                                    {{ user.get_full_name|truncatechars:20 }}
+                                    <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{% url 'profile:show_self' %}">Your Profile</a></li>
+                                    <li><a href="{% url 'accounts:logout' %}">Logout</a></li>
+                                </ul>
+                            </li>
                         {% else %}
                             <li>
-                                <a class="btn btn-default" href="{% url 'admin:index' %}" role="button">Log in</a>
+                                <a class="" href="{% url 'accounts:signup' %}" role="button">Register</a>
+                            </li>
+                            <li>
+                                <a class="" href="{% url 'accounts:login' %}" role="button">Log in</a>
                             </li>
                         {% endif %}
                     </ul>
@@ -71,22 +85,13 @@
 {% endblock navbar %}
 
 {% block messages %}
-    {% if messages %}
-        {% for message in messages %}
-            <div class="messages alert alert-{{ message.tags }} alert-dismissible fade in">  <!-- singular -->
-                <a class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span></a>
-                {{ message|safe }}
-            </div>
-        {% endfor %}
-    {% else %}
-        <div class="messages alert alert-warning alert-dismissible fade in" style="width:15%; left:auto; right: 10px;">
-            <!-- singular -->
+    {% for message in messages %}
+        <div class="messages alert alert-{{ message.tags }} alert-dismissible fade in">  <!-- singular -->
             <a class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span></a>
-            WAVES '0.1.0Beta' version, mind this is beta!
+            {{ message|safe }}
         </div>
-    {% endif %}
+    {% endfor %}
 {% endblock %}
 
 {% block splash %}
@@ -94,7 +99,7 @@
 
 {% block container %}
     <div id="sec1">
-        <div class="container-fluid">
+        <div class="container">
             <div class="starter-template">
                 <h1>WAVES DEMO APPLICATION</h1>
                 <p class="lead">Base Html page - or 404</p>
@@ -106,7 +111,7 @@
 
 <!-- Site footer -->
 {% block footer %}
-    <div class="container-fluid">
+    <div class="container">
         <div class="footer">
             <div class="row">
                 <div class="col-lg-12 text-center">

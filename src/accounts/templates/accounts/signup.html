@@ -1,6 +1,6 @@
 {% extends "accounts/auth_base.html" %}
 
-{% load crispy_forms_tags waves_tags %}
+{% load crispy_forms_tags demo_tags %}
 
 {% block title %}{{ block.super }}Sign Up{% endblock %}
 
@@ -9,7 +9,7 @@
 {% block form %}
   <div class="form-message text-right">
     <p>
-      Already registered ? <a href="{% url 'account:login' %}">Log in</a>.<br/>
+      Already registered ? <a href="{% url 'accounts:login' %}">Log in</a>.<br/>
         All fields are required, except phone and comment.
     </p>
   </div>

@@ -54,11 +54,11 @@ class SignUpView(bracesviews.AnonymousRequiredMixin, bracesviews.FormValidMessag
     form_class = SignupForm
     model = User
     template_name = 'accounts/signup.html'
-    success_url = reverse_lazy('waves:registration_complete')
+    success_url = reverse_lazy('accounts:registration_complete')
     form_valid_message = "You are now registered, don't forget to activate !"
     email_body_template = 'accounts/emails/activation_email.txt'
     email_subject_template = 'accounts/emails/activation_email_subject.txt'
-    disallowed_url = 'account:registration_disallowed'
+    disallowed_url = 'accounts:registration_disallowed'
 
     def get_success_url(self, user):
         """ Redirect to registration complete when done """
@@ -109,7 +109,7 @@ class PasswordResetView(authviews.PasswordResetView):
     """ User password reset form view """
     form_class = PasswordResetForm
     template_name = 'accounts/password_reset.html'
-    success_url = reverse_lazy('account:password-reset-done')
+    success_url = reverse_lazy('accounts:password-reset-done')
     subject_template_name = 'accounts/emails/password_reset_subject.txt'
     email_template_name = 'accounts/emails/password_reset_email.html'
 
@@ -164,4 +164,4 @@ class ActivationView(BaseActivationView):
 
     def get_success_url(self, user):
         """ Redirect to activation complete view upon activation success """
-        return 'waves:registration_activation_complete', (), {}
+        return 'accounts:registration_activation_complete', (), {}

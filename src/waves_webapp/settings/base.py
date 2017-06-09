@@ -55,6 +55,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'waves',
+    'waves_demo',
     # WAVES required dependencies
     'authtools',
     'adminsortable2',
@@ -166,3 +167,13 @@ CKEDITOR_CONFIGS = {
 JET_CHANGE_FORM_SIBLING_LINKS = False
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 WAVES_ENV_FILE = join(dirname(__file__), 'local.env')
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
+ACCOUNT_ACTIVATION_DAYS = 7
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 25
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_USE_TLS = False
+DEFAULT_FROM_EMAIL = 'WavesDemoAdmin <admin@demo.atgc-montpellier.fr>'

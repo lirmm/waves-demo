@@ -4,7 +4,7 @@ You're receiving this email because you registered a new user account on {{ site
 
 {% trans "Please go to the following page to activate your account and gain access to our API:" %}
 
-http://{{ site }}{% url 'waves:registration_activate' activation_key=activation_key %}
+http://{{ site }}{% url 'registration_activate' activation_key=activation_key %}
 
 {% trans "This link will work for only " %}{{ expiration_days }} {% trans "days, so don't forget to activate !" %}
 

@@ -83,3 +83,4 @@ default_profile.png.*
 !logs/.gitkeep
 !/src/waves/tests/data/jobs/.gitkeep
 !/data/.gitkeep
+!/src/accounts/

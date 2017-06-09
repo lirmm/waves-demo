@@ -33,7 +33,7 @@ class LoginForm(AuthenticationForm):
             Field('username', placeholder="Enter Email", autofocus=""),
             Field('password', placeholder="Enter Password"),
             HTML('<a href="{}">Forgot Password?</a>'.format(
-                reverse("account:password-reset"))),
+                reverse("accounts:password-reset"))),
             Field('remember_me'),
             Submit('sign_in', 'Log in',
                    css_class="btn btn-lg btn-primary btn-block"),
@@ -73,7 +73,7 @@ class SignupForm(registration.forms.RegistrationFormTermsOfService,
         self.helper.label_class = 'col-md-4 col-xs-4 hidden-sm hidden-xs'
         self.helper.field_class = 'col-md-8 col-xs-12'
         # self.helper.form_show_labels = False
-        if 'bootstrap' in config.WAVES_TEMPLATE_PACK:
+        if 'bootstrap' in settings.CRISPY_TEMPLATE_PACK:
             email_field = PrependedText('email', '@', placeholder="Enter Email", autofocus="")
         else:
             email_field = Field('email', placeholder="Enter Email", autofocus="")
