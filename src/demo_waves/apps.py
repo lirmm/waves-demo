@@ -4,4 +4,4 @@ from django.apps import AppConfig
 
 
 class WavesDemoConfig(AppConfig):
-    name = 'waves_demo'
+    name = 'demo_waves'
