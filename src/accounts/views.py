@@ -8,13 +8,12 @@ from django.contrib import auth, messages
 from django.contrib.auth import get_user_model
 from django.core import signing
 from django.db import transaction
-from constance import config
 # Create your views here.
 from django.urls import reverse_lazy
 from django.views import generic
 from accounts.forms import *
 from registration.backends.hmac.views import RegistrationView, ActivationView as BaseActivationView
-import waves.settings
+from waves.settings import waves_settings
 
 User = get_user_model()
 
@@ -82,12 +81,12 @@ class SignUpView(bracesviews.AnonymousRequiredMixin, bracesviews.FormValidMessag
 
     def registration_allowed(self):
         """ set if User registration is currently allowed """
-        return config.WAVES_REGISTRATION_ALLOWED
+        return waves_settings.REGISTRATION_ALLOWED
 
     def get_email_context(self, activation_key):
         """ Setup activation link for registration confirmation mail """
         context = super(SignUpView, self).get_email_context(activation_key)
-        context['brand_name'] = config.WAVES_APP_NAME
+        context['brand_name'] = waves_settings.APP_NAME
         return context
 
 

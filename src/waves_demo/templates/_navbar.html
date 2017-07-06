@@ -1,5 +1,5 @@
 <li {% if active_link == "home" %}class="active"{% endif %}><a href="/">Home</a></li>
-<li {% if active_link == "services" %}class="active"{% endif %}><a href="{% url 'waves:services_list' %}">Online
+<li {% if active_link == "services" %}class="active"{% endif %}><a href="{% url 'waves_demo:categories_list' %}">Online
     services</a></li>
 <li {% if active_link == "rest_api" %}class="active"{% endif %}><a href="{% url 'rest_services' %}">REST Access</a>
 </li>

@@ -9,7 +9,7 @@ from .models import ServiceCategory
 class CategoryDetailView(generic.DetailView):
     context_object_name = 'category'
     model = ServiceCategory
-    template_name = 'waves/category/category_details.html'
+    template_name = 'category/category_details.html'
     context_object_name = 'category'
 
     def get_queryset(self):
@@ -22,7 +22,7 @@ class CategoryDetailView(generic.DetailView):
 
 
 class CategoryListView(generic.ListView):
-    template_name = "waves/category/categories_list.html"
+    template_name = "category/categories_list.html"
     model = ServiceCategory
     context_object_name = 'online_categories'
 

@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="description" content="{% block description %}WAVES DEMO APPLICATION{% endblock description %}"/>
     <meta name="author" content="Marc Chakiachvili"/>
-    <link rel="shortcut icon" href="{% static 'waves/ico/favicon.ico' %}" type="image/x-icon"/>
+    <link rel="shortcut icon" href="{% static 'waves_demo/ico/favicon.ico' %}" type="image/x-icon"/>
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-toggle/2.2.2/css/bootstrap-toggle.css"/>
 
@@ -16,7 +16,7 @@
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <!-- Custom styles for this site -->
     {% block styles %}
-        <link href="{% static 'waves/css/main.css' %}" rel="stylesheet"/>
+        <link href="{% static 'waves_demo/css/main.css' %}" rel="stylesheet"/>
     {% endblock styles %}
 
     <!-- Custom tags for the head tag -->
@@ -42,7 +42,7 @@
             </button>
             <a class="navbar-brand" href="/">
                 {% block navbar-brand %}
-                    <img src="{% static 'waves/logos/waves.png' %}" alt="logo" id="navbar-logo"/>
+                    <img src="{% static 'waves_demo/logos/waves.png' %}" alt="logo" id="navbar-logo"/>
                 {% endblock %}
             </a>
         </div>
@@ -125,25 +125,25 @@
                     <div class="row">
                         <div class="col-md-3">
                             <div class="thumbnail">
-                                <img src="{% static "waves/logos/lirmm.png" %}" class="img-responsive"
+                                <img src="{% static "waves_demo/logos/lirmm.png" %}" class="img-responsive"
                                      style="max-height:100px">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="thumbnail">
-                                <img src="{% static "waves/logos/cnrs.png" %}" class="img-responsive"
+                                <img src="{% static "waves_demo/logos/cnrs.png" %}" class="img-responsive"
                                      style="max-height:100px">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="thumbnail">
-                                <img src="{% static "waves/logos/ifb.png" %}" class="img-responsive"
+                                <img src="{% static "waves_demo/logos/ifb.png" %}" class="img-responsive"
                                      style="max-height:100px">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="thumbnail">
-                                <img src="{% static "waves/logos/um.png" %}" class="img-responsive"
+                                <img src="{% static "waves_demo/logos/um.png" %}" class="img-responsive"
                                      style="max-height:100px">
                             </div>
                         </div>
@@ -164,8 +164,8 @@
 <script type="text/javascript"
         src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.3/js/bootstrap-switch.min.js"></script>
 {% block scripts %}
-    <script src="{% static 'waves/js/bootstrap-switch.min.js' %}"></script>
-    <script src="{% static 'waves/js/site.js' %}"></script>
+    <script src="{% static 'waves_demo/js/bootstrap-switch.min.js' %}"></script>
+    <script src="{% static 'waves_demo/js/site.js' %}"></script>
 {% endblock scripts %}
 </body>
 </html>

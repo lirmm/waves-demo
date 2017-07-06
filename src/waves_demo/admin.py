@@ -1,10 +1,13 @@
+from __future__ import unicode_literals
+
 from django.contrib import admin
 from django.template.defaultfilters import truncatechars
 # Register your models here.
 from waves.compat import CompactInline
-
+from waves.models import Service
+from waves.admin.services import ServiceAdmin
 from .forms import ServiceMetaForm
-from .models import ServiceMeta
+from .models import ServiceMeta, ServiceCategory, DemoWavesService
 
 
 class ServiceMetaInline(CompactInline):
@@ -16,15 +19,41 @@ class ServiceMetaInline(CompactInline):
     classes = ('grp-collapse grp-closed', 'collapse')
     fields = ['type', 'title', 'value', 'description']
 
+
+class DemoServiceAdmin(ServiceAdmin):
+    model = DemoWavesService
+    extra_fieldsets = [
+        ('Categories', {
+            'fields': ['category',]
+        })
+    ]
+
+    def get_urls(self):
+        urlpatterns = super(DemoServiceAdmin, self).get_urls()
+        for url in urlpatterns:
+            print url
+        return urlpatterns
+
+    def get_inlines(self, request, obj=None):
+        super(DemoServiceAdmin, self).get_inlines(request, obj)
+        self.inlines.append(ServiceMetaInline)
+        return self.inlines
+
+    def get_fields(self, request, obj=None):
+        base_fields = super(DemoServiceAdmin, self).get_fields(request, obj)
+        # base_fields += ("category",)
+        return base_fields
+
+
 @admin.register(ServiceCategory)
 class ServiceCategoryAdmin(admin.ModelAdmin):
     """ Model admin for ServiceCategory model objects"""
-    list_display = ('name', 'parent', 'api_name', 'short', 'count_serv')
+    list_display = ('name', 'parent', 'short', 'count_serv')
     readonly_fields = ('count_serv',)
     sortable_field_name = 'order'
     fieldsets = [
         (None, {
-            'fields': ['name', 'parent', 'api_name']
+            'fields': ['name', 'parent']
         }),
         ('Details', {
             'fields': ['short_description', 'description', 'ref']
@@ -52,3 +81,5 @@ class ServiceCategoryAdmin(admin.ModelAdmin):
         return super(ServiceCategoryAdmin, self).get_form(request, obj, **kwargs)
 
 
+# admin.site.unregister(Service)
+admin.site.register(DemoWavesService, DemoServiceAdmin)

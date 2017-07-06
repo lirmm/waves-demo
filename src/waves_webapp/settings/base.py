@@ -34,11 +34,11 @@ TEMPLATES = [
     },
 ]
 
-# LOG FILE ROOT
+# LOG FILE ROOC
 LOG_ROOT = BASE_DIR + '/logs'
 STATIC_ROOT = join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
-    join(BASE_DIR, 'src', 'waves', 'static'),
+    join(BASE_DIR, 'src', 'waves_demo', 'static'),
 ]
 
 # Application definition
@@ -54,8 +54,8 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'waves_demo',
     'waves',
-    'demo_waves',
     # WAVES required dependencies
     'authtools',
     'adminsortable2',
