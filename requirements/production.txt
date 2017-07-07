@@ -1,5 +1,6 @@
 -r base.txt
 
+django-environ==0.4.1
 # Extra stuff required for production like Prod Database interfacing packages
 # psycopg2
 

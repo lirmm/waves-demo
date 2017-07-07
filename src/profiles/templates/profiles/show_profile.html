@@ -1,0 +1,107 @@
+{% extends "base_site.html" %}
+
+{% load staticfiles %}
+{% load thumbnail %}
+
+{% block title %}{{ block.super }}Profile{% endblock %}
+{% block navbar-left %}
+    {% include "_navbar.html" %}
+{% endblock %}
+{% block container %}
+
+    <div class="container profile-head">
+        <div class="row">
+            <div class="col-sm-10">
+                <h1>{{ show_user.get_full_name }}</h1>
+                {% if editable %}
+                    <a href="{% url 'profiles:edit_self' %}" class="btn btn-info">Edit Profile</a>
+                    <a class="btn btn-default" href="{% url 'accounts:password-change' %}">Change Password</a>
+                {% endif %}
+            </div>
+            <div class="col-sm-2"><img title="profile picture" class="img-circle img-responsive"
+                                       src="{% thumbnail show_user.profile.picture|default:'default_profile.png' 140x140 crop %}">
+            </div>
+        </div>
+    </div>
+
+    <div class="container profile-body">
+        <div class="row">
+            <div class="col-sm-4">
+                <ul class="list-group">
+                    <li class="list-group-item text-muted">Account</li>
+                    {% if show_user == user or user.is_staff %}
+                        <li class="list-group-item text-right">
+                            <span class="pull-left"><strong>Email</strong></span>
+                            {{ show_user.email|default:"missing" }}
+                            {% if show_user.profile.email_verified or show_user.is_active %}
+                                <span class="glyphicon glyphicon-ok-circle" aria-hidden="true" style="color:green"
+                                      title="This email address has been verified"></span>
+                                <span class="sr-only">Verified</span>
+                            {% else %}
+                                <span class="glyphicon glyphicon-warning-sign" aria-hidden="true" style="color:brown"
+                                      title="This email address is not verified"></span>
+                                <span class="sr-only">Not Verified</span>
+                            {% endif %}
+                        </li>
+                    {% endif %}
+                    <li class="list-group-item text-right"><span
+                            class="pull-left"><strong>Joined</strong></span> {{ show_user.date_joined }}</li>
+                    <li class="list-group-item text-right"><span
+                            class="pull-left"><strong>Last seen</strong></span> {{ show_user.last_login }}</li>
+                </ul>
+            </div>
+            <div class="col-sm-8">
+                <ul class="list-group">
+                    <li class="list-group-item text-muted">{{ show_user.get_full_name }}'s Profile
+                        {% if show_user.profile.slug %}
+                            <a href="{% url 'profiles:show' show_user.profile.slug %}">
+                                <span class="glyphicon glyphicon-link" aria-hidden="true"
+                                      title="Profile permalink"></span>
+                                <span class="sr-only">Permalink</span></a> {{ show_user.profile.get_absolute_url }}
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item text-right">
+                        <span class="pull-left"><strong>Institution</strong></span>
+                        {{ show_user.profile.institution }}
+                    </li>
+                    {% if show_user == user or user.is_staff %}
+                        <li class="list-group-item text-right">
+                            <span class="pull-left"><strong>Phone</strong></span>
+                            {{ show_user.profile.phone|default:'N/A' }}
+                        </li>
+                    {% endif %}
+                    {% if show_user.profile.country %}
+                        <li class="list-group-item text-right">
+                            <span class="pull-left"><strong>Country</strong></span>
+                            {{ show_user.profile.country.name }}&nbsp;<img src="{{ show_user.profile.country.flag }}"/>
+                        </li>
+                    {% endif %}
+                    {% if show_user == user or user.is_staff %}
+                        <li class="list-group-item text-right">
+                            <span class="pull-left"><strong>Last IP Address</strong></span>
+                            {{ show_user.profile.ip }}
+                        </li>
+                    {% endif %}
+                    {% if show_user == user or user.is_staff %}
+                        {% if show_user.profile.registered_for_api %}
+                        <li class="list-group-item text-right">
+                            <span class="pull-left"><strong>REST api key</strong> (Don't share it with others)</span>
+                            {{ show_user.profile.api_key|default:'Contact us to renew your api_key' }}
+                        </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                {% if show_user == user or user.is_staff %}
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <strong>Comments </strong>: {{ show_user.profile.comment }}<br/>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+

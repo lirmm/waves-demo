@@ -36,8 +36,8 @@ GET a WAVES web-app online following the next few steps, WAVES can run on Apache
 
     1.1 Configuration files:
         - WAVES env configuration file:
-            - ``(.venv)[waves_dir]/src/$ cd waves_services/settings``
-            - ``(.venv)[waves_dir]/src/waves_services_settings/$ cp local.sample.env local.env``
+            - ``(.venv)[waves_dir]/src/$ cd webapp/settings``
+            - ``(.venv)[waves_dir]/src/webapp/$ cp local.sample.env local.env``
             - minimal setup requires these parameters:
                 - SECRET_KEY=your-secret-key-to-keep-secret
                 - REGISTRATION_SALT=generate-your-key

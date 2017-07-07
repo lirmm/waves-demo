@@ -8,5 +8,5 @@ Authors
 
 Version
 -------
-    |version| of 2016/09/25
+    |version| (|release|) of 2016/09/25
 
