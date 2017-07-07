@@ -24,15 +24,15 @@ import accounts.urls
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='home.html'), name='home'),
+    url(r'^', include('waves_demo.urls', namespace="waves_demo")),
+    url(r'^accounts/', include('registration.backends.hmac.urls')),
     url(r'^about$', TemplateView.as_view(template_name='about.html'), name='about'),
     url(r'^rest$', TemplateView.as_view(template_name='rest/rest_api.html'), name='rest_services'),
-    url(r'^', include('waves_demo.urls', namespace="waves_demo")),
     url(r'^waves/', include('waves.urls', namespace='waves')),
-    url(r'^users/', include(profiles.urls, namespace='profiles')),
+    url(r'^user/', include(profiles.urls, namespace='profiles')),
     url(r'^jet/', include('jet.urls', 'jet')),  # Django JET URLS
     url(r'^jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS
-    # url(r'^chaining/', include('smart_selects.urls')),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^', include(accounts.urls, namespace='accounts')),
+    url(r'^users/', include(accounts.urls, namespace='accounts')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) \
               + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -5,6 +5,10 @@ from waves.models import Service
 from .models import ServiceCategory
 
 
+from waves.models import get_service_model
+
+Service = get_service_model()
+
 # Create your views here.
 class CategoryDetailView(generic.DetailView):
     context_object_name = 'category'

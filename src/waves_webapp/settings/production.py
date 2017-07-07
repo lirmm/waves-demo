@@ -5,6 +5,7 @@ import logging.config
 import environ
 import sys
 
+WAVES_ENV_FILE = join(dirname(__file__), 'local.env')
 # Django main environment file (issued from local.env)
 env = environ.Env()
 environ.Env.read_env(WAVES_ENV_FILE)

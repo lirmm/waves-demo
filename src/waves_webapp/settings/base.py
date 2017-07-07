@@ -44,9 +44,6 @@ STATICFILES_DIRS = [
 # Application definition
 INSTALLED_APPS = (
     'django.contrib.staticfiles',
-    'polymorphic_tree',
-    'polymorphic',
-    'mptt',
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'jet',
@@ -54,8 +51,11 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'waves_demo',
+    'polymorphic_tree',
+    'polymorphic',
+    'mptt',
     'waves',
+    'waves_demo',
     # WAVES required dependencies
     'authtools',
     'adminsortable2',
@@ -163,9 +163,9 @@ CKEDITOR_CONFIGS = {
 # TODO in order to enable sibling, either overwrite to set-it up per model, or add custom filter for submissions
 # (keep current service)
 JET_CHANGE_FORM_SIBLING_LINKS = False
-CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
-WAVES_ENV_FILE = join(dirname(__file__), 'local.env')
+
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
 ACCOUNT_ACTIVATION_DAYS = 7
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -174,4 +174,20 @@ EMAIL_PORT = 25
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = False
-DEFAULT_FROM_EMAIL = 'WavesDemoAdmin <admin@demo.atgc-montpellier.fr>'
+
+WAVES_CORE = {
+    'ACCOUNT_ACTIVATION_DAYS': 14,
+    'ADMIN_EMAIL': 'admin_waves@atgc-montpellier.fr',
+    'ALLOW_JOB_SUBMISSION': True,
+    'APP_NAME': 'WAVES DEMO',
+    'SERVICES_EMAIL': 'services@atgc-montpellier.fr',
+    'ADAPTORS_CLASSES': (
+        'waves.adaptors.core.shell.SshShellAdaptor',
+        'waves.adaptors.core.cluster.LocalClusterAdaptor',
+        'waves.adaptors.core.shell.SshKeyShellAdaptor',
+        'waves.adaptors.core.shell.LocalShellAdaptor',
+        'waves.adaptors.core.cluster.SshClusterAdaptor',
+        'waves.adaptors.core.cluster.SshKeyClusterAdaptor',
+    ),
+    'SERVICE_MODEL': 'waves_demo.DemoWavesService'
+}

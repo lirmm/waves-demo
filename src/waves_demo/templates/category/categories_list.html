@@ -16,7 +16,7 @@
             <div class="row">
                 {% for category in online_categories %}
                     <div class="list-group">
-                        <a href="{% url 'waves:category_details' category.id %}" class="list-group-item active">
+                        <a href="{% url 'waves_demo:category_details' category.id %}" class="list-group-item active">
                             <h4>{{ category.name }}</h4></a>
                         <p class="list-group-item text-muted text-justify">
                             <i>{{ category.short_description }}</i>
@@ -43,13 +43,13 @@
                                     {% online_exec_button service=service %}
                                     {% if user.is_staff %}
                                         <a class="btn btn-warning"
-                                           href="{% url 'admin:waves_service_change' service.id %}">Admin</a>
+                                           href="{{ service.get_admin_url }}">Admin</a>
                                     {% endif %}
                                 </div>
                                 <hr/>
                             </div>
                             {% if forloop.last %}
-                                <a class="list-group-item active" href="{% url 'waves:category_details' category.id %}">
+                                <a class="list-group-item active" href="{% url 'waves_demo:category_details' category.id %}">
                                     <span class="badge">
                                     {{ category.category_tools.values|length }}
                                     </span>

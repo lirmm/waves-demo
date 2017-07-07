@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from waves.models import Ordered, Described, Service
+from waves.models.services import ServiceManager
 
 
 # Create your models here.
@@ -81,6 +82,8 @@ class ServiceCategory(Ordered, Described):
 
 
 class DemoWavesService(Service):
+
+    objects = ServiceManager()
 
     category = models.ForeignKey(ServiceCategory, on_delete=models.SET_NULL, null=True, related_name='category_tools')
 

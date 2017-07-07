@@ -28,12 +28,6 @@ class DemoServiceAdmin(ServiceAdmin):
         })
     ]
 
-    def get_urls(self):
-        urlpatterns = super(DemoServiceAdmin, self).get_urls()
-        for url in urlpatterns:
-            print url
-        return urlpatterns
-
     def get_inlines(self, request, obj=None):
         super(DemoServiceAdmin, self).get_inlines(request, obj)
         self.inlines.append(ServiceMetaInline)
@@ -81,5 +75,5 @@ class ServiceCategoryAdmin(admin.ModelAdmin):
         return super(ServiceCategoryAdmin, self).get_form(request, obj, **kwargs)
 
 
-# admin.site.unregister(Service)
+admin.site.unregister(Service)
 admin.site.register(DemoWavesService, DemoServiceAdmin)
