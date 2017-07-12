@@ -38,7 +38,7 @@ TEMPLATES = [
 LOG_ROOT = BASE_DIR + '/logs'
 STATIC_ROOT = join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
-    join(BASE_DIR, 'src', 'waves_demo', 'static'),
+    join(BASE_DIR, 'src', 'demo', 'static'),
 ]
 
 # Application definition
@@ -54,8 +54,8 @@ INSTALLED_APPS = (
     'polymorphic_tree',
     'polymorphic',
     'mptt',
-    'waves',
-    'waves_demo',
+    'waves.core',
+    'waves.demo',
     # WAVES required dependencies
     'authtools',
     'adminsortable2',
@@ -79,8 +79,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
-ROOT_URLCONF = 'waves_webapp.urls'
-WSGI_APPLICATION = 'waves_webapp.wsgi.application'
+ROOT_URLCONF = 'waves_demo.urls'
+WSGI_APPLICATION = 'waves_demo.wsgi.application'
 LANGUAGE_CODE = 'en-gb'
 TIME_ZONE = 'Europe/Paris'
 USE_I18N = True
@@ -182,12 +182,11 @@ WAVES_CORE = {
     'APP_NAME': 'WAVES DEMO',
     'SERVICES_EMAIL': 'services@atgc-montpellier.fr',
     'ADAPTORS_CLASSES': (
-        'waves.adaptors.core.shell.SshShellAdaptor',
-        'waves.adaptors.core.cluster.LocalClusterAdaptor',
-        'waves.adaptors.core.shell.SshKeyShellAdaptor',
-        'waves.adaptors.core.shell.LocalShellAdaptor',
-        'waves.adaptors.core.cluster.SshClusterAdaptor',
-        'waves.adaptors.core.cluster.SshKeyClusterAdaptor',
+        'waves.core.adaptors.shell.SshShellAdaptor',
+        'waves.core.adaptors.shell.SshKeyShellAdaptor',
+        'waves.core.adaptors.cluster.SshClusterAdaptor',
+        'waves.core.adaptors.cluster.SshKeyClusterAdaptor',
+        'waves.compphy.adaptors.project.CompPhyProjectCreator',
     ),
-    'SERVICE_MODEL': 'waves_demo.DemoWavesService'
+    'SERVICE_MODEL': 'demo.DemoWavesService'
 }
