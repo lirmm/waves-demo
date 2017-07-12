@@ -12,11 +12,13 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
-import django
+import sys
 from distutils.sysconfig import get_python_lib
+
+import django
 from mock import Mock as MagicMock
+
 import waves
 
 
@@ -36,7 +38,7 @@ sys.path.append(os.path.abspath('.'))
 sys.path.append(os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../src'))
 sys.path.append(get_python_lib())
-os.environ['DJANGO_SETTINGS_MODULE'] = 'waves_webapp.settings.production'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'waves_demo.settings.production'
 # settings.configure()
 django.setup()
 

@@ -20,12 +20,12 @@ def get_version():
 version, version_detail, sdist_name = get_version()
 
 setup(
-    name='waves-waves_webapp',
+    name='waves-demo',
     version=version,
     packages=find_packages('src'),
     include_package_data=True,
     package_dir={'': 'src', },
-    url='https://github.com/lirmm/waves-waves_webapp',
+    url='https://github.com/lirmm/waves-demo',
     license='GPL-v3',
     author='Marc Chakiachvili, Floreal Cabanattes, Vincent Berry, Anne-Muriel Arigon Chifolleau',
     author_email='marc.chakiachvili@gmail.com, '
