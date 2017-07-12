@@ -1,21 +1,19 @@
 from __future__ import unicode_literals
-from django.contrib.auth.forms import AuthenticationForm
-from django import forms
-from django.conf import settings
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field
-from crispy_forms.bootstrap import PrependedText
-from django.contrib.auth import get_user_model
-from django_countries.fields import LazyTypedChoiceField
-from django_countries import countries
-from constance import config
-from authtools import forms as authtoolsforms
-from django.contrib.auth import forms as authforms
-from django.core.urlresolvers import reverse
-from django.core.validators import RegexValidator
 
 import registration.forms
-import waves.settings
+from authtools import forms as authtoolsforms
+from crispy_forms.bootstrap import PrependedText
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Submit, HTML, Field
+from django import forms
+from django.conf import settings
+from django.contrib.auth import forms as authforms
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import AuthenticationForm
+from django.core.urlresolvers import reverse
+from django.core.validators import RegexValidator
+from django_countries import countries
+from django_countries.fields import LazyTypedChoiceField
 
 __all__ = ['LoginForm', 'SignupForm', 'PasswordChangeForm', 'PasswordResetForm', 'SetPasswordForm']
 User = get_user_model()

@@ -11,9 +11,10 @@ from django.db import transaction
 # Create your views here.
 from django.urls import reverse_lazy
 from django.views import generic
-from accounts.forms import *
 from registration.backends.hmac.views import RegistrationView, ActivationView as BaseActivationView
-from waves.settings import waves_settings
+
+from accounts.forms import *
+from waves.core.settings import waves_settings
 
 User = get_user_model()
 
