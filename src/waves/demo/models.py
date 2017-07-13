@@ -2,8 +2,8 @@ from __future__ import unicode_literals
 
 from django.db import models
 
-from waves.core.models import Ordered, Described, Service
-from waves.core.models.services import ServiceManager
+from waves.wcore.models import Ordered, Described, Service
+from waves.wcore.models.services import ServiceManager
 
 
 # Create your models here.

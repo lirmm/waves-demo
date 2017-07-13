@@ -1,7 +1,7 @@
 from django.db.models import Prefetch
 from django.views import generic
 
-from waves.core.models import Service
+from waves.wcore.models import Service
 from waves.demo.models import ServiceCategory
 
 

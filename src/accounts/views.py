@@ -14,7 +14,7 @@ from django.views import generic
 from registration.backends.hmac.views import RegistrationView, ActivationView as BaseActivationView
 
 from accounts.forms import *
-from waves.core.settings import waves_settings
+from waves.wcore.settings import waves_settings
 
 User = get_user_model()
 
@@ -62,7 +62,7 @@ class SignUpView(bracesviews.AnonymousRequiredMixin, bracesviews.FormValidMessag
 
     def get_success_url(self, user):
         """ Redirect to registration complete when done """
-        return 'waves:registration_complete', (), {}
+        return 'accounts:registration_complete', (), {}
 
     @transaction.atomic()
     def create_inactive_user(self, form):

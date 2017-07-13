@@ -9,7 +9,8 @@ from os.path import dirname, join
 LOGGING_CONFIG = None
 BASE_DIR = dirname(dirname(dirname(dirname(__file__))))
 STATIC_URL = '/static/'
-MEDIA_ROOT = join(dirname(BASE_DIR), 'media')
+MEDIA_ROOT = join(BASE_DIR, 'src', 'media')
+
 MEDIA_URL = "/media/"
 TEMPLATES = [
     {
@@ -54,7 +55,7 @@ INSTALLED_APPS = (
     'polymorphic_tree',
     'polymorphic',
     'mptt',
-    'waves.core',
+    'waves.wcore',
     'waves.demo',
     # WAVES required dependencies
     'authtools',
@@ -120,41 +121,10 @@ FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
 FILE_UPLOAD_PERMISSIONS = 0o775
 # Django countries first items
 COUNTRIES_FIRST = ['FR', 'GB', 'US', 'DE']
+
 JET_SIDE_MENU_COMPACT = True
 # MAILS
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-JET_THEMES = [
-    {
-        'theme': 'default',  # theme folder name
-        'color': '#47bac1',  # color of the theme's button in user menu
-        'title': 'Default'  # theme title
-    },
-    {
-        'theme': 'green',
-        'color': '#44b78b',
-        'title': 'Green'
-    },
-    {
-        'theme': 'light-green',
-        'color': '#2faa60',
-        'title': 'Light Green'
-    },
-    {
-        'theme': 'light-violet',
-        'color': '#a464c4',
-        'title': 'Light Violet'
-    },
-    {
-        'theme': 'light-blue',
-        'color': '#5EADDE',
-        'title': 'Light Blue'
-    },
-    {
-        'theme': 'light-gray',
-        'color': '#222',
-        'title': 'Light Gray'
-    }
-]
 CKEDITOR_CONFIGS = {
     'default': {
         'height': 150,
@@ -182,11 +152,21 @@ WAVES_CORE = {
     'APP_NAME': 'WAVES DEMO',
     'SERVICES_EMAIL': 'services@atgc-montpellier.fr',
     'ADAPTORS_CLASSES': (
-        'waves.core.adaptors.shell.SshShellAdaptor',
-        'waves.core.adaptors.shell.SshKeyShellAdaptor',
-        'waves.core.adaptors.cluster.SshClusterAdaptor',
-        'waves.core.adaptors.cluster.SshKeyClusterAdaptor',
+        'waves.wcore.adaptors.shell.SshShellAdaptor',
+        'waves.wcore.adaptors.shell.SshKeyShellAdaptor',
+        'waves.wcore.adaptors.cluster.SshClusterAdaptor',
+        'waves.wcore.adaptors.cluster.SshKeyClusterAdaptor',
         'waves.compphy.adaptors.project.CompPhyProjectCreator',
+        'waves.galaxy.adaptors.tool.GalaxyJobAdaptor'
     ),
     'SERVICE_MODEL': 'demo.DemoWavesService'
 }
+
+STATICFILES_DIRS = [
+    join(BASE_DIR, 'src', 'waves', 'demo', "static"),
+]
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)

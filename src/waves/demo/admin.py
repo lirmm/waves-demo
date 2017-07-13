@@ -3,9 +3,9 @@ from __future__ import unicode_literals
 from django.contrib import admin
 from django.template.defaultfilters import truncatechars
 
-from waves.core.admin.services import ServiceAdmin
-from waves.core.compat import CompactInline
-from waves.core.models import Service
+from waves.wcore.admin.services import ServiceAdmin
+from waves.wcore.compat import CompactInline
+from waves.wcore.models import Service
 from .forms import ServiceMetaForm
 from .models import ServiceMeta, ServiceCategory, DemoWavesService
 
