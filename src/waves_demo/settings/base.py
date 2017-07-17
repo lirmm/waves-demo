@@ -56,6 +56,8 @@ INSTALLED_APPS = (
     'polymorphic',
     'mptt',
     'waves.wcore',
+    'waves.adaptors.galaxy',
+    'waves.adaptors.compphy',
     'waves.demo',
     # WAVES required dependencies
     'authtools',
@@ -156,8 +158,8 @@ WAVES_CORE = {
         'waves.wcore.adaptors.shell.SshKeyShellAdaptor',
         'waves.wcore.adaptors.cluster.SshClusterAdaptor',
         'waves.wcore.adaptors.cluster.SshKeyClusterAdaptor',
-        'waves.compphy.adaptors.project.CompPhyProjectCreator',
-        'waves.galaxy.adaptors.tool.GalaxyJobAdaptor'
+        'waves.adaptors.compphy.project.CompPhyProjectCreator',
+        'waves.adaptors.galaxy.tool.GalaxyJobAdaptor'
     ),
     'SERVICE_MODEL': 'demo.DemoWavesService'
 }
