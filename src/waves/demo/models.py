@@ -87,5 +87,3 @@ class DemoWavesService(Service):
     objects = ServiceManager()
 
     category = models.ForeignKey(ServiceCategory, on_delete=models.SET_NULL, null=True, related_name='category_tools')
-
-
