@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.contenttypes',
     'django.contrib.auth',
+    'authtools',
     'jet',
     'jet.dashboard',
     'django.contrib.admin',
@@ -56,11 +57,10 @@ INSTALLED_APPS = (
     'polymorphic',
     'mptt',
     'waves.wcore',
+    'waves.demo',
     'waves.adaptors.galaxy',
     'waves.adaptors.compphy',
-    'waves.demo',
     # WAVES required dependencies
-    'authtools',
     'adminsortable2',
     'accounts',
     'bootstrap_themes',
@@ -161,8 +161,8 @@ WAVES_CORE = {
         'waves.adaptors.compphy.project.CompPhyProjectCreator',
         'waves.adaptors.galaxy.tool.GalaxyJobAdaptor'
     ),
-    'SERVICE_MODEL': 'demo.DemoWavesService'
 }
+WCORE_SERVICE_MODEL = 'demo.DemoWavesService'
 
 STATICFILES_DIRS = [
     join(BASE_DIR, 'src', 'waves', 'demo', "static"),

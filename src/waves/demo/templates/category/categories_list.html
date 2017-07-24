@@ -21,7 +21,7 @@
                         <p class="list-group-item text-muted text-justify">
                             <i>{{ category.short_description }}</i>
                         </p>
-                        {% for service in category.category_public_tools|slice:":3" %}
+                        {% for service in category.category_tools.all %}
                             <div class="list-group-item">
                                 <h4 class="list-group-item-heading ">
                                     <a href="{% url 'waves:service_details' service.id %}">

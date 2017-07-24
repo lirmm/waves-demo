@@ -5,9 +5,12 @@ from django.template.defaultfilters import truncatechars
 
 from waves.wcore.admin.services import ServiceAdmin
 from waves.wcore.compat import CompactInline
-from waves.wcore.models import Service
+# from waves.wcore.models import Service
 from .forms import ServiceMetaForm
 from .models import ServiceMeta, ServiceCategory, DemoWavesService
+from waves.wcore.utils import get_service_model
+
+Service = get_service_model()
 
 
 class ServiceMetaInline(CompactInline):
@@ -21,10 +24,10 @@ class ServiceMetaInline(CompactInline):
 
 
 class DemoServiceAdmin(ServiceAdmin):
-    model = DemoWavesService
+    model = Service
     extra_fieldsets = [
         ('Categories', {
-            'fields': ['category', ]
+            'fields': ['category']
         })
     ]
 

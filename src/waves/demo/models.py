@@ -1,9 +1,30 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from waves.wcore.models import Ordered, Described, BaseService
 
-from waves.wcore.models import Ordered, Described, Service
-from waves.wcore.models.services import ServiceManager
+__all__ = ['ServiceMeta', 'ServiceCategory', 'DemoWavesService']
+
+
+class ServiceCategory(Ordered, Described):
+    """ Service category """
+
+    class Meta:
+        ordering = ['name']
+        verbose_name_plural = "Categories"
+        verbose_name = "Category"
+
+    name = models.CharField('Category Name', null=False, blank=False, max_length=255, help_text='Category name')
+    ref = models.URLField('Reference', null=True, blank=True, help_text='Category online reference')
+    parent = models.ForeignKey('self', null=True, blank=True, help_text='Parent category',
+                               related_name='children_category', db_index=True)
+
+    def __str__(self):
+        return self.name
+
+
+class DemoWavesService(BaseService):
+    category = models.ForeignKey(ServiceCategory, on_delete=models.SET_NULL, null=True, related_name='category_tools')
 
 
 # Create your models here.
@@ -44,14 +65,14 @@ class ServiceMeta(Ordered, Described):
     )
 
     class Meta:
-        db_table = 'waves_service_meta'
         verbose_name = 'Information'
+        app_label = "demo"
 
     type = models.CharField('Meta type', max_length=100, choices=SERVICE_META)
     title = models.CharField('Title', max_length=255, blank=True, null=True)
     value = models.CharField('Link', max_length=500, blank=True, null=True)
     is_url = models.BooleanField('Is a url', editable=False, default=False)
-    service = models.ForeignKey('DemoWavesService', on_delete=models.CASCADE, related_name='metas')
+    service = models.ForeignKey(DemoWavesService, on_delete=models.CASCADE, related_name='metas')
 
     def duplicate(self, service):
         """ Duplicate a Service Meta"""
@@ -62,28 +83,3 @@ class ServiceMeta(Ordered, Described):
 
     def __str__(self):
         return '%s [%s]' % (self.title, self.type)
-
-
-class ServiceCategory(Ordered, Described):
-    """ Service category """
-
-    class Meta:
-        db_table = 'waves_service_category'
-        ordering = ['name']
-        verbose_name_plural = "Categories"
-        verbose_name = "Category"
-
-    name = models.CharField('Category Name', null=False, blank=False, max_length=255, help_text='Category name')
-    ref = models.URLField('Reference', null=True, blank=True, help_text='Category online reference')
-    parent = models.ForeignKey('self', null=True, blank=True, help_text='Parent category',
-                               related_name='children_category', db_index=True)
-
-    def __str__(self):
-        return self.name
-
-
-class DemoWavesService(Service):
-
-    objects = ServiceManager()
-
-    category = models.ForeignKey(ServiceCategory, on_delete=models.SET_NULL, null=True, related_name='category_tools')

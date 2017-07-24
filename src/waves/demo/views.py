@@ -1,7 +1,10 @@
 from django.db.models import Prefetch
 from django.views import generic
 
-from waves.demo.models import ServiceCategory, DemoWavesService
+from waves.demo.models import ServiceCategory
+from waves.wcore.utils import get_service_model
+
+Service = get_service_model()
 
 
 # Create your views here.
@@ -14,7 +17,7 @@ class CategoryDetailView(generic.DetailView):
     def get_queryset(self):
         return ServiceCategory.objects.all().prefetch_related(
             Prefetch('category_tools',
-                     queryset=DemoWavesService.objects.get_web_services(user=self.request.user),
+                     queryset=Service.objects.get_web_services(user=self.request.user),
                      to_attr="category_public_tools"
                      )
         )
@@ -28,7 +31,7 @@ class CategoryListView(generic.ListView):
     def get_queryset(self):
         return ServiceCategory.objects.all().prefetch_related(
             Prefetch('category_tools',
-                     queryset=DemoWavesService.objects.get_web_services(user=self.request.user),
+                     queryset=Service.objects.get_web_services(user=self.request.user),
                      to_attr="category_public_tools"
                      )
         )

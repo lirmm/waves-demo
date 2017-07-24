@@ -46,6 +46,7 @@ setup(
         'easy_thumbnails==2.3',
         'django-mail-templated==2.6.5',
         'djangorestframework==3.5.4',
+        'swapper==1.1.0'
     ],
     classifiers=[
         'Environment :: Web Environment',
