@@ -59,8 +59,8 @@ GET a WAVES Demo site online following the next few steps, WAVES can run on Apac
             - Create Superadmin user: ``(.venv)[waves_dir]/src/$ ./manage.py createsuperuser``
 
     1.3 Test your server:
+        - ``(.venv)[waves_dir]/src/$ ./manage.py waves queue start --settings=waves_demo.settings.development``
         - ``(.venv)[waves_dir]/src/$ ./manage.py runserver --settings=waves_demo.settings.development``
-        - ``(.venv)[waves_dir]/src/$ ./manage.py waves queue start``
 
 
 2. Configure your web server:

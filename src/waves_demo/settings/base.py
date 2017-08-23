@@ -123,7 +123,7 @@ COUNTRIES_FIRST = ['FR', 'GB', 'US', 'DE']
 
 JET_SIDE_MENU_COMPACT = True
 # MAILS
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 CKEDITOR_CONFIGS = {
     'default': {
         'height': 150,
@@ -137,12 +137,6 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 ACCOUNT_ACTIVATION_DAYS = 7
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 25
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
-EMAIL_USE_TLS = False
 
 WAVES_CORE = {
     'ACCOUNT_ACTIVATION_DAYS': 14,
