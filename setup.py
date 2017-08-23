@@ -2,26 +2,13 @@ import os
 
 from setuptools import setup, find_packages
 
+with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
+    README = readme.read()
 
-def get_version():
-    import imp
-    waves_demo = imp.load_source('waves_demo', os.path.join(os.path.dirname(__file__), 'src', 'waves', 'demo', 'apps.py'))
-    try:
-        _version = waves_demo.__version__
-        _version_detail = waves_demo.__version_detail__
-        _dist_name = waves_demo.__name__
-    except ImportError:
-        _version = None
-        _version_detail = None
-        _dist_name = None
-    return _version, _version_detail, _dist_name
-
-
-version, version_detail, sdist_name = get_version()
 
 setup(
     name='waves-demo',
-    version=version,
+    version="1.1",
     packages=find_packages('src'),
     include_package_data=True,
     package_dir={'': 'src', },

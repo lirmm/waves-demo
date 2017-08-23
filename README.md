@@ -28,7 +28,7 @@ Installation
 More Documentation
 ------------------
 More Documentation can be found on :
-http://waves.atgc-montpellier.fr/documentation/
+http://waves-demo.readthedocs.io/en/latest/
 
 Project home page:
 https://github.com/lirmm/waves-demo
