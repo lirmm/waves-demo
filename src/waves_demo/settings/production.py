@@ -10,7 +10,7 @@ WAVES_ENV_FILE = join(dirname(__file__), 'local.env')
 env = environ.Env()
 environ.Env.read_env(WAVES_ENV_FILE)
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env.str('SECRET_KEY')
+SECRET_KEY = env.str('SECRET_KEY', 'your-secret-key-to-keep-secret-at-least-32-characters-long')
 DEBUG = env.bool('DEBUG', False)
 
 # DATABASE configuration
@@ -21,9 +21,9 @@ DATABASES = {
 if 'test' in sys.argv:
     DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
 
-REGISTRATION_SALT = env.str('REGISTRATION_SALT')
+REGISTRATION_SALT = env.str('REGISTRATION_SALT', 'generate-your-key')
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
 
 # Cache the templates in memory for speed-up
 loaders = [
