@@ -47,21 +47,21 @@ GET a WAVES Demo site online following the next few steps, WAVES can run on Apac
 
     1.2 Set up database:
         - Setup default log dir: ``(.venv)[waves_dir]/src/$ mkdir ..logs``
+        - Setup default data dir: ``(.venv)[waves_dir]/src/$ mkdir ..data``
         - Check parameters with: ``(.venv)[waves_dir]/src/$ ./manage.py check`` (pip install any missing dependencies)
         - See your configuration with: ``(.venv)[waves_dir]/src/$ ./manage.py waves config``
-
-        1.2.1 If you use default database configuration:
-            - You may login into backoffice with credentials : demo@demo.fr / demodemo
-            - A sample 'cp' service is already given as a starter service template. Running on local machine.
 
         1.2.1 If you changed database:
             - Create your database: ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
             - Create Superadmin user: ``(.venv)[waves_dir]/src/$ ./manage.py createsuperuser``
 
     1.3 Test your server:
-        - ``(.venv)[waves_dir]/src/$ ./manage.py waves queue start --settings=waves_demo.settings.development``
+        - ``(.venv)[waves_dir]/src/$ ./manage.py waves queue start``
         - ``(.venv)[waves_dir]/src/$ ./manage.py runserver --settings=waves_demo.settings.development``
 
+        1.2.1 If you use default database configuration:
+            - You may login into backoffice (127.0.0.1:8000) with credentials : demo@demo.fr / demodemo
+            - A sample 'cp' service is already given as a starter service template. Running on local machine.
 
 2. Configure your web server:
 -----------------------------
