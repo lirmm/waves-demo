@@ -31,7 +31,7 @@ More Documentation can be found on :
 http://waves.atgc-montpellier.fr/documentation/
 
 Project home page:
-https://github.com/lirmm/waves-webapp
+https://github.com/lirmm/waves-demo
 
 
 License

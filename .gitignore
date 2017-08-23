@@ -65,22 +65,10 @@ Desktop.ini
 
 # Project settings
 *.sav.sqlite3
-/config/waves_uwsgi.ini
 .venv/
-waves.apache.conf
 staticfiles/
 local.env
 data/
-/src/waves/tests/data/jobs/
-default_profile.png.*
-/docs/_build/
-!src/waves/tests/data/jobs/.gitkeep
-/src/media/profile/
-/waves.sqlite3
-/dist/
-/pip_install_adaptors.py
-/logs/
+logs/
 !logs/.gitkeep
-!/src/waves/tests/data/jobs/.gitkeep
-!/data/.gitkeep
-!/src/accounts/
+

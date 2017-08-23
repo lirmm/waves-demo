@@ -1,7 +1,7 @@
 Installation
 ============
 
-GET a WAVES web-app online following the next few steps, WAVES can run on Apache, Nginx with uWSGI
+GET a WAVES Demo site online following the next few steps, WAVES can run on Apache, Nginx with uWSGI
 
 .. WARNING::
     To run WAVES, it's strongly recommended that you setup a dedicated user, because WAVES run with
@@ -42,44 +42,47 @@ GET a WAVES web-app online following the next few steps, WAVES can run on Apache
             - minimal setup requires these parameters:
                 - SECRET_KEY=your-secret-key-to-keep-secret
                 - REGISTRATION_SALT=generate-your-key
-                - ALLOWED_HOSTS=your-host-name (Ex: localhost,
+                - ALLOWED_HOSTS=your-host-name (Ex: localhost, 127.0.0.1 for testing purpose)
             - you can set up as well your db connection params here (or ing classsical DJANGO settings if you want)
 
     1.2 Set up database:
         - Setup default log dir: ``(.venv)[waves_dir]/src/$ mkdir ..logs``
-        - Create your database: ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
-        - Create Superadmin user: ``(.venv)[waves_dir]/src/$ ./manage.py createsuperuser``
-        - Create staticfiles: ``(.venv)[waves_dir]/src/$ ./manage.py collecstatic``
-        - Initialize some required data: ``(.venv)[waves_dir]/src/$ ./manage.py wavesadmin init``
-        - Check parameters with: ``(.venv)[waves_dir]/src/$ ./manage.py check``
-        - See your configuration with: ``(.venv)[waves_dir]/src/$ ./manage.py wavesadmin config``
+        - Check parameters with: ``(.venv)[waves_dir]/src/$ ./manage.py check`` (pip install any missing dependencies)
+        - See your configuration with: ``(.venv)[waves_dir]/src/$ ./manage.py waves config``
+
+        1.2.1 If you use default database configuration:
+            - You may login into backoffice with credentials : demo@demo.fr / demodemo
+            - A sample 'cp' service is already given as a starter service template. Running on local machine.
+
+        1.2.1 If you changed database:
+            - Create your database: ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
+            - Create Superadmin user: ``(.venv)[waves_dir]/src/$ ./manage.py createsuperuser``
+
+    1.3 Test your server:
+        - ``(.venv)[waves_dir]/src/$ ./manage.py runserver --settings=waves_demo.settings.development``
+        - ``(.venv)[waves_dir]/src/$ ./manage.py waves queue start``
 
 
 2. Configure your web server:
 -----------------------------
 
-    2.1 UWSGI:
-        - Sample file is located under src/waves/config/waves_uwsgi.ini.sample
+    2.1 Production settings:
+
+        - Create staticfiles: ``(.venv)[waves_dir]/src/$ ./manage.py collectstatic``
+        - Setup your server: `Django Docs <https://docs.djangoproject.com/fr/1.11/howto/deployment/wsgi/>`_
+
+    2.2 UWSGI:
+        - Init sample script is available in waves_uwsgi.ini
         - Rename/Edit according to your settings
-        - more information `<http://uwsgi-docs.readthedocs.io/>`_
 
-        .. seealso::
-            Init script is available in src/waves/config/uwsgi.conf in order to automatically start WAVES on server
-            start-up
+        .. seealso:: `<http://uwsgi-docs.readthedocs.io/>`_
 
 
-    2.1 APACHE:
-        - Sample file is located under src/waves/config/waves.apache.conf.sample
-        - Rename/Edit according to your settings
-        - Add it to Apache enabled conf
+    2.3 APACHE:
 
         .. seealso:: `<http://uwsgi-docs.readthedocs.io/en/latest/Apache.html>`_
 
-    2.2 NGINX:
-        - Sample file is located under src/waves/config/waves.nginx.conf.sample
-        - Rename/Edit according to your settings
-        - Add it to nginx enabled conf
-
+    2.4 NGINX:
         .. seealso:: `<http://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html>`_
 
 
