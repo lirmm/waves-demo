@@ -37,10 +37,9 @@ TEMPLATES = [
 
 # LOG FILE ROOC
 LOG_ROOT = BASE_DIR + '/logs'
+
 STATIC_ROOT = join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [
-    join(BASE_DIR, 'src', 'demo', 'static'),
-]
+
 
 # Application definition
 INSTALLED_APPS = (
@@ -58,8 +57,6 @@ INSTALLED_APPS = (
     'mptt',
     'waves.wcore',
     'waves.demo',
-    'waves.adaptors.galaxy',
-    'waves.adaptors.compphy',
     # WAVES required dependencies
     'adminsortable2',
     'accounts',
@@ -153,20 +150,8 @@ WAVES_CORE = {
     'ALLOW_JOB_SUBMISSION': True,
     'APP_NAME': 'WAVES DEMO',
     'SERVICES_EMAIL': 'services@atgc-montpellier.fr',
-    'ADAPTORS_CLASSES': (
-        'waves.wcore.adaptors.shell.SshShellAdaptor',
-        'waves.wcore.adaptors.shell.SshKeyShellAdaptor',
-        'waves.wcore.adaptors.cluster.SshClusterAdaptor',
-        'waves.wcore.adaptors.cluster.SshKeyClusterAdaptor',
-        'waves.adaptors.compphy.project.CompPhyProjectCreator',
-        'waves.adaptors.galaxy.tool.GalaxyJobAdaptor'
-    ),
 }
 WCORE_SERVICE_MODEL = 'demo.DemoWavesService'
-
-STATICFILES_DIRS = [
-    join(BASE_DIR, 'src', 'waves', 'demo', "static"),
-]
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
