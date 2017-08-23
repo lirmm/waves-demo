@@ -30,7 +30,6 @@ GET a WAVES Demo site online following the next few steps, WAVES can run on Apac
         - ``[waves_dir]$ virtualenv .venv``
         - ``[waves_dir]$ source .venv/bin/activate``
         - ``(.venv)[waves_dir]]$ pip install -r requirements.txt``
-        - ``(.venv)[waves_dir]]$ pip install -e git+https://github.com/lirmm/waves-core.git#egg=waves``
 
 1. Install WAVES
 ----------------
