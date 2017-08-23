@@ -24,7 +24,6 @@ setup(
     maintainer='LIRMM - MAB Laboratory - France',
     maintainer_email='vincent.lefort@lirmm.fr',
     install_requires=[
-        'waves-adaptors>=0.1.0',
         'django-admin-sortable2==0.6.10',
         'django-bootstrap_themes==3.3.6',
         'django-constance==2.0.0',
