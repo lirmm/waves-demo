@@ -5,11 +5,11 @@ from setuptools import setup, find_packages
 
 def get_version():
     import imp
-    waves = imp.load_source('waves', os.path.join(os.path.dirname(__file__), 'src', 'waves', 'apps.py'))
+    waves_demo = imp.load_source('waves_demo', os.path.join(os.path.dirname(__file__), 'src', 'waves', 'demo', 'apps.py'))
     try:
-        _version = waves.__version__
-        _version_detail = waves.__version_detail__
-        _dist_name = waves.__name__
+        _version = waves_demo.__version__
+        _version_detail = waves_demo.__version_detail__
+        _dist_name = waves_demo.__name__
     except ImportError:
         _version = None
         _version_detail = None
