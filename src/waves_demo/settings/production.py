@@ -36,6 +36,7 @@ TEMPLATES[0]['OPTIONS'].update({"loaders": loaders})
 TEMPLATES[0].update({"APP_DIRS": False})
 # # Reset logging
 LOGGING_CONFIG = None
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
@@ -52,6 +53,13 @@ LOGGING = {
         'waves_log_file': {
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': join(LOG_ROOT, 'waves.log'),
+            'formatter': 'verbose',
+            'backupCount': 10,
+            'maxBytes': 1024*1024*5
+        },
+        'daemon_log_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': join(LOG_ROOT, 'daemon.log'),
             'formatter': 'verbose',
             'backupCount': 10,
             'maxBytes': 1024*1024*5
@@ -74,6 +82,10 @@ LOGGING = {
         'waves': {
             'handlers': ['waves_log_file'],
             'level': 'ERROR',
+        },
+        'waves.daemon': {
+            'handlers': ['waves_log_file'],
+            'level': 'DEBUG',
         },
     }
 }

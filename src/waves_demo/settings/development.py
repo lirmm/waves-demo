@@ -61,7 +61,7 @@ LOGGING = {
         'waves.management': {
             'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': False,
+            'propagate': True,
         },
     }
 }
