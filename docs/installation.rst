@@ -1,31 +1,30 @@
 Installation
 ============
 
-GET a WAVES Demo site online following the next few steps, WAVES can run on Apache, Nginx with uWSGI
+GET a WAVES demo website following the next few steps. WAVES can run with Apache or Nginx with uWSGI
 
 .. WARNING::
-    To run WAVES, it's strongly recommended that you setup a dedicated user, because WAVES run with
-    saga-python, and this module need to create some directories you might not be able to create (.radical and .saga)
-    with another user (such as www-data)
+    To run WAVES, it is strongly recommended to setup a dedicated user. Indeed, WAVES uses
+    `saga-python <https://github.com/radical-cybertools/saga-python/>`_. This module will try to create directories (.radical and .saga) for which another user (such as www-data) might not have the rights to do so.
 
 
 0. Prerequisites
 ----------------
     .. note::
         In order to install WAVES you will need:
-            - python 2.7.X (WAVES should be compatible with python 3.5 but not fully tested)
+            - python 2.7.X (WAVES is not yet compatible with python 3.5)
             - pip package manager
             - A web server: `Apache <https://httpd.apache.org/>`_ or `NGINX <https://nginx.org/>`_
-            - A database backend (Mysql or Postgres) but WAVES could run with sqlite DB
+            - A database backend (Mysql or Postgres) but by default WAVES runs with sqlite
 
     0.1 Get the sources:
-        - Clone our repository:
+        - Clone WAVES repository:
             git clone https://github.com/lirmm/waves-demo/ [waves_dir]
 
         - Download archive:
-            Download archive at https://github.com/lirmm/waves-demo/ and uncompress the archive in your destination dir ([waves_dir])
+            Download archive at https://github.com/lirmm/waves-demo/ and uncompress the archive in your destination directory ([waves_dir])
 
-    0.2 Create virtual env:
+    0.2 Create python virtual environment:
         - ``$ cd [waves_dir]``
         - ``[waves_dir]$ virtualenv .venv``
         - ``[waves_dir]$ source .venv/bin/activate``
@@ -60,9 +59,9 @@ GET a WAVES Demo site online following the next few steps, WAVES can run on Apac
 
         1.2.1 If you use default database configuration:
             - You may login into backoffice (127.0.0.1:8000) with credentials : demo@demo.fr / demodemo
-            - A sample 'cp' service is already given as a starter service template. Running on local machine.
+            - A sample 'cp' service is already given as a starter service template. Running on local server.
 
-2. Configure your web server:
+2. Configure the web server:
 -----------------------------
 
     2.1 Production settings:
