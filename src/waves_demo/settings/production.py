@@ -4,13 +4,18 @@ from waves_demo.settings.base import *             # NOQA
 import logging.config
 import environ
 import sys
+import warnings
 
 WAVES_ENV_FILE = join(dirname(__file__), 'local.env')
-# Django main environment file (issued from local.env)
+if not isfile(WAVES_ENV_FILE):
+    WAVES_ENV_FILE = join(dirname(__file__), 'local.sample.env')
+
+
+# Django main environment file (issued from local.en
 env = environ.Env()
 environ.Env.read_env(WAVES_ENV_FILE)
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env.str('SECRET_KEY', 'your-secret-key-to-keep-secret-at-least-32-characters-long')
+SECRET_KEY = env.str('SECRET_KEY')
 DEBUG = env.bool('DEBUG', False)
 
 # DATABASE configuration
@@ -21,9 +26,9 @@ DATABASES = {
 if 'test' in sys.argv:
     DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
 
-REGISTRATION_SALT = env.str('REGISTRATION_SALT', 'generate-your-key')
+REGISTRATION_SALT = env.str('REGISTRATION_SALT')
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
 # Cache the templates in memory for speed-up
 loaders = [

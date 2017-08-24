@@ -3,7 +3,7 @@ Main WAVES application settings files
 """
 from __future__ import unicode_literals
 
-from os.path import dirname, join
+from os.path import dirname, join, isfile
 
 
 LOGGING_CONFIG = None
