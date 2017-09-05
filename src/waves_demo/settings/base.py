@@ -56,6 +56,7 @@ INSTALLED_APPS = (
     'polymorphic',
     'mptt',
     'waves.wcore',
+    'waves.front',
     'waves.demo',
     # WAVES required dependencies
     'adminsortable2',
