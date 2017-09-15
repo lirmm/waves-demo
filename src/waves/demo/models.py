@@ -65,7 +65,8 @@ class ServiceMeta(Ordered, Described):
     )
 
     class Meta:
-        verbose_name = 'Information'
+        verbose_name = 'Service links'
+        verbose_name_plural = "Service links"
         app_label = "demo"
 
     type = models.CharField('Meta type', max_length=100, choices=SERVICE_META)

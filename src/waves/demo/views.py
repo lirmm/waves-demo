@@ -1,10 +1,12 @@
+from __future__ import unicode_literals
+
+import swapper
 from django.db.models import Prefetch
 from django.views import generic
 
 from waves.demo.models import ServiceCategory
-from waves.wcore.utils import get_service_model
 
-Service = get_service_model()
+Service = swapper.load_model("wcore", "Service")
 
 
 # Create your views here.

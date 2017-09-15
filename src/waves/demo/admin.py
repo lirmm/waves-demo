@@ -1,16 +1,15 @@
 from __future__ import unicode_literals
 
+import swapper
 from django.contrib import admin
 from django.template.defaultfilters import truncatechars
 
 from waves.wcore.admin.services import ServiceAdmin
 from waves.wcore.compat import CompactInline
-# from waves.wcore.models import Service
 from .forms import ServiceMetaForm
 from .models import ServiceMeta, ServiceCategory, DemoWavesService
-from waves.wcore.utils import get_service_model
 
-Service = get_service_model()
+Service = swapper.load_model("wcore", "Service")
 
 
 class ServiceMetaInline(CompactInline):
@@ -26,20 +25,15 @@ class ServiceMetaInline(CompactInline):
 class DemoServiceAdmin(ServiceAdmin):
     model = Service
     extra_fieldsets = [
-        ('Categories', {
+        ('Service Category', {
             'fields': ['category']
         })
     ]
 
-    def get_inlines(self, request, obj=None):
-        super(DemoServiceAdmin, self).get_inlines(request, obj)
-        self.inlines.append(ServiceMetaInline)
-        return self.inlines
-
-    def get_fields(self, request, obj=None):
-        base_fields = super(DemoServiceAdmin, self).get_fields(request, obj)
-        # base_fields += ("category",)
-        return base_fields
+    def get_inline_instances(self, request, obj=None):
+        inline_instances = super(DemoServiceAdmin, self).get_inline_instances(request, obj)
+        inline_instances.append(ServiceMetaInline(self.model, self.admin_site))
+        return inline_instances
 
 
 @admin.register(ServiceCategory)
