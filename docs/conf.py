@@ -19,7 +19,7 @@ from distutils.sysconfig import get_python_lib
 import django
 from mock import Mock as MagicMock
 
-import waves.demo as waves_demo
+import demo as waves_demo
 
 
 class Mock(MagicMock):

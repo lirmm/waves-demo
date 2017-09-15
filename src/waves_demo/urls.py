@@ -24,7 +24,7 @@ import accounts.urls
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='home.html'), name='home'),
-    url(r'^', include('waves.demo.urls', namespace="waves_demo")),
+    url(r'^', include('demo.urls', namespace="waves_demo")),
     url(r'^waves/', include('waves.front.urls', namespace="wfront")),
     url(r'^accounts/', include('registration.backends.hmac.urls')),
     url(r'^about$', TemplateView.as_view(template_name='about.html'), name='about'),

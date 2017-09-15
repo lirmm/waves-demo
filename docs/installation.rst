@@ -49,9 +49,12 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
         - Check parameters with: ``(.venv)[waves_dir]/src/$ ./manage.py check`` (pip install any missing dependencies)
         - See your configuration with: ``(.venv)[waves_dir]/src/$ ./manage.py waves config``
 
-        1.2.1 If you changed database:
-            - Create your database: ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
-            - Create Superadmin user: ``(.venv)[waves_dir]/src/$ ./manage.py createsuperuser``
+
+        - Create your database: ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
+        - Create Superadmin user: ``(.venv)[waves_dir]/src/$ ./manage.py createsuperuser``
+
+        1.2.1 If you want a sample service:
+
 
     1.3 Test your server:
         - ``(.venv)[waves_dir]/src/$ ./manage.py waves queue start``

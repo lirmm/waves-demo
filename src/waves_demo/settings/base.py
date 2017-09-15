@@ -56,9 +56,9 @@ INSTALLED_APPS = (
     'polymorphic_tree',
     'polymorphic',
     'mptt',
+    'demo',
     'waves.wcore',
     'waves.front',
-    'waves.demo',
     # WAVES required dependencies
     'adminsortable2',
     'accounts',

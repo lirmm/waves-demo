@@ -1,6 +1,7 @@
+import inspect
 import os
 import sys
-import inspect
+
 from setuptools import setup, find_packages
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
@@ -14,7 +15,7 @@ if src_folder not in sys.path:
 
 
 def import_version():
-    from waves.demo import __version__
+    from demo import __version__
     return __version__
 
 

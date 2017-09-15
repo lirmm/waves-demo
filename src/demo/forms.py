@@ -4,7 +4,7 @@ from django import forms
 from django.core import validators
 from django.core.exceptions import ValidationError
 
-from waves.demo.models import ServiceMeta
+from demo.models import ServiceMeta
 
 
 class ServiceMetaForm(forms.ModelForm):

@@ -6,11 +6,11 @@ from os.path import basename
 
 
 class WavesDemoConfig(AppConfig):
-    name = 'waves.demo'
+    name = 'demo'
 
 
 @register()
-def check_waves_config(app_configs=('waves.demo'), **kwargs):
+def check_waves_config(app_configs=('demo'), **kwargs):
     """
     .. TODO:
         Add more control on WAVES configuration

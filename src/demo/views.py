@@ -4,7 +4,7 @@ import swapper
 from django.db.models import Prefetch
 from django.views import generic
 
-from waves.demo.models import ServiceCategory
+from demo.models import ServiceCategory
 from waves.front.views import ServiceDetailView as CoreDetailView
 
 Service = swapper.load_model("wcore", "Service")
