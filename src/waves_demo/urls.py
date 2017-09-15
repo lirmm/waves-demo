@@ -25,11 +25,11 @@ import accounts.urls
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='home.html'), name='home'),
     url(r'^', include('waves.demo.urls', namespace="waves_demo")),
-    url(r'^', include('waves.front.urls', namespace="wfront")),
+    url(r'^waves/', include('waves.front.urls', namespace="wfront")),
     url(r'^accounts/', include('registration.backends.hmac.urls')),
     url(r'^about$', TemplateView.as_view(template_name='about.html'), name='about'),
     url(r'^rest$', TemplateView.as_view(template_name='rest/rest_api.html'), name='rest_services'),
-    url(r'^waves', include('waves.wcore.urls', namespace='wcore')),
+    url(r'^wcore', include('waves.wcore.urls', namespace='wcore')),
     url(r'^waves/api', include('waves.wcore.api.urls', namespace='wapi')),
     url(r'^user/', include(profiles.urls, namespace='profiles')),
     url(r'^jet/', include('jet.urls', 'jet')),  # Django JET URLS

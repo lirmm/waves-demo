@@ -5,8 +5,14 @@ from django.db.models import Prefetch
 from django.views import generic
 
 from waves.demo.models import ServiceCategory
+from waves.front.views import ServiceDetailView as CoreDetailView
 
 Service = swapper.load_model("wcore", "Service")
+
+
+class ServiceDetailView(CoreDetailView):
+    model = Service
+    template_name = 'demo/service_details.html'
 
 
 # Create your views here.
