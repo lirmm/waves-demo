@@ -1,14 +1,28 @@
 import os
-
+import sys
+import inspect
 from setuptools import setup, find_packages
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
     README = readme.read()
 
+src_folder = os.path.realpath(
+    os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0], "src")))
+
+if src_folder not in sys.path:
+    sys.path.insert(0, src_folder)
+
+
+def import_version():
+    from waves.demo import __version__
+    return __version__
+
+
+os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='waves-demo',
-    version="1.1",
+    version=import_version(),
     packages=find_packages('src'),
     include_package_data=True,
     package_dir={'': 'src', },

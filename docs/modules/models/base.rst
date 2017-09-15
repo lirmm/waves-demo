@@ -1,8 +1,15 @@
-Base classes
-============
+Waves Demo classes
+==================
 
-WAVEs defines few Bases classes shared among other models resources
+WAVES Demo extends base Waves-Core functionality
 
-.. automodule:: waves.models.base
+.. seealso::
+    Waves-Core Documentation `<http://waves-core.readthedocs.io/en/latest/modules/source.html>`_
+
+.. automodule:: waves.demo.models
+    :members:
+    :show-inheritance:
+
+.. automodule:: waves.demo.admin
     :members:
     :show-inheritance:

@@ -9,16 +9,24 @@ Welcome to WAVES's Demo documentation !
     authors
     license
     installation
-    modules/settings
-    user_doc/user_guide
+    contributing
+
+.. toctree::
+    :caption: Changelog
+    :maxdepth: 1
+
+    changelog
+
 
 .. toctree::
     :maxdepth: 1
-    :caption: WAVES' Insider
+    :caption: Waves Demo sources
 
-    contributing
     modules/source
-    reusable_app
+
+.. seealso::
+
+    WAVES CORE documentation : `<http://waves-core.readthedocs.io/en/latest/>`_
 
 Indices and tables
 ==================

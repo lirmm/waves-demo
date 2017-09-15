@@ -13,6 +13,7 @@ Service = swapper.load_model("wcore", "Service")
 
 
 class ServiceMetaInline(CompactInline):
+    """ Waves DemoService model Admin Inline """
     model = ServiceMeta
     form = ServiceMetaForm
     exclude = ['order', ]
@@ -23,6 +24,7 @@ class ServiceMetaInline(CompactInline):
 
 
 class DemoServiceAdmin(ServiceAdmin):
+    """ Override Waves-core Service model admin"""
     model = Service
     extra_fieldsets = [
         ('Service Category', {

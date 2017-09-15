@@ -71,11 +71,6 @@ LOGGING = {
         },
     },
     'loggers': {
-        'root': {
-            'handlers': ['waves_log_file'],
-            'propagate': False,
-            'level': 'ERROR',
-        },
         'django': {
             'handlers': ['waves_log_file'],
             'level': 'ERROR',
