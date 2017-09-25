@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from waves.wcore.models import Ordered, Described, BaseService
+from waves.wcore.models import Ordered, Described
+from waves.wcore.models.services import BaseService
 
 __all__ = ['ServiceMeta', 'ServiceCategory', 'DemoWavesService']
 
