@@ -41,28 +41,31 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
                 - SECRET_KEY=your-secret-key-to-keep-secret
                 - REGISTRATION_SALT=generate-your-key
                 - ALLOWED_HOSTS=your-host-name (Ex: localhost, 127.0.0.1 for testing purpose)
-            - you can set up as well your db connection params here (or ing classsical DJANGO settings if you want)
+            - you can set up as well your db connection params here (or in classical "DJANGO way" settings if you want)
 
     1.2 Set up database:
-        - Setup default log dir: ``(.venv)[waves_dir]/src/$ mkdir ..logs``
-        - Setup default data dir (if not exists): ``(.venv)[waves_dir]/src/$ mkdir ..data``
         - Check parameters with: ``(.venv)[waves_dir]/src/$ ./manage.py check`` (pip install any missing dependencies)
         - See your configuration with: ``(.venv)[waves_dir]/src/$ ./manage.py waves config``
+        - If no setup, default database is used ~/[waves_dir]/waves.sample.sqlite3
+            - Super user is demo@demo.fr / password demodemo
 
-
-        - Create your database: ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
-        - Create Superadmin user: ``(.venv)[waves_dir]/src/$ ./manage.py createsuperuser``
-
-        1.2.1 If you want a sample service:
-
+        1.2.1: Setup your database connection string:
+            - Create local.env (copy from local.env.sample located in waves_demo/settings/)
+            - Setup line corresponding to your needs (DATABASE_URL)
+            - Create your database: ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
+            - Create Superadmin user: ``(.venv)[waves_dir]/src/$ ./manage.py createsuperuser``
 
     1.3 Test your server:
-        - ``(.venv)[waves_dir]/src/$ ./manage.py waves queue start``
-        - ``(.venv)[waves_dir]/src/$ ./manage.py runserver --settings=waves_demo.settings.development``
+        - ``(.venv)[waves_dir]/src/$ ./manage.py runserver [ServerIP:ServerPort] --insecure``
 
         1.2.1 If you use default database configuration:
             - You may login into backoffice (127.0.0.1:8000) with credentials : demo@demo.fr / demodemo
             - A sample 'cp' service is already given as a starter service template. Running on local server.
+
+    1.4 Start WAVES daemons:
+        - ``(.venv)[waves_dir]/src/$ ./manage.py waves queue start``
+        - ``(.venv)[waves_dir]/src/$ ./manage.py waves purge start``
+
 
 2. Configure the web server:
 -----------------------------

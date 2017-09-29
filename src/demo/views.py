@@ -5,9 +5,10 @@ from django.db.models import Prefetch
 from django.views import generic
 
 from demo.models import ServiceCategory
+from waves.wcore.models import get_service_model
 from waves.front.views import ServiceDetailView as CoreDetailView
 
-Service = swapper.load_model("wcore", "Service")
+Service = get_service_model()
 
 
 class ServiceDetailView(CoreDetailView):
