@@ -72,6 +72,6 @@ data/*
 !/data/.gitkeep
 bin/*
 !/bin/.gitkeep
-logs/
+logs/*
 !logs/.gitkeep
 

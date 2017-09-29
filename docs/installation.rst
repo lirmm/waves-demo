@@ -45,7 +45,7 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
 
     1.2 Set up database:
         - Setup default log dir: ``(.venv)[waves_dir]/src/$ mkdir ..logs``
-        - Setup default data dir: ``(.venv)[waves_dir]/src/$ mkdir ..data``
+        - Setup default data dir (if not exists): ``(.venv)[waves_dir]/src/$ mkdir ..data``
         - Check parameters with: ``(.venv)[waves_dir]/src/$ ./manage.py check`` (pip install any missing dependencies)
         - See your configuration with: ``(.venv)[waves_dir]/src/$ ./manage.py waves config``
 
