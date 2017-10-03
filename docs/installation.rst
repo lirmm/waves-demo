@@ -47,13 +47,16 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
         - Check parameters with: ``(.venv)[waves_dir]/src/$ ./manage.py check`` (pip install any missing dependencies)
         - See your configuration with: ``(.venv)[waves_dir]/src/$ ./manage.py waves config``
         - If no setup, default database is used ~/[waves_dir]/waves.sample.sqlite3
-            - Super user is demo@demo.fr / password demodemo
 
-        1.2.1: Setup your database connection string:
+        1.2.1: Setup your database connection string (if not using sqlite default)
             - Create local.env (copy from local.env.sample located in waves_demo/settings/)
             - Setup line corresponding to your needs (DATABASE_URL)
             - Create your database: ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
             - Create Superadmin user: ``(.venv)[waves_dir]/src/$ ./manage.py createsuperuser``
+
+        12.2.: Load sample data into your database:
+            - Create your database: ``(.venv)[waves_dir]/src/$ ./manage.py loaddata demo/fixtures/samples/sample_data.json``
+
 
     1.3 Test your server:
         - ``(.venv)[waves_dir]/src/$ ./manage.py runserver [ServerIP:ServerPort] --insecure``
