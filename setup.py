@@ -42,7 +42,6 @@ setup(
         'django==1.11.5',
         'django-admin-sortable2==0.6.10',
         'django-bootstrap_themes==3.3.6',
-        'django-constance==2.0.0',
         'django-countries==4.1',
         'django-crispy-forms==1.6.1',
         'easy_thumbnails==2.3',
