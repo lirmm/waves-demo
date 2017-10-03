@@ -64,7 +64,7 @@ Thumbs.db
 Desktop.ini
 
 # Project settings
-*.sav.sqlite3
+*.sqlite3
 .venv/
 staticfiles/
 local.env
