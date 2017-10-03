@@ -38,4 +38,4 @@ radical.utils==0.45
 requests==2.14.2
 saga-python==0.45.1
 six==1.10.0
--e git+https://github.com/lirmm/waves-core.git#egg=waves
+waves-core==1.1.2

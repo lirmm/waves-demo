@@ -39,6 +39,7 @@ setup(
     maintainer='LIRMM - MAB Laboratory - France',
     maintainer_email='vincent.lefort@lirmm.fr',
     install_requires=[
+        'django==1.11.5',
         'django-admin-sortable2==0.6.10',
         'django-bootstrap_themes==3.3.6',
         'django-constance==2.0.0',
@@ -50,8 +51,9 @@ setup(
     ],
     classifiers=[
         'Environment :: Web Environment',
-        'Framework :: Django',
-        'Framework :: Django :: 1.9.8',
+        'Framework :: Django :: 1.11',
+        'Framework :: Django :: 1.10',
+        'Framework :: Django :: 1.9',
         'Development Status :: 1 - Dev/Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GPLv3 License',
