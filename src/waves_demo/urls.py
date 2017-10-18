@@ -29,8 +29,8 @@ urlpatterns = [
     url(r'^accounts/', include('registration.backends.hmac.urls')),
     url(r'^about$', TemplateView.as_view(template_name='about.html'), name='about'),
     url(r'^rest$', TemplateView.as_view(template_name='rest/rest_api.html'), name='rest_services'),
-    url(r'^wcore', include('waves.wcore.urls', namespace='wcore')),
-    url(r'^waves/api', include('waves.wcore.api.urls', namespace='wapi')),
+    url(r'^waves/admin/', include('waves.wcore.urls', namespace='wcore')),
+    url(r'^waves/api/', include('waves.wcore.api.urls', namespace='wapi')),
     url(r'^user/', include(profiles.urls, namespace='profiles')),
     url(r'^jet/', include('jet.urls', 'jet')),  # Django JET URLS
     url(r'^jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS

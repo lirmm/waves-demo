@@ -47,17 +47,24 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'propagate': True,
-            'level': 'WARNING',
+            'level': 'ERROR',
+        },
+        'radical.saga': {
+            'handlers': ['console'],
+            'level': 'ERROR',
         },
         'waves': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
         },
-        'waves.management': {
+        'waves.adaptors.galaxy.importers': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False
+        },
+        'waves.daemon': {
             'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': True,
         },
     }
 }

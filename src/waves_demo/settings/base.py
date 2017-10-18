@@ -143,6 +143,15 @@ WAVES_CORE = {
     'ALLOW_JOB_SUBMISSION': True,
     'APP_NAME': 'WAVES DEMO',
     'SERVICES_EMAIL': 'services@atgc-montpellier.fr',
+    'ADAPTORS_CLASSES': (
+        'waves.wcore.adaptors.shell.SshShellAdaptor',
+        'waves.wcore.adaptors.cluster.LocalClusterAdaptor',
+        'waves.wcore.adaptors.shell.SshKeyShellAdaptor',
+        'waves.wcore.adaptors.shell.LocalShellAdaptor',
+        'waves.wcore.adaptors.cluster.SshClusterAdaptor',
+        'waves.wcore.adaptors.cluster.SshKeyClusterAdaptor',
+        'waves.adaptors.galaxy.tool.GalaxyJobAdaptor',
+    ),
 }
 WCORE_SERVICE_MODEL = 'demo.DemoWavesService'
 

@@ -1,3 +1,9 @@
+Version 1.3 - 2017-10-18
+------------------------
+
+    - Added Waves-Galaxy adaptors in app
+
+
 Version 1.2 - 2017-09-30
 ------------------------
 
