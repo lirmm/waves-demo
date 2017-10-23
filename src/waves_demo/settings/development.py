@@ -59,7 +59,7 @@ LOGGING = {
         },
         'waves.adaptors.galaxy.importers': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False
         },
         'waves.daemon': {
