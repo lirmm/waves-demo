@@ -42,6 +42,14 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
+        'daemon_log_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': join(LOG_ROOT, 'daemon.log'),
+            'formatter': 'verbose',
+            'backupCount': 10,
+            'maxBytes': 1024 * 1024 * 5
+        },
+
     },
 
     'loggers': {
@@ -62,8 +70,8 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False
         },
-        'waves.daemon': {
-            'handlers': ['console'],
+        'waves': {
+            'handlers': ['console', 'daemon_log_file'],
             'level': 'DEBUG',
         },
     }
