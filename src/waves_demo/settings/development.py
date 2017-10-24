@@ -78,6 +78,9 @@ LOGGING = {
 }
 logging.config.dictConfig(LOGGING)
 
+WAVES_CORE['JOB_LOG_LEVEL'] = logging.DEBUG
+WAVES_CORE['SRV_IMPORT_LOG_LEVEL'] = logging.DEBUG
+
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
