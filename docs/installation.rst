@@ -17,18 +17,21 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
             - A web server: `Apache <https://httpd.apache.org/>`_ or `NGINX <https://nginx.org/>`_
             - A database backend (Mysql or Postgres) but by default WAVES runs with sqlite
 
-    0.1 Get the sources:
+    0.1 Install From sources:
         - Clone WAVES repository:
             git clone https://github.com/lirmm/waves-demo/ [waves_dir]
 
-        - Download archive:
+        - Download / extract archive:
             Download archive at https://github.com/lirmm/waves-demo/ and uncompress the archive in your destination directory ([waves_dir])
 
-    0.2 Create python virtual environment:
         - ``$ cd [waves_dir]``
         - ``[waves_dir]$ virtualenv .venv``
         - ``[waves_dir]$ source .venv/bin/activate``
-        - ``(.venv)[waves_dir]]$ pip install -r requirements.txt``
+
+        1.1.1 Install requirements :
+            - ``(.venv)[waves_dir]]$ pip install -r requirements.txt``
+
+
 
 1. Install WAVES
 ----------------
