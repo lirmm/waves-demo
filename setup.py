@@ -29,14 +29,12 @@ setup(
     package_dir={'': 'src', },
     url='https://github.com/lirmm/waves-demo',
     license='GPL-v3',
-    author='Marc Chakiachvili, Floreal Cabanattes, Vincent Berry, Anne-Muriel Arigon Chifolleau',
+    author='Marc Chakiachvili, Vincent Lefort, Anne-Muriel Arigon Chifolleau',
     author_email='marc.chakiachvili@gmail.com, '
-                 'floreal.cabanettes@lirmm.fr, '
                  'vincent.lefort@lirmm.fr, '
-                 'vincent.berryr@lirmm.fr, '
                  'anne-muriel.arigon@lirmm.fr',
     description='WebApp for Versatile and Easy bio-informatics Services',
-    maintainer='LIRMM - MAB Laboratory - France',
+    maintainer='LIRMM - ATGC Platform - France',
     maintainer_email='vincent.lefort@lirmm.fr',
     install_requires=[
         'django-authtools==1.5.0',
