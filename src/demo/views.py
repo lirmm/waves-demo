@@ -1,12 +1,11 @@
 from __future__ import unicode_literals
 
-import swapper
 from django.db.models import Prefetch
 from django.views import generic
 
 from demo.models import ServiceCategory
 from waves.wcore.models import get_service_model
-from waves.front.views import ServiceDetailView as CoreDetailView
+from waves.wcore.views.services import ServiceDetailView as CoreDetailView
 
 Service = get_service_model()
 
@@ -26,7 +25,7 @@ class CategoryDetailView(generic.DetailView):
     def get_queryset(self):
         return ServiceCategory.objects.all().prefetch_related(
             Prefetch('category_tools',
-                     queryset=Service.objects.get_web_services(user=self.request.user),
+                     queryset=Service.objects.get_services(user=self.request.user),
                      to_attr="category_public_tools"
                      )
         )
@@ -40,7 +39,7 @@ class CategoryListView(generic.ListView):
     def get_queryset(self):
         return ServiceCategory.objects.all().prefetch_related(
             Prefetch('category_tools',
-                     queryset=Service.objects.get_web_services(user=self.request.user),
+                     queryset=Service.objects.get_services(user=self.request.user),
                      to_attr="category_public_tools"
                      )
         )

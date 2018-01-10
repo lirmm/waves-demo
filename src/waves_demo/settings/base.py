@@ -55,9 +55,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'mptt',
-    'demo',
     'waves.wcore',
-    'waves.front',
+    'demo',
     # WAVES required dependencies
     'adminsortable2',
     'accounts',
@@ -154,6 +153,7 @@ WAVES_CORE = {
     ),
 }
 WCORE_SERVICE_MODEL = 'demo.DemoWavesService'
+WCORE_SUBMISSION_MODEL = 'wcore.Submission'
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',

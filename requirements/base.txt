@@ -1,3 +1,5 @@
+waves-core==1.1.6
+waves-galaxy-adaptors>=1.1.2
 django-authtools==1.5.0
 django-braces==1.11.0
 django-ckeditor==5.2.2
@@ -5,9 +7,9 @@ django-countries==4.5
 django-environ==0.4.4
 django-ipware==1.1.6
 django-jet==1.0.6
+django-mail-templated==2.6.5
 django-mptt==0.8.7
 django-polymorphic-tree==1.4
 django-registration==2.2
+djangorestframework-xml>=1.3.0
 easy-thumbnails==2.4.1
-waves-core==1.1.3
-waves-galaxy==1.1.2
