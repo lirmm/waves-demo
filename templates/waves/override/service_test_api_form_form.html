@@ -1,0 +1,46 @@
+{% extends "waves/services/service_form.html" %}
+{% load staticfiles crispy_forms_tags waves_tags %}
+
+{% block content_main %}
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">This is overridden template for service {{ service.name }} form</h3>
+        </div>
+        <div class="panel-body" id="form-api">
+        </div>
+        <div class="panel-footer">
+            <span class="text-left">
+                <a href="{% url 'wcore:service_details' service.api_name %}">Back to service</a>
+            </span>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $.ajax({
+                type: 'GET',
+                url: 'http://127.0.0.1:8091/waves/api/services/service_a/form',
+                processData: false,
+                contentType: false,
+                async: false,
+                cache: false,
+                success: function (response) {
+                    $('#form-api').html(response);
+                },
+                error: function (error) {
+                    console.error(error.data)
+                }
+            })
+            window.wavesSuccessCallBack = function (response) {
+                alert('this is mine which is called !!!')
+            }
+            window.wavesErrorCallBack = function (error) {
+                console.log("Job submission failed " + error.data)
+            }
+        })
+    </script>
+
+{% endblock scripts %}
