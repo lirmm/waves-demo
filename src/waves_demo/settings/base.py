@@ -77,6 +77,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+
+SESSION_ENGINE="django.contrib.sessions.backends.signed_cookies"
+
 ROOT_URLCONF = 'waves_demo.urls'
 WSGI_APPLICATION = 'waves_demo.wsgi.application'
 LANGUAGE_CODE = 'en-gb'

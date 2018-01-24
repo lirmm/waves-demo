@@ -14,6 +14,11 @@ class ServiceDetailView(CoreDetailView):
     model = Service
     template_name = 'demo/service_details.html'
 
+    def render_to_response(self, context, **response_kwargs):
+        response = super(ServiceDetailView, self).render_to_response(context, **response_kwargs)
+        response.set_cookie('waves_token', 'd8ecf156906d846c799a4cb467fcbdf56abe0f11')
+        return response
+
 
 # Create your views here.
 class CategoryDetailView(generic.DetailView):
