@@ -5,11 +5,14 @@ from django.contrib import admin
 from django.template.defaultfilters import truncatechars
 
 from waves.wcore.admin.services import ServiceAdmin
+from waves.wcore.admin.submissions import ServiceSubmissionAdmin
 from waves.wcore.compat import CompactInline
+from waves.wcore.models import get_service_model, get_submission_model
 from .forms import ServiceMetaForm
 from .models import ServiceMeta, ServiceCategory, DemoWavesService
 
 Service = swapper.load_model("wcore", "Service")
+Submission = swapper.load_model("wcore", "Submission")
 
 
 class ServiceMetaInline(CompactInline):
@@ -32,10 +35,27 @@ class DemoServiceAdmin(ServiceAdmin):
         })
     ]
 
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super(DemoServiceAdmin, self).get_fieldsets(request, obj)
+        if request.user.is_superuser:
+            fieldsets[0][1]['fields'].append('to_delete') if not 'to_delete' in fieldsets[0][1]['fields'] else None
+        return fieldsets
+
+
     def get_inline_instances(self, request, obj=None):
         inline_instances = super(DemoServiceAdmin, self).get_inline_instances(request, obj)
         inline_instances.append(ServiceMetaInline(self.model, self.admin_site))
         return inline_instances
+
+
+class DemoSubmissionAdmin(ServiceSubmissionAdmin):
+    model = Submission
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super(DemoSubmissionAdmin, self).get_fieldsets(request, obj)
+        if request.user.is_superuser:
+            fieldsets[0][1]['fields'].append('to_delete') if not 'to_delete' in fieldsets[0][1]['fields'] else None
+        return fieldsets
 
 
 @admin.register(ServiceCategory)

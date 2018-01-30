@@ -1,10 +1,11 @@
 from __future__ import unicode_literals
 
 from django.db import models
+import swapper
 from waves.wcore.models.base import Ordered, Described
-from waves.wcore.models.services import BaseService
+from waves.wcore.models.services import BaseService, BaseSubmission
 
-__all__ = ['ServiceMeta', 'ServiceCategory', 'DemoWavesService']
+__all__ = ['ServiceMeta', 'ServiceCategory', 'DemoWavesService', 'DemoWavesSubmission']
 
 
 class ServiceCategory(Ordered, Described):
@@ -26,6 +27,13 @@ class ServiceCategory(Ordered, Described):
 
 class DemoWavesService(BaseService):
     category = models.ForeignKey(ServiceCategory, on_delete=models.SET_NULL, null=True, related_name='category_tools')
+    to_delete = models.BooleanField("Automatic deletion", default=True)
+
+
+class DemoWavesSubmission(BaseSubmission):
+    class Meta:
+        ordering = ('order',)
+    to_delete = models.BooleanField("Automatic deletion", default=True)
 
 
 # Create your models here.
@@ -74,7 +82,7 @@ class ServiceMeta(Ordered, Described):
     title = models.CharField('Title', max_length=255, blank=True, null=True)
     value = models.CharField('Link', max_length=500, blank=True, null=True)
     is_url = models.BooleanField('Is a url', editable=False, default=False)
-    service = models.ForeignKey(DemoWavesService, on_delete=models.CASCADE, related_name='metas')
+    service = models.ForeignKey(swapper.get_model_name('wcore', 'Service'), on_delete=models.CASCADE, related_name='metas')
 
     def duplicate(self, service):
         """ Duplicate a Service Meta"""

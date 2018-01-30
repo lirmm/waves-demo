@@ -23,10 +23,10 @@
             $(document).ready(function () {
                 $.ajax({
                     type: 'GET',
-                    url: 'http://127.0.0.1:8091/waves/api/services/service_a/form',
+                    url: 'http://127.0.0.1:8099/waves/api/services/phy_ml/form',
+                    //url: 'http://127.0.0.1:8091/waves/api/services/service_a/submissions/test/form',
                     processData: false,
                     contentType: false,
-                    async: false,
                     cache: false,
                     success: function (response) {
                         $('#form-api').html(response);
@@ -35,21 +35,44 @@
                         console.error(error.data)
                     }
                 })
-                var wavesSuccessCallBack = function (response) {
-                    alert('this is mine which is called !!!');
+                var getCookie = function (cname) {
+                    var name = cname + "=";
+                    var decodedCookie = decodeURIComponent(document.cookie);
+                    var ca = decodedCookie.split(';');
+                    for (var i = 0; i < ca.length; i++) {
+                        var c = ca[i];
+                        while (c.charAt(0) == ' ') {
+                            c = c.substring(1);
+                        }
+                        if (c.indexOf(name) == 0) {
+                            return c.substring(name.length, c.length);
+                        }
+                    }
+                    return "";
                 }
-                var wavesErrorCallBack = function (error) {
-                    console.log("Job submission failed " + error.data);
-                }
-                $("form.submit-ajax").on('submit', function (e) {
-                    e.preventDefault();
-                    alert('getcookie' + getCookie('waves_token'))
-                    submit_form($(this)).then(function (response) {
-                        wavesSuccessCallBack(response);
-                    }, function (err) {
-                        wavesErrorCallBack(err);
+                var token = getCookie('waves_token');
+                $(document).on('submit', "form.submit-ajax", function (event) {
+                    document.submit_waves_api_form(event.target, token).then(function (response) {
+                        console.log(response)
+                        console.info('Promised job returned job creation ['+ response.slug + ']');
+                    }, function (error) {
+                        console.log(error)
+                        if (error.responseJSON) {
+                            alert('Job Submission failed [status code:'+ error.status +'] ' + error.responseJSON.detail);
+                        } else {
+                            alert('Job Submission failed [status code:'+ error.status +']');
+                        }
                     })
                 });
+                //window.submit_waves_api_form.
+                window.wavesSuccessCallBack = function (response) {
+                    alert('this is mine which is called !!!' + response.slug);
+                }
+                window.wavesErrorCallBack = function (error) {
+                    console.log(error)
+                    alert('Job Submission failed ' + error.responseJSON.detail)
+                }
+
             })
         })(jQuery || django.jQuery);
     </script>

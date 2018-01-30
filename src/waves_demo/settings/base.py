@@ -43,13 +43,13 @@ STATIC_ROOT = join(BASE_DIR, 'staticfiles')
 
 # Application definition
 INSTALLED_APPS = (
+    'polymorphic_tree',
     'django.contrib.staticfiles',
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'authtools',
     'jet',
     'jet.dashboard',
-    'polymorphic_tree',
     'polymorphic',
     'django.contrib.admin',
     'django.contrib.sessions',
@@ -66,6 +66,7 @@ INSTALLED_APPS = (
     'mail_templated',
     'profiles',
     'rest_framework',
+    'rest_framework.authtoken'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -100,7 +101,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'profiles.auth.APIKeyAuthBackend',
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PARSER_CLASSES': (
@@ -125,6 +126,7 @@ COUNTRIES_FIRST = ['FR', 'GB', 'US', 'DE']
 JET_SIDE_MENU_COMPACT = True
 # MAILS
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 CKEDITOR_CONFIGS = {
     'default': {
         'height': 150,
@@ -152,11 +154,11 @@ WAVES_CORE = {
         'waves.wcore.adaptors.shell.LocalShellAdaptor',
         'waves.wcore.adaptors.cluster.SshClusterAdaptor',
         'waves.wcore.adaptors.cluster.SshKeyClusterAdaptor',
-        'waves.adaptors.galaxy.tool.GalaxyJobAdaptor',
+        # 'waves.adaptors.galaxy.tool.GalaxyJobAdaptor',
     ),
 }
 WCORE_SERVICE_MODEL = 'demo.DemoWavesService'
-WCORE_SUBMISSION_MODEL = 'wcore.Submission'
+WCORE_SUBMISSION_MODEL = 'demo.DemoWavesSubmission'
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',

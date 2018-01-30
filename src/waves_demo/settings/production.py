@@ -6,7 +6,7 @@ import environ
 import sys
 import warnings
 
-WAVES_ENV_FILE = join(dirname(__file__), 'local.env')
+WAVES_ENV_FILE = join(dirname(__file__), 'local.prod.env')
 if not isfile(WAVES_ENV_FILE):
     WAVES_ENV_FILE = join(dirname(__file__), 'local.sample.env')
 
@@ -20,7 +20,7 @@ DEBUG = env.bool('DEBUG', False)
 
 # DATABASE configuration
 DATABASES = {
-    'default': env.db(default='sqlite:///' + BASE_DIR + '/waves.sample.sqlite3'),
+    'default': env.db(default='sqlite:///' + BASE_DIR + '/waves.prod.sqlite3'),
 }
 # patch to use in memory database for testing
 if 'test' in sys.argv:

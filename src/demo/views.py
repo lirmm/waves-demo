@@ -5,7 +5,7 @@ from django.views import generic
 
 from demo.models import ServiceCategory
 from waves.wcore.models import get_service_model
-from waves.wcore.views.services import ServiceDetailView as CoreDetailView
+from waves.wcore.views.jobs import JobSubmissionView as CoreDetailView
 
 Service = get_service_model()
 
@@ -16,7 +16,8 @@ class ServiceDetailView(CoreDetailView):
 
     def render_to_response(self, context, **response_kwargs):
         response = super(ServiceDetailView, self).render_to_response(context, **response_kwargs)
-        response.set_cookie('waves_token', 'd8ecf156906d846c799a4cb467fcbdf56abe0f11')
+        print "set cookie !!!"
+        response.set_cookie('waves_token', 'ee1480df1b8eba32926cab1c86de08d023646fa4')
         return response
 
 

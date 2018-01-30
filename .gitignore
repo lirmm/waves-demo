@@ -64,7 +64,6 @@ Thumbs.db
 Desktop.ini
 
 # Project settings
-*.sqlite3
 .venv/
 staticfiles/
 local.env
@@ -74,4 +73,5 @@ bin/*
 !/bin/.gitkeep
 logs/*
 !logs/.gitkeep
-
+waves_demo.dev.sqlite3
+**/local.prod.env

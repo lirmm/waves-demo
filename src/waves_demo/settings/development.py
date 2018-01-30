@@ -10,7 +10,7 @@ SECRET_KEY = 'dW&j9:DE.tOv!i2)&8Sv>K7"H:l$3mVFYB9)}.Q&d5]C3Ln;*f'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR + '/waves.sample.sqlite3',
+        'NAME': BASE_DIR + '/waves_demo.dev.sqlite3',
     }
 }
 REGISTRATION_SALT = '4&`cK(7Jza"Nj^1{PN<gtZs5pRaS9'
