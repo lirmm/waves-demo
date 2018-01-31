@@ -1,3 +1,16 @@
+Version 1.1.3 - 2017-01-31
+--------------------------
+
+    - First production release
+    - [Updated] - Dependency to WAVES-core 1.1.6
+    - [Updated] - Dependency to WAVES-galaxy 1.1.2
+    - [Added] Poc for :
+        - extending Service model
+        - extending Submission model
+        - extending service form pages
+    - [Added] REST form API used for specific service
+
+
 Version 1.1.2 - 2017-10-18
 ------------------------
 

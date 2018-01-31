@@ -17,18 +17,25 @@ import sys
 from distutils.sysconfig import get_python_lib
 
 import django
-from mock import Mock as MagicMock
+# from mock import Mock as MagicMock
+sys.path.append(os.path.abspath('.'))
+sys.path.append(os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../src'))
+sys.path.append(get_python_lib())
+os.environ['DJANGO_SETTINGS_MODULE'] = 'waves_demo.settings.production'
+# settings.configure()
+django.setup()
 
-import waves.demo as waves_demo
+import demo as waves_demo
 
-
+"""
 class Mock(MagicMock):
     @classmethod
     def __getattr__(cls, name):
             return Mock()
-
-MOCK_MODULES = ['Pillow', 'curl', 'mysql-python', 'pycurl', 'argparse']
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+"""
+#MOCK_MODULES = ['Pillow', 'curl', 'mysql-python', 'pycurl', 'argparse']
+#sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
