@@ -154,7 +154,7 @@ WAVES_CORE = {
         'waves.wcore.adaptors.shell.LocalShellAdaptor',
         'waves.wcore.adaptors.cluster.SshClusterAdaptor',
         'waves.wcore.adaptors.cluster.SshKeyClusterAdaptor',
-        # 'waves.adaptors.galaxy.tool.GalaxyJobAdaptor',
+        'waves.adaptors.galaxy.tool.GalaxyJobAdaptor',
     ),
 }
 WCORE_SERVICE_MODEL = 'demo.DemoWavesService'

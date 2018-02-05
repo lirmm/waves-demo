@@ -48,8 +48,8 @@ setup(
         'django-polymorphic-tree==1.4',
         'django-registration==2.2',
         'easy_thumbnails==2.3',
-        'waves-core>=1.1.3',
-        'waves-galaxy==1.1',
+        'waves-core>=1.1.8',
+        'waves-galaxy-adaptors>=1.1.3',
     ],
     classifiers=[
         'Environment :: Web Environment',

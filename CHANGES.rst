@@ -1,4 +1,4 @@
-Version 1.1.3 - 2017-01-31
+Version 1.1.3 - 2017-007-02
 --------------------------
 
     - First production release
