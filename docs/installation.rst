@@ -28,18 +28,18 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
         - ``[waves_dir]$ virtualenv .venv``
         - ``[waves_dir]$ source .venv/bin/activate``
 
-        1.1.1 Install requirements :
+        1.1.1 Install requirements:
             - ``(.venv)[waves_dir]]$ pip install -r requirements.txt``
 
 
-
-1. Install WAVES
-----------------
+1. Install WAVES-Demo
+---------------------
 
     1.1 Configuration files:
         - WAVES env configuration file:
             - ``(.venv)[waves_dir]$ cd src/waves_demo/settings/``
             - ``(.venv)[waves_dir]/src/waves_demo/settings$ cp local.sample.env local.env``
+            - FOR PRODUCTION ENVIRONMENT: create another file local.prod.env with your production information
             - minimal setup requires these parameters:
                 - SECRET_KEY=your-secret-key-to-keep-secret
                 - REGISTRATION_SALT=generate-your-key
@@ -54,6 +54,12 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
         1.2.1: Setup your database connection string (if not using sqlite default)
             - Create local.env (copy from local.env.sample located in waves_demo/settings/)
             - Setup line corresponding to your needs (DATABASE_URL)
+
+        1.2.2: Check everything is well.
+            - ``(.venv)[waves_dir]/src/$ ./manage.py check``
+
+        1.2.3:
+            - Create wcore migration files: ``(.venv)[waves_dir]/src/$ ./manage.py makemigrations wcore``
             - Create your database: ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
             - Create Superadmin user: ``(.venv)[waves_dir]/src/$ ./manage.py createsuperuser``
 

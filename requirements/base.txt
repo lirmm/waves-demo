@@ -1,5 +1,6 @@
-waves-core==1.1.6
+waves-core>=1.1.6
 waves-galaxy-adaptors>=1.1.2
+django-admin-sortable2==0.6.19
 django-authtools==1.5.0
 django-braces==1.11.0
 django-ckeditor==5.2.2
