@@ -133,7 +133,7 @@
     }
   },
   {
-    "model": "demo.demosubmission",
+    "model": "demo.demowavessubmission",
     "pk": 1,
     "fields": {
       "created": "2017-09-15T14:44:23.164Z",

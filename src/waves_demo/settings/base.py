@@ -8,10 +8,6 @@ from os.path import dirname, join, isfile
 
 LOGGING_CONFIG = None
 BASE_DIR = dirname(dirname(dirname(dirname(__file__))))
-STATIC_URL = '/static/'
-MEDIA_ROOT = join(BASE_DIR, 'src', 'media')
-
-MEDIA_URL = "/media/"
 
 TEMPLATES = [
     {
@@ -38,9 +34,6 @@ TEMPLATES = [
 # LOG FILE ROOC
 LOG_ROOT = BASE_DIR + '/logs'
 
-STATIC_ROOT = join(BASE_DIR, 'staticfiles')
-
-
 # Application definition
 INSTALLED_APPS = (
     'polymorphic_tree',
@@ -60,6 +53,7 @@ INSTALLED_APPS = (
     # WAVES required dependencies
     'adminsortable2',
     'accounts',
+    'ckeditor',
     'django_countries',
     'crispy_forms',
     'easy_thumbnails',
@@ -123,9 +117,20 @@ FILE_UPLOAD_PERMISSIONS = 0o775
 # Django countries first items
 COUNTRIES_FIRST = ['FR', 'GB', 'US', 'DE']
 
+# STATICS
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    join(BASE_DIR, "static"),
+]
+MEDIA_ROOT = join(BASE_DIR, 'src', 'media')
+MEDIA_URL = "/media/"
+STATIC_ROOT = join(BASE_DIR, 'staticfiles')
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)
+
 JET_SIDE_MENU_COMPACT = True
-# MAILS
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 CKEDITOR_CONFIGS = {
     'default': {
@@ -140,7 +145,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 ACCOUNT_ACTIVATION_DAYS = 7
 
-
+# WAVES
 WAVES_CORE = {
     'ACCOUNT_ACTIVATION_DAYS': 14,
     'ADMIN_EMAIL': 'admin_waves@atgc-montpellier.fr',
@@ -148,19 +153,24 @@ WAVES_CORE = {
     'APP_NAME': 'WAVES DEMO',
     'SERVICES_EMAIL': 'services@atgc-montpellier.fr',
     'ADAPTORS_CLASSES': (
-        'waves.wcore.adaptors.shell.SshShellAdaptor',
-        'waves.wcore.adaptors.cluster.LocalClusterAdaptor',
-        'waves.wcore.adaptors.shell.SshKeyShellAdaptor',
-        'waves.wcore.adaptors.shell.LocalShellAdaptor',
-        'waves.wcore.adaptors.cluster.SshClusterAdaptor',
-        'waves.wcore.adaptors.cluster.SshKeyClusterAdaptor',
-        'waves.adaptors.galaxy.tool.GalaxyJobAdaptor',
+        'demo.adaptors.SshShellAdaptor',
+        'demo.adaptors.LocalClusterAdaptor',
+        'demo.adaptors.SshKeyShellAdaptor',
+        'demo.adaptors.LocalShellAdaptor',
+        'demo.adaptors.SshClusterAdaptor',
+        'demo.adaptors.SshKeyClusterAdaptor',
+        'demo.adaptors.GalaxyJobAdaptor',
     ),
 }
 WCORE_SERVICE_MODEL = 'demo.DemoWavesService'
 WCORE_SUBMISSION_MODEL = 'demo.DemoWavesSubmission'
 
-STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-)
+
+# MAILS
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 25
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_USE_TLS = False
+DEFAULT_FROM_EMAIL = 'WAVES <waves-demo@atgc-montpellier.fr>'
