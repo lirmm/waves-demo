@@ -1,7 +1,11 @@
-Version 1.1.3 - 2017-007-02
+=========
+CHANGELOG
+=========
+
+Version 1.1.3 - 2017-02-07
 --------------------------
 
-    - First production release
+    - [RELEASE] - First production release
     - [Updated] - Dependency to WAVES-core 1.1.6
     - [Updated] - Dependency to WAVES-galaxy 1.1.2
     - [Added] Poc for :
@@ -9,6 +13,7 @@ Version 1.1.3 - 2017-007-02
         - extending Submission model
         - extending service form pages
     - [Added] REST form API used for specific service
+    - [UPDATED] - Demo adaptors are fully functional for configuration, but not really execute jobs for obvious security reason
 
 
 Version 1.1.2 - 2017-10-18
