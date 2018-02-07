@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% load staticfiles %}
-{% load crispy_forms_tags waves_tags %}
+{% load crispy_forms_tags demo_tags %}
 
 {% block title %}{{ block.super }}Home{% endblock %}
 
@@ -17,7 +17,7 @@
 
                 <div class="col-md-8 col-sm-8">
                     <h1>{% include "_brandname.html" %}</h1>
-                    <p>WAVES - DEMO APPLICATION - v{% get_app_version  %}</p>
+                    <p>WAVES - DEMO APPLICATION - v{% get_demo_version  %}</p>
                 </div>
                 <div class="col-md-4 col-sm-4">
 
