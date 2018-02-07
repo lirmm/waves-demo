@@ -41,7 +41,7 @@ TEMPLATES[0].update({"APP_DIRS": False})
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
             'format': "[%(asctime)s] %(levelname)s [%(pathname)s:%(lineno)s] %(message)s",
@@ -49,6 +49,15 @@ LOGGING = {
         },
         'simple': {
             'format': '%(levelname)s [%(pathname)s] %(message)s'
+        },
+    },
+    'filters': {
+        'special': {
+            '()': 'project.logging.SpecialFilter',
+            'foo': 'bar',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
         },
     },
     'handlers': {
@@ -66,11 +75,22 @@ LOGGING = {
             'backupCount': 10,
             'maxBytes': 1024 * 1024 * 5
         },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'filters': ['special']
+        }
     },
     'loggers': {
         'django': {
             'handlers': ['waves_log_file'],
             'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
         },
         'radical.saga': {
             'handlers': ['waves_log_file'],
@@ -78,7 +98,8 @@ LOGGING = {
         },
         'waves': {
             'handlers': ['waves_log_file'],
-            'level': 'ERROR',
+            'level': 'WARNING',
+            'propagate': False
         },
         'waves.daemon': {
             'handlers': ['waves_log_file'],
