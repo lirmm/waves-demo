@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from waves_demo.settings.base import *             # NOQA
+from waves_demo.settings.base import *  # NOQA
 import logging.config
 import environ
 import sys
@@ -9,7 +9,6 @@ import warnings
 WAVES_ENV_FILE = join(dirname(__file__), 'local.prod.env')
 if not isfile(WAVES_ENV_FILE):
     WAVES_ENV_FILE = join(dirname(__file__), 'local.sample.env')
-
 
 # Django main environment file (issued from local.en
 env = environ.Env()
@@ -58,14 +57,14 @@ LOGGING = {
             'filename': join(LOG_ROOT, 'waves.log'),
             'formatter': 'verbose',
             'backupCount': 10,
-            'maxBytes': 1024*1024*5
+            'maxBytes': 1024 * 1024 * 5
         },
         'daemon_log_file': {
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': join(LOG_ROOT, 'daemon.log'),
             'formatter': 'verbose',
             'backupCount': 10,
-            'maxBytes': 1024*1024*5
+            'maxBytes': 1024 * 1024 * 5
         },
     },
     'loggers': {
@@ -88,4 +87,5 @@ LOGGING = {
     }
 }
 
-EMAIL_CONFIG=env.email_url('EMAIL_URL', default='smtp://:@localhost:25')
+EMAIL_CONFIG = env.email_url('EMAIL_URL', default='smtp://dummyuser@dummyhost:dummypassword@localhost:25')
+vars().update(EMAIL_CONFIG)
