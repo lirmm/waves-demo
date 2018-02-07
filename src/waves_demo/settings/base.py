@@ -117,6 +117,9 @@ FILE_UPLOAD_PERMISSIONS = 0o775
 # Django countries first items
 COUNTRIES_FIRST = ['FR', 'GB', 'US', 'DE']
 
+ACCOUNT_ACTIVATION_DAYS = 7 # One-week activation window; you may, of course, use a different value.
+
+
 # STATICS
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
@@ -164,7 +167,5 @@ WAVES_CORE = {
 }
 WCORE_SERVICE_MODEL = 'demo.DemoWavesService'
 WCORE_SUBMISSION_MODEL = 'demo.DemoWavesSubmission'
-
-
 # MAILS
 DEFAULT_FROM_EMAIL = 'WAVES <waves-demo@atgc-montpellier.fr>'

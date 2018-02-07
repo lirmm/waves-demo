@@ -4,6 +4,8 @@ from waves_demo.settings.base import *  # NOQA
 import environ
 import sys
 import warnings
+import logging
+logging.basicConfig()
 
 WAVES_ENV_FILE = join(dirname(__file__), 'local.prod.env')
 if not isfile(WAVES_ENV_FILE):
@@ -55,9 +57,6 @@ LOGGING = {
         },
     },
     'filters': {
-        'special': {
-            '()': 'project.logging.SpecialFilter',
-        },
         'require_debug_true': {
             '()': 'django.utils.log.RequireDebugTrue',
         },
@@ -85,37 +84,16 @@ LOGGING = {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
             'formatter': 'verbose',
-            'filters': ['special']
+            'filters': ['require_debug_true']
         }
     },
     'loggers': {
         '':{
-            'handlers': ['waves_log_file'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-        'django': {
-            'handlers': ['waves_log_file'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-        'radical.saga': {
-            'handlers': ['waves_log_file'],
-            'level': 'ERROR',
-        },
-        'waves': {
-            'handlers': ['waves_log_file'],
-            'level': 'WARNING',
-            'propagate': False
-        },
-        'waves.daemon': {
-            'handlers': ['waves_log_file'],
+            'handlers': ['console'],
             'level': 'DEBUG',
-        },
+            'propagate': False,
+        }
     }
 }
+
+
