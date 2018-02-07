@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 from waves_demo.settings.base import *  # NOQA
-import logging.config
 import environ
 import sys
 import warnings
@@ -36,6 +35,10 @@ loaders = [
         'django.template.loaders.app_directories.Loader',
     ]),
 ]
+
+EMAIL_CONFIG = env.email_url('EMAIL_URL', default='smtp://dummyuser@dummyhost:dummypassword@localhost:25')
+vars().update(EMAIL_CONFIG)
+
 TEMPLATES[0]['OPTIONS'].update({"loaders": loaders})
 TEMPLATES[0].update({"APP_DIRS": False})
 
@@ -44,7 +47,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': "[%(asctime)s] %(levelname)s [%(pathname)s:%(lineno)s] %(message)s",
+            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
             'datefmt': "%d/%b/%Y %H:%M:%S"
         },
         'simple': {
@@ -54,34 +57,43 @@ LOGGING = {
     'filters': {
         'special': {
             '()': 'project.logging.SpecialFilter',
-            'foo': 'bar',
         },
         'require_debug_true': {
             '()': 'django.utils.log.RequireDebugTrue',
         },
     },
     'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
         'waves_log_file': {
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': join(LOG_ROOT, 'waves.log'),
             'formatter': 'verbose',
             'backupCount': 10,
-            'maxBytes': 1024 * 1024 * 5
+            'maxBytes': 50000
         },
         'daemon_log_file': {
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': join(LOG_ROOT, 'daemon.log'),
             'formatter': 'verbose',
             'backupCount': 10,
-            'maxBytes': 1024 * 1024 * 5
+            'maxBytes': 50000
         },
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'verbose',
             'filters': ['special']
         }
     },
     'loggers': {
+        '':{
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
         'django': {
             'handlers': ['waves_log_file'],
             'level': 'ERROR',
@@ -107,6 +119,4 @@ LOGGING = {
         },
     }
 }
-
-EMAIL_CONFIG = env.email_url('EMAIL_URL', default='smtp://dummyuser@dummyhost:dummypassword@localhost:25')
-vars().update(EMAIL_CONFIG)
+print join(LOG_ROOT, 'waves.log')
