@@ -119,4 +119,3 @@ LOGGING = {
         },
     }
 }
-print join(LOG_ROOT, 'waves.log')
