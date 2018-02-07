@@ -39,8 +39,6 @@ loaders = [
 ]
 TEMPLATES[0]['OPTIONS'].update({"loaders": loaders})
 TEMPLATES[0].update({"APP_DIRS": False})
-# # Reset logging
-LOGGING_CONFIG = None
 
 LOGGING = {
     'version': 1,
@@ -89,4 +87,5 @@ LOGGING = {
         },
     }
 }
-logging.config.dictConfig(LOGGING)
+
+EMAIL_CONFIG=env.email_url('EMAIL_URL', default='smtp://:@localhost:25')
