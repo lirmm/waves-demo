@@ -4,9 +4,6 @@ from waves_demo.settings.base import *  # NOQA
 import environ
 import sys
 import warnings
-import logging
-logging.basicConfig()
-
 WAVES_ENV_FILE = join(dirname(__file__), 'local.prod.env')
 if not isfile(WAVES_ENV_FILE):
     WAVES_ENV_FILE = join(dirname(__file__), 'local.sample.env')
@@ -17,6 +14,7 @@ environ.Env.read_env(WAVES_ENV_FILE)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str('SECRET_KEY')
 DEBUG = env.bool('DEBUG', False)
+DEBUG=True
 
 # DATABASE configuration
 DATABASES = {
@@ -46,7 +44,7 @@ TEMPLATES[0].update({"APP_DIRS": False})
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': True,
     'formatters': {
         'verbose': {
             'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
@@ -84,14 +82,13 @@ LOGGING = {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
             'formatter': 'verbose',
-            'filters': ['require_debug_true']
         }
     },
     'loggers': {
         '':{
             'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': False,
+            'propagate': True,
         }
     }
 }

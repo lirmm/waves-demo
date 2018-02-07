@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 from django.db import models
@@ -24,8 +25,14 @@ class ServiceCategory(Ordered, Described):
     def __str__(self):
         return self.name
 
+    def __unicode__(self):
+        return self.name
 
 class DemoWavesService(BaseService):
+    class Meta:
+        permissions = (
+            ("read_service", "Can read Service"),
+        )
     category = models.ForeignKey(ServiceCategory, on_delete=models.SET_NULL, null=True, related_name='category_tools')
     to_delete = models.BooleanField("Automatic deletion", default=True)
 
@@ -92,4 +99,7 @@ class ServiceMeta(Ordered, Described):
         return self
 
     def __str__(self):
+        return '%s [%s]' % (self.title, self.type)
+
+    def __unicode__(self):
         return '%s [%s]' % (self.title, self.type)

@@ -64,3 +64,6 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return "{}".format(self.user.name)
+
+    def __unicode__(self):
+        return "{}".format(self.user.name)

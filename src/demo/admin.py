@@ -1,6 +1,6 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import swapper
 from django.contrib import admin
 from django.template.defaultfilters import truncatechars
 
@@ -9,10 +9,10 @@ from waves.wcore.admin.submissions import ServiceSubmissionAdmin
 from waves.wcore.compat import CompactInline
 from waves.wcore.models import get_service_model, get_submission_model
 from .forms import ServiceMetaForm
-from .models import ServiceMeta, ServiceCategory, DemoWavesService
+from .models import ServiceMeta, ServiceCategory, DemoWavesService, DemoWavesSubmission
 
-Service = swapper.load_model("wcore", "Service")
-Submission = swapper.load_model("wcore", "Submission")
+Service = get_service_model()
+Submission = get_submission_model()
 
 
 class ServiceMetaInline(CompactInline):
@@ -40,7 +40,6 @@ class DemoServiceAdmin(ServiceAdmin):
         if request.user.is_superuser:
             fieldsets[0][1]['fields'].append('to_delete') if not 'to_delete' in fieldsets[0][1]['fields'] else None
         return fieldsets
-
 
     def get_inline_instances(self, request, obj=None):
         inline_instances = super(DemoServiceAdmin, self).get_inline_instances(request, obj)
@@ -96,3 +95,6 @@ class ServiceCategoryAdmin(admin.ModelAdmin):
 
 admin.site.unregister(Service)
 admin.site.register(DemoWavesService, DemoServiceAdmin)
+
+admin.site.unregister(Submission)
+admin.site.register(DemoWavesSubmission, DemoSubmissionAdmin)
