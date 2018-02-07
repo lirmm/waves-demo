@@ -83,20 +83,8 @@ var RelatedInlinePopup = function () {
             e.preventDefault();
             e.stopPropagation();
             $('#add_submission_input_link').trigger('click');
-            alert ("This is mine !")
             return true;
         });
-        /*
-        $('#inputs-group').find('tr.add-row a').click(function (e) {
-            e.preventDefault();
-            alert ("Here !")
-            $(this).off("click");
-            $(this).on('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                $('#add_submission_input_link').trigger('click');
-            });
-        });*/
         $('#add_submission_input_link').click(function(event){
             event.preventDefault();
             event.stopImmediatePropagation();

@@ -90,8 +90,8 @@ LOGGING = {
     },
     'loggers': {
         '':{
-            'handlers': ['console'],
-            'level': 'DEBUG',
+            'handlers': ['waves_log_file'],
+            'level': 'ERROR',
             'propagate': False,
         },
         'django': {
