@@ -99,7 +99,7 @@ class SshKeyClusterAdaptor(WavesDemoAdaptor, BaseSshKeyClusterAdaptor):
     pass
 
 
-class GalaxyJobAdaptor(WavesDemoAdaptor, BaseGalaxyJobAdaptor, ):
+class GalaxyJobAdaptor(BaseGalaxyJobAdaptor, WavesDemoAdaptor):
     def _prepare_job(self, job):
         """ Mocking job remote preparation """
         return WavesDemoAdaptor._prepare_job(self, job)

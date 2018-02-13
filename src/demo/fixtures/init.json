@@ -1,0 +1,785 @@
+[
+  {
+    "model": "auth.group",
+    "pk": 1,
+    "fields": {
+      "name": "WAVES-ADMIN",
+      "permissions": [
+        [
+          "add_demowavesservice",
+          "demo",
+          "demowavesservice"
+        ],
+        [
+          "change_demowavesservice",
+          "demo",
+          "demowavesservice"
+        ],
+        [
+          "delete_demowavesservice",
+          "demo",
+          "demowavesservice"
+        ],
+        [
+          "add_demowavessubmission",
+          "demo",
+          "demowavessubmission"
+        ],
+        [
+          "change_demowavessubmission",
+          "demo",
+          "demowavessubmission"
+        ],
+        [
+          "delete_demowavessubmission",
+          "demo",
+          "demowavessubmission"
+        ],
+        [
+          "add_servicecategory",
+          "demo",
+          "servicecategory"
+        ],
+        [
+          "change_servicecategory",
+          "demo",
+          "servicecategory"
+        ],
+        [
+          "delete_servicecategory",
+          "demo",
+          "servicecategory"
+        ],
+        [
+          "add_servicemeta",
+          "demo",
+          "servicemeta"
+        ],
+        [
+          "change_servicemeta",
+          "demo",
+          "servicemeta"
+        ],
+        [
+          "delete_servicemeta",
+          "demo",
+          "servicemeta"
+        ],
+        [
+          "add_adaptorinitparam",
+          "wcore",
+          "adaptorinitparam"
+        ],
+        [
+          "add_servicerunparam",
+          "wcore",
+          "adaptorinitparam"
+        ],
+        [
+          "add_submissionrunparam",
+          "wcore",
+          "adaptorinitparam"
+        ],
+        [
+          "change_adaptorinitparam",
+          "wcore",
+          "adaptorinitparam"
+        ],
+        [
+          "change_servicerunparam",
+          "wcore",
+          "adaptorinitparam"
+        ],
+        [
+          "change_submissionrunparam",
+          "wcore",
+          "adaptorinitparam"
+        ],
+        [
+          "delete_adaptorinitparam",
+          "wcore",
+          "adaptorinitparam"
+        ],
+        [
+          "delete_servicerunparam",
+          "wcore",
+          "adaptorinitparam"
+        ],
+        [
+          "delete_submissionrunparam",
+          "wcore",
+          "adaptorinitparam"
+        ],
+        [
+          "add_aparam",
+          "wcore",
+          "aparam"
+        ],
+        [
+          "change_aparam",
+          "wcore",
+          "aparam"
+        ],
+        [
+          "delete_aparam",
+          "wcore",
+          "aparam"
+        ],
+        [
+          "add_booleanparam",
+          "wcore",
+          "booleanparam"
+        ],
+        [
+          "change_booleanparam",
+          "wcore",
+          "booleanparam"
+        ],
+        [
+          "delete_booleanparam",
+          "wcore",
+          "booleanparam"
+        ],
+        [
+          "add_decimalparam",
+          "wcore",
+          "decimalparam"
+        ],
+        [
+          "change_decimalparam",
+          "wcore",
+          "decimalparam"
+        ],
+        [
+          "delete_decimalparam",
+          "wcore",
+          "decimalparam"
+        ],
+        [
+          "add_fileinput",
+          "wcore",
+          "fileinput"
+        ],
+        [
+          "change_fileinput",
+          "wcore",
+          "fileinput"
+        ],
+        [
+          "delete_fileinput",
+          "wcore",
+          "fileinput"
+        ],
+        [
+          "add_fileinputsample",
+          "wcore",
+          "fileinputsample"
+        ],
+        [
+          "change_fileinputsample",
+          "wcore",
+          "fileinputsample"
+        ],
+        [
+          "delete_fileinputsample",
+          "wcore",
+          "fileinputsample"
+        ],
+        [
+          "add_integerparam",
+          "wcore",
+          "integerparam"
+        ],
+        [
+          "change_integerparam",
+          "wcore",
+          "integerparam"
+        ],
+        [
+          "delete_integerparam",
+          "wcore",
+          "integerparam"
+        ],
+        [
+          "add_job",
+          "wcore",
+          "job"
+        ],
+        [
+          "change_job",
+          "wcore",
+          "job"
+        ],
+        [
+          "delete_job",
+          "wcore",
+          "job"
+        ],
+        [
+          "add_jobadminhistory",
+          "wcore",
+          "jobhistory"
+        ],
+        [
+          "add_jobhistory",
+          "wcore",
+          "jobhistory"
+        ],
+        [
+          "change_jobadminhistory",
+          "wcore",
+          "jobhistory"
+        ],
+        [
+          "change_jobhistory",
+          "wcore",
+          "jobhistory"
+        ],
+        [
+          "delete_jobadminhistory",
+          "wcore",
+          "jobhistory"
+        ],
+        [
+          "delete_jobhistory",
+          "wcore",
+          "jobhistory"
+        ],
+        [
+          "add_jobinput",
+          "wcore",
+          "jobinput"
+        ],
+        [
+          "change_jobinput",
+          "wcore",
+          "jobinput"
+        ],
+        [
+          "delete_jobinput",
+          "wcore",
+          "jobinput"
+        ],
+        [
+          "add_joboutput",
+          "wcore",
+          "joboutput"
+        ],
+        [
+          "change_joboutput",
+          "wcore",
+          "joboutput"
+        ],
+        [
+          "delete_joboutput",
+          "wcore",
+          "joboutput"
+        ],
+        [
+          "add_listparam",
+          "wcore",
+          "listparam"
+        ],
+        [
+          "change_listparam",
+          "wcore",
+          "listparam"
+        ],
+        [
+          "delete_listparam",
+          "wcore",
+          "listparam"
+        ],
+        [
+          "add_repeatedgroup",
+          "wcore",
+          "repeatedgroup"
+        ],
+        [
+          "change_repeatedgroup",
+          "wcore",
+          "repeatedgroup"
+        ],
+        [
+          "delete_repeatedgroup",
+          "wcore",
+          "repeatedgroup"
+        ],
+        [
+          "add_runner",
+          "wcore",
+          "runner"
+        ],
+        [
+          "change_runner",
+          "wcore",
+          "runner"
+        ],
+        [
+          "delete_runner",
+          "wcore",
+          "runner"
+        ],
+        [
+          "add_sampledepparam",
+          "wcore",
+          "sampledepparam"
+        ],
+        [
+          "change_sampledepparam",
+          "wcore",
+          "sampledepparam"
+        ],
+        [
+          "delete_sampledepparam",
+          "wcore",
+          "sampledepparam"
+        ],
+        [
+          "add_submissionexitcode",
+          "wcore",
+          "submissionexitcode"
+        ],
+        [
+          "change_submissionexitcode",
+          "wcore",
+          "submissionexitcode"
+        ],
+        [
+          "add_submissionoutput",
+          "wcore",
+          "submissionoutput"
+        ],
+        [
+          "change_submissionoutput",
+          "wcore",
+          "submissionoutput"
+        ],
+        [
+          "delete_submissionoutput",
+          "wcore",
+          "submissionoutput"
+        ],
+        [
+          "add_textparam",
+          "wcore",
+          "textparam"
+        ],
+        [
+          "change_textparam",
+          "wcore",
+          "textparam"
+        ],
+        [
+          "delete_textparam",
+          "wcore",
+          "textparam"
+        ]
+      ]
+    }
+  },
+  {
+    "model": "demo.servicecategory",
+    "pk": 1,
+    "fields": {
+      "order": 0,
+      "description": "<p><br />\r\nHtml styles short description</p>",
+      "short_description": "Short description",
+      "name": "Sample Service Category",
+      "ref": null,
+      "parent": null
+    }
+  },
+  {
+    "model": "demo.demowavessubmission",
+    "pk": 3,
+    "fields": {
+      "created": "2018-02-06T13:51:58.819Z",
+      "updated": "2018-02-06T14:59:36.119Z",
+      "order": 0,
+      "slug": "5ebc7af7-ecb7-49a4-a15f-22c2655073e0",
+      "api_name": "default",
+      "binary_file": null,
+      "runner": null,
+      "service": 3,
+      "availability": 1,
+      "name": "default",
+      "to_delete": true
+    }
+  },
+  {
+    "model": "demo.demowavessubmission",
+    "pk": 5,
+    "fields": {
+      "created": "2018-02-06T14:57:12.327Z",
+      "updated": "2018-02-06T15:18:19.553Z",
+      "order": 1,
+      "slug": "b55f9046-9f49-4453-ab36-76841b6ecaa7",
+      "api_name": "remote",
+      "binary_file": null,
+      "runner": null,
+      "service": 3,
+      "availability": 1,
+      "name": "remote",
+      "to_delete": true
+    }
+  },
+  {
+    "model": "demo.demowavessubmission",
+    "pk": 6,
+    "fields": {
+      "created": "2018-02-06T15:53:28.760Z",
+      "updated": "2018-02-06T15:55:22.046Z",
+      "order": 2,
+      "slug": "f6f7ae93-229c-4d9e-92af-7b91c8e3dc50",
+      "api_name": "remote_sge",
+      "binary_file": null,
+      "runner": null,
+      "service": 3,
+      "availability": 1,
+      "name": "remote_sge",
+      "to_delete": true
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 42,
+    "fields": {
+      "name": "protocol",
+      "value": "fork",
+      "crypt": false,
+      "prevent_override": true,
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "object_id": 2
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 43,
+    "fields": {
+      "name": "host",
+      "value": "localhost",
+      "crypt": false,
+      "prevent_override": true,
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "object_id": 2
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 44,
+    "fields": {
+      "name": "command",
+      "value": "mock_command",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "object_id": 2
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 48,
+    "fields": {
+      "name": "command",
+      "value": "echo",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "demo",
+        "demowavesservice"
+      ],
+      "object_id": 3
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 91,
+    "fields": {
+      "name": "command",
+      "value": "mock_command",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "demo",
+        "demowavessubmission"
+      ],
+      "object_id": 3
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 92,
+    "fields": {
+      "name": "command",
+      "value": "echo",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "demo",
+        "demowavessubmission"
+      ],
+      "object_id": 5
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 109,
+    "fields": {
+      "name": "command",
+      "value": "echo",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "demo",
+        "demowavessubmission"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.runner",
+    "pk": 2,
+    "fields": {
+      "description": "",
+      "short_description": "",
+      "clazz": "demo.adaptors.LocalShellAdaptor",
+      "binary_file": null,
+      "name": "Local Shell",
+      "enabled": true
+    }
+  },
+  {
+    "model": "wcore.submissionexitcode",
+    "pk": 5,
+    "fields": {
+      "exit_code": 0,
+      "message": "Process exit normally",
+      "submission": 3,
+      "is_error": false
+    }
+  },
+  {
+    "model": "wcore.submissionexitcode",
+    "pk": 6,
+    "fields": {
+      "exit_code": 1,
+      "message": "Process exit error",
+      "submission": 3,
+      "is_error": true
+    }
+  },
+  {
+    "model": "wcore.submissionexitcode",
+    "pk": 9,
+    "fields": {
+      "exit_code": 0,
+      "message": "Process exit normally",
+      "submission": 5,
+      "is_error": false
+    }
+  },
+  {
+    "model": "wcore.submissionexitcode",
+    "pk": 10,
+    "fields": {
+      "exit_code": 1,
+      "message": "Process exit error",
+      "submission": 5,
+      "is_error": true
+    }
+  },
+  {
+    "model": "wcore.submissionexitcode",
+    "pk": 11,
+    "fields": {
+      "exit_code": 0,
+      "message": "Process exit normally",
+      "submission": 6,
+      "is_error": false
+    }
+  },
+  {
+    "model": "wcore.submissionexitcode",
+    "pk": 12,
+    "fields": {
+      "exit_code": 1,
+      "message": "Process exit error",
+      "submission": 6,
+      "is_error": true
+    }
+  },
+  {
+    "model": "wcore.aparam",
+    "pk": 6,
+    "fields": {
+      "polymorphic_ctype": [
+        "wcore",
+        "textparam"
+      ],
+      "order": 1,
+      "api_name": "etes",
+      "label": "test_input",
+      "name": "etes",
+      "multiple": false,
+      "help_text": "",
+      "submission": 3,
+      "required": true,
+      "default": null,
+      "cmd_format": 4,
+      "edam_formats": null,
+      "edam_datas": null,
+      "repeat_group": null,
+      "when_value": null,
+      "parent": null,
+      "regexp": null
+    }
+  },
+  {
+    "model": "wcore.aparam",
+    "pk": 10,
+    "fields": {
+      "polymorphic_ctype": [
+        "wcore",
+        "textparam"
+      ],
+      "order": 1,
+      "api_name": "text",
+      "label": "Text to remotely output",
+      "name": "text",
+      "multiple": false,
+      "help_text": "",
+      "submission": 5,
+      "required": true,
+      "default": null,
+      "cmd_format": 4,
+      "edam_formats": null,
+      "edam_datas": null,
+      "repeat_group": null,
+      "when_value": null,
+      "parent": null,
+      "regexp": null
+    }
+  },
+  {
+    "model": "wcore.aparam",
+    "pk": 11,
+    "fields": {
+      "polymorphic_ctype": [
+        "wcore",
+        "textparam"
+      ],
+      "order": 1,
+      "api_name": "text_o",
+      "label": "Text to sge output",
+      "name": "text_o",
+      "multiple": false,
+      "help_text": "",
+      "submission": 6,
+      "required": true,
+      "default": null,
+      "cmd_format": 4,
+      "edam_formats": null,
+      "edam_datas": null,
+      "repeat_group": null,
+      "when_value": null,
+      "parent": null,
+      "regexp": null
+    }
+  },
+  {
+    "model": "wcore.textparam",
+    "pk": 6,
+    "fields": {
+      "max_length": "255"
+    }
+  },
+  {
+    "model": "wcore.textparam",
+    "pk": 10,
+    "fields": {
+      "max_length": "255"
+    }
+  },
+  {
+    "model": "wcore.textparam",
+    "pk": 11,
+    "fields": {
+      "max_length": "255"
+    }
+  },
+  {
+    "model": "authtools.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$36000$ASfjR6vPir9E$MiiJtbRyZGg1MpdMakw6yDC4zWg/F7JkrAAuVUj6Fb4=",
+      "last_login": "2018-02-13T09:47:04.738Z",
+      "is_superuser": true,
+      "email": "superuser@atgc-montpellier.fr",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2018-01-29T15:48:38.086Z",
+      "name": "Vincent Lefort",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "authtools.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$36000$34RNwFja7Zvh$vnKPExJbs5ByjYNByJ0lvZqfKCVZIHybMfbV0kIaYcg=",
+      "last_login": "2018-02-13T09:26:13.130Z",
+      "is_superuser": false,
+      "email": "demo@atgc-montpellier.fr",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2018-02-13T09:11:46.298Z",
+      "name": "Demo user",
+      "groups": [
+        [
+          "WAVES-ADMIN"
+        ]
+      ],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "demo.demowavesservice",
+    "pk": 3,
+    "fields": {
+      "created": "2018-02-06T13:51:58.817Z",
+      "updated": "2018-02-13T09:58:52.672Z",
+      "description": "",
+      "short_description": "",
+      "api_name": "echo",
+      "binary_file": null,
+      "runner": 2,
+      "name": "echo",
+      "authors": null,
+      "citations": null,
+      "version": "1.0",
+      "status": 0,
+      "email_on": true,
+      "partial": false,
+      "created_by": [
+        "superuser@atgc-montpellier.fr"
+      ],
+      "remote_service_id": null,
+      "edam_topics": "",
+      "edam_operations": "",
+      "category": 1,
+      "to_delete": false,
+      "restricted_client": []
+    }
+  }
+]

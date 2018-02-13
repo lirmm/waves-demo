@@ -85,8 +85,8 @@
                     {% if show_user == user or user.is_staff %}
                         {% if show_user.profile.registered_for_api %}
                         <li class="list-group-item text-right">
-                            <span class="pull-left"><strong>REST api key</strong> (Don't share it with others)</span>
-                            {{ show_user.profile.api_key|default:'Contact us to renew your api_key' }}
+                            <span class="pull-left"><strong>REST API AUTH Token</strong></span>
+                            {{ show_user.auth_token|default:'No token defined for you, please contact us' }}
                         </li>
                         {% endif %}
                     {% endif %}
