@@ -14,7 +14,7 @@ DATABASES = {
     }
 }
 REGISTRATION_SALT = '4&`cK(7Jza"Nj^1{PN<gtZs5pRaS9'
-
+ALLOWED_HOSTS = ["*"]
 DEBUG = True
 DEBUG404 = True
 # DEBUG
@@ -63,16 +63,12 @@ LOGGING = {
         },
         'waves': {
             'handlers': ['console'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
         },
         'waves.adaptors.galaxy.importers': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False
-        },
-        'waves': {
-            'handlers': ['console', 'daemon_log_file'],
-            'level': 'DEBUG',
         },
     }
 }

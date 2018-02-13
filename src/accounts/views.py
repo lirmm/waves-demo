@@ -73,7 +73,7 @@ class SignUpView(bracesviews.AnonymousRequiredMixin, bracesviews.FormValidMessag
             new_user.profile.institution = form.cleaned_data.get('institution')
             new_user.profile.phone = form.cleaned_data.get('phone')
             new_user.profile.comment = form.cleaned_data.get('comment')
-            new_user.profile.registered_for_api = form.cleaned_data.get('register_for_api')
+            # new_user.profile.registered_for_api = form.cleaned_data.get('register_for_api')
             new_user.profile.save()
             return new_user
         except SMTPException as e:

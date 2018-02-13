@@ -3,12 +3,15 @@ from __future__ import unicode_literals
 
 from django.db.models import Prefetch
 from django.views import generic
+from django.contrib.auth import get_user_model
 
 from demo.models import ServiceCategory
 from waves.wcore.models import get_service_model
-from waves.wcore.views.jobs import JobSubmissionView as CoreDetailView
+from waves.wcore.views.jobs import JobSubmissionView as CoreDetailView, JobListView as CoreJobListView, Job, \
+    JobView as CoreJobView
 
 Service = get_service_model()
+User = get_user_model()
 
 
 class ServiceDetailView(CoreDetailView):
@@ -17,8 +20,10 @@ class ServiceDetailView(CoreDetailView):
 
     def render_to_response(self, context, **response_kwargs):
         response = super(ServiceDetailView, self).render_to_response(context, **response_kwargs)
-        print "set cookie !!!"
-        response.set_cookie('waves_token', 'ee1480df1b8eba32926cab1c86de08d023646fa4')
+        api_user = User.objects.filter(email='demoapiuser@atgc-montpellier.fr')
+        if api_user:
+            # user_waves =
+            response.set_cookie('waves_token', api_user[0].auth_token)
         return response
 
 
@@ -50,3 +55,15 @@ class CategoryListView(generic.ListView):
                      to_attr="category_public_tools"
                      )
         )
+
+
+class JobListView(CoreJobListView):
+
+    def get_queryset(self):
+        api_user = User.objects.filter(email='demoapiuser@atgc-montpellier.fr')
+        queryset = Job.objects.filter(client=api_user)
+        return queryset
+
+
+class JobView(CoreJobView):
+    pass

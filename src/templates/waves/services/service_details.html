@@ -1,0 +1,140 @@
+{% extends  'waves/services/service_details.html' %}
+{% load waves_tags %}
+
+{% block content_main %}
+    <div id="sec2">
+        <div class="row-fluid">
+            {% block colc-6 %}
+                <div class="col-md-9">
+                    {% block service_body %}
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title ">
+                                    <span class="text-primary">{{ service.name }} v{{ service.version }}</span>
+                                </h3>
+                            </div>
+                            <div class="panel-body">
+                                {{ service.description|safe }}
+                                {% block service_extradescription %}
+                                {% endblock %}
+                                {% block job_submission_bottom %}
+                                    <p class="text-right">
+                                        {% online_exec_button service=service %}
+                                    </p>
+                                {% endblock %}
+                            </div>
+                        </div>
+                        <div class="panel-footer text-right">
+                            Last update {{ service.updated }}
+                        </div>
+                    {% endblock service_body %}
+                </div>
+            {% endblock %}
+            {% block cold-3 %}
+                <div class="col-md-3">
+                    {% block service_cold %}
+                        {% block service_extracold %}
+                            {% if service.metas and service.metas.count > 0 %}
+                                <div class="panel-group" id="panel-102030">
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading">
+                                            <a class="panel-title" data-toggle="collapse" data-parent="panel-102030"
+                                               href="#panel-element-meta">Informations</a>
+                                        </div>
+                                        <div id="panel-element-meta"
+                                             class="panel-collapse collapse in">
+                                            <div class="panel-body">
+                                                {% for meta in service.metas.all %}
+                                                    <blockquote>
+                                                        <small>
+                                                            {% if meta.is_url %}
+                                                                <a href="{{ meta.value }}"
+                                                                   target="_blank">{{ meta.title }}</a>
+                                                            {% else %}
+                                                                {{ meta.value|safe }}
+                                                            {% endif %}
+                                                            {% if meta.description %}
+                                                                <br/>{{ meta.description|safe }}
+                                                            {% endif %}
+                                                        </small>
+                                                    </blockquote>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endblock %}
+                        {% block job_submission %}
+                            {% if service.default_submission %}
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title ">
+                                            <span class="text-primary">Online execution</span>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body text-right">
+                                        {% online_exec_button service=service %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if service.topics %}
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title ">
+                                            <span class="text-primary">Edams topics</span>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body text-right">
+                                        <ul class="list-group">
+                                            {% for topic in service.topics %}
+                                                <li class="list-group-item"><a
+                                                        href="http://edamontology.org/{{ topic }}"
+                                                        target="_blank">{{ topic }}</a></li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if service.operations %}
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title ">
+                                            <span class="text-primary">Edams operations</span>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body text-right">
+                                        <ul class="list-group">
+                                            {% for operation in service.operations %}
+                                                <li class="list-group-item"><a
+                                                        href="http://edamontology.org/{{ operation }}"
+                                                        target="_blank">{{ operation }}</a></li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% block service_staff %}
+                                {% if user.is_staff %}
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title ">
+                                                <span class="text-primary">Admin</span>
+                                            </h3>
+                                        </div>
+                                        <div class="panel-body text-right">
+                                            <a class="btn btn-warning"
+                                               href="{{ service.get_admin_url }}">Service</a>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endblock %}
+                        {% endblock %}
+                    {% endblock service_cold %}
+                </div>
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}
+
+

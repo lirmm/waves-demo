@@ -1,0 +1,24 @@
+{% extends "admin/login.html" %}
+
+{% block nav-global %}
+    {% include "navbar.html" %}
+{% endblock %}
+
+{% block content_title %}
+    <p>
+    Use this credential to test WAVES
+    </p>
+    <ul>
+        <li>login : demo@atgc-montpellier.fr</li>
+        <li>pass : demodemo</li>
+    </ul>
+
+{% endblock %}
+
+
+{% block content %}
+    {{ block.super }}
+    <div align="center" style="margin-top: 1.5rem;">
+        <a href="{% url "home" %}">Return to front</a>
+    </div>
+{% endblock %}

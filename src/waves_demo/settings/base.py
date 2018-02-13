@@ -8,12 +8,12 @@ from os.path import dirname, join, isfile
 
 LOGGING_CONFIG = None
 BASE_DIR = dirname(dirname(dirname(dirname(__file__))))
-
+SRC_DIR = join(BASE_DIR, 'src')
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            join(BASE_DIR, 'templates'),
+            join(SRC_DIR, 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {

@@ -15,14 +15,17 @@ class UserProfileInline(admin.StackedInline):
     model = UserProfile
     form = ProfileForm
     extra = 1
-    fields = ['api_key', 'registered_for_api', 'banned', 'ip', 'country', 'institution', 'comment']
-    readonly_fields = ('api_key',)
+    fields = ['auth_token', 'banned', 'ip', 'country', 'institution', 'comment']
+    readonly_fields = ('auth_token',)
     can_delete = False
     max_num = 1
 
     def has_add_permission(self, request):
         """ Can't add more than one profile per user """
         return False
+
+    def auth_token(self, obj):
+        return obj.user.auth_token
 
 
 class NewUserAdmin(NamedUserAdmin):

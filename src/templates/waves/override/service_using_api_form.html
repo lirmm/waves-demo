@@ -1,14 +1,17 @@
 {% extends "waves/services/service_form.html" %}
 {% load staticfiles crispy_forms_tags waves_tags %}
 {% block content_main %}
-    <div class="panel panel-info">
+    <div class="panel panel-default">
         <div class="panel-heading">
-            <h3 class="panel-title">This is overridden template for service {{ service.name }} form</h3>
+            <h3 class="panel-title">This template is overriding default service template for {{ service.name }}</h3>
+
         </div>
         <div class="panel-body" id="form-api">
+            <img src="{% static "demo/img/ajax-loader.gif" %}" style="display: block; margin: 15rem auto; "/>
         </div>
         <div class="panel-footer">
-            <span class="text-left">
+            This is a POC of what can be done for a specific service form in order to integrate remote WAVES services.
+            <span class="text-right" style="float:right">
                 <a href="{% url 'wcore:service_details' service.api_name %}">Back to service</a>
             </span>
         </div>
@@ -23,8 +26,7 @@
             $(document).ready(function () {
                 $.ajax({
                     type: 'GET',
-                    url: 'http://127.0.0.1:8099/waves/api/services/phy_ml/form',
-                    //url: 'http://127.0.0.1:8091/waves/api/services/service_a/submissions/test/form',
+                    url: '/waves/api/services/sample_service/form',
                     processData: false,
                     contentType: false,
                     cache: false,
@@ -34,7 +36,8 @@
                     error: function (error) {
                         console.error(error.data)
                     }
-                })
+                });
+
                 var getCookie = function (cname) {
                     var name = cname + "=";
                     var decodedCookie = decodeURIComponent(document.cookie);
@@ -51,22 +54,24 @@
                     return "";
                 }
                 var token = getCookie('waves_token');
+                console.log('Current token in cookie ' + token);
                 $(document).on('submit', "form.submit-ajax", function (event) {
                     document.submit_waves_api_form(event.target, token).then(function (response) {
                         console.log(response)
-                        console.info('Promised job returned job creation ['+ response.slug + ']');
+                        console.info('Promised job returned job creation [' + response.slug + ']');
+                        wavesSuccessCallBack(response)
                     }, function (error) {
                         console.log(error)
                         if (error.responseJSON) {
-                            alert('Job Submission failed [status code:'+ error.status +'] ' + error.responseJSON.detail);
+                            alert('Job Submission failed [status code:' + error.status + '] ' + error.responseJSON.detail);
                         } else {
-                            alert('Job Submission failed [status code:'+ error.status +']');
+                            alert('Job Submission failed [status code:' + error.status + ']');
                         }
                     })
                 });
-                //window.submit_waves_api_form.
                 window.wavesSuccessCallBack = function (response) {
-                    alert('this is mine which is called !!!' + response.slug);
+                    alert('this is mine which is called !!! waves//job/' + response.slug);
+                    // window.document.url =
                 }
                 window.wavesErrorCallBack = function (error) {
                     console.log(error)

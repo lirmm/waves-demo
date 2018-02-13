@@ -55,7 +55,7 @@ class SignupForm(registration.forms.RegistrationFormTermsOfService,
               '<a href="#" data-toggle="modal" data-target="#tosModal">Terms of Service</a>,',
     )
     institution = forms.CharField()
-    register_for_api = forms.BooleanField(label='Register as a REST API user', initial=False, required=False)
+    # register_for_api = forms.BooleanField(label='Register as a REST API user', initial=False, required=False)
     country = LazyTypedChoiceField(choices=countries)
     phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$',
                                  message="Phone number must be entered in the format: '+999999999'. "
@@ -80,7 +80,7 @@ class SignupForm(registration.forms.RegistrationFormTermsOfService,
             Field('name', placeholder="Enter your full name"),
             Field('password1', placeholder="Enter Password"),
             Field('password2', placeholder="Confirm Password"),
-            Field('register_for_api', placeholder="Register for our API access"),
+            # Field('register_for_api', placeholder="Register for our API access"),
             Field('country', placeholder="Select your country"),
             Field('institution', placeholder="Your institution"),
             Field('phone', placeholder="Phone"),
