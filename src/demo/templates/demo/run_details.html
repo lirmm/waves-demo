@@ -1,0 +1,7 @@
+<span class="h6">Run details</span>
+<dl class="data-sheet">
+    {% for detail in run_details %}
+    <dt class="name">{{ detail.0 }}</dt>
+    <dd class="value">{{ detail.1 }}</dd>
+    {% endfor %}
+</dl>

@@ -30,18 +30,22 @@ html, body {
     margin-bottom: -50px;
 }
 
-footer, .body-api footer .container  {
+footer, .body-api footer .container {
     background-color: #2c3e50;
 }
+
 footer div.thumbnail {
     min-height: 110px;
 }
+
 .body, .body-api {
     background-color: #2c3e50;
 }
-.body-api .container{
+
+.body-api .container {
     background-color: #fff;
 }
+
 #wrapper {
     background: #fff;
     -webkit-border-radius: 3px;
@@ -58,6 +62,7 @@ footer,
     float: left;
     margin-right: 1.5rem;
 }
+
 body > .navbar-transparent {
     background-color: transparent;
     border-color: transparent;
@@ -208,7 +213,6 @@ body > .navbar-transparent {
     padding: 10px;
     font-size: 16px;
 }
-
 
 .btn-file {
     position: relative;
@@ -374,3 +378,41 @@ input[readonly] {
 div[id^="tab_pane_"] {
     margin-bottom: 5px;
 }
+
+dl.data-sheet {
+    width: 100%;
+    overflow: hidden;
+    padding: 0;
+    margin: 0
+    border: 1px solid #2c3e50;
+
+}
+
+dl.data-sheet dt {
+    float: left;
+    width: 50%;
+    /* adjust the width; make sure the total of both is 100% */
+    background: #ecf0f1;
+    border: 1px solid #ecf0f1;
+    border-bottom: none;
+    border-collapse: collapse;
+    padding: 2px;
+    margin: 0
+}
+
+dl.data-sheet dd {
+    float: left;
+    width: 50%;
+    /* adjust the width; make sure the total of both is 100% */
+    background: #fff;
+    border: 1px solid #fff;
+    border-bottom: none;
+    border-collapse: collapse;
+    padding: 2px;
+    margin: 0
+}
+
+dl.data-sheet {
+    border: 1px solid #e5e5e5;
+}
+
