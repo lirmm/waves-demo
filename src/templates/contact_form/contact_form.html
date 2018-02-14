@@ -1,0 +1,23 @@
+{% load staticfiles crispy_forms_tags %}
+<div class="modal-header">
+    <img src="{% static 'demo/logos/waves.png' %}" alt="logo" id="navbar-logo"/>
+    <h4 class="modal-title">{% include '../_brandname.html' %} API Terms of use</h4>
+</div>
+<div class="modal-body text-justify">
+    <form action="{% url "contact_form" %}" method="post">
+        <script src='https://www.google.com/recaptcha/api.js'></script>
+        {% crispy form %}
+        <div class="row">
+            <div class="col-lg-5">
+                <div class="g-recaptcha" data-sitekey="6LdLZx0TAAAAAIzYJQMcB5YPcWAg2fBKy5NI3QmK"></div>
+            </div>
+            <div><input type="submit" name="submit" value="Send us Hi" class="btn btn-primary" id="submit-id-submit">
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <div class="text-right">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+    </div>
+</div>

@@ -30,19 +30,34 @@ html, body {
     margin-bottom: -50px;
 }
 
-footer {
+footer, .body-api footer .container  {
     background-color: #2c3e50;
-
+}
+footer div.thumbnail {
+    min-height: 110px;
+}
+.body, .body-api {
+    background-color: #2c3e50;
+}
+.body-api .container{
+    background-color: #fff;
 }
 #wrapper {
-    margin-bottom: 1.5rem;
+    background: #fff;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
 }
 
 footer,
 .push {
-    height: 174px;
+    min-height: 174px;
 }
 
+.modal-content .modal-header img {
+    float: left;
+    margin-right: 1.5rem;
+}
 body > .navbar-transparent {
     background-color: transparent;
     border-color: transparent;
@@ -194,6 +209,7 @@ body > .navbar-transparent {
     font-size: 16px;
 }
 
+
 .btn-file {
     position: relative;
     overflow: hidden;
@@ -255,10 +271,6 @@ input[readonly] {
 .input_output {
     margin-right: 0;
     margin-left: 0;
-    /* background-color: #fff;
-    border-color: #ddd;
-    border-width: 1px;
-    */
     border-radius: 4px 4px 0 0;
     -webkit-box-shadow: none;
     box-shadow: none;

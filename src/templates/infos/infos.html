@@ -11,76 +11,77 @@
 
 {% block container %}
     <div id="sec1" class="text-page">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12 text-center">
-                    <h1>{% include "../_brandname.html" %} Information</h1>
-                    <p class="lead">Access our services from your own application / services</p>
-                    </p>
-                </div>
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <h1>{% include "../_brandname.html" %} Information</h1>
+                <p class="lead">Access our services from your own application / services</p>
+                </p>
             </div>
         </div>
     </div>
-    <div id="sec2" class="text">
-        <div class="container">
-            <div class="row">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">REST API Services</h3>
-                    </div>
-                    <div class="panel-body">
-                        <p>
-                            This demo site allow you to explore the functionalities of WAVES.
-                            <br/>
-                            You can browse our api via this link :
-                        <p class="emphasis">You can browse API entry points <a
-                                href="{% url 'wapi:v2:api-root' %}">here</a>
-                        </p>
-                    </div>
+    <div id="sec2" class="text row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">REST API Services</h3>
                 </div>
-                <div class="panel panel-warning">
-                    <div class="panel-heading">Demo WEB site</div>
-                    <div class="panel-body">
-                        <p>
-                            For obvious security reasons, we warn you that no job is actually executed on any
-                            platform you may configure in open backoffice.
-                        </p>
-                    </div>
+                <div class="panel-body">
+                    <p>
+                        This demo site allow you to explore the functionalities of WAVES.
+                        <br/>
+                        You can browse our api via this link :
+                    <p class="emphasis">You can browse API entry points <a
+                            href="{% url 'wapi:v2:api-root' %}">here</a>
+                    </p>
                 </div>
-                <div class="panel panel-info">
-                    <div class="panel-heading">Data base available on this site</div>
-                    <div class="panel-body">
-                        <p>You may enter the back-office of this web site to look of what and how WAVES is
-                            really easy to manage.
-                            <br/>
-                            Keep in mind :
-                        <ul>
-                            <li>Database is restored each night to its original content</li>
-                            <li>No job is actually executed on any platform you may configure</li>
-                            <li>Every person visiting this web site can view jobs from others (single user for
-                                jobs configured)
-                            </li>
-                        </ul>
-                        </p>
-                    </div>
+            </div>
+            <div class="panel panel-warning">
+                <div class="panel-heading">Demo WEB site</div>
+                <div class="panel-body">
+                    <p>
+                        For obvious security reasons, we warn you that no job is actually executed on any
+                        platform you may configure in open backoffice.
+                    </p>
                 </div>
-                <div class="panel panel-info">
-                    <div class="panel-heading">Project documentation / source code</div>
-                    <div class="panel-body">
-                        <p>Sources code
-                        <ul>
-                            <li>WAVES-demo source code is available at <a  href="https://github.com/lirmm/waves-demo" target="_blank">GitHub</a></li>
-                            <li>WAVES-core source code is available at <a href="https://github.com/lirmm/waves-core" target="_blank">GitHub</a></li>
-                            <li>WAVES-Galaxy adaptors source code is available at <a href="https://github.com/lirmm/waves-galaxy" target="_blank">GitHub</a></li>
-                        </ul>
-                        </p>
-                        <p>Documentation
-                        <ul>
-                            <li>WAVES-demo doc is available at <a  href="https://waves-demo.readthedocs.io" target="_blank">ReadtheDocs</a></li>
-                            <li>WAVES-core doc is available at <a href="https://waves-core.readthedocs.io/" target="_blank">ReadtheDocs</a></li>
-                        </ul>
-                        </p>
-                    </div>
+            </div>
+            <div class="panel panel-info">
+                <div class="panel-heading">Data base available on this site</div>
+                <div class="panel-body">
+                    <p>You may enter the back-office of this web site to look of what and how WAVES is
+                        really easy to manage.
+                        <br/>
+                        Keep in mind :
+                    <ul>
+                        <li>Database is restored each night to its original content</li>
+                        <li>No job is actually executed on any platform you may configure</li>
+                        <li>Every person visiting this web site can view jobs from others (single user for
+                            jobs configured)
+                        </li>
+                    </ul>
+                    </p>
+                </div>
+            </div>
+            <div class="panel panel-info">
+                <div class="panel-heading">Project documentation / source code</div>
+                <div class="panel-body">
+                    <p>Sources code
+                    <ul>
+                        <li>WAVES-demo source code is available at <a href="https://github.com/lirmm/waves-demo"
+                                                                      target="_blank">GitHub</a></li>
+                        <li>WAVES-core source code is available at <a href="https://github.com/lirmm/waves-core"
+                                                                      target="_blank">GitHub</a></li>
+                        <li>WAVES-Galaxy adaptors source code is available at <a
+                                href="https://github.com/lirmm/waves-galaxy" target="_blank">GitHub</a></li>
+                    </ul>
+                    </p>
+                    <p>Documentation
+                    <ul>
+                        <li>WAVES-demo doc is available at <a href="https://waves-demo.readthedocs.io" target="_blank">ReadtheDocs</a>
+                        </li>
+                        <li>WAVES-core doc is available at <a href="https://waves-core.readthedocs.io/" target="_blank">ReadtheDocs</a>
+                        </li>
+                    </ul>
+                    </p>
                 </div>
             </div>
         </div>

@@ -2,13 +2,13 @@
 {% load staticfiles %}
 
 {% block bootstrap_theme %}
-    <link href="{% static 'demo/css/main.css' %}" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.7/flatly/bootstrap.min.css" />
+    <link href="{% static 'demo/css/main.css' %}" rel="stylesheet"/>
 {% endblock %}
-
+{% block bodyclass %}body-api{% endblock %}
 {% block navbar %}
-        {% include "_ribbon.html" %}
-    <div class="container" style="margin-bottom: 2rem">
+    {% include "_ribbon.html" %}
+    <div class="container">
         <div class="navbar navbar-default" role="navigation">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -65,8 +65,8 @@
 {% endblock %}
 
 {% block script %}
+    {{ block.super }}
     <footer>
     {% include "_footer.html" %}
     </footer>
-    {{ block.super }}
 {% endblock %}

@@ -18,14 +18,11 @@
                                 {% block service_extradescription %}
                                 {% endblock %}
                                 {% block job_submission_bottom %}
-                                    <p class="text-right">
-                                        {% online_exec_button service=service %}
-                                    </p>
                                 {% endblock %}
                             </div>
-                        </div>
-                        <div class="panel-footer text-right">
-                            Last update {{ service.updated }}
+                            <div class="panel-footer text-right">
+                                Last update {{ service.updated }}
+                            </div>
                         </div>
                     {% endblock service_body %}
                 </div>

@@ -66,7 +66,7 @@ class WavesDemoAdaptor(BaseMockAdaptor):
          Randomly set stderr output to see warnings happen
          """
         for output in job.outputs.all():
-            if output.value != job.stderr or bool(random.getrandbits(1)):
+            if output.value != job.stderr or (random.randint(0, 3) > 2):
                 with open(join(output.file_path), 'w') as fp:
                     fp.write("Should contain expected content for {} ".format(output.name))
 

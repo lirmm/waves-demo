@@ -30,7 +30,16 @@
     <![endif]-->
 </head>
 
-<body>
+<body id="{% block body_id %}home{% endblock %}" class="{% block bodyclass %}body{% endblock %}">
+{% block messages %}
+    {% for message in messages %}
+        <div class="messages alert alert-{{ message.tags }} alert-dismissible fade in">  <!-- singular -->
+            <a class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span></a>
+            {{ message|safe }}
+        </div>
+    {% endfor %}
+{% endblock %}
 {% block splash %}
 {% endblock splash %}
 {% block navbar %}
@@ -39,18 +48,7 @@
         {% include "navbar.html" %}
     </header>
 {% endblock navbar %}
-
-
 <div class="container" id="wrapper">
-    {% block messages %}
-        {% for message in messages %}
-            <div class="messages alert alert-{{ message.tags }} alert-dismissible fade in">  <!-- singular -->
-                <a class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span></a>
-                {{ message|safe }}
-            </div>
-        {% endfor %}
-    {% endblock %}
     {% block container %}
         <div id="sec1">
             <div class="container">
@@ -72,6 +70,7 @@
 </footer>
 {% block modalcontent %}
     {% include 'tos/tos_modal.html' %}
+    {% include 'contact_form/modal_contact_form.html' %}
 {% endblock modalcontent %}
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"

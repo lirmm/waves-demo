@@ -28,11 +28,13 @@ class ServiceCategory(Ordered, Described):
     def __unicode__(self):
         return self.name
 
+
 class DemoWavesService(BaseService):
     class Meta:
         permissions = (
             ("read_service", "Can read Service"),
         )
+
     category = models.ForeignKey(ServiceCategory, on_delete=models.SET_NULL, null=True, related_name='category_tools')
     to_delete = models.BooleanField("Automatic deletion", default=True)
 
@@ -40,6 +42,7 @@ class DemoWavesService(BaseService):
 class DemoWavesSubmission(BaseSubmission):
     class Meta:
         ordering = ('order',)
+
     to_delete = models.BooleanField("Automatic deletion", default=True)
 
 
@@ -89,7 +92,8 @@ class ServiceMeta(Ordered, Described):
     title = models.CharField('Title', max_length=255, blank=True, null=True)
     value = models.CharField('Link', max_length=500, blank=True, null=True)
     is_url = models.BooleanField('Is a url', editable=False, default=False)
-    service = models.ForeignKey(swapper.get_model_name('wcore', 'Service'), on_delete=models.CASCADE, related_name='metas')
+    service = models.ForeignKey(swapper.get_model_name('wcore', 'Service'), on_delete=models.CASCADE,
+                                related_name='metas')
 
     def duplicate(self, service):
         """ Duplicate a Service Meta"""

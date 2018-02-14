@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from django.contrib.auth import get_user_model
 from django.db.models import Prefetch
 from django.views import generic
-from django.contrib.auth import get_user_model
 
 from demo.models import ServiceCategory
 from waves.wcore.models import get_service_model
@@ -34,14 +34,6 @@ class CategoryDetailView(generic.DetailView):
     template_name = 'category/category_details.html'
     context_object_name = 'category'
 
-    def get_queryset(self):
-        return ServiceCategory.objects.all().prefetch_related(
-            Prefetch('category_tools',
-                     queryset=Service.objects.get_services(user=self.request.user),
-                     to_attr="category_public_tools"
-                     )
-        )
-
 
 class CategoryListView(generic.ListView):
     template_name = "category/categories_list.html"
@@ -49,12 +41,12 @@ class CategoryListView(generic.ListView):
     context_object_name = 'online_categories'
 
     def get_queryset(self):
-        return ServiceCategory.objects.all().prefetch_related(
+        return ServiceCategory.objects.filter(category_tools__isnull=False).prefetch_related(
             Prefetch('category_tools',
                      queryset=Service.objects.get_services(user=self.request.user),
                      to_attr="category_public_tools"
                      )
-        )
+        ).distinct()
 
 
 class JobListView(CoreJobListView):

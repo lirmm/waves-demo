@@ -14,7 +14,6 @@ environ.Env.read_env(WAVES_ENV_FILE)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str('SECRET_KEY')
 DEBUG = env.bool('DEBUG', False)
-DEBUG=True
 
 # DATABASE configuration
 DATABASES = {
@@ -38,6 +37,8 @@ loaders = [
 
 EMAIL_CONFIG = env.email_url('EMAIL_URL', default='smtp://dummyuser@dummyhost:dummypassword@localhost:25')
 vars().update(EMAIL_CONFIG)
+
+MANAGERS = env.tuple('MANAGERS', default=[('Marc Chakiachvili', 'marc.chakiachvili@lirmm.fr')])
 
 TEMPLATES[0]['OPTIONS'].update({"loaders": loaders})
 TEMPLATES[0].update({"APP_DIRS": False})
@@ -92,5 +93,6 @@ LOGGING = {
         }
     }
 }
-
-
+CONTACT_EMAIL = env.str('CONTACT_EMAIL')
+DEFAULT_FROM_EMAIL = 'WAVES <waves-demo@atgc-montpellier.fr>'
+WAVES_CORE['ADMIN_EMAIL'] = env.str('ADMIN_EMAIL', 'admin@dummy.fr')

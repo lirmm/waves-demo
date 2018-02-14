@@ -20,15 +20,18 @@ from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from django.contrib import admin
 from demo.views import ServiceDetailView, JobListView, JobView
+from demo.forms import WDContactForm
 import profiles.urls
 import accounts.urls
+from contact_form.views import ContactFormView
+
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='home.html'), name='home'),
     url(r'^', include('demo.urls', namespace="waves_demo")),
     url(r'^accounts/', include('registration.backends.hmac.urls')),
     url(r'^about$', TemplateView.as_view(template_name='about.html'), name='about'),
-    url(r'^rest$', TemplateView.as_view(template_name='infos/infos.html'), name='infos'),
+    url(r'^information$', TemplateView.as_view(template_name='infos/infos.html'), name='infos'),
     url(r'^waves/service/(?P<service_app_name>[\w_-]+)/new$', ServiceDetailView.as_view(), name='job_submission'),
     url(r'^waves/jobs/(?P<unique_id>[\w-]+)/$', JobView.as_view(), name="job_details"),
     url(r'^waves/jobs/$', JobListView.as_view(), name="job_list"),
@@ -39,6 +42,16 @@ urlpatterns = [
     url(r'^jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS
     url(r'^admin/', include(admin.site.urls)),
     url(r'^users/', include(accounts.urls, namespace='accounts')),
+    url(r'^contact/$',
+        ContactFormView.as_view(
+            form_class=WDContactForm
+        ),
+        name='contact_form'),
+    url(r'^contact/sent/$',
+        TemplateView.as_view(
+            template_name='contact_form/contact_form_sent.html'
+        ),
+        name='contact_form_sent'),
 ]
 
 if settings.DEBUG is True:

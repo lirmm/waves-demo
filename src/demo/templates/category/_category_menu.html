@@ -10,7 +10,11 @@
             <span class="visible-xs navbar-brand">Categories</span>
         </div>
         <div class="navbar-collapse collapse sidebar-navbar-collapse">
+            <h4 style="color: #fff; padding-left: 0.25rem">{{ category.parent.name }}</h4>
             <ul class="nav navbar-nav">
+                {% for cat in category.parent.children_category.all %}
+                    <li><a href="{{ cat }}">{{ cat.name }}</a></li>
+                {% endfor %}
             </ul>
         </div><!--/.nav-collapse -->
     </div>

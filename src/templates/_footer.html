@@ -1,13 +1,6 @@
 {% load staticfiles waves_tags %}
 <div class="container">
-    <div class="footer">
-        <div class="row">
-            <div class="col-lg-12 text-center">
-                <a name="contact" href="mailto:services@atgc-montpellier.fr">Contact</a> -
-                <a href="#" data-toggle="modal" data-target="#tosModal">Terms of Service</a>
-            </div>
-            <br/><br/>
-        </div>
+    <div class="footer" style="padding-top: 1.5rem">
         {% block footer_images %}
             <div class="row">
                 <div class="col-lg-12">
@@ -39,6 +32,19 @@
                     </div>
                 </div>
             </div>
+            <div class="row" align="center">
+                <div class="">
+                    <a href="http://www.atgc-montpellier.fr" target="_blank">
+                        <img src="{% static "demo/img/atgc_banner.jpg" %}" class="img-responsive"/>
+                    </a>
+                    <div>
+                        <a data-toggle="modal" href="{% url 'contact_form' %}" data-target="#contactModal">Contact
+                            us</a> -
+                        <a href="#" data-toggle="modal" data-target="#tosModal">Terms of Service</a>
+
+                    </div>
+                </div>
+            </div>
         {% endblock %}
+        </div>
     </div>
-</div>

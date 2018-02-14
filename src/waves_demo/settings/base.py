@@ -36,7 +36,6 @@ LOG_ROOT = BASE_DIR + '/logs'
 
 # Application definition
 INSTALLED_APPS = (
-    'polymorphic_tree',
     'django.contrib.staticfiles',
     'django.contrib.contenttypes',
     'django.contrib.auth',
@@ -70,6 +69,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'request_logging.middleware.LoggingMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
@@ -168,4 +168,3 @@ WAVES_CORE = {
 WCORE_SERVICE_MODEL = 'demo.DemoWavesService'
 WCORE_SUBMISSION_MODEL = 'demo.DemoWavesSubmission'
 # MAILS
-DEFAULT_FROM_EMAIL = 'WAVES <waves-demo@atgc-montpellier.fr>'
