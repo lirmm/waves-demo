@@ -122,10 +122,6 @@ ACCOUNT_ACTIVATION_DAYS = 7 # One-week activation window; you may, of course, us
 
 # STATICS
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    join(BASE_DIR, "static"),
-]
-print STATICFILES_DIRS
 MEDIA_ROOT = join(BASE_DIR, 'src', 'media')
 MEDIA_URL = "/media/"
 STATIC_ROOT = join(BASE_DIR, 'staticfiles')
