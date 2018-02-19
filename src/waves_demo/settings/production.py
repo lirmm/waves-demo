@@ -5,7 +5,7 @@ import environ
 import sys
 import warnings
 import saga
-import logging
+import logging.config
 
 WAVES_ENV_FILE = join(dirname(__file__), 'local.prod.env')
 if not isfile(WAVES_ENV_FILE):
