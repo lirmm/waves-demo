@@ -1319,34 +1319,4 @@
       "slug": "a8cce1fe-7d84-4bd1-9233-d28ffba0a323"
     }
   },
-  {
-    "model": "authtoken.token",
-    "pk": "15b43484d6d80f2f277205f1964161d50f0eda18",
-    "fields": {
-      "user": [
-        "demo@atgc-montpellier.fr"
-      ],
-      "created": "2018-02-13T09:11:46.323Z"
-    }
-  },
-  {
-    "model": "authtoken.token",
-    "pk": "8fd9db48129dfd5da65bdab0615311dee6dd0de6",
-    "fields": {
-      "user": [
-        "superuser@atgc-montpellier.fr"
-      ],
-      "created": "2018-01-29T15:48:38.195Z"
-    }
-  },
-  {
-    "model": "authtoken.token",
-    "pk": "b3df763f6a9d4f97c992074ab835924194f742e4",
-    "fields": {
-      "user": [
-        "demoapiuser@atgc-montpellier.fr"
-      ],
-      "created": "2018-02-13T12:05:07.468Z"
-    }
-  }
 ]
