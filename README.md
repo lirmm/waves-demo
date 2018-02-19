@@ -15,6 +15,12 @@ Installation
 - See "Details Installation" for more info.
 
 
+Documentation
+-------------
+
+See doc on https://waves-demo.readthedocs.io 
+
+
 Support
 -------
 
