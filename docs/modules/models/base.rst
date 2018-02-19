@@ -18,7 +18,7 @@ Submission override example
 .. autoclass:: demo.models.DemoWavesSubmission
     :members:
 
-Adaptors override example
+Adapters override example
 -------------------------
 
 Demo adapters are not meant to execute anything for real, but are intended to demonstrate how to configure them in backoffice
