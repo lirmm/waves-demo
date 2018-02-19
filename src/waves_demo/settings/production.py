@@ -41,7 +41,7 @@ loaders = [
 EMAIL_CONFIG = env.email_url('EMAIL_URL', default='smtp://dummyuser@dummyhost:dummypassword@localhost:25')
 vars().update(EMAIL_CONFIG)
 
-MANAGERS = env.tuple('MANAGERS', default=[('Marc Chakiachvili', 'marc.chakiachvili@lirmm.fr')])
+MANAGERS = env.tuple('MANAGERS', default=[('Vincent Lefort', 'vincent.lefort@lirmm.fr')])
 
 TEMPLATES[0]['OPTIONS'].update({"loaders": loaders})
 TEMPLATES[0].update({"APP_DIRS": False})
@@ -112,6 +112,6 @@ LOGGING = {
 }
 logging.config.dictConfig(LOGGING)
 
-CONTACT_EMAIL = env.str('CONTACT_EMAIL')
 DEFAULT_FROM_EMAIL = 'WAVES <waves-demo@atgc-montpellier.fr>'
-WAVES_CORE['ADMIN_EMAIL'] = env.str('ADMIN_EMAIL', 'admin@dummy.fr')
+CONTACT_EMAIL = env.str('CONTACT_EMAIL', DEFAULT_FROM_EMAIL)
+WAVES_CORE['ADMIN_EMAIL'] = env.str('ADMIN_EMAIL', 'admin@waves.atgc-montpellier.fr')
