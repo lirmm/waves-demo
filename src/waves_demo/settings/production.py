@@ -30,9 +30,7 @@ REGISTRATION_SALT = env.str('REGISTRATION_SALT')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
-CORS_ORIGIN_WHITELIST = {
-    'atgc-montpellier.fr'
-}
+CORS_ORIGIN_WHITELIST = ('atgc-montpellier.fr',)
 # Cache the templates in memory for speed-up
 loaders = [
     ('django.template.loaders.cached.Loader', [
