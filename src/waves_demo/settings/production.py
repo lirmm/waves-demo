@@ -4,6 +4,9 @@ from waves_demo.settings.base import *  # NOQA
 import environ
 import sys
 import warnings
+import saga
+import logging
+
 WAVES_ENV_FILE = join(dirname(__file__), 'local.prod.env')
 if not isfile(WAVES_ENV_FILE):
     WAVES_ENV_FILE = join(dirname(__file__), 'local.sample.env')
@@ -42,6 +45,7 @@ MANAGERS = env.tuple('MANAGERS', default=[('Marc Chakiachvili', 'marc.chakiachvi
 
 TEMPLATES[0]['OPTIONS'].update({"loaders": loaders})
 TEMPLATES[0].update({"APP_DIRS": False})
+LOGGING_CONFIG = None
 
 LOGGING = {
     'version': 1,
@@ -86,13 +90,28 @@ LOGGING = {
         }
     },
     'loggers': {
-        '':{
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        }
+        'root': {
+            'handlers': ['waves_log_file'],
+            'propagate': False,
+            'level': 'ERROR',
+        },
+        'django': {
+            'handlers': ['waves_log_file'],
+            'level': 'ERROR',
+        },
+        'radical.saga': {
+            'handlers': ['waves_log_file'],
+            'level': 'WARNING',
+        },
+        'waves': {
+            'handlers': ['waves_log_file'],
+            'level': 'WARNING',
+        },
+
     }
 }
+logging.config.dictConfig(LOGGING)
+
 CONTACT_EMAIL = env.str('CONTACT_EMAIL')
 DEFAULT_FROM_EMAIL = 'WAVES <waves-demo@atgc-montpellier.fr>'
 WAVES_CORE['ADMIN_EMAIL'] = env.str('ADMIN_EMAIL', 'admin@dummy.fr')
