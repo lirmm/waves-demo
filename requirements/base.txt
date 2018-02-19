@@ -6,7 +6,6 @@ django-braces==1.11.0
 django-ckeditor==5.2.2
 django-contact-form==1.4.2
 django-countries==4.5
-django-environ==0.4.4
 django-ipware==1.1.6
 django-jet==1.0.6
 django-mail-templated==2.6.5
