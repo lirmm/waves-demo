@@ -70,13 +70,10 @@
                     })
                 });
                 window.wavesSuccessCallBack = function (response) {
-                    alert('this is mine which is called !!! waves//job/' + response.slug);
-                    // window.document.url =
+                    alert('Your job has been successfully submitted !');
+                    window.location.replace("/waves/jobs/" + response.slug);
                 }
-                window.wavesErrorCallBack = function (error) {
-                    console.log(error)
-                    alert('Job Submission failed ' + error.responseJSON.detail)
-                }
+
 
             })
         })(jQuery || django.jQuery);
