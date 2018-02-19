@@ -1,5 +1,1765 @@
 [
   {
+    "model": "contenttypes.contenttype",
+    "pk": 1,
+    "fields": {
+      "app_label": "contenttypes",
+      "model": "contenttype"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 2,
+    "fields": {
+      "app_label": "auth",
+      "model": "group"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 3,
+    "fields": {
+      "app_label": "auth",
+      "model": "permission"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 4,
+    "fields": {
+      "app_label": "authtools",
+      "model": "user"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 5,
+    "fields": {
+      "app_label": "jet",
+      "model": "bookmark"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 6,
+    "fields": {
+      "app_label": "jet",
+      "model": "pinnedapplication"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 7,
+    "fields": {
+      "app_label": "dashboard",
+      "model": "userdashboardmodule"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 8,
+    "fields": {
+      "app_label": "admin",
+      "model": "logentry"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 9,
+    "fields": {
+      "app_label": "sessions",
+      "model": "session"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 10,
+    "fields": {
+      "app_label": "wcore",
+      "model": "repeatedgroup"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 11,
+    "fields": {
+      "app_label": "wcore",
+      "model": "adaptorinitparam"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 12,
+    "fields": {
+      "app_label": "wcore",
+      "model": "servicebinaryfile"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 13,
+    "fields": {
+      "app_label": "wcore",
+      "model": "servicerunparam"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 14,
+    "fields": {
+      "app_label": "wcore",
+      "model": "fileinput"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 15,
+    "fields": {
+      "app_label": "wcore",
+      "model": "fileinputsample"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 16,
+    "fields": {
+      "app_label": "wcore",
+      "model": "submissionoutput"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 17,
+    "fields": {
+      "app_label": "wcore",
+      "model": "decimalparam"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 18,
+    "fields": {
+      "app_label": "wcore",
+      "model": "runner"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 19,
+    "fields": {
+      "app_label": "wcore",
+      "model": "jobinput"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 20,
+    "fields": {
+      "app_label": "wcore",
+      "model": "jobadminhistory"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 21,
+    "fields": {
+      "app_label": "wcore",
+      "model": "joboutput"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 22,
+    "fields": {
+      "app_label": "wcore",
+      "model": "aparam"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 23,
+    "fields": {
+      "app_label": "wcore",
+      "model": "job"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 24,
+    "fields": {
+      "app_label": "wcore",
+      "model": "booleanparam"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 25,
+    "fields": {
+      "app_label": "wcore",
+      "model": "textparam"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 26,
+    "fields": {
+      "app_label": "wcore",
+      "model": "submissionrunparam"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 27,
+    "fields": {
+      "app_label": "wcore",
+      "model": "submissionexitcode"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 28,
+    "fields": {
+      "app_label": "wcore",
+      "model": "listparam"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 29,
+    "fields": {
+      "app_label": "wcore",
+      "model": "integerparam"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 30,
+    "fields": {
+      "app_label": "wcore",
+      "model": "jobhistory"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 31,
+    "fields": {
+      "app_label": "wcore",
+      "model": "sampledepparam"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 32,
+    "fields": {
+      "app_label": "demo",
+      "model": "servicemeta"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 33,
+    "fields": {
+      "app_label": "demo",
+      "model": "demowavessubmission"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 34,
+    "fields": {
+      "app_label": "demo",
+      "model": "servicecategory"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 35,
+    "fields": {
+      "app_label": "demo",
+      "model": "demowavesservice"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 36,
+    "fields": {
+      "app_label": "easy_thumbnails",
+      "model": "thumbnaildimensions"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 37,
+    "fields": {
+      "app_label": "easy_thumbnails",
+      "model": "source"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 38,
+    "fields": {
+      "app_label": "easy_thumbnails",
+      "model": "thumbnail"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 39,
+    "fields": {
+      "app_label": "profiles",
+      "model": "userprofile"
+    }
+  },
+  {
+    "model": "contenttypes.contenttype",
+    "pk": 40,
+    "fields": {
+      "app_label": "authtoken",
+      "model": "token"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 1,
+    "fields": {
+      "name": "Can add content type",
+      "content_type": [
+        "contenttypes",
+        "contenttype"
+      ],
+      "codename": "add_contenttype"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 2,
+    "fields": {
+      "name": "Can change content type",
+      "content_type": [
+        "contenttypes",
+        "contenttype"
+      ],
+      "codename": "change_contenttype"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 3,
+    "fields": {
+      "name": "Can delete content type",
+      "content_type": [
+        "contenttypes",
+        "contenttype"
+      ],
+      "codename": "delete_contenttype"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 4,
+    "fields": {
+      "name": "Can add group",
+      "content_type": [
+        "auth",
+        "group"
+      ],
+      "codename": "add_group"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 5,
+    "fields": {
+      "name": "Can change group",
+      "content_type": [
+        "auth",
+        "group"
+      ],
+      "codename": "change_group"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 6,
+    "fields": {
+      "name": "Can delete group",
+      "content_type": [
+        "auth",
+        "group"
+      ],
+      "codename": "delete_group"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 7,
+    "fields": {
+      "name": "Can add permission",
+      "content_type": [
+        "auth",
+        "permission"
+      ],
+      "codename": "add_permission"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 8,
+    "fields": {
+      "name": "Can change permission",
+      "content_type": [
+        "auth",
+        "permission"
+      ],
+      "codename": "change_permission"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 9,
+    "fields": {
+      "name": "Can delete permission",
+      "content_type": [
+        "auth",
+        "permission"
+      ],
+      "codename": "delete_permission"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 10,
+    "fields": {
+      "name": "Can add user",
+      "content_type": [
+        "authtools",
+        "user"
+      ],
+      "codename": "add_user"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 11,
+    "fields": {
+      "name": "Can change user",
+      "content_type": [
+        "authtools",
+        "user"
+      ],
+      "codename": "change_user"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 12,
+    "fields": {
+      "name": "Can delete user",
+      "content_type": [
+        "authtools",
+        "user"
+      ],
+      "codename": "delete_user"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 13,
+    "fields": {
+      "name": "Can add pinned application",
+      "content_type": [
+        "jet",
+        "pinnedapplication"
+      ],
+      "codename": "add_pinnedapplication"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 14,
+    "fields": {
+      "name": "Can change pinned application",
+      "content_type": [
+        "jet",
+        "pinnedapplication"
+      ],
+      "codename": "change_pinnedapplication"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 15,
+    "fields": {
+      "name": "Can delete pinned application",
+      "content_type": [
+        "jet",
+        "pinnedapplication"
+      ],
+      "codename": "delete_pinnedapplication"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 16,
+    "fields": {
+      "name": "Can add bookmark",
+      "content_type": [
+        "jet",
+        "bookmark"
+      ],
+      "codename": "add_bookmark"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 17,
+    "fields": {
+      "name": "Can change bookmark",
+      "content_type": [
+        "jet",
+        "bookmark"
+      ],
+      "codename": "change_bookmark"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 18,
+    "fields": {
+      "name": "Can delete bookmark",
+      "content_type": [
+        "jet",
+        "bookmark"
+      ],
+      "codename": "delete_bookmark"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 19,
+    "fields": {
+      "name": "Can add user dashboard module",
+      "content_type": [
+        "dashboard",
+        "userdashboardmodule"
+      ],
+      "codename": "add_userdashboardmodule"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 20,
+    "fields": {
+      "name": "Can change user dashboard module",
+      "content_type": [
+        "dashboard",
+        "userdashboardmodule"
+      ],
+      "codename": "change_userdashboardmodule"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 21,
+    "fields": {
+      "name": "Can delete user dashboard module",
+      "content_type": [
+        "dashboard",
+        "userdashboardmodule"
+      ],
+      "codename": "delete_userdashboardmodule"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 22,
+    "fields": {
+      "name": "Can add log entry",
+      "content_type": [
+        "admin",
+        "logentry"
+      ],
+      "codename": "add_logentry"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 23,
+    "fields": {
+      "name": "Can change log entry",
+      "content_type": [
+        "admin",
+        "logentry"
+      ],
+      "codename": "change_logentry"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 24,
+    "fields": {
+      "name": "Can delete log entry",
+      "content_type": [
+        "admin",
+        "logentry"
+      ],
+      "codename": "delete_logentry"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 25,
+    "fields": {
+      "name": "Can add session",
+      "content_type": [
+        "sessions",
+        "session"
+      ],
+      "codename": "add_session"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 26,
+    "fields": {
+      "name": "Can change session",
+      "content_type": [
+        "sessions",
+        "session"
+      ],
+      "codename": "change_session"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 27,
+    "fields": {
+      "name": "Can delete session",
+      "content_type": [
+        "sessions",
+        "session"
+      ],
+      "codename": "delete_session"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 28,
+    "fields": {
+      "name": "Can add Expected output",
+      "content_type": [
+        "wcore",
+        "submissionoutput"
+      ],
+      "codename": "add_submissionoutput"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 29,
+    "fields": {
+      "name": "Can change Expected output",
+      "content_type": [
+        "wcore",
+        "submissionoutput"
+      ],
+      "codename": "change_submissionoutput"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 30,
+    "fields": {
+      "name": "Can delete Expected output",
+      "content_type": [
+        "wcore",
+        "submissionoutput"
+      ],
+      "codename": "delete_submissionoutput"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 31,
+    "fields": {
+      "name": "Can add repeated group",
+      "content_type": [
+        "wcore",
+        "repeatedgroup"
+      ],
+      "codename": "add_repeatedgroup"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 32,
+    "fields": {
+      "name": "Can change repeated group",
+      "content_type": [
+        "wcore",
+        "repeatedgroup"
+      ],
+      "codename": "change_repeatedgroup"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 33,
+    "fields": {
+      "name": "Can delete repeated group",
+      "content_type": [
+        "wcore",
+        "repeatedgroup"
+      ],
+      "codename": "delete_repeatedgroup"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 34,
+    "fields": {
+      "name": "Can add Job",
+      "content_type": [
+        "wcore",
+        "job"
+      ],
+      "codename": "add_job"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 35,
+    "fields": {
+      "name": "Can change Job",
+      "content_type": [
+        "wcore",
+        "job"
+      ],
+      "codename": "change_job"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 36,
+    "fields": {
+      "name": "Can delete Job",
+      "content_type": [
+        "wcore",
+        "job"
+      ],
+      "codename": "delete_job"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 37,
+    "fields": {
+      "name": "Can add Binary file",
+      "content_type": [
+        "wcore",
+        "servicebinaryfile"
+      ],
+      "codename": "add_servicebinaryfile"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 38,
+    "fields": {
+      "name": "Can change Binary file",
+      "content_type": [
+        "wcore",
+        "servicebinaryfile"
+      ],
+      "codename": "change_servicebinaryfile"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 39,
+    "fields": {
+      "name": "Can delete Binary file",
+      "content_type": [
+        "wcore",
+        "servicebinaryfile"
+      ],
+      "codename": "delete_servicebinaryfile"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 40,
+    "fields": {
+      "name": "Can add job history",
+      "content_type": [
+        "wcore",
+        "jobhistory"
+      ],
+      "codename": "add_jobhistory"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 41,
+    "fields": {
+      "name": "Can change job history",
+      "content_type": [
+        "wcore",
+        "jobhistory"
+      ],
+      "codename": "change_jobhistory"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 42,
+    "fields": {
+      "name": "Can delete job history",
+      "content_type": [
+        "wcore",
+        "jobhistory"
+      ],
+      "codename": "delete_jobhistory"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 43,
+    "fields": {
+      "name": "Can add Exit Code",
+      "content_type": [
+        "wcore",
+        "submissionexitcode"
+      ],
+      "codename": "add_submissionexitcode"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 44,
+    "fields": {
+      "name": "Can change Exit Code",
+      "content_type": [
+        "wcore",
+        "submissionexitcode"
+      ],
+      "codename": "change_submissionexitcode"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 45,
+    "fields": {
+      "name": "Can delete Exit Code",
+      "content_type": [
+        "wcore",
+        "submissionexitcode"
+      ],
+      "codename": "delete_submissionexitcode"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 46,
+    "fields": {
+      "name": "Can add Input sample",
+      "content_type": [
+        "wcore",
+        "fileinputsample"
+      ],
+      "codename": "add_fileinputsample"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 47,
+    "fields": {
+      "name": "Can change Input sample",
+      "content_type": [
+        "wcore",
+        "fileinputsample"
+      ],
+      "codename": "change_fileinputsample"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 48,
+    "fields": {
+      "name": "Can delete Input sample",
+      "content_type": [
+        "wcore",
+        "fileinputsample"
+      ],
+      "codename": "delete_fileinputsample"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 49,
+    "fields": {
+      "name": "Can add Initial param",
+      "content_type": [
+        "wcore",
+        "adaptorinitparam"
+      ],
+      "codename": "add_adaptorinitparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 50,
+    "fields": {
+      "name": "Can change Initial param",
+      "content_type": [
+        "wcore",
+        "adaptorinitparam"
+      ],
+      "codename": "change_adaptorinitparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 51,
+    "fields": {
+      "name": "Can delete Initial param",
+      "content_type": [
+        "wcore",
+        "adaptorinitparam"
+      ],
+      "codename": "delete_adaptorinitparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 52,
+    "fields": {
+      "name": "Can add Computing infrastructure",
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "codename": "add_runner"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 53,
+    "fields": {
+      "name": "Can change Computing infrastructure",
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "codename": "change_runner"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 54,
+    "fields": {
+      "name": "Can delete Computing infrastructure",
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "codename": "delete_runner"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 55,
+    "fields": {
+      "name": "Can add service run param",
+      "content_type": [
+        "wcore",
+        "adaptorinitparam"
+      ],
+      "codename": "add_servicerunparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 56,
+    "fields": {
+      "name": "Can change service run param",
+      "content_type": [
+        "wcore",
+        "adaptorinitparam"
+      ],
+      "codename": "change_servicerunparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 57,
+    "fields": {
+      "name": "Can delete service run param",
+      "content_type": [
+        "wcore",
+        "adaptorinitparam"
+      ],
+      "codename": "delete_servicerunparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 58,
+    "fields": {
+      "name": "Can add Sample dependency",
+      "content_type": [
+        "wcore",
+        "sampledepparam"
+      ],
+      "codename": "add_sampledepparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 59,
+    "fields": {
+      "name": "Can change Sample dependency",
+      "content_type": [
+        "wcore",
+        "sampledepparam"
+      ],
+      "codename": "change_sampledepparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 60,
+    "fields": {
+      "name": "Can delete Sample dependency",
+      "content_type": [
+        "wcore",
+        "sampledepparam"
+      ],
+      "codename": "delete_sampledepparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 61,
+    "fields": {
+      "name": "Can add Input",
+      "content_type": [
+        "wcore",
+        "aparam"
+      ],
+      "codename": "add_aparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 62,
+    "fields": {
+      "name": "Can change Input",
+      "content_type": [
+        "wcore",
+        "aparam"
+      ],
+      "codename": "change_aparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 63,
+    "fields": {
+      "name": "Can delete Input",
+      "content_type": [
+        "wcore",
+        "aparam"
+      ],
+      "codename": "delete_aparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 64,
+    "fields": {
+      "name": "Can add job input",
+      "content_type": [
+        "wcore",
+        "jobinput"
+      ],
+      "codename": "add_jobinput"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 65,
+    "fields": {
+      "name": "Can change job input",
+      "content_type": [
+        "wcore",
+        "jobinput"
+      ],
+      "codename": "change_jobinput"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 66,
+    "fields": {
+      "name": "Can delete job input",
+      "content_type": [
+        "wcore",
+        "jobinput"
+      ],
+      "codename": "delete_jobinput"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 67,
+    "fields": {
+      "name": "Can add job output",
+      "content_type": [
+        "wcore",
+        "joboutput"
+      ],
+      "codename": "add_joboutput"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 68,
+    "fields": {
+      "name": "Can change job output",
+      "content_type": [
+        "wcore",
+        "joboutput"
+      ],
+      "codename": "change_joboutput"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 69,
+    "fields": {
+      "name": "Can delete job output",
+      "content_type": [
+        "wcore",
+        "joboutput"
+      ],
+      "codename": "delete_joboutput"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 70,
+    "fields": {
+      "name": "Can add List",
+      "content_type": [
+        "wcore",
+        "listparam"
+      ],
+      "codename": "add_listparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 71,
+    "fields": {
+      "name": "Can change List",
+      "content_type": [
+        "wcore",
+        "listparam"
+      ],
+      "codename": "change_listparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 72,
+    "fields": {
+      "name": "Can delete List",
+      "content_type": [
+        "wcore",
+        "listparam"
+      ],
+      "codename": "delete_listparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 73,
+    "fields": {
+      "name": "Can add job admin history",
+      "content_type": [
+        "wcore",
+        "jobhistory"
+      ],
+      "codename": "add_jobadminhistory"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 74,
+    "fields": {
+      "name": "Can change job admin history",
+      "content_type": [
+        "wcore",
+        "jobhistory"
+      ],
+      "codename": "change_jobadminhistory"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 75,
+    "fields": {
+      "name": "Can delete job admin history",
+      "content_type": [
+        "wcore",
+        "jobhistory"
+      ],
+      "codename": "delete_jobadminhistory"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 76,
+    "fields": {
+      "name": "Can add submission run param",
+      "content_type": [
+        "wcore",
+        "adaptorinitparam"
+      ],
+      "codename": "add_submissionrunparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 77,
+    "fields": {
+      "name": "Can change submission run param",
+      "content_type": [
+        "wcore",
+        "adaptorinitparam"
+      ],
+      "codename": "change_submissionrunparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 78,
+    "fields": {
+      "name": "Can delete submission run param",
+      "content_type": [
+        "wcore",
+        "adaptorinitparam"
+      ],
+      "codename": "delete_submissionrunparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 79,
+    "fields": {
+      "name": "Can add Integer",
+      "content_type": [
+        "wcore",
+        "integerparam"
+      ],
+      "codename": "add_integerparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 80,
+    "fields": {
+      "name": "Can change Integer",
+      "content_type": [
+        "wcore",
+        "integerparam"
+      ],
+      "codename": "change_integerparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 81,
+    "fields": {
+      "name": "Can delete Integer",
+      "content_type": [
+        "wcore",
+        "integerparam"
+      ],
+      "codename": "delete_integerparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 82,
+    "fields": {
+      "name": "Can add Boolean choice",
+      "content_type": [
+        "wcore",
+        "booleanparam"
+      ],
+      "codename": "add_booleanparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 83,
+    "fields": {
+      "name": "Can change Boolean choice",
+      "content_type": [
+        "wcore",
+        "booleanparam"
+      ],
+      "codename": "change_booleanparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 84,
+    "fields": {
+      "name": "Can delete Boolean choice",
+      "content_type": [
+        "wcore",
+        "booleanparam"
+      ],
+      "codename": "delete_booleanparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 85,
+    "fields": {
+      "name": "Can add Decimal",
+      "content_type": [
+        "wcore",
+        "decimalparam"
+      ],
+      "codename": "add_decimalparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 86,
+    "fields": {
+      "name": "Can change Decimal",
+      "content_type": [
+        "wcore",
+        "decimalparam"
+      ],
+      "codename": "change_decimalparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 87,
+    "fields": {
+      "name": "Can delete Decimal",
+      "content_type": [
+        "wcore",
+        "decimalparam"
+      ],
+      "codename": "delete_decimalparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 88,
+    "fields": {
+      "name": "Can add File input",
+      "content_type": [
+        "wcore",
+        "fileinput"
+      ],
+      "codename": "add_fileinput"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 89,
+    "fields": {
+      "name": "Can change File input",
+      "content_type": [
+        "wcore",
+        "fileinput"
+      ],
+      "codename": "change_fileinput"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 90,
+    "fields": {
+      "name": "Can delete File input",
+      "content_type": [
+        "wcore",
+        "fileinput"
+      ],
+      "codename": "delete_fileinput"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 91,
+    "fields": {
+      "name": "Can add Text Input",
+      "content_type": [
+        "wcore",
+        "textparam"
+      ],
+      "codename": "add_textparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 92,
+    "fields": {
+      "name": "Can change Text Input",
+      "content_type": [
+        "wcore",
+        "textparam"
+      ],
+      "codename": "change_textparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 93,
+    "fields": {
+      "name": "Can delete Text Input",
+      "content_type": [
+        "wcore",
+        "textparam"
+      ],
+      "codename": "delete_textparam"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 94,
+    "fields": {
+      "name": "Can add demo waves service",
+      "content_type": [
+        "demo",
+        "demowavesservice"
+      ],
+      "codename": "add_demowavesservice"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 95,
+    "fields": {
+      "name": "Can change demo waves service",
+      "content_type": [
+        "demo",
+        "demowavesservice"
+      ],
+      "codename": "change_demowavesservice"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 96,
+    "fields": {
+      "name": "Can delete demo waves service",
+      "content_type": [
+        "demo",
+        "demowavesservice"
+      ],
+      "codename": "delete_demowavesservice"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 97,
+    "fields": {
+      "name": "Can add demo waves submission",
+      "content_type": [
+        "demo",
+        "demowavessubmission"
+      ],
+      "codename": "add_demowavessubmission"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 98,
+    "fields": {
+      "name": "Can change demo waves submission",
+      "content_type": [
+        "demo",
+        "demowavessubmission"
+      ],
+      "codename": "change_demowavessubmission"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 99,
+    "fields": {
+      "name": "Can delete demo waves submission",
+      "content_type": [
+        "demo",
+        "demowavessubmission"
+      ],
+      "codename": "delete_demowavessubmission"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 100,
+    "fields": {
+      "name": "Can add Category",
+      "content_type": [
+        "demo",
+        "servicecategory"
+      ],
+      "codename": "add_servicecategory"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 101,
+    "fields": {
+      "name": "Can change Category",
+      "content_type": [
+        "demo",
+        "servicecategory"
+      ],
+      "codename": "change_servicecategory"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 102,
+    "fields": {
+      "name": "Can delete Category",
+      "content_type": [
+        "demo",
+        "servicecategory"
+      ],
+      "codename": "delete_servicecategory"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 103,
+    "fields": {
+      "name": "Can add Service links",
+      "content_type": [
+        "demo",
+        "servicemeta"
+      ],
+      "codename": "add_servicemeta"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 104,
+    "fields": {
+      "name": "Can change Service links",
+      "content_type": [
+        "demo",
+        "servicemeta"
+      ],
+      "codename": "change_servicemeta"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 105,
+    "fields": {
+      "name": "Can delete Service links",
+      "content_type": [
+        "demo",
+        "servicemeta"
+      ],
+      "codename": "delete_servicemeta"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 106,
+    "fields": {
+      "name": "Can add thumbnail",
+      "content_type": [
+        "easy_thumbnails",
+        "thumbnail"
+      ],
+      "codename": "add_thumbnail"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 107,
+    "fields": {
+      "name": "Can change thumbnail",
+      "content_type": [
+        "easy_thumbnails",
+        "thumbnail"
+      ],
+      "codename": "change_thumbnail"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 108,
+    "fields": {
+      "name": "Can delete thumbnail",
+      "content_type": [
+        "easy_thumbnails",
+        "thumbnail"
+      ],
+      "codename": "delete_thumbnail"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 109,
+    "fields": {
+      "name": "Can add source",
+      "content_type": [
+        "easy_thumbnails",
+        "source"
+      ],
+      "codename": "add_source"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 110,
+    "fields": {
+      "name": "Can change source",
+      "content_type": [
+        "easy_thumbnails",
+        "source"
+      ],
+      "codename": "change_source"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 111,
+    "fields": {
+      "name": "Can delete source",
+      "content_type": [
+        "easy_thumbnails",
+        "source"
+      ],
+      "codename": "delete_source"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 112,
+    "fields": {
+      "name": "Can add thumbnail dimensions",
+      "content_type": [
+        "easy_thumbnails",
+        "thumbnaildimensions"
+      ],
+      "codename": "add_thumbnaildimensions"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 113,
+    "fields": {
+      "name": "Can change thumbnail dimensions",
+      "content_type": [
+        "easy_thumbnails",
+        "thumbnaildimensions"
+      ],
+      "codename": "change_thumbnaildimensions"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 114,
+    "fields": {
+      "name": "Can delete thumbnail dimensions",
+      "content_type": [
+        "easy_thumbnails",
+        "thumbnaildimensions"
+      ],
+      "codename": "delete_thumbnaildimensions"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 115,
+    "fields": {
+      "name": "Can add user profile",
+      "content_type": [
+        "profiles",
+        "userprofile"
+      ],
+      "codename": "add_userprofile"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 116,
+    "fields": {
+      "name": "Can change user profile",
+      "content_type": [
+        "profiles",
+        "userprofile"
+      ],
+      "codename": "change_userprofile"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 117,
+    "fields": {
+      "name": "Can delete user profile",
+      "content_type": [
+        "profiles",
+        "userprofile"
+      ],
+      "codename": "delete_userprofile"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 118,
+    "fields": {
+      "name": "Can add Token",
+      "content_type": [
+        "authtoken",
+        "token"
+      ],
+      "codename": "add_token"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 119,
+    "fields": {
+      "name": "Can change Token",
+      "content_type": [
+        "authtoken",
+        "token"
+      ],
+      "codename": "change_token"
+    }
+  },
+  {
+    "model": "auth.permission",
+    "pk": 120,
+    "fields": {
+      "name": "Can delete Token",
+      "content_type": [
+        "authtoken",
+        "token"
+      ],
+      "codename": "delete_token"
+    }
+  },
+  {
     "model": "auth.group",
     "pk": 1,
     "fields": {
@@ -16,11 +1776,6 @@
           "demowavesservice"
         ],
         [
-          "delete_demowavesservice",
-          "demo",
-          "demowavesservice"
-        ],
-        [
           "add_demowavessubmission",
           "demo",
           "demowavessubmission"
@@ -31,22 +1786,12 @@
           "demowavessubmission"
         ],
         [
-          "delete_demowavessubmission",
-          "demo",
-          "demowavessubmission"
-        ],
-        [
           "add_servicecategory",
           "demo",
           "servicecategory"
         ],
         [
           "change_servicecategory",
-          "demo",
-          "servicecategory"
-        ],
-        [
-          "delete_servicecategory",
           "demo",
           "servicecategory"
         ],
@@ -316,11 +2061,6 @@
           "runner"
         ],
         [
-          "delete_runner",
-          "wcore",
-          "runner"
-        ],
-        [
           "add_sampledepparam",
           "wcore",
           "sampledepparam"
@@ -379,66 +2119,55 @@
     }
   },
   {
-    "model": "demo.servicecategory",
+    "model": "authtools.user",
     "pk": 1,
     "fields": {
-      "order": 0,
-      "description": "<p><br />\r\nHtml styles short description</p>",
-      "short_description": "Short description",
-      "name": "Sample Service Category",
-      "ref": null,
-      "parent": null
+      "password": "pbkdf2_sha256$36000$ASfjR6vPir9E$MiiJtbRyZGg1MpdMakw6yDC4zWg/F7JkrAAuVUj6Fb4=",
+      "last_login": "2018-02-14T16:04:35.826Z",
+      "is_superuser": true,
+      "email": "superuser@atgc-montpellier.fr",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2018-01-29T15:48:38.086Z",
+      "name": "Vincent Lefort",
+      "groups": [],
+      "user_permissions": []
     }
   },
   {
-    "model": "demo.demowavessubmission",
+    "model": "authtools.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$36000$BQciPyW5RKNl$/QqlfXkeZsC3npNQtDc0Knkeod81NSa5mfeRXjh8sGk=",
+      "last_login": "2018-02-14T16:05:29.403Z",
+      "is_superuser": false,
+      "email": "demo@atgc-montpellier.fr",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2018-02-13T09:11:46.298Z",
+      "name": "Demo user",
+      "groups": [
+        [
+          "WAVES-ADMIN"
+        ]
+      ],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "authtools.user",
     "pk": 3,
     "fields": {
-      "created": "2018-02-06T13:51:58.819Z",
-      "updated": "2018-02-06T14:59:36.119Z",
-      "order": 0,
-      "slug": "5ebc7af7-ecb7-49a4-a15f-22c2655073e0",
-      "api_name": "default",
-      "binary_file": null,
-      "runner": null,
-      "service": 3,
-      "availability": 1,
-      "name": "default",
-      "to_delete": true
-    }
-  },
-  {
-    "model": "demo.demowavessubmission",
-    "pk": 5,
-    "fields": {
-      "created": "2018-02-06T14:57:12.327Z",
-      "updated": "2018-02-06T15:18:19.553Z",
-      "order": 1,
-      "slug": "b55f9046-9f49-4453-ab36-76841b6ecaa7",
-      "api_name": "remote",
-      "binary_file": null,
-      "runner": null,
-      "service": 3,
-      "availability": 1,
-      "name": "remote",
-      "to_delete": true
-    }
-  },
-  {
-    "model": "demo.demowavessubmission",
-    "pk": 6,
-    "fields": {
-      "created": "2018-02-06T15:53:28.760Z",
-      "updated": "2018-02-06T15:55:22.046Z",
-      "order": 2,
-      "slug": "f6f7ae93-229c-4d9e-92af-7b91c8e3dc50",
-      "api_name": "remote_sge",
-      "binary_file": null,
-      "runner": null,
-      "service": 3,
-      "availability": 1,
-      "name": "remote_sge",
-      "to_delete": true
+      "password": "pbkdf2_sha256$36000$BgpJYIkCbAKE$nWtPqHUAJlwdROq2tLlSQ797p3Dmhw5IgCWxVD6gdGE=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "demoapiuser@atgc-montpellier.fr",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2018-02-13T12:05:07.439Z",
+      "name": "Demo api user",
+      "groups": [],
+      "user_permissions": []
     }
   },
   {
@@ -503,7 +2232,52 @@
   },
   {
     "model": "wcore.adaptorinitparam",
-    "pk": 91,
+    "pk": 131,
+    "fields": {
+      "name": "command",
+      "value": "mock_command",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "demo",
+        "demowavessubmission"
+      ],
+      "object_id": 5
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 133,
+    "fields": {
+      "name": "command",
+      "value": "mock_command",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "demo",
+        "demowavesservice"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 136,
+    "fields": {
+      "name": "command",
+      "value": "mock_command",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "demo",
+        "demowavessubmission"
+      ],
+      "object_id": 8
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 138,
     "fields": {
       "name": "command",
       "value": "mock_command",
@@ -518,30 +2292,120 @@
   },
   {
     "model": "wcore.adaptorinitparam",
-    "pk": 92,
+    "pk": 147,
     "fields": {
-      "name": "command",
-      "value": "echo",
+      "name": "api_endpoint",
+      "value": "",
       "crypt": false,
       "prevent_override": false,
       "content_type": [
-        "demo",
-        "demowavessubmission"
+        "wcore",
+        "runner"
       ],
-      "object_id": 5
+      "object_id": 6
     }
   },
   {
     "model": "wcore.adaptorinitparam",
-    "pk": 109,
+    "pk": 148,
     "fields": {
-      "name": "command",
-      "value": "echo",
+      "name": "host",
+      "value": "localhost",
       "crypt": false,
       "prevent_override": false,
       "content_type": [
-        "demo",
-        "demowavessubmission"
+        "wcore",
+        "runner"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 149,
+    "fields": {
+      "name": "protocol",
+      "value": "http",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 150,
+    "fields": {
+      "name": "api_base_path",
+      "value": "",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 151,
+    "fields": {
+      "name": "command",
+      "value": "mock_command",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 152,
+    "fields": {
+      "name": "library_dir",
+      "value": "",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 153,
+    "fields": {
+      "name": "port",
+      "value": "",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 154,
+    "fields": {
+      "name": "app_key",
+      "value": "I5p79pjwvwY274rmpBtH13qOucbKQFsxc8Zo7LJL",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "wcore",
+        "runner"
       ],
       "object_id": 6
     }
@@ -550,12 +2414,60 @@
     "model": "wcore.runner",
     "pk": 2,
     "fields": {
-      "description": "",
-      "short_description": "",
+      "description": "<p>This is a very simple Job Adapter, it runs programs locally on the WAVES installation machine.</p>",
+      "short_description": "This is a very simple Job Adapter, it runs programs locally on the WAVES installation machine.",
       "clazz": "demo.adaptors.LocalShellAdaptor",
       "binary_file": null,
       "name": "Local Shell",
       "enabled": true
+    }
+  },
+  {
+    "model": "wcore.runner",
+    "pk": 6,
+    "fields": {
+      "description": "",
+      "short_description": "",
+      "clazz": "demo.adaptors.GalaxyJobAdaptor",
+      "binary_file": null,
+      "name": "qsqsdqsd",
+      "enabled": true
+    }
+  },
+  {
+    "model": "wcore.submissionoutput",
+    "pk": 8,
+    "fields": {
+      "created": "2018-02-14T14:28:05.164Z",
+      "updated": "2018-02-14T14:28:05.164Z",
+      "api_name": "expected_output_1",
+      "label": "Expected output 1",
+      "name": "Expected output 1",
+      "submission": 3,
+      "from_input": null,
+      "file_pattern": "outpu1",
+      "edam_format": null,
+      "edam_data": null,
+      "help_text": "This is a sample expected output for this service.",
+      "extension": "txt"
+    }
+  },
+  {
+    "model": "wcore.submissionoutput",
+    "pk": 9,
+    "fields": {
+      "created": "2018-02-14T14:28:53.474Z",
+      "updated": "2018-02-14T14:28:53.474Z",
+      "api_name": "output_name_from_input",
+      "label": "Output name from input",
+      "name": "Output name from input",
+      "submission": 3,
+      "from_input": 6,
+      "file_pattern": "%s_output",
+      "edam_format": null,
+      "edam_data": null,
+      "help_text": "This is an output which name is determined by an input value",
+      "extension": ".txt"
     }
   },
   {
@@ -600,21 +2512,21 @@
   },
   {
     "model": "wcore.submissionexitcode",
-    "pk": 11,
+    "pk": 16,
     "fields": {
       "exit_code": 0,
       "message": "Process exit normally",
-      "submission": 6,
+      "submission": 8,
       "is_error": false
     }
   },
   {
     "model": "wcore.submissionexitcode",
-    "pk": 12,
+    "pk": 17,
     "fields": {
       "exit_code": 1,
       "message": "Process exit error",
-      "submission": 6,
+      "submission": 8,
       "is_error": true
     }
   },
@@ -627,15 +2539,15 @@
         "textparam"
       ],
       "order": 1,
-      "api_name": "etes",
-      "label": "test_input",
-      "name": "etes",
+      "api_name": "text_input",
+      "label": "A simple Text input",
+      "name": "text_input",
       "multiple": false,
       "help_text": "",
       "submission": 3,
       "required": true,
       "default": null,
-      "cmd_format": 4,
+      "cmd_format": 2,
       "edam_formats": null,
       "edam_datas": null,
       "repeat_group": null,
@@ -654,14 +2566,14 @@
       ],
       "order": 1,
       "api_name": "text",
-      "label": "Text to remotely output",
+      "label": "Text input",
       "name": "text",
       "multiple": false,
       "help_text": "",
       "submission": 5,
       "required": true,
       "default": null,
-      "cmd_format": 4,
+      "cmd_format": 2,
       "edam_formats": null,
       "edam_datas": null,
       "repeat_group": null,
@@ -672,22 +2584,152 @@
   },
   {
     "model": "wcore.aparam",
-    "pk": 11,
+    "pk": 16,
     "fields": {
       "polymorphic_ctype": [
         "wcore",
-        "textparam"
+        "listparam"
       ],
-      "order": 1,
-      "api_name": "text_o",
-      "label": "Text to sge output",
-      "name": "text_o",
+      "order": 2,
+      "api_name": "list_input",
+      "label": "A List Input",
+      "name": "list_input",
       "multiple": false,
       "help_text": "",
-      "submission": 6,
+      "submission": 5,
+      "required": true,
+      "default": "select1",
+      "cmd_format": 2,
+      "edam_formats": null,
+      "edam_datas": null,
+      "repeat_group": null,
+      "when_value": null,
+      "parent": null,
+      "regexp": null
+    }
+  },
+  {
+    "model": "wcore.aparam",
+    "pk": 17,
+    "fields": {
+      "polymorphic_ctype": [
+        "wcore",
+        "booleanparam"
+      ],
+      "order": 4,
+      "api_name": "bool",
+      "label": "Boolean choice",
+      "name": "bool",
+      "multiple": false,
+      "help_text": "",
+      "submission": 5,
+      "required": true,
+      "default": "True",
+      "cmd_format": 2,
+      "edam_formats": null,
+      "edam_datas": null,
+      "repeat_group": null,
+      "when_value": null,
+      "parent": null,
+      "regexp": null
+    }
+  },
+  {
+    "model": "wcore.aparam",
+    "pk": 18,
+    "fields": {
+      "polymorphic_ctype": [
+        "wcore",
+        "fileinput"
+      ],
+      "order": 3,
+      "api_name": "file_input",
+      "label": "A file Input",
+      "name": "file_input",
+      "multiple": false,
+      "help_text": "This is file help text",
+      "submission": 5,
       "required": true,
       "default": null,
-      "cmd_format": 4,
+      "cmd_format": 2,
+      "edam_formats": null,
+      "edam_datas": null,
+      "repeat_group": null,
+      "when_value": null,
+      "parent": null,
+      "regexp": null
+    }
+  },
+  {
+    "model": "wcore.aparam",
+    "pk": 19,
+    "fields": {
+      "polymorphic_ctype": [
+        "wcore",
+        "integerparam"
+      ],
+      "order": 5,
+      "api_name": "dependent",
+      "label": "A dependent parameter",
+      "name": "dependent",
+      "multiple": false,
+      "help_text": "This is a parameter only shown when another value is set",
+      "submission": 5,
+      "required": false,
+      "default": null,
+      "cmd_format": 2,
+      "edam_formats": null,
+      "edam_datas": null,
+      "repeat_group": null,
+      "when_value": "True",
+      "parent": 17,
+      "regexp": null
+    }
+  },
+  {
+    "model": "wcore.aparam",
+    "pk": 20,
+    "fields": {
+      "polymorphic_ctype": [
+        "wcore",
+        "listparam"
+      ],
+      "order": 6,
+      "api_name": "another_dep",
+      "label": "Another dep",
+      "name": "another_dep",
+      "multiple": true,
+      "help_text": "",
+      "submission": 5,
+      "required": false,
+      "default": "val1",
+      "cmd_format": 2,
+      "edam_formats": null,
+      "edam_datas": null,
+      "repeat_group": null,
+      "when_value": "True",
+      "parent": 17,
+      "regexp": null
+    }
+  },
+  {
+    "model": "wcore.aparam",
+    "pk": 21,
+    "fields": {
+      "polymorphic_ctype": [
+        "wcore",
+        "fileinput"
+      ],
+      "order": 2,
+      "api_name": "input_file",
+      "label": "Script input file",
+      "name": "input_file",
+      "multiple": false,
+      "help_text": "This input file allows copy / paste element",
+      "submission": 3,
+      "required": true,
+      "default": null,
+      "cmd_format": 2,
       "edam_formats": null,
       "edam_datas": null,
       "repeat_group": null,
@@ -711,46 +2753,100 @@
     }
   },
   {
-    "model": "wcore.textparam",
-    "pk": 11,
+    "model": "wcore.booleanparam",
+    "pk": 17,
     "fields": {
-      "max_length": "255"
+      "true_value": "True",
+      "false_value": "False"
     }
   },
   {
-    "model": "authtools.user",
+    "model": "wcore.integerparam",
+    "pk": 19,
+    "fields": {
+      "min_val": 0,
+      "max_val": null,
+      "step": 1
+    }
+  },
+  {
+    "model": "wcore.listparam",
+    "pk": 16,
+    "fields": {
+      "list_mode": "select",
+      "list_elements": "Label select 1|select1\r\nLabel select 2|select2\r\nLabel select 3|select3"
+    }
+  },
+  {
+    "model": "wcore.listparam",
+    "pk": 20,
+    "fields": {
+      "list_mode": "checkbox",
+      "list_elements": "Some checkbox|val1\r\nSome other checkbox|val2"
+    }
+  },
+  {
+    "model": "wcore.fileinput",
+    "pk": 21,
+    "fields": {
+      "max_size": 20480,
+      "allowed_extensions": "*",
+      "allow_copy_paste": true
+    }
+  },
+  {
+    "model": "wcore.fileinput",
+    "pk": 18,
+    "fields": {
+      "max_size": 20480,
+      "allowed_extensions": "*",
+      "allow_copy_paste": true
+    }
+  },
+  {
+    "model": "wcore.fileinputsample",
     "pk": 1,
     "fields": {
-      "password": "pbkdf2_sha256$36000$ASfjR6vPir9E$MiiJtbRyZGg1MpdMakw6yDC4zWg/F7JkrAAuVUj6Fb4=",
-      "last_login": "2018-02-13T09:47:04.738Z",
-      "is_superuser": true,
-      "email": "superuser@atgc-montpellier.fr",
-      "is_staff": true,
-      "is_active": true,
-      "date_joined": "2018-01-29T15:48:38.086Z",
-      "name": "Vincent Lefort",
-      "groups": [],
-      "user_permissions": []
+      "label": "A sample file",
+      "help_text": null,
+      "file": "sample/echo/5ebc7af7-ecb7-49a4-a15f-22c2655073e0/Primates_2.phy",
+      "file_input": 21
     }
   },
   {
-    "model": "authtools.user",
+    "model": "demo.servicecategory",
+    "pk": 1,
+    "fields": {
+      "order": 0,
+      "description": "<p><br />\r\nThis is a <span style=\"color:#ff0000\">sample category </span>description, organize your&nbsp;services&nbsp;<strong>easily.&nbsp;</strong></p>",
+      "short_description": "Short description",
+      "name": "Sample Category 1",
+      "ref": null,
+      "parent": 2
+    }
+  },
+  {
+    "model": "demo.servicecategory",
     "pk": 2,
     "fields": {
-      "password": "pbkdf2_sha256$36000$34RNwFja7Zvh$vnKPExJbs5ByjYNByJ0lvZqfKCVZIHybMfbV0kIaYcg=",
-      "last_login": "2018-02-13T09:26:13.130Z",
-      "is_superuser": false,
-      "email": "demo@atgc-montpellier.fr",
-      "is_staff": true,
-      "is_active": true,
-      "date_joined": "2018-02-13T09:11:46.298Z",
-      "name": "Demo user",
-      "groups": [
-        [
-          "WAVES-ADMIN"
-        ]
-      ],
-      "user_permissions": []
+      "order": 0,
+      "description": "",
+      "short_description": "",
+      "name": "Root Category",
+      "ref": null,
+      "parent": null
+    }
+  },
+  {
+    "model": "demo.servicecategory",
+    "pk": 3,
+    "fields": {
+      "order": 0,
+      "description": "<p>This category is another example when you want to organize your services in a hierarchy.</p>",
+      "short_description": "Another sample category",
+      "name": "Sample Category 2",
+      "ref": null,
+      "parent": 2
     }
   },
   {
@@ -758,17 +2854,17 @@
     "pk": 3,
     "fields": {
       "created": "2018-02-06T13:51:58.817Z",
-      "updated": "2018-02-13T09:58:52.672Z",
-      "description": "",
-      "short_description": "",
-      "api_name": "echo",
+      "updated": "2018-02-14T14:10:47.550Z",
+      "description": "<p>This is a sample service description, displayed on front office with standard HTML.</p>\r\n\r\n<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel erat non neque interdum pellentesque. Duis sodales condimentum nibh, ut congue diam consectetur sit amet. Vivamus vestibulum id libero in tristique. Ut fermentum lacus vitae sodales semper. Curabitur laoreet dignissim rutrum. Cras sit amet massa sagittis, cursus quam id, posuere ipsum. Pellentesque lobortis a diam vitae eleifend. Mauris vehicula justo cursus dignissim mattis. Nulla tempus ac magna nec venenatis. Cras tincidunt tincidunt enim vel molestie. Sed sem dolor, sagittis eget rhoncus ut, viverra eget libero. Nulla pellentesque leo enim, vitae tempor augue euismod eu. Curabitur id dapibus augue. Maecenas semper ornare sollicitudin.</p>\r\n\r\n<p>Nunc at tincidunt diam. In suscipit purus a sapien facilisis facilisis. Ut mattis dolor aliquam tellus pellentesque commodo. Quisque volutpat iaculis urna vehicula ultricies. Praesent in metus arcu. Sed in viverra urna. Aliquam fermentum orci eu ex sagittis congue. Nam diam metus, efficitur sed elit varius, scelerisque ullamcorper urna. Praesent diam ex, commodo quis accumsan sed, blandit nec eros. Fusce ac quam id velit vulputate condimentum. Vivamus faucibus mauris eget egestas ultrices. Donec egestas, nunc ac laoreet ornare, massa mauris gravida eros, non pretium nibh diam bibendum justo.</p>\r\n\r\n<p>Nunc gravida dui et nunc luctus ultrices. Fusce nulla nunc, placerat ac cursus eget, pellentesque sit amet enim. Quisque in justo lorem. Sed vel purus enim. Aliquam enim mauris, pellentesque sed dui quis, scelerisque tristique mi. Duis quis mauris non lectus faucibus mattis laoreet vel nibh. Sed volutpat viverra enim, sit amet rhoncus dolor elementum ac. Duis vehicula non lacus in venenatis. Nullam mattis, sapien eu tristique dignissim, nisl metus pulvinar dolor, ac blandit nibh lectus ut dui. Maecenas eu tincidunt turpis.</p>\r\n\r\n<p>Cras condimentum massa eu diam consectetur elementum in et erat. Suspendisse tristique tristique auctor. Quisque nec enim et augue pulvinar posuere a non urna. Vestibulum sagittis velit nec erat pharetra dapibus. Vestibulum tristique enim purus, non malesuada arcu congue id. Etiam semper feugiat bibendum. Sed nec augue ut nibh vulputate rutrum semper in nisi. Vivamus quis condimentum nisl, ac vestibulum risus. In tempor est eu egestas lobortis. Vivamus metus ligula, rutrum nec orci eget, efficitur pretium leo. Fusce quis consequat quam. Phasellus tempus facilisis nulla, vel ultricies ante iaculis lobortis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed pulvinar volutpat tellus, vitae vehicula quam cursus ac. Nunc scelerisque sapien nec convallis porta.</p>\r\n\r\n<p>Sed consectetur gravida dolor, sed vehicula leo finibus sed. Integer est metus, congue quis nunc ac, sodales lacinia est. Sed euismod velit eget dui sagittis tempor. Aenean vitae neque quam. Quisque efficitur felis vehicula purus semper, semper rutrum leo laoreet. Etiam ultrices turpis et tristique accumsan. Curabitur convallis elit ante, vitae efficitur lectus semper ac. Vestibulum convallis malesuada erat eget sagittis. Phasellus ac nulla urna. Suspendisse quis risus in magna scelerisque congue imperdiet aliquam nulla. Mauris tellus turpis, faucibus at enim quis, fringilla lacinia nisl. Duis eu massa gravida, lobortis diam a, congue massa. Vivamus pharetra risus congue ultrices congue. Etiam egestas dolor quis semper pellentesque. Integer vel dui eu risus ornare pulvinar fermentum id tellus. Pellentesque tortor erat, blandit vitae pretium in, feugiat eget justo</p>",
+      "short_description": "This is short description for services, displayed in list for instance.",
+      "api_name": "sample_service",
       "binary_file": null,
       "runner": 2,
-      "name": "echo",
+      "name": "Sample Service",
       "authors": null,
       "citations": null,
       "version": "1.0",
-      "status": 0,
+      "status": 3,
       "email_on": true,
       "partial": false,
       "created_by": [
@@ -780,6 +2876,237 @@
       "category": 1,
       "to_delete": false,
       "restricted_client": []
+    }
+  },
+  {
+    "model": "demo.demowavesservice",
+    "pk": 6,
+    "fields": {
+      "created": "2018-02-13T10:34:45.579Z",
+      "updated": "2018-02-13T10:39:06.123Z",
+      "description": "<p>This service use two main WAVES fonctionnalties:</p>\r\n\r\n<p>- Override base form for this specific service</p>\r\n\r\n<p>- Call another service REST api to display form</p>",
+      "short_description": "This is an example on what forms API can do",
+      "api_name": "using_api",
+      "binary_file": null,
+      "runner": 2,
+      "name": "Using API forms",
+      "authors": null,
+      "citations": null,
+      "version": "1.0",
+      "status": 3,
+      "email_on": true,
+      "partial": false,
+      "created_by": null,
+      "remote_service_id": null,
+      "edam_topics": "",
+      "edam_operations": "",
+      "category": 1,
+      "to_delete": true,
+      "restricted_client": []
+    }
+  },
+  {
+    "model": "demo.demowavessubmission",
+    "pk": 3,
+    "fields": {
+      "created": "2018-02-06T13:51:58.819Z",
+      "updated": "2018-02-14T14:28:53.471Z",
+      "order": 0,
+      "slug": "5ebc7af7-ecb7-49a4-a15f-22c2655073e0",
+      "api_name": "default",
+      "binary_file": null,
+      "runner": null,
+      "service": 3,
+      "availability": 1,
+      "name": "Default",
+      "to_delete": true
+    }
+  },
+  {
+    "model": "demo.demowavessubmission",
+    "pk": 5,
+    "fields": {
+      "created": "2018-02-06T14:57:12.327Z",
+      "updated": "2018-02-13T10:33:59.153Z",
+      "order": 1,
+      "slug": "b55f9046-9f49-4453-ab36-76841b6ecaa7",
+      "api_name": "extended",
+      "binary_file": null,
+      "runner": null,
+      "service": 3,
+      "availability": 1,
+      "name": "Extended",
+      "to_delete": true
+    }
+  },
+  {
+    "model": "demo.demowavessubmission",
+    "pk": 8,
+    "fields": {
+      "created": "2018-02-13T10:34:45.581Z",
+      "updated": "2018-02-13T10:38:34.153Z",
+      "order": 0,
+      "slug": "abba587f-113b-4039-8da6-c65262b70f46",
+      "api_name": "default",
+      "binary_file": null,
+      "runner": null,
+      "service": 6,
+      "availability": 0,
+      "name": "default",
+      "to_delete": true
+    }
+  },
+  {
+    "model": "demo.servicemeta",
+    "pk": 1,
+    "fields": {
+      "order": 0,
+      "description": "<p>A documentation link is added to standard WAVES Service&nbsp;</p>",
+      "short_description": null,
+      "type": "doc",
+      "title": "Documentation link",
+      "value": "http://www.atgc-montpellier.fr",
+      "is_url": true,
+      "service": 6
+    }
+  },
+  {
+    "model": "demo.servicemeta",
+    "pk": 2,
+    "fields": {
+      "order": 0,
+      "description": "<p>Nunc gravida dui et nunc luctus ultrices. Fusce nulla nunc, placerat ac cursus eget, pellentesque sit amet enim. Quisque in justo lorem. Sed vel purus enim.</p>",
+      "short_description": null,
+      "type": "feat",
+      "title": "Sample Features",
+      "value": "https://fr.lipsum.com",
+      "is_url": true,
+      "service": 3
+    }
+  },
+  {
+    "model": "demo.servicemeta",
+    "pk": 3,
+    "fields": {
+      "order": 0,
+      "description": "<p>Etiam semper feugiat bibendum. Sed nec augue ut nibh vulputate rutrum semper in nisi. Vivamus quis condimentum nisl, ac vestibulum risus.&nbsp;</p>",
+      "short_description": null,
+      "type": "paper",
+      "title": "Sample related papers",
+      "value": "http://www.atgc-montpellier.fr/",
+      "is_url": true,
+      "service": 3
+    }
+  },
+  {
+    "model": "demo.servicemeta",
+    "pk": 4,
+    "fields": {
+      "order": 0,
+      "description": "<p>Please cite&nbsp;</p>",
+      "short_description": null,
+      "type": "cite",
+      "title": "Please Cite",
+      "value": "http://www.atgc-montpellier.fr/organization/",
+      "is_url": true,
+      "service": 3
+    }
+  },
+  {
+    "model": "easy_thumbnails.source",
+    "pk": 1,
+    "fields": {
+      "storage_hash": "10b67460e409cd1897d0327662403de7",
+      "name": "profile/a8cce1fe-7d84-4bd1-9233-d28ffba0a323/ATGC.jpg",
+      "modified": "2018-02-13T10:08:04.955Z"
+    }
+  },
+  {
+    "model": "easy_thumbnails.thumbnail",
+    "pk": 1,
+    "fields": {
+      "storage_hash": "d26becbf46ac48eda79c7a39a13a02dd",
+      "name": "profile/a8cce1fe-7d84-4bd1-9233-d28ffba0a323/ATGC.jpg.140x140_q85_crop.png",
+      "modified": "2018-02-13T10:08:05.019Z",
+      "source": 1
+    }
+  },
+  {
+    "model": "profiles.userprofile",
+    "pk": 3,
+    "fields": {
+      "picture": "",
+      "registered_for_api": false,
+      "api_key": null,
+      "institution": "LIRMM",
+      "country": "FR",
+      "phone": null,
+      "comment": "",
+      "ip": null,
+      "banned": false,
+      "slug": "2ab577dc-8231-4480-9e41-8403a135648b"
+    }
+  },
+  {
+    "model": "profiles.userprofile",
+    "pk": 2,
+    "fields": {
+      "picture": "",
+      "registered_for_api": true,
+      "api_key": "f628dae6-109d-11e8-9ef3-3417ebccd2cf",
+      "institution": "LIRMM",
+      "country": "FR",
+      "phone": null,
+      "comment": "",
+      "ip": "127.0.0.1",
+      "banned": false,
+      "slug": "beed9e1d-926b-499c-bf6f-e07bc3389faf"
+    }
+  },
+  {
+    "model": "profiles.userprofile",
+    "pk": 1,
+    "fields": {
+      "picture": "profile/a8cce1fe-7d84-4bd1-9233-d28ffba0a323/ATGC.jpg",
+      "registered_for_api": true,
+      "api_key": "e172d248-050b-11e8-9515-3417ebccd2cf",
+      "institution": "LIRMM",
+      "country": "FR",
+      "phone": null,
+      "comment": "",
+      "ip": "127.0.0.1",
+      "banned": false,
+      "slug": "a8cce1fe-7d84-4bd1-9233-d28ffba0a323"
+    }
+  },
+  {
+    "model": "authtoken.token",
+    "pk": "15b43484d6d80f2f277205f1964161d50f0eda18",
+    "fields": {
+      "user": [
+        "demo@atgc-montpellier.fr"
+      ],
+      "created": "2018-02-13T09:11:46.323Z"
+    }
+  },
+  {
+    "model": "authtoken.token",
+    "pk": "8fd9db48129dfd5da65bdab0615311dee6dd0de6",
+    "fields": {
+      "user": [
+        "superuser@atgc-montpellier.fr"
+      ],
+      "created": "2018-01-29T15:48:38.195Z"
+    }
+  },
+  {
+    "model": "authtoken.token",
+    "pk": "b3df763f6a9d4f97c992074ab835924194f742e4",
+    "fields": {
+      "user": [
+        "demoapiuser@atgc-montpellier.fr"
+      ],
+      "created": "2018-02-13T12:05:07.468Z"
     }
   }
 ]
