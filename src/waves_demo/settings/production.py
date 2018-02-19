@@ -114,4 +114,26 @@ logging.config.dictConfig(LOGGING)
 
 DEFAULT_FROM_EMAIL = 'WAVES <waves-demo@atgc-montpellier.fr>'
 CONTACT_EMAIL = env.str('CONTACT_EMAIL', DEFAULT_FROM_EMAIL)
-WAVES_CORE['ADMIN_EMAIL'] = env.str('ADMIN_EMAIL', 'admin@waves.atgc-montpellier.fr')
+# WAVES
+WAVES_CORE = {
+    'ACCOUNT_ACTIVATION_DAYS': 14,
+    'ADMIN_EMAIL': env.str('ADMIN_EMAIL', 'admin@waves.atgc-montpellier.fr'),
+    'DATA_ROOT': env.str('WAVES_DATA_ROOT', join(BASE_DIR, '/tmp'), 'data'),
+    'JOB_BASE_DIR': env.str('WAVES_JOB_BASE_DIR', join(BASE_DIR, '/tmp'), 'data', 'jobs'),
+    'BINARIES_DIR': env.str('WAVES_BINARIES_DIR', join(BASE_DIR, '/tmp'), 'bin'),
+    'SAMPLE_DIR': env.str('WAVES_SAMPLE_DIR', join(MEDIA_ROOT, '/tmp'), 'sample'),
+    'KEEP_ANONYMOUS_JOBS': 2,
+    'KEEP_REGISTERED_JOBS': 2,
+    'ALLOW_JOB_SUBMISSION': True,
+    'APP_NAME': 'WAVES DEMO',
+    'SERVICES_EMAIL': 'contact@atgc-montpellier.fr',
+    'ADAPTORS_CLASSES': (
+        'demo.adaptors.SshShellAdaptor',
+        'demo.adaptors.LocalClusterAdaptor',
+        'demo.adaptors.SshKeyShellAdaptor',
+        'demo.adaptors.LocalShellAdaptor',
+        'demo.adaptors.SshClusterAdaptor',
+        'demo.adaptors.SshKeyClusterAdaptor',
+        'demo.adaptors.GalaxyJobAdaptor',
+    ),
+}
