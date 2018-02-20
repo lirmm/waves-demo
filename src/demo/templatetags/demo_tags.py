@@ -17,4 +17,7 @@ def get_demo_version():
 
 @register.inclusion_tag('demo/run_details.html', takes_context=False)
 def job_run_details(job=None):
-    return {'run_details': vars(job.run_details).items()}
+    if job is not None and job.run_details is not None:
+        return {'run_details': vars(job.run_details).items()}
+    else:
+        return {'run_details': {'N/A': 'Unknown'}}
