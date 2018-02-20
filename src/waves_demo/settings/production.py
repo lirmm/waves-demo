@@ -113,16 +113,18 @@ LOGGING = {
 }
 logging.config.dictConfig(LOGGING)
 
+# EMAILS
 DEFAULT_FROM_EMAIL = 'WAVES <waves-demo@atgc-montpellier.fr>'
 CONTACT_EMAIL = env.str('CONTACT_EMAIL', DEFAULT_FROM_EMAIL)
+
 # WAVES
 WAVES_CORE = {
     'ACCOUNT_ACTIVATION_DAYS': 14,
     'ADMIN_EMAIL': env.str('ADMIN_EMAIL', 'admin@waves.atgc-montpellier.fr'),
-    'DATA_ROOT': env.str('WAVES_DATA_ROOT', join(BASE_DIR, 'tmp', 'data')),
-    'JOB_BASE_DIR': env.str('WAVES_JOB_BASE_DIR', join(BASE_DIR, 'tmp', 'data', 'jobs')),
-    'BINARIES_DIR': env.str('WAVES_BINARIES_DIR', join(BASE_DIR, 'tmp', 'bin')),
-    'SAMPLE_DIR': env.str('WAVES_SAMPLE_DIR', join(MEDIA_ROOT, 'tmp', 'sample')),
+    'DATA_ROOT': env.str('WAVES_DATA_ROOT', join(BASE_DIR, 'data')),
+    'JOB_BASE_DIR': env.str('WAVES_JOB_BASE_DIR', join(BASE_DIR, 'data', 'jobs')),
+    'BINARIES_DIR': env.str('WAVES_BINARIES_DIR', join(BASE_DIR, 'data', 'bin')),
+    'SAMPLE_DIR': env.str('WAVES_SAMPLE_DIR', join(MEDIA_ROOT, 'data', 'sample')),
     'KEEP_ANONYMOUS_JOBS': 2,
     'KEEP_REGISTERED_JOBS': 2,
     'ALLOW_JOB_SUBMISSION': True,
@@ -140,7 +142,7 @@ WAVES_CORE = {
 }
 
 REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = (
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    )
+    'rest_framework.authentication.TokenAuthentication',
+    'rest_framework.authentication.BasicAuthentication',
+    'rest_framework.authentication.SessionAuthentication',
+)
