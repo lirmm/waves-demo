@@ -45,7 +45,8 @@ class WDContactForm(ContactForm):
 
     def save(self, fail_silently=False):
         try:
-            send_mail(fail_silently=False, **self.get_message_dict())
+            message_dict = self.get_message_dict()
+            send_mail(fail_silently=False, **message_dict)
             messages.success(self.request, "Your message has been successfully sent, we'll get in touch soon")
         except smtplib.SMTPException:
             messages.error(self.request, "Sorry you message was not sent. We are working on it !")

@@ -52,10 +52,12 @@ class CategoryListView(generic.ListView):
 class JobListView(CoreJobListView):
 
     def get_queryset(self):
-        api_user = User.objects.filter(email='demoapiuser@atgc-montpellier.fr')
-        queryset = Job.objects.filter(client=api_user)
+        queryset = Job.objects.all()
         return queryset
 
 
 class JobView(CoreJobView):
-    pass
+
+    def get_queryset(self):
+        queryset = Job.objects.all()
+        return queryset

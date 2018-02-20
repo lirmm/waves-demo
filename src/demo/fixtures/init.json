@@ -16,11 +16,6 @@
           "demowavesservice"
         ],
         [
-          "delete_demowavesservice",
-          "demo",
-          "demowavesservice"
-        ],
-        [
           "add_demowavessubmission",
           "demo",
           "demowavessubmission"
@@ -31,22 +26,12 @@
           "demowavessubmission"
         ],
         [
-          "delete_demowavessubmission",
-          "demo",
-          "demowavessubmission"
-        ],
-        [
           "add_servicecategory",
           "demo",
           "servicecategory"
         ],
         [
           "change_servicecategory",
-          "demo",
-          "servicecategory"
-        ],
-        [
-          "delete_servicecategory",
           "demo",
           "servicecategory"
         ],
@@ -316,11 +301,6 @@
           "runner"
         ],
         [
-          "delete_runner",
-          "wcore",
-          "runner"
-        ],
-        [
           "add_sampledepparam",
           "wcore",
           "sampledepparam"
@@ -379,66 +359,55 @@
     }
   },
   {
-    "model": "demo.servicecategory",
+    "model": "authtools.user",
     "pk": 1,
     "fields": {
-      "order": 0,
-      "description": "<p><br />\r\nHtml styles short description</p>",
-      "short_description": "Short description",
-      "name": "Sample Service Category",
-      "ref": null,
-      "parent": null
+      "password": "pbkdf2_sha256$36000$ASfjR6vPir9E$MiiJtbRyZGg1MpdMakw6yDC4zWg/F7JkrAAuVUj6Fb4=",
+      "last_login": "2018-02-14T16:04:35.826Z",
+      "is_superuser": true,
+      "email": "superuser@atgc-montpellier.fr",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2018-01-29T15:48:38.086Z",
+      "name": "Vincent Lefort",
+      "groups": [],
+      "user_permissions": []
     }
   },
   {
-    "model": "demo.demowavessubmission",
+    "model": "authtools.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$36000$BQciPyW5RKNl$/QqlfXkeZsC3npNQtDc0Knkeod81NSa5mfeRXjh8sGk=",
+      "last_login": "2018-02-14T16:05:29.403Z",
+      "is_superuser": false,
+      "email": "demo@atgc-montpellier.fr",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2018-02-13T09:11:46.298Z",
+      "name": "Demo user",
+      "groups": [
+        [
+          "WAVES-ADMIN"
+        ]
+      ],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "authtools.user",
     "pk": 3,
     "fields": {
-      "created": "2018-02-06T13:51:58.819Z",
-      "updated": "2018-02-06T14:59:36.119Z",
-      "order": 0,
-      "slug": "5ebc7af7-ecb7-49a4-a15f-22c2655073e0",
-      "api_name": "default",
-      "binary_file": null,
-      "runner": null,
-      "service": 3,
-      "availability": 1,
-      "name": "default",
-      "to_delete": true
-    }
-  },
-  {
-    "model": "demo.demowavessubmission",
-    "pk": 5,
-    "fields": {
-      "created": "2018-02-06T14:57:12.327Z",
-      "updated": "2018-02-06T15:18:19.553Z",
-      "order": 1,
-      "slug": "b55f9046-9f49-4453-ab36-76841b6ecaa7",
-      "api_name": "remote",
-      "binary_file": null,
-      "runner": null,
-      "service": 3,
-      "availability": 1,
-      "name": "remote",
-      "to_delete": true
-    }
-  },
-  {
-    "model": "demo.demowavessubmission",
-    "pk": 6,
-    "fields": {
-      "created": "2018-02-06T15:53:28.760Z",
-      "updated": "2018-02-06T15:55:22.046Z",
-      "order": 2,
-      "slug": "f6f7ae93-229c-4d9e-92af-7b91c8e3dc50",
-      "api_name": "remote_sge",
-      "binary_file": null,
-      "runner": null,
-      "service": 3,
-      "availability": 1,
-      "name": "remote_sge",
-      "to_delete": true
+      "password": "pbkdf2_sha256$36000$BgpJYIkCbAKE$nWtPqHUAJlwdROq2tLlSQ797p3Dmhw5IgCWxVD6gdGE=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "demoapiuser@atgc-montpellier.fr",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2018-02-13T12:05:07.439Z",
+      "name": "Demo api user",
+      "groups": [],
+      "user_permissions": []
     }
   },
   {
@@ -503,7 +472,52 @@
   },
   {
     "model": "wcore.adaptorinitparam",
-    "pk": 91,
+    "pk": 131,
+    "fields": {
+      "name": "command",
+      "value": "mock_command",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "demo",
+        "demowavessubmission"
+      ],
+      "object_id": 5
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 133,
+    "fields": {
+      "name": "command",
+      "value": "mock_command",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "demo",
+        "demowavesservice"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 136,
+    "fields": {
+      "name": "command",
+      "value": "mock_command",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "demo",
+        "demowavessubmission"
+      ],
+      "object_id": 8
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 138,
     "fields": {
       "name": "command",
       "value": "mock_command",
@@ -518,30 +532,120 @@
   },
   {
     "model": "wcore.adaptorinitparam",
-    "pk": 92,
+    "pk": 147,
     "fields": {
-      "name": "command",
-      "value": "echo",
+      "name": "api_endpoint",
+      "value": "",
       "crypt": false,
       "prevent_override": false,
       "content_type": [
-        "demo",
-        "demowavessubmission"
+        "wcore",
+        "runner"
       ],
-      "object_id": 5
+      "object_id": 6
     }
   },
   {
     "model": "wcore.adaptorinitparam",
-    "pk": 109,
+    "pk": 148,
     "fields": {
-      "name": "command",
-      "value": "echo",
+      "name": "host",
+      "value": "localhost",
       "crypt": false,
       "prevent_override": false,
       "content_type": [
-        "demo",
-        "demowavessubmission"
+        "wcore",
+        "runner"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 149,
+    "fields": {
+      "name": "protocol",
+      "value": "http",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 150,
+    "fields": {
+      "name": "api_base_path",
+      "value": "",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 151,
+    "fields": {
+      "name": "command",
+      "value": "mock_command",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 152,
+    "fields": {
+      "name": "library_dir",
+      "value": "",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 153,
+    "fields": {
+      "name": "port",
+      "value": "",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "wcore",
+        "runner"
+      ],
+      "object_id": 6
+    }
+  },
+  {
+    "model": "wcore.adaptorinitparam",
+    "pk": 154,
+    "fields": {
+      "name": "app_key",
+      "value": "I5p79pjwvwY274rmpBtH13qOucbKQFsxc8Zo7LJL",
+      "crypt": false,
+      "prevent_override": false,
+      "content_type": [
+        "wcore",
+        "runner"
       ],
       "object_id": 6
     }
@@ -550,12 +654,60 @@
     "model": "wcore.runner",
     "pk": 2,
     "fields": {
-      "description": "",
-      "short_description": "",
+      "description": "<p>This is a very simple Job Adapter, it runs programs locally on the WAVES installation machine.</p>",
+      "short_description": "This is a very simple Job Adapter, it runs programs locally on the WAVES installation machine.",
       "clazz": "demo.adaptors.LocalShellAdaptor",
       "binary_file": null,
       "name": "Local Shell",
       "enabled": true
+    }
+  },
+  {
+    "model": "wcore.runner",
+    "pk": 6,
+    "fields": {
+      "description": "",
+      "short_description": "",
+      "clazz": "demo.adaptors.GalaxyJobAdaptor",
+      "binary_file": null,
+      "name": "qsqsdqsd",
+      "enabled": true
+    }
+  },
+  {
+    "model": "wcore.submissionoutput",
+    "pk": 8,
+    "fields": {
+      "created": "2018-02-14T14:28:05.164Z",
+      "updated": "2018-02-14T14:28:05.164Z",
+      "api_name": "expected_output_1",
+      "label": "Expected output 1",
+      "name": "Expected output 1",
+      "submission": 3,
+      "from_input": null,
+      "file_pattern": "outpu1",
+      "edam_format": null,
+      "edam_data": null,
+      "help_text": "This is a sample expected output for this service.",
+      "extension": "txt"
+    }
+  },
+  {
+    "model": "wcore.submissionoutput",
+    "pk": 9,
+    "fields": {
+      "created": "2018-02-14T14:28:53.474Z",
+      "updated": "2018-02-14T14:28:53.474Z",
+      "api_name": "output_name_from_input",
+      "label": "Output name from input",
+      "name": "Output name from input",
+      "submission": 3,
+      "from_input": 6,
+      "file_pattern": "%s_output",
+      "edam_format": null,
+      "edam_data": null,
+      "help_text": "This is an output which name is determined by an input value",
+      "extension": ".txt"
     }
   },
   {
@@ -600,21 +752,21 @@
   },
   {
     "model": "wcore.submissionexitcode",
-    "pk": 11,
+    "pk": 16,
     "fields": {
       "exit_code": 0,
       "message": "Process exit normally",
-      "submission": 6,
+      "submission": 8,
       "is_error": false
     }
   },
   {
     "model": "wcore.submissionexitcode",
-    "pk": 12,
+    "pk": 17,
     "fields": {
       "exit_code": 1,
       "message": "Process exit error",
-      "submission": 6,
+      "submission": 8,
       "is_error": true
     }
   },
@@ -627,15 +779,15 @@
         "textparam"
       ],
       "order": 1,
-      "api_name": "etes",
-      "label": "test_input",
-      "name": "etes",
+      "api_name": "text_input",
+      "label": "A simple Text input",
+      "name": "text_input",
       "multiple": false,
       "help_text": "",
       "submission": 3,
       "required": true,
       "default": null,
-      "cmd_format": 4,
+      "cmd_format": 2,
       "edam_formats": null,
       "edam_datas": null,
       "repeat_group": null,
@@ -654,14 +806,14 @@
       ],
       "order": 1,
       "api_name": "text",
-      "label": "Text to remotely output",
+      "label": "Text input",
       "name": "text",
       "multiple": false,
       "help_text": "",
       "submission": 5,
       "required": true,
       "default": null,
-      "cmd_format": 4,
+      "cmd_format": 2,
       "edam_formats": null,
       "edam_datas": null,
       "repeat_group": null,
@@ -672,22 +824,152 @@
   },
   {
     "model": "wcore.aparam",
-    "pk": 11,
+    "pk": 16,
     "fields": {
       "polymorphic_ctype": [
         "wcore",
-        "textparam"
+        "listparam"
       ],
-      "order": 1,
-      "api_name": "text_o",
-      "label": "Text to sge output",
-      "name": "text_o",
+      "order": 2,
+      "api_name": "list_input",
+      "label": "A List Input",
+      "name": "list_input",
       "multiple": false,
       "help_text": "",
-      "submission": 6,
+      "submission": 5,
+      "required": true,
+      "default": "select1",
+      "cmd_format": 2,
+      "edam_formats": null,
+      "edam_datas": null,
+      "repeat_group": null,
+      "when_value": null,
+      "parent": null,
+      "regexp": null
+    }
+  },
+  {
+    "model": "wcore.aparam",
+    "pk": 17,
+    "fields": {
+      "polymorphic_ctype": [
+        "wcore",
+        "booleanparam"
+      ],
+      "order": 4,
+      "api_name": "bool",
+      "label": "Boolean choice",
+      "name": "bool",
+      "multiple": false,
+      "help_text": "",
+      "submission": 5,
+      "required": true,
+      "default": "True",
+      "cmd_format": 2,
+      "edam_formats": null,
+      "edam_datas": null,
+      "repeat_group": null,
+      "when_value": null,
+      "parent": null,
+      "regexp": null
+    }
+  },
+  {
+    "model": "wcore.aparam",
+    "pk": 18,
+    "fields": {
+      "polymorphic_ctype": [
+        "wcore",
+        "fileinput"
+      ],
+      "order": 3,
+      "api_name": "file_input",
+      "label": "A file Input",
+      "name": "file_input",
+      "multiple": false,
+      "help_text": "This is file help text",
+      "submission": 5,
       "required": true,
       "default": null,
-      "cmd_format": 4,
+      "cmd_format": 2,
+      "edam_formats": null,
+      "edam_datas": null,
+      "repeat_group": null,
+      "when_value": null,
+      "parent": null,
+      "regexp": null
+    }
+  },
+  {
+    "model": "wcore.aparam",
+    "pk": 19,
+    "fields": {
+      "polymorphic_ctype": [
+        "wcore",
+        "integerparam"
+      ],
+      "order": 5,
+      "api_name": "dependent",
+      "label": "A dependent parameter",
+      "name": "dependent",
+      "multiple": false,
+      "help_text": "This is a parameter only shown when another value is set",
+      "submission": 5,
+      "required": false,
+      "default": null,
+      "cmd_format": 2,
+      "edam_formats": null,
+      "edam_datas": null,
+      "repeat_group": null,
+      "when_value": "True",
+      "parent": 17,
+      "regexp": null
+    }
+  },
+  {
+    "model": "wcore.aparam",
+    "pk": 20,
+    "fields": {
+      "polymorphic_ctype": [
+        "wcore",
+        "listparam"
+      ],
+      "order": 6,
+      "api_name": "another_dep",
+      "label": "Another dep",
+      "name": "another_dep",
+      "multiple": true,
+      "help_text": "",
+      "submission": 5,
+      "required": false,
+      "default": "val1",
+      "cmd_format": 2,
+      "edam_formats": null,
+      "edam_datas": null,
+      "repeat_group": null,
+      "when_value": "True",
+      "parent": 17,
+      "regexp": null
+    }
+  },
+  {
+    "model": "wcore.aparam",
+    "pk": 21,
+    "fields": {
+      "polymorphic_ctype": [
+        "wcore",
+        "fileinput"
+      ],
+      "order": 2,
+      "api_name": "input_file",
+      "label": "Script input file",
+      "name": "input_file",
+      "multiple": false,
+      "help_text": "This input file allows copy / paste element",
+      "submission": 3,
+      "required": true,
+      "default": null,
+      "cmd_format": 2,
       "edam_formats": null,
       "edam_datas": null,
       "repeat_group": null,
@@ -711,46 +993,100 @@
     }
   },
   {
-    "model": "wcore.textparam",
-    "pk": 11,
+    "model": "wcore.booleanparam",
+    "pk": 17,
     "fields": {
-      "max_length": "255"
+      "true_value": "True",
+      "false_value": "False"
     }
   },
   {
-    "model": "authtools.user",
+    "model": "wcore.integerparam",
+    "pk": 19,
+    "fields": {
+      "min_val": 0,
+      "max_val": null,
+      "step": 1
+    }
+  },
+  {
+    "model": "wcore.listparam",
+    "pk": 16,
+    "fields": {
+      "list_mode": "select",
+      "list_elements": "Label select 1|select1\r\nLabel select 2|select2\r\nLabel select 3|select3"
+    }
+  },
+  {
+    "model": "wcore.listparam",
+    "pk": 20,
+    "fields": {
+      "list_mode": "checkbox",
+      "list_elements": "Some checkbox|val1\r\nSome other checkbox|val2"
+    }
+  },
+  {
+    "model": "wcore.fileinput",
+    "pk": 21,
+    "fields": {
+      "max_size": 20480,
+      "allowed_extensions": "*",
+      "allow_copy_paste": true
+    }
+  },
+  {
+    "model": "wcore.fileinput",
+    "pk": 18,
+    "fields": {
+      "max_size": 20480,
+      "allowed_extensions": "*",
+      "allow_copy_paste": true
+    }
+  },
+  {
+    "model": "wcore.fileinputsample",
     "pk": 1,
     "fields": {
-      "password": "pbkdf2_sha256$36000$ASfjR6vPir9E$MiiJtbRyZGg1MpdMakw6yDC4zWg/F7JkrAAuVUj6Fb4=",
-      "last_login": "2018-02-13T09:47:04.738Z",
-      "is_superuser": true,
-      "email": "superuser@atgc-montpellier.fr",
-      "is_staff": true,
-      "is_active": true,
-      "date_joined": "2018-01-29T15:48:38.086Z",
-      "name": "Vincent Lefort",
-      "groups": [],
-      "user_permissions": []
+      "label": "A sample file",
+      "help_text": null,
+      "file": "sample/echo/5ebc7af7-ecb7-49a4-a15f-22c2655073e0/Primates_2.phy",
+      "file_input": 21
     }
   },
   {
-    "model": "authtools.user",
+    "model": "demo.servicecategory",
+    "pk": 1,
+    "fields": {
+      "order": 0,
+      "description": "<p><br />\r\nThis is a <span style=\"color:#ff0000\">sample category </span>description, organize your&nbsp;services&nbsp;<strong>easily.&nbsp;</strong></p>",
+      "short_description": "Short description",
+      "name": "Sample Category 1",
+      "ref": null,
+      "parent": 2
+    }
+  },
+  {
+    "model": "demo.servicecategory",
     "pk": 2,
     "fields": {
-      "password": "pbkdf2_sha256$36000$34RNwFja7Zvh$vnKPExJbs5ByjYNByJ0lvZqfKCVZIHybMfbV0kIaYcg=",
-      "last_login": "2018-02-13T09:26:13.130Z",
-      "is_superuser": false,
-      "email": "demo@atgc-montpellier.fr",
-      "is_staff": true,
-      "is_active": true,
-      "date_joined": "2018-02-13T09:11:46.298Z",
-      "name": "Demo user",
-      "groups": [
-        [
-          "WAVES-ADMIN"
-        ]
-      ],
-      "user_permissions": []
+      "order": 0,
+      "description": "",
+      "short_description": "",
+      "name": "Root Category",
+      "ref": null,
+      "parent": null
+    }
+  },
+  {
+    "model": "demo.servicecategory",
+    "pk": 3,
+    "fields": {
+      "order": 0,
+      "description": "<p>This category is another example when you want to organize your services in a hierarchy.</p>",
+      "short_description": "Another sample category",
+      "name": "Sample Category 2",
+      "ref": null,
+      "parent": 2
     }
   },
   {
@@ -758,17 +1094,17 @@
     "pk": 3,
     "fields": {
       "created": "2018-02-06T13:51:58.817Z",
-      "updated": "2018-02-13T09:58:52.672Z",
-      "description": "",
-      "short_description": "",
-      "api_name": "echo",
+      "updated": "2018-02-14T14:10:47.550Z",
+      "description": "<p>This is a sample service description, displayed on front office with standard HTML.</p>\r\n\r\n<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel erat non neque interdum pellentesque. Duis sodales condimentum nibh, ut congue diam consectetur sit amet. Vivamus vestibulum id libero in tristique. Ut fermentum lacus vitae sodales semper. Curabitur laoreet dignissim rutrum. Cras sit amet massa sagittis, cursus quam id, posuere ipsum. Pellentesque lobortis a diam vitae eleifend. Mauris vehicula justo cursus dignissim mattis. Nulla tempus ac magna nec venenatis. Cras tincidunt tincidunt enim vel molestie. Sed sem dolor, sagittis eget rhoncus ut, viverra eget libero. Nulla pellentesque leo enim, vitae tempor augue euismod eu. Curabitur id dapibus augue. Maecenas semper ornare sollicitudin.</p>\r\n\r\n<p>Nunc at tincidunt diam. In suscipit purus a sapien facilisis facilisis. Ut mattis dolor aliquam tellus pellentesque commodo. Quisque volutpat iaculis urna vehicula ultricies. Praesent in metus arcu. Sed in viverra urna. Aliquam fermentum orci eu ex sagittis congue. Nam diam metus, efficitur sed elit varius, scelerisque ullamcorper urna. Praesent diam ex, commodo quis accumsan sed, blandit nec eros. Fusce ac quam id velit vulputate condimentum. Vivamus faucibus mauris eget egestas ultrices. Donec egestas, nunc ac laoreet ornare, massa mauris gravida eros, non pretium nibh diam bibendum justo.</p>\r\n\r\n<p>Nunc gravida dui et nunc luctus ultrices. Fusce nulla nunc, placerat ac cursus eget, pellentesque sit amet enim. Quisque in justo lorem. Sed vel purus enim. Aliquam enim mauris, pellentesque sed dui quis, scelerisque tristique mi. Duis quis mauris non lectus faucibus mattis laoreet vel nibh. Sed volutpat viverra enim, sit amet rhoncus dolor elementum ac. Duis vehicula non lacus in venenatis. Nullam mattis, sapien eu tristique dignissim, nisl metus pulvinar dolor, ac blandit nibh lectus ut dui. Maecenas eu tincidunt turpis.</p>\r\n\r\n<p>Cras condimentum massa eu diam consectetur elementum in et erat. Suspendisse tristique tristique auctor. Quisque nec enim et augue pulvinar posuere a non urna. Vestibulum sagittis velit nec erat pharetra dapibus. Vestibulum tristique enim purus, non malesuada arcu congue id. Etiam semper feugiat bibendum. Sed nec augue ut nibh vulputate rutrum semper in nisi. Vivamus quis condimentum nisl, ac vestibulum risus. In tempor est eu egestas lobortis. Vivamus metus ligula, rutrum nec orci eget, efficitur pretium leo. Fusce quis consequat quam. Phasellus tempus facilisis nulla, vel ultricies ante iaculis lobortis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed pulvinar volutpat tellus, vitae vehicula quam cursus ac. Nunc scelerisque sapien nec convallis porta.</p>\r\n\r\n<p>Sed consectetur gravida dolor, sed vehicula leo finibus sed. Integer est metus, congue quis nunc ac, sodales lacinia est. Sed euismod velit eget dui sagittis tempor. Aenean vitae neque quam. Quisque efficitur felis vehicula purus semper, semper rutrum leo laoreet. Etiam ultrices turpis et tristique accumsan. Curabitur convallis elit ante, vitae efficitur lectus semper ac. Vestibulum convallis malesuada erat eget sagittis. Phasellus ac nulla urna. Suspendisse quis risus in magna scelerisque congue imperdiet aliquam nulla. Mauris tellus turpis, faucibus at enim quis, fringilla lacinia nisl. Duis eu massa gravida, lobortis diam a, congue massa. Vivamus pharetra risus congue ultrices congue. Etiam egestas dolor quis semper pellentesque. Integer vel dui eu risus ornare pulvinar fermentum id tellus. Pellentesque tortor erat, blandit vitae pretium in, feugiat eget justo</p>",
+      "short_description": "This is short description for services, displayed in list for instance.",
+      "api_name": "sample_service",
       "binary_file": null,
       "runner": 2,
-      "name": "echo",
+      "name": "Sample Service",
       "authors": null,
       "citations": null,
       "version": "1.0",
-      "status": 0,
+      "status": 3,
       "email_on": true,
       "partial": false,
       "created_by": [
@@ -780,6 +1116,207 @@
       "category": 1,
       "to_delete": false,
       "restricted_client": []
+    }
+  },
+  {
+    "model": "demo.demowavesservice",
+    "pk": 6,
+    "fields": {
+      "created": "2018-02-13T10:34:45.579Z",
+      "updated": "2018-02-13T10:39:06.123Z",
+      "description": "<p>This service use two main WAVES fonctionnalties:</p>\r\n\r\n<p>- Override base form for this specific service</p>\r\n\r\n<p>- Call another service REST api to display form</p>",
+      "short_description": "This is an example on what forms API can do",
+      "api_name": "using_api",
+      "binary_file": null,
+      "runner": 2,
+      "name": "Using API forms",
+      "authors": null,
+      "citations": null,
+      "version": "1.0",
+      "status": 3,
+      "email_on": true,
+      "partial": false,
+      "created_by": null,
+      "remote_service_id": null,
+      "edam_topics": "",
+      "edam_operations": "",
+      "category": 1,
+      "to_delete": true,
+      "restricted_client": []
+    }
+  },
+  {
+    "model": "demo.demowavessubmission",
+    "pk": 3,
+    "fields": {
+      "created": "2018-02-06T13:51:58.819Z",
+      "updated": "2018-02-14T14:28:53.471Z",
+      "order": 0,
+      "slug": "5ebc7af7-ecb7-49a4-a15f-22c2655073e0",
+      "api_name": "default",
+      "binary_file": null,
+      "runner": null,
+      "service": 3,
+      "availability": 1,
+      "name": "Default",
+      "to_delete": true
+    }
+  },
+  {
+    "model": "demo.demowavessubmission",
+    "pk": 5,
+    "fields": {
+      "created": "2018-02-06T14:57:12.327Z",
+      "updated": "2018-02-13T10:33:59.153Z",
+      "order": 1,
+      "slug": "b55f9046-9f49-4453-ab36-76841b6ecaa7",
+      "api_name": "extended",
+      "binary_file": null,
+      "runner": null,
+      "service": 3,
+      "availability": 1,
+      "name": "Extended",
+      "to_delete": true
+    }
+  },
+  {
+    "model": "demo.demowavessubmission",
+    "pk": 8,
+    "fields": {
+      "created": "2018-02-13T10:34:45.581Z",
+      "updated": "2018-02-13T10:38:34.153Z",
+      "order": 0,
+      "slug": "abba587f-113b-4039-8da6-c65262b70f46",
+      "api_name": "default",
+      "binary_file": null,
+      "runner": null,
+      "service": 6,
+      "availability": 0,
+      "name": "default",
+      "to_delete": true
+    }
+  },
+  {
+    "model": "demo.servicemeta",
+    "pk": 1,
+    "fields": {
+      "order": 0,
+      "description": "<p>A documentation link is added to standard WAVES Service&nbsp;</p>",
+      "short_description": null,
+      "type": "doc",
+      "title": "Documentation link",
+      "value": "http://www.atgc-montpellier.fr",
+      "is_url": true,
+      "service": 6
+    }
+  },
+  {
+    "model": "demo.servicemeta",
+    "pk": 2,
+    "fields": {
+      "order": 0,
+      "description": "<p>Nunc gravida dui et nunc luctus ultrices. Fusce nulla nunc, placerat ac cursus eget, pellentesque sit amet enim. Quisque in justo lorem. Sed vel purus enim.</p>",
+      "short_description": null,
+      "type": "feat",
+      "title": "Sample Features",
+      "value": "https://fr.lipsum.com",
+      "is_url": true,
+      "service": 3
+    }
+  },
+  {
+    "model": "demo.servicemeta",
+    "pk": 3,
+    "fields": {
+      "order": 0,
+      "description": "<p>Etiam semper feugiat bibendum. Sed nec augue ut nibh vulputate rutrum semper in nisi. Vivamus quis condimentum nisl, ac vestibulum risus.&nbsp;</p>",
+      "short_description": null,
+      "type": "paper",
+      "title": "Sample related papers",
+      "value": "http://www.atgc-montpellier.fr/",
+      "is_url": true,
+      "service": 3
+    }
+  },
+  {
+    "model": "demo.servicemeta",
+    "pk": 4,
+    "fields": {
+      "order": 0,
+      "description": "<p>Please cite&nbsp;</p>",
+      "short_description": null,
+      "type": "cite",
+      "title": "Please Cite",
+      "value": "http://www.atgc-montpellier.fr/organization/",
+      "is_url": true,
+      "service": 3
+    }
+  },
+  {
+    "model": "easy_thumbnails.source",
+    "pk": 1,
+    "fields": {
+      "storage_hash": "10b67460e409cd1897d0327662403de7",
+      "name": "profile/a8cce1fe-7d84-4bd1-9233-d28ffba0a323/ATGC.jpg",
+      "modified": "2018-02-13T10:08:04.955Z"
+    }
+  },
+  {
+    "model": "easy_thumbnails.thumbnail",
+    "pk": 1,
+    "fields": {
+      "storage_hash": "d26becbf46ac48eda79c7a39a13a02dd",
+      "name": "profile/a8cce1fe-7d84-4bd1-9233-d28ffba0a323/ATGC.jpg.140x140_q85_crop.png",
+      "modified": "2018-02-13T10:08:05.019Z",
+      "source": 1
+    }
+  },
+  {
+    "model": "profiles.userprofile",
+    "pk": 3,
+    "fields": {
+      "picture": "",
+      "registered_for_api": false,
+      "api_key": null,
+      "institution": "LIRMM",
+      "country": "FR",
+      "phone": null,
+      "comment": "",
+      "ip": null,
+      "banned": false,
+      "slug": "2ab577dc-8231-4480-9e41-8403a135648b"
+    }
+  },
+  {
+    "model": "profiles.userprofile",
+    "pk": 2,
+    "fields": {
+      "picture": "",
+      "registered_for_api": true,
+      "api_key": "f628dae6-109d-11e8-9ef3-3417ebccd2cf",
+      "institution": "LIRMM",
+      "country": "FR",
+      "phone": null,
+      "comment": "",
+      "ip": "127.0.0.1",
+      "banned": false,
+      "slug": "beed9e1d-926b-499c-bf6f-e07bc3389faf"
+    }
+  },
+  {
+    "model": "profiles.userprofile",
+    "pk": 1,
+    "fields": {
+      "picture": "profile/a8cce1fe-7d84-4bd1-9233-d28ffba0a323/ATGC.jpg",
+      "registered_for_api": true,
+      "api_key": "e172d248-050b-11e8-9515-3417ebccd2cf",
+      "institution": "LIRMM",
+      "country": "FR",
+      "phone": null,
+      "comment": "",
+      "ip": "127.0.0.1",
+      "banned": false,
+      "slug": "a8cce1fe-7d84-4bd1-9233-d28ffba0a323"
     }
   }
 ]

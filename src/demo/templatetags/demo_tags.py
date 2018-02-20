@@ -10,6 +10,7 @@ register = template.Library()
 def get_demo_name():
     return "WAVES DEMO APPLICATION"
 
+
 @register.simple_tag
 def get_demo_version():
     return __version_detail__
@@ -17,4 +18,4 @@ def get_demo_version():
 
 @register.inclusion_tag('demo/run_details.html', takes_context=False)
 def job_run_details(job=None):
-    return {'run_details': vars(job.run_details).items()}
+    return {'run_details': job.run_details._asdict()}

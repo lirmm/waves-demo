@@ -4,7 +4,10 @@ from waves_demo.settings.base import *  # NOQA
 import environ
 import sys
 import warnings
-WAVES_ENV_FILE = join(dirname(__file__), 'local.prod.env')
+import saga
+import logging.config
+
+WAVES_ENV_FILE = join(dirname(__file__), 'local.env')
 if not isfile(WAVES_ENV_FILE):
     WAVES_ENV_FILE = join(dirname(__file__), 'local.sample.env')
 
@@ -27,6 +30,7 @@ REGISTRATION_SALT = env.str('REGISTRATION_SALT')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
+CORS_ORIGIN_WHITELIST = ('atgc-montpellier.fr',)
 # Cache the templates in memory for speed-up
 loaders = [
     ('django.template.loaders.cached.Loader', [
@@ -38,10 +42,11 @@ loaders = [
 EMAIL_CONFIG = env.email_url('EMAIL_URL', default='smtp://dummyuser@dummyhost:dummypassword@localhost:25')
 vars().update(EMAIL_CONFIG)
 
-MANAGERS = env.tuple('MANAGERS', default=[('Marc Chakiachvili', 'marc.chakiachvili@lirmm.fr')])
+MANAGERS = env.tuple('MANAGERS', default=[('Vincent Lefort', 'vincent.lefort@lirmm.fr')])
 
 TEMPLATES[0]['OPTIONS'].update({"loaders": loaders})
 TEMPLATES[0].update({"APP_DIRS": False})
+LOGGING_CONFIG = None
 
 LOGGING = {
     'version': 1,
@@ -86,13 +91,58 @@ LOGGING = {
         }
     },
     'loggers': {
-        '':{
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        }
+        'root': {
+            'handlers': ['waves_log_file'],
+            'propagate': False,
+            'level': 'ERROR',
+        },
+        'django': {
+            'handlers': ['waves_log_file'],
+            'level': 'ERROR',
+        },
+        'radical.saga': {
+            'handlers': ['waves_log_file'],
+            'level': 'WARNING',
+        },
+        'waves': {
+            'handlers': ['waves_log_file'],
+            'level': 'WARNING',
+        },
+
     }
 }
-CONTACT_EMAIL = env.str('CONTACT_EMAIL')
+logging.config.dictConfig(LOGGING)
+
+# EMAILS
 DEFAULT_FROM_EMAIL = 'WAVES <waves-demo@atgc-montpellier.fr>'
-WAVES_CORE['ADMIN_EMAIL'] = env.str('ADMIN_EMAIL', 'admin@dummy.fr')
+CONTACT_EMAIL = env.str('CONTACT_EMAIL', DEFAULT_FROM_EMAIL)
+
+# WAVES
+WAVES_CORE = {
+    'ACCOUNT_ACTIVATION_DAYS': 14,
+    'ADMIN_EMAIL': env.str('ADMIN_EMAIL', 'admin@waves.atgc-montpellier.fr'),
+    'DATA_ROOT': env.str('WAVES_DATA_ROOT', join(BASE_DIR, 'data')),
+    'JOB_BASE_DIR': env.str('WAVES_JOB_BASE_DIR', join(BASE_DIR, 'data', 'jobs')),
+    'BINARIES_DIR': env.str('WAVES_BINARIES_DIR', join(BASE_DIR, 'data', 'bin')),
+    'SAMPLE_DIR': env.str('WAVES_SAMPLE_DIR', join(MEDIA_ROOT, 'data', 'sample')),
+    'KEEP_ANONYMOUS_JOBS': 2,
+    'KEEP_REGISTERED_JOBS': 2,
+    'ALLOW_JOB_SUBMISSION': True,
+    'APP_NAME': 'WAVES DEMO',
+    'SERVICES_EMAIL': 'contact@atgc-montpellier.fr',
+    'ADAPTORS_CLASSES': (
+        'demo.adaptors.SshShellAdaptor',
+        'demo.adaptors.LocalClusterAdaptor',
+        'demo.adaptors.SshKeyShellAdaptor',
+        'demo.adaptors.LocalShellAdaptor',
+        'demo.adaptors.SshClusterAdaptor',
+        'demo.adaptors.SshKeyClusterAdaptor',
+        'demo.adaptors.GalaxyJobAdaptor',
+    ),
+}
+
+REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = (
+    'rest_framework.authentication.TokenAuthentication',
+    'rest_framework.authentication.BasicAuthentication',
+    'rest_framework.authentication.SessionAuthentication',
+)

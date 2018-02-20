@@ -73,5 +73,5 @@ bin/*
 !/bin/.gitkeep
 logs/*
 !logs/.gitkeep
-waves_demo.dev.sqlite3
+*.sqlite3
 **/local.prod.env
