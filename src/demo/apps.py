@@ -34,8 +34,6 @@ def check_waves_config(app_configs=('demo'), **kwargs):
                 obj=settings,
                 id='waves.demo.W001', ))
     for directory in ['DATA_ROOT', 'JOB_BASE_DIR', 'BINARIES_DIR', 'SAMPLE_DIR']:
-        if not path.isdir(getattr(waves_settings, directory)):
-            os.makedirs(getattr(waves_settings, directory), 0o775)
         if not access(getattr(waves_settings, directory), os.W_OK):
             errors.append(Warning(
                 "Directory %s [%s] is not writable by WAVES" % (directory, getattr(waves_settings, directory)),
