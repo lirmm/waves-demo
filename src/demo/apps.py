@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.apps import AppConfig
 from django.core.checks import Warning, register
 from os.path import basename
-from os import access
+from os import access, path
 import os
 
 
@@ -34,7 +34,9 @@ def check_waves_config(app_configs=('demo'), **kwargs):
                 obj=settings,
                 id='waves.demo.W001', ))
     for directory in ['DATA_ROOT', 'JOB_BASE_DIR', 'BINARIES_DIR', 'SAMPLE_DIR']:
-        if not access(getattr(waves_settings,directory), os.W_OK):
+        if not path.isdir(getattr(waves_settings, directory)):
+            os.makedirs(getattr(waves_settings, directory), 0o775)
+        if not access(getattr(waves_settings, directory), os.W_OK):
             errors.append(Warning(
                 "Directory %s [%s] is not writable by WAVES" % (directory, getattr(waves_settings, directory)),
                 hint='Try changing group permission to a group where your user belong',
