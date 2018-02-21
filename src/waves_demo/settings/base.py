@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 from os.path import dirname, join, isfile
 
-
 LOGGING_CONFIG = None
 BASE_DIR = dirname(dirname(dirname(dirname(__file__))))
 SRC_DIR = join(BASE_DIR, 'src')
@@ -43,6 +42,7 @@ INSTALLED_APPS = (
     'jet',
     'jet.dashboard',
     'polymorphic',
+    'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -75,19 +75,28 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-SESSION_ENGINE="django.contrib.sessions.backends.signed_cookies"
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
+# URLS
 ROOT_URLCONF = 'waves_demo.urls'
 WSGI_APPLICATION = 'waves_demo.wsgi.application'
+
+# LANGUAGE CONFIGURATON
 LANGUAGE_CODE = 'en-gb'
 TIME_ZONE = 'Europe/Paris'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
+
+# SITE CONFIGURATION
+SITE_ID = 1
+
 # Authentication Settings
 AUTH_USER_MODEL = 'authtools.User'
+
 # Thumbnails configuration
 THUMBNAIL_EXTENSION = 'png'  # Or any extn for your thumbnails
+
 # DRF Configuration
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
@@ -113,16 +122,15 @@ REST_FRAMEWORK = {
     ),
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
+
 # FILE_UPLOAD_MAX_MEMORY_SIZE = 0FILE_UPLOAD_DIRECTORY_PERMISSIONS
 FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
 FILE_UPLOAD_PERMISSIONS = 0o775
+
 # Django countries first items
 COUNTRIES_FIRST = ['FR', 'GB', 'US', 'DE']
 
-ACCOUNT_ACTIVATION_DAYS = 7 # One-week activation window; you may, of course, use a different value.
-
-
-# STATICS
+# STATICS & MEDIA
 STATIC_URL = '/static/'
 MEDIA_ROOT = join(BASE_DIR, 'src', 'media')
 MEDIA_URL = "/media/"
@@ -132,38 +140,20 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
-JET_SIDE_MENU_COMPACT = True
-
+# CKEDITOR CONFIGURATION
 CKEDITOR_CONFIGS = {
     'default': {
         'height': 150,
     },
 }
-# TODO in order to enable sibling, either overwrite to set-it up per model, or add custom filter for submissions
-# (keep current service)
+
+# DJANGO JET CONFIGURATION
+JET_SIDE_MENU_COMPACT = True
 JET_CHANGE_FORM_SIBLING_LINKS = False
 
+# CRISPY CONFIGURATION
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-ACCOUNT_ACTIVATION_DAYS = 7
-
-# WAVES
-WAVES_CORE = {
-    'ACCOUNT_ACTIVATION_DAYS': 14,
-    'ADMIN_EMAIL': 'admin_waves@atgc-montpellier.fr',
-    'ALLOW_JOB_SUBMISSION': True,
-    'APP_NAME': 'WAVES DEMO',
-    'SERVICES_EMAIL': 'services@atgc-montpellier.fr',
-    'ADAPTORS_CLASSES': (
-        'demo.adaptors.SshShellAdaptor',
-        'demo.adaptors.LocalClusterAdaptor',
-        'demo.adaptors.SshKeyShellAdaptor',
-        'demo.adaptors.LocalShellAdaptor',
-        'demo.adaptors.SshClusterAdaptor',
-        'demo.adaptors.SshKeyClusterAdaptor',
-        'demo.adaptors.GalaxyJobAdaptor',
-    ),
-}
+# WCORE SERVICE / SUBMISSION MODELS
 WCORE_SERVICE_MODEL = 'demo.DemoWavesService'
 WCORE_SUBMISSION_MODEL = 'demo.DemoWavesSubmission'
-# MAILS

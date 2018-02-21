@@ -74,14 +74,25 @@ LOGGING = {
 }
 logging.config.dictConfig(LOGGING)
 
-WAVES_CORE['JOB_LOG_LEVEL'] = logging.DEBUG
-WAVES_CORE['SRV_IMPORT_LOG_LEVEL'] = logging.DEBUG
+ACCOUNT_ACTIVATION_DAYS = 7
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 25
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
-EMAIL_USE_TLS = False
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = join(BASE_DIR, 'messages')
+
 CONTACT_EMAIL = 'dummy@dummy.host'
 DEFAULT_FROM_EMAIL = 'WAVES <waves-demo@atgc-montpellier.fr>'
+WAVES_CORE = {
+    'ACCOUNT_ACTIVATION_DAYS': 14,
+    'APP_NAME': 'WAVES DEMO -DEV-',
+    'JOB_LOG_LEVEL': logging.DEBUG,
+    'SRV_IMPORT_LOG_LEVEL': logging.DEBUG,
+    'ADAPTORS_CLASSES': (
+        'demo.adaptors.SshShellAdaptor',
+        'demo.adaptors.LocalClusterAdaptor',
+        'demo.adaptors.SshKeyShellAdaptor',
+        'demo.adaptors.LocalShellAdaptor',
+        'demo.adaptors.SshClusterAdaptor',
+        'demo.adaptors.SshKeyClusterAdaptor',
+        'demo.adaptors.GalaxyJobAdaptor',
+    ),
+}

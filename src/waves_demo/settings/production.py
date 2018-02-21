@@ -28,9 +28,7 @@ if 'test' in sys.argv:
 
 REGISTRATION_SALT = env.str('REGISTRATION_SALT')
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
-CORS_ORIGIN_WHITELIST = ('atgc-montpellier.fr',)
 # Cache the templates in memory for speed-up
 loaders = [
     ('django.template.loaders.cached.Loader', [
@@ -70,16 +68,9 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
-        'waves_log_file': {
+        'log_file': {
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': join(LOG_ROOT, 'waves.log'),
-            'formatter': 'verbose',
-            'backupCount': 10,
-            'maxBytes': 50000
-        },
-        'daemon_log_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': join(LOG_ROOT, 'daemon.log'),
             'formatter': 'verbose',
             'backupCount': 10,
             'maxBytes': 50000
@@ -92,26 +83,30 @@ LOGGING = {
     },
     'loggers': {
         'root': {
-            'handlers': ['waves_log_file'],
+            'handlers': ['log_file'],
             'propagate': False,
             'level': 'ERROR',
         },
         'django': {
-            'handlers': ['waves_log_file'],
+            'handlers': ['log_file'],
             'level': 'ERROR',
         },
         'radical.saga': {
-            'handlers': ['waves_log_file'],
+            'handlers': ['log_file'],
             'level': 'WARNING',
         },
         'waves': {
-            'handlers': ['waves_log_file'],
+            'handlers': ['log_file'],
             'level': 'WARNING',
         },
 
     }
 }
 logging.config.dictConfig(LOGGING)
+
+# SECURITY
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+CORS_ORIGIN_REGEX_WHITELIST = (r'^(https?://)?(\w+\.)?atgc-montpellier\.fr', )
 
 # EMAILS
 DEFAULT_FROM_EMAIL = 'WAVES <waves-demo@atgc-montpellier.fr>'

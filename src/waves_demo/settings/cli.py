@@ -21,7 +21,7 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
-        'waves_log_file': {
+        'daemon_log_file': {
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': join(LOG_ROOT, 'daemon-cli.log'),
             'formatter': 'simple',
@@ -31,20 +31,20 @@ LOGGING = {
     },
     'loggers': {
         'root': {
-            'handlers': ['waves_log_file', 'console'],
+            'handlers': ['daemon_log_file', 'console'],
             'propagate': False,
             'level': 'ERROR',
         },
         'radical.saga': {
-            'handlers': ['waves_log_file'],
+            'handlers': ['daemon_log_file'],
             'level': 'WARNING',
         },
         'waves': {
-            'handlers': ['waves_log_file'],
+            'handlers': ['daemon_log_file'],
             'level': 'ERROR',
         },
         'waves.daemon': {
-            'handlers': ['waves_log_file'],
+            'handlers': ['daemon_log_file'],
             'propagate': True,
             'level': 'INFO',
         },
