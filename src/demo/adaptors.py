@@ -41,20 +41,20 @@ class WavesDemoAdaptor(BaseMockAdaptor):
     def _job_status(self, job):
         """ Mocking job status """
         job.logger.info('Mock job status -- Demo -- ')
-        job.job_history.create(message='[Fake job status -- Demo -- ] {}'.format(job.slug), status=job.status)
+        job.job_history.create(message='[Fake job status -- Demo -- ]'.format(job.slug), status=job.status)
         return super(WavesDemoAdaptor, self)._job_status(job)
 
     def _run_job(self, job):
         """ Mocking job launch """
         job.logger.info("Entering fake run -- Demo -- ")
-        job.job_history.create(message='[Entering fake run -- Demo -- ] {}'.format(job.slug), status=job.status)
+        job.job_history.create(message='[Entering fake run -- Demo -- ]'.format(job.slug), status=job.status)
         super(WavesDemoAdaptor, self)._run_job(job)
         return job
 
     def _prepare_job(self, job):
         """ Mocking job preparation """
         job.logger.info("Entering fake prepare -- Demo -- ")
-        job.job_history.create(message='[Entering fake prepare -- Demo -- ] {}'.format(job.slug), status=job.status)
+        job.job_history.create(message='[Entering fake prepare -- Demo -- ]'.format(job.slug), status=job.status)
         return job
 
     def _job_run_details(self, job):
