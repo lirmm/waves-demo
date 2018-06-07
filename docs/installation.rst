@@ -67,8 +67,6 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
 
         1.2.3: Create migration files:
 
-            ``(.venv)[waves_dir]/src/$ ./manage.py makemigrations``
-
             .. note::
 
                 If you see this message:
@@ -81,6 +79,7 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
                     2) Quit, and let me add a default in models.py
 
                 => Select 1) option and set up default value to '1' (this problem is due to swapping of default Service and Submission)
+
             - Create your database: ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
             - Create Superadmin user: ``(.venv)[waves_dir]/src/$ ./manage.py createsuperuser``
 
@@ -91,18 +90,19 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
                 ``(.venv)[waves_dir]/src/$ ./manage.py loaddata demo/fixtures/init.json``
 
 
-    1.3 Test your server:
+    1.3 Test your server (locally):
 
         - ``(.venv)[waves_dir]/src/$ ./manage.py runserver [ServerIP:ServerPort] --insecure``
 
 
     1.4 Start WAVES daemons:
 
-        - ``(.venv)[waves_dir]/src/$ ./manage.py waves queue start``
-        - ``(.venv)[waves_dir]/src/$ ./manage.py waves purge start``
+        - ``(.venv)[waves_dir]/src/$ ./manage.py wqueue start``
+        - ``(.venv)[waves_dir]/src/$ ./manage.py wpurge start``
 
         .. note::
-waves queue command allow you to control daemon, available commands are start|stop|status
+
+        wqueue and wpurge command allow you to control daemon, available commands are start|stop|status
 
 
 2. Configure the web server:
@@ -114,7 +114,6 @@ waves queue command allow you to control daemon, available commands are start|st
         - Setup your server following instruction `Django Docs <https://docs.djangoproject.com/fr/1.11/howto/deployment/wsgi/>`_
 
         .. seealso:: UWSGI configuration at `<http://uwsgi-docs.readthedocs.io/>`_
-
 
         .. seealso:: APACHE `<http://uwsgi-docs.readthedocs.io/en/latest/Apache.html>`_
 

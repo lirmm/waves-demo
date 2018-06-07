@@ -25,7 +25,7 @@ class UserProfileInline(admin.StackedInline):
         return False
 
     def auth_token(self, obj):
-        return obj.user.auth_token
+        return obj.user.key
 
 
 class NewUserAdmin(NamedUserAdmin):

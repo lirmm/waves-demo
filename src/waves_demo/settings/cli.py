@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from waves_demo.settings.production import *
 
 LOGGING_CONFIG = None
+DEBUG = True
 
 LOGGING = {
     'version': 1,

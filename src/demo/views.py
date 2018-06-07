@@ -23,7 +23,7 @@ class ServiceDetailView(CoreDetailView):
         api_user = User.objects.filter(email='demoapiuser@atgc-montpellier.fr')
         if api_user:
             # user_waves =
-            response.set_cookie('waves_token', api_user[0].auth_token)
+            response.set_cookie('waves_token', api_user[0].waves_user.key)
         return response
 
 

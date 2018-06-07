@@ -67,8 +67,15 @@ Desktop.ini
 .venv/
 staticfiles/
 local.env
-data/*
 !/data/.gitkeep
+/data/bin/*
+!/data/bin/.gitkeep
+/data/jobs/*
+!/data/jobs/.gitkeep
+/data/media/*
+!/data/media/.gitkeep
+/data/sample/*
+!/data/sample/.gitkeep
 bin/*
 !/bin/.gitkeep
 logs/*

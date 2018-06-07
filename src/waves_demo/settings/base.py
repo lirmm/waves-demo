@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'mptt',
     'waves.wcore',
+    'waves.authentication',
     'demo',
     # WAVES required dependencies
     'adminsortable2',
@@ -59,8 +60,7 @@ INSTALLED_APPS = (
     'mail_templated',
     'profiles',
     'corsheaders',
-    'rest_framework',
-    'rest_framework.authtoken'
+    'rest_framework'
 )
 
 MIDDLEWARE_CLASSES = (
