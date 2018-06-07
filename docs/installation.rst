@@ -59,7 +59,7 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
 
     1.3 Configuration files:
 
-        - WAVES env configuration file:
+        1.3.0 WAVES env configuration file:
 
             - ``(.venv)[waves_dir]$ cd src/waves_demo/settings/``
             - ``(.venv)[waves_dir]/src/waves_demo/settings$ cp local.sample.env local.env``
@@ -87,20 +87,26 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
 
             ``(.venv)[waves_dir]/src/$ ./manage.py waves config``
 
+    1.6: Create database:
 
-    1.6: Load sample data into your database (optional):
+        ``(.venv)[waves_dir]/src/$ ./manage.py makemigrations``
+
+        ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
+
+
+    1.7: Load sample data into your database (optional):
 
             - Demo database is initially setup from:
 
                 ``(.venv)[waves_dir]/src/$ ./manage.py loaddata demo/fixtures/init.json``
 
 
-    1.7 Test your server (locally):
+    1.8 Test your server (locally):
 
         - ``(.venv)[waves_dir]/src/$ ./manage.py runserver [ServerIP:ServerPort] --insecure``
 
 
-    1.8 Start WAVES daemons (in another shell):
+    1.9 Start WAVES daemons (in another shell):
 
         - ``(.venv)[waves_dir]/src/$ ./manage.py wqueue start``
         - ``(.venv)[waves_dir]/src/$ ./manage.py wpurge start``
