@@ -89,8 +89,6 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
 
     1.6: Create database:
 
-        ``(.venv)[waves_dir]/src/$ ./manage.py makemigrations``
-
         ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
 
 
@@ -103,7 +101,7 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
 
     1.8 Test your server (locally):
 
-        - ``(.venv)[waves_dir]/src/$ ./manage.py runserver [ServerIP:ServerPort] --insecure``
+        - ``(.venv)[waves_dir]/src/$ ./manage.py runserver --insecure``
 
 
     1.9 Start WAVES daemons (in another shell):
