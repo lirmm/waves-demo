@@ -18,13 +18,16 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
             - A web server: `Apache <https://httpd.apache.org/>`_ or `NGINX <https://nginx.org/>`_
             - A database backend (Mysql or Postgres) but by default WAVES runs with sqlite
 
-    0.1 Install From sources, clone our repository:
+1. Install WAVES-Demo
+---------------------
+
+    1.1 Install From sources, clone our repository:
 
         ``git clone https://github.com/lirmm/waves-demo/ [waves_dir]``
 
         or download archive at https://github.com/lirmm/waves-demo/ and uncompress the archive in your destination directory ([waves_dir])
 
-    0.2 Install requirements:
+    1.2 Install requirements:
 
         - ``$ cd [waves_dir]``
         - ``[waves_dir]$ virtualenv .venv``
@@ -33,69 +36,71 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
         - ``(.venv)[waves_dir]]$ pip install -r requirements/production.txt`` (for production)
         - ``(.venv)[waves_dir]]$ pip install -r requirements/mysql.txt`` (for mysql DB layer)
 
+    .. note::
 
-1. Install WAVES-Demo
----------------------
+        Use other than SqlLite default DB layer:
 
-    1.1 Configuration files:
+        You need to install the Python and MySQL development headers and libraries like so:
+
+        - sudo apt-get install python-dev default-libmysqlclient-dev # Debian / Ubuntu
+        - sudo yum install python-devel mysql-devel # Red Hat / CentOS
+        - brew install mysql-connector-c # macOS (Homebrew) (Currently, it has bug. See below)
+
+        On Windows, there are binary wheels you can install without MySQLConnector/C or MSVC.
+
+        Then install pip mysql package in your virtualenv:
+
+            ``pip install mysqlclient``
+
+    .. seealso::
+
+        https://docs.djangoproject.com/fr/1.11/ref/databases/
+
+
+    1.3 Configuration files:
 
         - WAVES env configuration file:
 
             - ``(.venv)[waves_dir]$ cd src/waves_demo/settings/``
             - ``(.venv)[waves_dir]/src/waves_demo/settings$ cp local.sample.env local.env``
-            - minimal setup requires these parameters:
+            - edit this local.env file, minimal setup requires these parameters:
 
                 - SECRET_KEY=your-secret-key-to-keep-secret
                 - REGISTRATION_SALT=generate-your-key
                 - ALLOWED_HOSTS=your-host-name (Ex: localhost, 127.0.0.1 for testing purpose)
-            - you can set up as well your db connection params here (or in classical "DJANGO way" settings if you want)
 
-    1.2 Set up database:
+        1.3.1 Set up database:
 
-        - Check parameters with: ``(.venv)[waves_dir]/src/$ ./manage.py check`` (pip install any missing dependencies)
-        - See your configuration with: ``(.venv)[waves_dir]/src/$ ./manage.py waves config``
-        - If no setup, default database is used ~/[waves_dir]/waves.sample.sqlite3
+            If not setup, default database is used ~/[waves_dir]/waves.sample.sqlite3
 
-        1.2.1: Setup your database connection string (if not using sqlite default)
+            You can set your own database connection string with DATABASE_URL line
 
-            - Create local.env (copy from local.env.sample located in waves_demo/settings/)
-            - Setup line corresponding to your needs (DATABASE_URL)
+            .. seealso::
+                http://django-environ.readthedocs.io/en/latest/
 
-        1.2.2: Check everything is well.
+
+    1.5: Check everything is well (return to [waves_dir]/src/).
 
             ``(.venv)[waves_dir]/src/$ ./manage.py check``
 
-        1.2.3: Create migration files:
+            To See your configuration with:
 
-            .. note::
+            ``(.venv)[waves_dir]/src/$ ./manage.py waves config``
 
-                If you see this message:
 
-                .. code-block:: bash
-
-                    You are trying to add a non-nullable field 'service' to demowavessubmission without a default; we can't do that (the database needs something to populate existing rows).
-                    Please select a fix:
-                    1) Provide a one-off default now (will be set on all existing rows with a null value for this column)
-                    2) Quit, and let me add a default in models.py
-
-                => Select 1) option and set up default value to '1' (this problem is due to swapping of default Service and Submission)
-
-            - Create your database: ``(.venv)[waves_dir]/src/$ ./manage.py migrate``
-            - Create Superadmin user: ``(.venv)[waves_dir]/src/$ ./manage.py createsuperuser``
-
-        1.2.4: Load sample data into your database (optional):
+    1.6: Load sample data into your database (optional):
 
             - Demo database is initially setup from:
 
                 ``(.venv)[waves_dir]/src/$ ./manage.py loaddata demo/fixtures/init.json``
 
 
-    1.3 Test your server (locally):
+    1.7 Test your server (locally):
 
         - ``(.venv)[waves_dir]/src/$ ./manage.py runserver [ServerIP:ServerPort] --insecure``
 
 
-    1.4 Start WAVES daemons:
+    1.8 Start WAVES daemons (in another shell):
 
         - ``(.venv)[waves_dir]/src/$ ./manage.py wqueue start``
         - ``(.venv)[waves_dir]/src/$ ./manage.py wpurge start``
@@ -105,7 +110,7 @@ GET a WAVES demo website following the next few steps. WAVES can run with Apache
         wqueue and wpurge command allow you to control daemon, available commands are start|stop|status
 
 
-2. Configure the web server:
+2. Configure the production web server:
 -----------------------------
 
     2.1 Production settings:
