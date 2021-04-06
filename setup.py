@@ -46,7 +46,7 @@ setup(
         'django-jet==1.0.6',
         'django-mptt==0.8.7',
         'django-polymorphic-tree==1.4',
-        'django-registration==2.2',
+        'django-registration==3.1.2',
         'easy_thumbnails==2.3',
         'waves-core>=1.6.2',
         'waves-galaxy-adaptors>=1.1.3',
